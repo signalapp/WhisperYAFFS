@@ -14,7 +14,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.4 2004-12-17 04:39:04 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.5 2005-03-16 04:00:36 charles Exp $";
 
 #include "yportenv.h"
 
@@ -489,7 +489,8 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,int chunkInNAND
 	__u8 *data = yaffs_GetTempBuffer(dev,__LINE__);
 	yaffs_ExtendedTags tags;
 
-  	dev->readChunkWithTagsFromNAND(dev,chunkInNAND,data,&tags);
+// NCB  	dev->readChunkWithTagsFromNAND(dev,chunkInNAND,data,&tags);
+  	yaffs_ReadChunkWithTagsFromNAND(dev,chunkInNAND,data,&tags);
 	
 	if(!yaffs_CheckFF(data,dev->nBytesPerChunk) || tags.chunkUsed)
 	{

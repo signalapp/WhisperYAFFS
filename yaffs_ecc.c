@@ -29,7 +29,7 @@
 // Bit 0 of each entry indicates whether the entry has an odd or even parity, and therefore
 // this bytes influence on the line parity.
 
-const char *yaffs_ecc_c_version = "$Id: yaffs_ecc.c,v 1.1 2004-11-03 08:14:07 charles Exp $";
+const char *yaffs_ecc_c_version = "$Id: yaffs_ecc.c,v 1.2 2005-03-16 04:00:36 charles Exp $";
 
 
 #include "yaffs_ecc.h"
@@ -265,9 +265,15 @@ int yaffs_ECCCorrectOther(unsigned char *data, unsigned nBytes, yaffs_ECCOther *
 		// swap the bytes to correct for the wrong order
 		unsigned char t;
 		
+#if 0 // NCB
 		t = d0;
 		d0 = d1;
 		d1 = t;
+#else
+		t = cDelta;
+		cDelta = lDelta;
+		lDelta = t;
+#endif
 #endif
 		
 		bit = 0;

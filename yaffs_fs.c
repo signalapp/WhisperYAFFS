@@ -29,8 +29,9 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.1 2004-12-17 04:39:04 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.2 2005-03-16 04:00:36 charles Exp $";
 extern const char *yaffs_guts_c_version;
+
 
 
 #include <linux/config.h>
@@ -63,7 +64,6 @@ extern const char *yaffs_guts_c_version;
 
 #endif
 
-
 #include <asm/uaccess.h>
 
 #include "yportenv.h"
@@ -72,8 +72,8 @@ extern const char *yaffs_guts_c_version;
 
 
 
-//unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS;
-unsigned yaffs_traceMask = 0xFFFFFFFF;
+unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS;
+//unsigned yaffs_traceMask = 0xFFFFFFFF;
 
 
 #ifdef CONFIG_YAFFS_RAM_ENABLED

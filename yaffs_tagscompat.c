@@ -10,7 +10,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_tagscompat.c,v 1.1 2004-11-03 08:14:07 charles Exp $
+ * $Id: yaffs_tagscompat.c,v 1.2 2005-03-16 04:00:36 charles Exp $
  */
 
 #include "yaffs_guts.h"
@@ -587,6 +587,13 @@ int yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkI
 		tags.byteCount = eTags->byteCount;
 		tags.serialNumber = eTags->serialNumber;
 		
+// NCB
+		if (!dev->useNANDECC && data)
+		{
+		    yaffs_CalcECC(data,&spare);
+		}
+
+// /NCB
 		 yaffs_LoadTagsIntoSpare(&spare,&tags);
 		
 	}
@@ -602,8 +609,21 @@ int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunk
 	yaffs_Tags tags;
 	yaffs_ECCResult eccResult;
 	
+// NCB
+     static yaffs_Spare spareFF;
+     static int init;
+     
+     if(!init)
+     {
+	     memset(&spareFF,0xFF,sizeof(spareFF));
+	     init = 1;
+     }
+// /NCB
 	if(yaffs_ReadChunkFromNAND(dev,chunkInNAND,data,&spare,&eccResult,1))
 	{
+// added NCB - eTags may be NULL
+		if (eTags) {
+
 		 int deleted = (yaffs_CountBits(spare.pageStatus) < 7) ? 1 : 0;
 			
 		 yaffs_GetTagsFromSpare(dev,&spare,&tags);
@@ -615,6 +635,10 @@ int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunk
 		 eTags->serialNumber = tags.serialNumber;
 		 eTags->eccResult = eccResult;
 		 eTags->blockBad = 0; // We're reading it therefore it is not a bad block
+		 
+// NCB added 18/2/2005
+    		 eTags->chunkUsed = (memcmp(&spareFF,&spare,sizeof(spareFF)) != 0) ? 1:0;
+		}
 		 
 		 return YAFFS_OK;
 	}

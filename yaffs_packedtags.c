@@ -1,5 +1,5 @@
 #include "yaffs_packedtags.h"
-#include <string.h>
+#include "yportenv.h"
 
 void yaffs_PackTags(yaffs_PackedTags *pt, yaffs_ExtendedTags *t)
 {
@@ -16,7 +16,7 @@ void yaffs_PackTags(yaffs_PackedTags *pt, yaffs_ExtendedTags *t)
 
 void yaffs_UnpackTags(yaffs_ExtendedTags *t, yaffs_PackedTags *pt)
 {
-	static __u8 allFF[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff};
+	static const __u8 allFF[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff};
 	
 	if(memcmp(allFF,pt,sizeof(yaffs_PackedTags)))
 	{

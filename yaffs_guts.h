@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.1 2004-11-03 08:14:07 charles Exp $
+ * $Id: yaffs_guts.h,v 1.2 2004-11-16 02:36:15 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -103,7 +103,7 @@ typedef struct
 	int dirty;	
 	int nBytes;	// Only valid if the cache is dirty
 	int locked; // Can't push out or flush while locked..
-#ifdef YAFFS2_DEFINES
+#ifdef CONFIG_YAFFS_YAFFS2
 	__u8 *data;
 #else
 	__u8 data[YAFFS_BYTES_PER_CHUNK];
@@ -197,16 +197,14 @@ struct yaffs_NANDSpare {
 
 typedef enum {
 	YAFFS_BLOCK_STATE_UNKNOWN	= 0,
-#ifndef YAFFS2_DEFINES
+
 	YAFFS_BLOCK_STATE_SCANNING,
-#else
 	YAFFS_BLOCK_STATE_NEEDS_SCANNING,// The block might have something on it (ie it is allocating or full, perhaps empty)
 									// but it needs to be scanned to determine its true state.
 									// This state is only valid during yaffs_Scan.
 									// NB We tolerate empty because the pre-scanner might be incapable of deciding
 									// However, if this state is returned on a YAFFS2 device, then we expect a sequence number
 									
-#endif	
 	YAFFS_BLOCK_STATE_EMPTY,		// This block is empty
 	
 	YAFFS_BLOCK_STATE_ALLOCATING,	// This block is partially allocated. 
@@ -232,12 +230,12 @@ typedef enum {
 typedef struct
 {
 
-	int   softDeletions:8;  // number of soft deleted pages
+    int   softDeletions:8;  // number of soft deleted pages
     int   pagesInUse:8;		// number of pages in use
     __u32 blockState:4; 	// One of the above block states
     __u32 needsRetiring:1;	// Data has failed on this block, need to get valid data off
     						// and retire the block.
-#ifndef CONFIG_YAFFS_NO_YAFFS2
+#ifdef CONFIG_YAFFS_YAFFS2
 	__u32 hasShrinkHeader:1;// This block has at least one object header that does a shrink
 	__u32 sequenceNumber;	// block sequence number for yaffs2
 #endif
@@ -386,6 +384,10 @@ struct  yaffs_ObjectStruct
 							// object might be created before the data
 							// is available (ie. file data records appear before the header).
 	__u8 serial;			// serial number of chunk in NAND. Store here so we don't have to
+
+	__u8  deferedFree: 1;		// For Linux kernel. Object is removed from NAND, but still in the inode cache.
+					// Free of object is defered.
+
 							// read back the old one to update.
 	__u16 sum;				// sum of the name to speed searching
 	
@@ -438,6 +440,7 @@ struct  yaffs_ObjectStruct
 
 #ifdef __KERNEL__
 	struct inode *myInode;
+
 #endif
 
 
@@ -503,17 +506,15 @@ struct yaffs_DeviceStruct
 
 	// NAND access functions (Must be set before calling YAFFS)
 	
-#ifndef CONFIG_YAFFS_NO_YAFFS1
+
 	int (*writeChunkToNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, const __u8 *data, const yaffs_Spare *spare);
 	int (*readChunkFromNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, __u8 *data, yaffs_Spare *spare);
-//	int (*eraseBlockInNAND)(struct yaffs_DeviceStruct *dev,int blockInNAND);	
-//	int (*initialiseNAND)(struct yaffs_DeviceStruct *dev);
-#endif
-#ifndef CONFIG_YAFFS_NO_YAFFS2
-	int (*writeChunkWithTagsToNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, const __u8 *data, yaffs_ExtendedTags *tags);
-	int (*readChunkWithTagsFromNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags);
 	int (*eraseBlockInNAND)(struct yaffs_DeviceStruct *dev,int blockInNAND);	
 	int (*initialiseNAND)(struct yaffs_DeviceStruct *dev);
+
+#ifdef CONFIG_YAFFS_YAFFS2
+	int (*writeChunkWithTagsToNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, const __u8 *data, yaffs_ExtendedTags *tags);
+	int (*readChunkWithTagsFromNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags);
 	int (*markNANDBlockBad)(struct yaffs_DeviceStruct *dev, int blockNo);
 	int (*queryNANDBlock)(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, int *sequenceNumber);
 #endif
@@ -702,6 +703,13 @@ yaffs_Object *yaffs_LostNFound(yaffs_Device *dev);
 // CONFIG_YAFFS_WINCE special stuff
 void  yfsd_WinFileTimeNow(__u32 target[2]);
 #endif
+
+#ifdef __KERNEL__
+
+void yaffs_HandleDeferedFree(yaffs_Object *obj);
+#endif
+
+
 
 
 // Debug dump 

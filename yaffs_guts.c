@@ -13,7 +13,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.1 2004-11-03 08:14:07 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.2 2004-11-16 02:36:15 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1194,7 +1194,7 @@ static void yaffs_SoftDeleteChunk(yaffs_Device *dev, int chunk)
 
 	yaffs_BlockInfo *theBlock;					
 	
-	T(YAFFS_TRACE_DELETE,(TSTR("soft delete chunk %d" TENDSTR),chunk));
+	T(YAFFS_TRACE_DELETION,(TSTR("soft delete chunk %d" TENDSTR),chunk));
 						
 	theBlock =	yaffs_GetBlockInfo(dev,  chunk/dev->nChunksPerBlock);
 	if(theBlock)
@@ -1529,6 +1529,16 @@ static void yaffs_FreeObject(yaffs_Object *tn)
 
 	yaffs_Device *dev = tn->myDev;
 	
+#ifdef  __KERNEL__
+	if(tn->myInode)
+	{
+		// We're still hooked up to a cached inode.
+		// Don't delete now, but mark for later deletion
+		tn->deferedFree = 1;
+		return;
+	}
+#endif
+	
 	yaffs_UnhashObject(tn);
 	
 	// Link into the free list.
@@ -1537,6 +1547,19 @@ static void yaffs_FreeObject(yaffs_Object *tn)
 	dev->nFreeObjects++;
 }
 
+
+
+#ifdef __KERNEL__
+
+void yaffs_HandleDeferedFree(yaffs_Object *obj)
+{
+	if(obj->deferedFree)
+	{
+	   yaffs_FreeObject(obj);
+	}
+}
+
+#endif
 
 
 
@@ -1723,11 +1746,7 @@ yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev,int number,yaffs_ObjectTyp
 
 #else
 
-#if defined(CONFIG_KERNEL_2_5)
-		theObject->st_atime = theObject->st_mtime =	theObject->st_ctime = CURRENT_TIME.tv_sec;		
-#else
-		theObject->st_atime = theObject->st_mtime =	theObject->st_ctime = CURRENT_TIME;		
-#endif
+		theObject->st_atime = theObject->st_mtime = theObject->st_ctime = Y_CURRENT_TIME;		
 #endif
 		switch(type)
 		{
@@ -1831,11 +1850,8 @@ yaffs_Object *yaffs_MknodObject( yaffs_ObjectType type,
 		in->win_ctime[1] = in->win_mtime[1] = in->win_atime[1];
 		
 #else
-#if defined(CONFIG_KERNEL_2_5)
-		in->st_atime = in->st_mtime = in->st_ctime = CURRENT_TIME.tv_sec;
-#else
-		in->st_atime = in->st_mtime = in->st_ctime = CURRENT_TIME;
-#endif
+		in->st_atime = in->st_mtime = in->st_ctime = Y_CURRENT_TIME;
+
 		in->st_rdev  = rdev;
 		in->st_uid   = uid;
 		in->st_gid   = gid;
@@ -1974,7 +1990,7 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName, yaffs_Object 
 	int force = 0;
 	
 #ifdef CONFIG_YAFFS_CASE_INSENSITIVE
-	// Special case for WinCE.
+	// Special case for case insemsitive systems (eg. WinCE).
 	// While look-up is case insensitive, the name isn't.
 	// THerefore we might want to change x.txt to X.txt
 	if(oldDir == newDir && yaffs_strcmp(oldName,newName) == 0)
@@ -2719,7 +2735,7 @@ int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 {
 	int block;
 	int aggressive; 
-	int gcOk;
+	int gcOk = YAFFS_OK;
 	int maxTries = 0;
 	
 	//yaffs_DoUnlinkedFileDeletion(dev);
@@ -4168,11 +4184,9 @@ int yaffs_FlushFile(yaffs_Object *in, int updateTime)
 #ifdef CONFIG_YAFFS_WINCE
 			yfsd_WinFileTimeNow(in->win_mtime);
 #else
-#if defined(CONFIG_KERNEL_2_5)
-			in->st_mtime = CURRENT_TIME.tv_sec;
-#else
-			in->st_mtime = CURRENT_TIME;
-#endif
+
+			in->st_mtime = Y_CURRENT_TIME;
+
 #endif
 		}
 
@@ -5183,15 +5197,9 @@ int yaffs_SetAttributes(yaffs_Object *obj, struct iattr *attr)
 	if(valid & ATTR_UID) obj->st_uid = attr->ia_uid;
 	if(valid & ATTR_GID) obj->st_gid = attr->ia_gid;
 	
-#if defined(CONFIG_KERNEL_2_5)
-	if(valid & ATTR_ATIME) obj->st_atime = attr->ia_atime.tv_sec;
-	if(valid & ATTR_CTIME) obj->st_ctime = attr->ia_ctime.tv_sec;
-	if(valid & ATTR_MTIME) obj->st_mtime = attr->ia_mtime.tv_sec;
-#else
-	if(valid & ATTR_ATIME) obj->st_atime = attr->ia_atime;
-	if(valid & ATTR_CTIME) obj->st_ctime = attr->ia_ctime;
-	if(valid & ATTR_MTIME) obj->st_mtime = attr->ia_mtime;
-#endif
+	if(valid & ATTR_ATIME) obj->st_atime = Y_TIME_CONVERT(attr->ia_atime);
+	if(valid & ATTR_CTIME) obj->st_ctime = Y_TIME_CONVERT(attr->ia_ctime);
+	if(valid & ATTR_MTIME) obj->st_mtime = Y_TIME_CONVERT(attr->ia_mtime);
 	
 	if(valid & ATTR_SIZE) yaffs_ResizeFile(obj,attr->ia_size);
 	
@@ -5208,15 +5216,10 @@ int yaffs_GetAttributes(yaffs_Object *obj, struct iattr *attr)
 	attr->ia_uid = obj->st_uid;		valid |= ATTR_UID;
 	attr->ia_gid = obj->st_gid;		valid |= ATTR_GID;
 	
-#if defined(CONFIG_KERNEL_2_5)
-	attr->ia_atime.tv_sec = obj->st_atime;	valid |= ATTR_ATIME;
-	attr->ia_ctime.tv_sec = obj->st_ctime;	valid |= ATTR_CTIME;
-	attr->ia_mtime.tv_sec = obj->st_mtime;	valid |= ATTR_MTIME;
-#else	
-	attr->ia_atime = obj->st_atime;	valid |= ATTR_ATIME;
-	attr->ia_ctime = obj->st_ctime;	valid |= ATTR_CTIME;
-	attr->ia_mtime = obj->st_mtime;	valid |= ATTR_MTIME;
-#endif	
+	Y_TIME_CONVERT(attr->ia_atime)= obj->st_atime;	valid |= ATTR_ATIME;
+	Y_TIME_CONVERT(attr->ia_ctime) = obj->st_ctime;	valid |= ATTR_CTIME;
+	Y_TIME_CONVERT(attr->ia_mtime) = obj->st_mtime;	valid |= ATTR_MTIME;
+
 	attr->ia_size = yaffs_GetFileSize(obj); valid |= ATTR_SIZE;
 	
 	attr->ia_valid = valid;
@@ -5279,6 +5282,8 @@ int yaffs_CheckDevFunctions(const yaffs_Device *dev)
 	if(!dev->eraseBlockInNAND ||
 	   !dev->initialiseNAND) return 0;
 
+#ifdef CONFIG_YAFFS_YAFFS2
+
 	// Can use the "with tags" style interface for yaffs1 or yaffs2
 	if(dev->writeChunkWithTagsToNAND &&
 	   dev->readChunkWithTagsFromNAND &&
@@ -5286,6 +5291,7 @@ int yaffs_CheckDevFunctions(const yaffs_Device *dev)
 	   !dev->readChunkFromNAND &&
 	   dev->markNANDBlockBad &&
 	   dev->queryNANDBlock)	return 1;
+#endif
 
 	// Can use the "spare" style interface for yaffs1
 	if(!dev->isYaffs2 &&

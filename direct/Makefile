@@ -10,22 +10,24 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.2 2004-11-03 08:35:48 charles Exp $
+# $Id: Makefile,v 1.3 2004-11-03 09:16:47 charles Exp $
 
 CFLAGS =    -Wall -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DYAFFS2_DEFINES -g
 #CFLAGS+=   -Wshadow -Wpointer-arith -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
 
 
-DIRECTTESTOBJS = dtest.o yaffs_ecc.o yaffscfg.o yaffsfs.o yaffs_ramdisk.o yaffs_guts.o yaffs_fileem.o yaffs_packedtags.o yaffs_tagscompat.o
+DIRECTTESTOBJS = dtest.o yaffscfg2k.o yaffs_ecc.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o yaffs_packedtags.o yaffs_ramdisk.o yaffs_tagscompat.o
 
 BOOTTESTOBJS = bootldtst.o yboot.o yaffs_fileem.o nand_ecc.o
 
 ALLOBJS =  dtest.o nand_ecc.o yaffscfg.o yaffs_fileem.o yaffsfs.o yaffs_ramdisk.o bootldtst.o yboot.o 
 
-SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h yportenv.h
+SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h
 
-all: directtest boottest
+#all: directtest2k boottest
+
+all: directtest2k
 
 $(ALLOBJS): %.o: %.c
 	gcc -c $(CFLAGS) $< -o $@
@@ -33,7 +35,7 @@ $(ALLOBJS): %.o: %.c
 $(SYMLINKS):
 	ln -s ../$@ $@
 
-directtest: $(SYMLINKS) $(DIRECTTESTOBJS)
+directtest2k: $(SYMLINKS) $(DIRECTTESTOBJS)
 	gcc -o $@ $(DIRECTTESTOBJS)
 
 

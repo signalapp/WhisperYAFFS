@@ -132,7 +132,7 @@
 #endif
 
 #ifndef S_IREAD 
-#define S_READ		0000400
+#define S_IREAD		0000400
 #endif
 
 #ifndef S_IWRITE

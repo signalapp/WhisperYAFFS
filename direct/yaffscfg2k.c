@@ -9,6 +9,7 @@
 #include "yaffscfg.h"
 #include "yaffsfs.h"
 #include "yaffs_fileem2k.h"
+#include "yaffs_nandemul2k.h"
 
 #include <errno.h>
 
@@ -50,16 +51,19 @@ void yaffsfs_LocalInitialisation(void)
 
 #include "yaffs_ramdisk.h"
 #include "yaffs_flashif.h"
+#include "yaffs_nandemul2k.h"
 
 static yaffs_Device ramDev;
 static yaffs_Device bootDev;
 static yaffs_Device flashDev;
+static yaffs_Device ram2kDev;
 
 static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 
 	{ "/ram", &ramDev},
 	{ "/boot", &bootDev},
 	{ "/flash", &flashDev},
+	{ "/ram2k", &ram2kDev},
 	{(void *)0,(void *)0}
 };
 
@@ -126,6 +130,28 @@ int yaffs_StartUp(void)
 	flashDev.initialiseNAND = yflash_InitialiseNAND;
 	flashDev.markNANDBlockBad = yflash_MarkNANDBlockBad;
 	flashDev.queryNANDBlock = yflash_QueryNANDBlock;
+
+	// /ram2k
+	// Set this puppy up to use
+	// the file emulation space as
+	// 2kpage/64chunk per block/128MB device
+	memset(&ram2kDev,0,sizeof(ram2kDev));
+
+	ram2kDev.nBytesPerChunk = nandemul2k_GetBytesPerChunk();
+	ram2kDev.nChunksPerBlock = nandemul2k_GetChunksPerBlock();
+	ram2kDev.nReservedBlocks = 5;
+	ram2kDev.startBlock = 1; // First block after /boot
+	//ram2kDev.endBlock = 127; // Last block in 16MB
+	ram2kDev.endBlock = nandemul2k_GetNumberOfBlocks() - 1; // Last block in 512MB
+	ram2kDev.isYaffs2 = 1;
+	ram2kDev.nShortOpCaches = 10; // Use caches
+	ram2kDev.genericDevice = (void *) 3;	// Used to identify the device in fstat.
+	ram2kDev.writeChunkWithTagsToNAND = nandemul2k_WriteChunkWithTagsToNAND;
+	ram2kDev.readChunkWithTagsFromNAND = nandemul2k_ReadChunkWithTagsFromNAND;
+	ram2kDev.eraseBlockInNAND = nandemul2k_EraseBlockInNAND;
+	ram2kDev.initialiseNAND = nandemul2k_InitialiseNAND;
+	ram2kDev.markNANDBlockBad = nandemul2k_MarkNANDBlockBad;
+	ram2kDev.queryNANDBlock = nandemul2k_QueryNANDBlock;
 
 	yaffs_initialise(yaffsfs_config);
 	

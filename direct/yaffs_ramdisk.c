@@ -16,7 +16,7 @@
 // NB this is not intended for NAND emulation.
 // Use this with dev->useNANDECC enabled, then ECC overheads are not required.
 
-const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.1 2004-11-03 08:29:28 charles Exp $";
+const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.2 2004-11-22 03:22:25 charles Exp $";
 
 
 #include "yportenv.h"
@@ -24,7 +24,7 @@ const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.1 2004-11-03 08:
 #include "yaffs_ramdisk.h"
 #include "yaffs_guts.h"
 #include "devextras.h"
-#include "yaffs_packedtags.h"
+#include "yaffs_packedtags1.h"
 
 
 
@@ -136,9 +136,9 @@ int yramdisk_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __
 	
 	if(tags)
 	{
-		yaffs_PackedTags pt;
+		yaffs_PackedTags1 pt;
 		
-		yaffs_PackTags(&pt,tags);
+		yaffs_PackTags1(&pt,tags);
 		memcpy(&ramdisk.block[blk]->page[pg].data[512],&pt,sizeof(pt));
 	}
 
@@ -167,10 +167,10 @@ int yramdisk_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 	
 	if(tags)
 	{
-		yaffs_PackedTags pt;
+		yaffs_PackedTags1 pt;
 		
 		memcpy(&pt,&ramdisk.block[blk]->page[pg].data[512],sizeof(pt));
-		yaffs_UnpackTags(tags,&pt);
+		yaffs_UnpackTags1(tags,&pt);
 		
 	}
 

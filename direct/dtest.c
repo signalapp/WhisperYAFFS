@@ -1318,12 +1318,12 @@ int main(int argc, char *argv[])
 	
 
 	
-	scan_pattern_test("/boot",40000,10);
+	scan_pattern_test("/ram2k",40000,10);
 	//short_scan_test("/flash",40000,200);
 	return 0;
 	
-	long_test_on_path("/flash");
-	long_test_on_path("/flash");
+	long_test_on_path("/ram2k");
+	long_test_on_path("/ram2k");
 	
 	// cache_bypass_bug_test();
 	

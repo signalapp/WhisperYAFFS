@@ -15,7 +15,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yportenv.h,v 1.3 2004-11-16 02:36:15 charles Exp $
+ * $Id: yportenv.h,v 1.4 2004-11-22 03:22:25 charles Exp $
  *
  */
  
@@ -71,7 +71,7 @@
 #define yaffs_strcmp(a,b) strcmp(a,b)
 
 #define TENDSTR "\n"
-#define TSTR(x) KERN_DEBUG x
+#define TSTR(x) KERN_WARNING x
 #define TOUT(p) printk p
 
 

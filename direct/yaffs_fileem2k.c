@@ -15,7 +15,7 @@
 // This provides a YAFFS nand emulation on a file for emulating 2kB pages.
 // THis is only intended as test code to test persistence etc.
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.1 2004-11-03 08:29:28 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.2 2004-11-22 03:22:25 charles Exp $";
 
 
 #include "yportenv.h"
@@ -30,7 +30,7 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.1 2004-11-03 08
 #include <unistd.h> 
 
 #include "yaffs_fileem2k.h"
-#include "yaffs_packedtags.h"
+#include "yaffs_packedtags2.h"
 
 
 
@@ -141,8 +141,8 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 		}
 		else
 		{
-			yaffs_PackedTags pt;
-			yaffs_PackTags(&pt,tags);
+			yaffs_PackedTags2 pt;
+			yaffs_PackTags2(&pt,tags);
 
 			written = write(filedisk.handle,&pt,sizeof(pt));
 			if(written != sizeof(pt)) return YAFFS_FAIL;
@@ -158,7 +158,7 @@ int yflash_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 {
 	int written;
 	
-	yaffs_PackedTags pt;
+	yaffs_PackedTags2 pt;
 
 	CheckInit(dev);
 	
@@ -222,9 +222,9 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 		}
 		else
 		{
-			yaffs_PackedTags pt;
+			yaffs_PackedTags2 pt;
 			nread= read(filedisk.handle,&pt,sizeof(pt));
-			yaffs_UnpackTags(tags,&pt);
+			yaffs_UnpackTags2(tags,&pt);
 			if(nread != sizeof(pt)) return YAFFS_FAIL;
 		}
 	}

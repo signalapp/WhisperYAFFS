@@ -13,7 +13,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.2 2004-11-16 02:36:15 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.3 2004-11-22 03:22:25 charles Exp $";
 
 #include "yportenv.h"
 
@@ -201,7 +201,7 @@ int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,int blockInNAND)
 	return result;
 }
 
-int yaffs_InitialiseNAND(struct yaffs_DeviceStruct *dev)
+static int yaffs_InitialiseNAND(struct yaffs_DeviceStruct *dev)
 {
 	return dev->initialiseNAND(dev);
 }
@@ -4524,6 +4524,8 @@ static int yaffs_Scan(yaffs_Device *dev)
 	__u8 *chunkData;
 
 	yaffs_BlockIndex *blockIndex = NULL;
+
+	T(YAFFS_TRACE_SCAN,(TSTR("yaffs_Scan starts..." TENDSTR)));
 	
 	chunkData = yaffs_GetTempBuffer(dev,__LINE__);
 	
@@ -4947,6 +4949,9 @@ static int yaffs_Scan(yaffs_Device *dev)
 	}
 	
 	yaffs_ReleaseTempBuffer(dev,chunkData,__LINE__);
+
+	T(YAFFS_TRACE_SCAN,(TSTR("yaffs_Scan ends" TENDSTR)));
+
 	return YAFFS_OK;
 }
 
@@ -5313,11 +5318,12 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	int extraBits;
 	int nBlocks;
 
+	T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: yaffs_GutsInitialise()" TENDSTR)));
 	// Check stuff that must be set
 
 	if(!dev)
 	{
-		T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: Need a device\n" TENDSTR)));
+		T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: Need a device" TENDSTR)));
 		return YAFFS_FAIL;
 	}
 
@@ -5332,10 +5338,16 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 		dev->endBlock <= (dev->startBlock + dev->nReservedBlocks + 2) // otherwise it is too small
 	  )
 	{
-		T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: nand geometry problems\n" TENDSTR)));
+		T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: NAND geometry problems: chunk size %d, type is yaffs%s " TENDSTR),
+		   dev->nBytesPerChunk, dev->isYaffs2 ? "2" : ""));
 		return YAFFS_FAIL;
 	}
 
+	if(yaffs_InitialiseNAND(dev) != YAFFS_OK)
+	{
+		T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: InitialiseNAND failed" TENDSTR)));
+		return YAFFS_FAIL;
+	}
 
 	// Got the right mix of functions?
 	//
@@ -5442,7 +5454,6 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	
 
 	
-	
 	yaffs_InitialiseBlocks(dev,nBlocks);
 	
 	yaffs_InitialiseTnodes(dev);
@@ -5502,7 +5513,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 
 	dev->nRetiredBlocks = 0;
 
-	
+	T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: yaffs_GutsInitialise() done.\n" TENDSTR)));
 	return YAFFS_OK;
 		
 }

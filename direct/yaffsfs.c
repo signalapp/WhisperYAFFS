@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.1 2004-11-03 08:29:28 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.2 2004-11-22 03:22:25 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -180,7 +180,7 @@ static yaffs_Device *yaffsfs_FindDevice(const char *path, char **restOfPath)
 			p++;
 			leftOver++;
 		}
-		if(!*p)
+		if(!*p && (!*leftOver || *leftOver == '/'))
 		{
 			// Matched prefix
 			*restOfPath = (char *)leftOver;

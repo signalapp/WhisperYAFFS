@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.2 2004-11-16 02:36:15 charles Exp $
+ * $Id: yaffs_guts.h,v 1.3 2004-12-17 04:39:04 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -49,6 +49,9 @@
 #define YAFFS_CHUNKS_PER_BLOCK		32
 #define YAFFS_BYTES_PER_BLOCK		(YAFFS_CHUNKS_PER_BLOCK*YAFFS_BYTES_PER_CHUNK)
 #endif
+
+#define YAFFS_MIN_YAFFS2_CHUNK_SIZE 	1024
+#define YAFFS_MIN_YAFFS2_SPARE_SIZE	32
 
 #define YAFFS_MAX_CHUNK_ID			0x000FFFFF
 
@@ -532,9 +535,7 @@ struct yaffs_DeviceStruct
 
 	struct semaphore sem;// Semaphore for waiting on erasure.
 	struct semaphore grossLock; // Gross locking semaphore
-
-#endif	
-#ifdef __KERNEL__
+	__u8 * spareBuffer; // For mtdif2 use. Don't know the size of the buffer at compile time so we have to allocate it.
 	void (*putSuperFunc)(struct super_block *sb);
 #endif
 

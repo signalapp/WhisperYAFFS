@@ -21,8 +21,8 @@ typedef struct
 
 
 
-void yaffs_PackTags1(yaffs_PackedTags1 *pt, yaffs_ExtendedTags *t);
-void yaffs_UnpackTags1(yaffs_ExtendedTags *t, yaffs_PackedTags1 *pt);
+void yaffs_PackTags1(yaffs_PackedTags1 *pt, const yaffs_ExtendedTags *t);
+void yaffs_UnpackTags1(yaffs_ExtendedTags *t, const yaffs_PackedTags1 *pt);
 #endif
 
 

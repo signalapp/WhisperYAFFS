@@ -1,19 +1,20 @@
+
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system.
- * yaffs_guts.c  The main guts of YAFFS
+ * YAFFS: Yet another FFS. A NAND-flash specific file system. 
  *
  * Copyright (C) 2002 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.3 2004-11-22 03:22:25 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.4 2004-12-17 04:39:04 charles Exp $";
 
 #include "yportenv.h"
 
@@ -475,7 +476,8 @@ int yaffs_CheckFF(__u8 *buffer,int nBytes)
 	//Horrible, slow implementation
 	while(nBytes--)
 	{
-		if(*buffer != 0xFF) return 0; 
+		if(*buffer != 0xFF) return 0;
+		buffer++;
 	}
 	return 1;
 }
@@ -4525,7 +4527,7 @@ static int yaffs_Scan(yaffs_Device *dev)
 
 	yaffs_BlockIndex *blockIndex = NULL;
 
-	T(YAFFS_TRACE_SCAN,(TSTR("yaffs_Scan starts..." TENDSTR)));
+	T(YAFFS_TRACE_SCAN,(TSTR("yaffs_Scan starts  startblk %d endblk %d..." TENDSTR),dev->startBlock,dev->endBlock));
 	
 	chunkData = yaffs_GetTempBuffer(dev,__LINE__);
 	
@@ -4550,6 +4552,8 @@ static int yaffs_Scan(yaffs_Device *dev)
 		
 		bi->blockState = state;
 	 	bi->sequenceNumber = sequenceNumber;
+
+		T(YAFFS_TRACE_SCAN_DEBUG,(TSTR("Block scanning block %d state %d seq %d" TENDSTR),blk,state,sequenceNumber));
 		
 		if(state == YAFFS_BLOCK_STATE_DEAD)
 		{
@@ -4557,6 +4561,7 @@ static int yaffs_Scan(yaffs_Device *dev)
 		}
 		else if(state == YAFFS_BLOCK_STATE_EMPTY)
 		{
+			T(YAFFS_TRACE_SCAN_DEBUG,(TSTR("Block empty " TENDSTR)));
 			dev->nErasedBlocks++;
 			dev->nFreeChunks += dev->nChunksPerBlock;
 		}
@@ -4612,6 +4617,7 @@ static int yaffs_Scan(yaffs_Device *dev)
 	{
 		startIterator = 0;
 		endIterator = nBlocksToScan-1;
+		T(YAFFS_TRACE_SCAN_DEBUG,(TSTR("%d blocks to be scanned" TENDSTR),nBlocksToScan));
 	}
 	else
 	{
@@ -5695,6 +5701,5 @@ void yaffs_GutsTest(yaffs_Device *dev)
 	yaffs_ObjectTest(dev);	
 }
 #endif
-
 
 

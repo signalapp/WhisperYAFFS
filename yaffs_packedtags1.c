@@ -1,7 +1,7 @@
 #include "yaffs_packedtags1.h"
 #include "yportenv.h"
 
-void yaffs_PackTags1(yaffs_PackedTags1 *pt, yaffs_ExtendedTags *t)
+void yaffs_PackTags1(yaffs_PackedTags1 *pt, const yaffs_ExtendedTags *t)
 {
 	pt->chunkId = t->chunkId;
 	pt->serialNumber = t->serialNumber;
@@ -14,7 +14,7 @@ void yaffs_PackTags1(yaffs_PackedTags1 *pt, yaffs_ExtendedTags *t)
 	
 }
 
-void yaffs_UnpackTags1(yaffs_ExtendedTags *t, yaffs_PackedTags1 *pt)
+void yaffs_UnpackTags1(yaffs_ExtendedTags *t, const yaffs_PackedTags1 *pt)
 {
 	static const __u8 allFF[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff};
 	

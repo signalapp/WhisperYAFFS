@@ -15,7 +15,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yportenv.h,v 1.1 2004-11-03 08:14:07 charles Exp $
+ * $Id: yportenv.h,v 1.2 2004-11-03 08:35:48 charles Exp $
  *
  */
  
@@ -29,6 +29,8 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
+
+#define Y_INLINE
 
 #define CONFIG_YAFFS_CASE_INSENSITIVE
 #define CONFIG_YAFFS_UNICODE
@@ -104,6 +106,8 @@ extern unsigned yfsd_U32FileTimeNow(void);
 #include "linux/string.h"
 #include "linux/slab.h"
 
+#define Y_INLINE
+
 
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
@@ -139,6 +143,8 @@ extern unsigned yfsd_U32FileTimeNow(void);
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
+
+#define Y_INLINE
 
 #define YMALLOC(x) malloc(x)
 #define YFREE(x)   free(x)
@@ -184,6 +190,8 @@ extern unsigned yfsd_U32FileTimeNow(void);
 
 #define YMALLOC(x) malloc(x)
 #define YFREE(x)   free(x)
+
+#define Y_INLINE
 
 
 //#define YINFO(s) YPRINTF(( __FILE__ " %d %s\n",__LINE__,s))
@@ -235,7 +243,11 @@ extern unsigned yaffs_traceMask;
 #define YAFFS_TRACE_TRACING		0x0100
 #define YAFFS_TRACE_ALWAYS		0x0200
 #define YAFFS_TRACE_WRITE		0x0400
-#define YAFFS_TRACE_BUG			0x8000
+#define YAFFS_TRACE_BUFFERS		0x0800
+#define YAFFS_TRACE_NANDACCESS		0x1000
+#define YAFFS_TRACE_DELETE		0x2000
+#define YAFFS_TRACE_GC_DETAIL		0x4000
+#define YAFFS_TRACE_BUG			0x800000
 
 #define T(mask,p) do{ if((mask) & (yaffs_traceMask | YAFFS_TRACE_ERROR)) TOUT(p);} while(0) 
 
@@ -249,4 +261,13 @@ extern unsigned yaffs_traceMask;
 #else
 #define YBUG() T(YAFFS_TRACE_BUG,(TSTR("==>> yaffs bug: " __FILE__ " %d" TENDSTR),__LINE__))
 #endif
+
+#ifndef YCHAR
+#define YCHAR char
+#endif
+
+#ifndef YUCHAR 
+#define YUCHAR unsigned char
+#endif
+
 #endif

@@ -29,7 +29,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.2 2005-03-16 04:00:36 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.3 2005-04-24 08:05:16 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1613,8 +1613,8 @@ static struct file_system_type yaffs_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "yaffs",
 	.get_sb		= yaffs_read_super,
-//	.kill_sb	= kill_block_super,
-	.kill_sb	= kill_litter_super,
+	.kill_sb	= kill_block_super,
+//	.kill_sb	= kill_litter_super,
 	.fs_flags	= FS_REQUIRES_DEV,
 };
 #else
@@ -1643,8 +1643,8 @@ static struct file_system_type yaffs2_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "yaffs2",
 	.get_sb		= yaffs2_read_super,
-//	.kill_sb	= kill_block_super,
-	.kill_sb	= kill_litter_super,
+	.kill_sb	= kill_block_super,
+//	.kill_sb	= kill_litter_super,
 	.fs_flags	= FS_REQUIRES_DEV,
 };
 #else
@@ -1673,8 +1673,8 @@ static struct file_system_type yaffs_ram_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "yaffsram",
 	.get_sb		= yaffs_ram_read_super,
-//	.kill_sb	= kill_block_super,
-	.kill_sb	= kill_litter_super,
+	.kill_sb	= kill_block_super,
+//	.kill_sb	= kill_litter_super,
 	.fs_flags	= FS_SINGLE,
 };
 #else
@@ -1702,8 +1702,8 @@ static struct file_system_type yaffs2_ram_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "yaffs2ram",
 	.get_sb		= yaffs2_ram_read_super,
-//	.kill_sb	= kill_block_super,
-	.kill_sb	= kill_litter_super,
+	.kill_sb	= kill_block_super,
+//	.kill_sb	= kill_litter_super,
 	.fs_flags	= FS_SINGLE,
 };
 #else

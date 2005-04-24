@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.2 2004-11-22 03:22:25 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.3 2005-04-24 09:18:52 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1124,7 +1124,7 @@ off_t yaffs_freespace(const char *path)
 	
 	yaffsfs_Lock();
 	dev = yaffsfs_FindDevice(path,&dummy);
-	if(dev)
+	if(dev  && dev->isMounted)
 	{
 		retVal = yaffs_GetNumberOfFreeChunks(dev);
 		retVal *= dev->nBytesPerChunk;

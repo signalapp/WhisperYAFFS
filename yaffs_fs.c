@@ -29,7 +29,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.3 2005-04-24 08:05:16 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.4 2005-04-24 09:20:24 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -643,8 +643,11 @@ static void yaffs_FillInodeFromObject(struct inode *inode, yaffs_Object *obj)
 		switch (obj->st_mode & S_IFMT) 
 		{
 			default: // fifo, device or socket
-				init_special_inode(inode, obj->st_mode,(dev_t)(obj->st_rdev));
-				break;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+                               init_special_inode(inode, obj->st_mode,old_decode_dev(obj->st_rdev));
+#else
+                                 init_special_inode(inode, obj->st_mode,(dev_t)(obj->st_rdev));
+#endif				break;
 			case S_IFREG:	// file		
 				inode->i_op = &yaffs_file_inode_operations;
 				inode->i_fop = &yaffs_file_operations;
@@ -926,8 +929,11 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode, int r
 		default:
 			// Special (socket, fifo, device...)
 			T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_mknod: making special\n"));
-			obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,current->uid, current->gid,rdev);
-			break;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+                        obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,current->uid, current->gid,old_encode_dev(rdev));
+#else
+                        obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,current->uid, current->gid,rdev);
+#endif			break;
 		case S_IFREG:	// file		
 			T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_mknod: making file\n"));
 			obj = yaffs_MknodFile(parent,dentry->d_name.name,mode,current->uid, current->gid);
@@ -1912,4 +1918,5 @@ module_exit(exit_yaffs_fs)
 MODULE_DESCRIPTION("YAFFS2 - a NAND specific flash file system");
 MODULE_AUTHOR("Charles Manning, Aleph One Ltd., 2002,2003,2004");
 MODULE_LICENSE("GPL");
+
 

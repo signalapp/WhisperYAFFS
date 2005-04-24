@@ -15,7 +15,7 @@
  //yaffs_ramem2k.c: RAM emulation in-kernel for 2K pages (YAFFS2)
 
 
-const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.1 2004-12-17 04:39:04 charles Exp $";
+const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.2 2005-04-24 09:26:08 charles Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
@@ -33,7 +33,7 @@ const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.1 2004-12-17 04:
 
 
 
-#define EM_SIZE_IN_MEG 2
+#define EM_SIZE_IN_MEG (32)
 #define PAGE_DATA_SIZE  (2048)
 #define PAGE_SPARE_SIZE (64)
 #define PAGES_PER_BLOCK (64)

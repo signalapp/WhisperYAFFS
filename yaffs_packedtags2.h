@@ -7,14 +7,13 @@
 #include "yaffs_guts.h"
 #include "yaffs_ecc.h"
 
+
 typedef struct
 {   
     unsigned sequenceNumber;
+    unsigned objectId;    
     unsigned chunkId;
-    unsigned objectId;
-    unsigned byteCount;
-    unsigned nandTagsEcc;
-    
+    unsigned byteCount;    
 } yaffs_PackedTags2TagsPart;
 
 typedef struct
@@ -25,7 +24,7 @@ typedef struct
 
 
 void yaffs_PackTags2(yaffs_PackedTags2 *pt, const  yaffs_ExtendedTags *t);
-void yaffs_UnpackTags2(yaffs_ExtendedTags *t, const yaffs_PackedTags2 *pt);
+void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt);
 #endif
 
 

@@ -1,5 +1,5 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
+ * YAFFS: Yet another FFS. A NAND-flash specific file system.
  * yaffs_guts.h: Configuration etc for yaffs_guts
  *
  * Copyright (C) 2002 Aleph One Ltd.
@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.3 2004-12-17 04:39:04 charles Exp $
+ * $Id: yaffs_guts.h,v 1.4 2005-04-24 09:57:06 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -146,14 +146,27 @@ typedef enum
 	YAFFS_ECC_RESULT_UNFIXED
 } yaffs_ECCResult;
 
+typedef enum
+{
+	YAFFS_OBJECT_TYPE_UNKNOWN,
+	YAFFS_OBJECT_TYPE_FILE,
+	YAFFS_OBJECT_TYPE_SYMLINK,
+	YAFFS_OBJECT_TYPE_DIRECTORY,
+	YAFFS_OBJECT_TYPE_HARDLINK,
+	YAFFS_OBJECT_TYPE_SPECIAL
+} yaffs_ObjectType;
+
+
 typedef struct
 {
 
 	unsigned validMarker0;
 	unsigned chunkUsed;		    //  Status of the chunk: used or unused
 	unsigned objectId;			// If 0 then this is not part of an object (unused)
-	unsigned chunkId;			// If 0 then this is a header
+	unsigned chunkId;			// If 0 then this is a header, else a data chunk
 	unsigned byteCount;		    // Only valid for data chunks
+	
+	
 	// The following stuff only has meaning when we read
 	yaffs_ECCResult eccResult;  // Only valid when we read.
 	unsigned blockBad;			// Only valid on reading
@@ -164,6 +177,16 @@ typedef struct
 	
 	// YAFFS2 stuff
 	unsigned sequenceNumber; 	// The sequence number of this block
+
+	// Extra info if this is an object header (YAFFS2 only)
+	unsigned extraHeaderInfoAvailable; 
+	unsigned extraParentObjectId;
+	unsigned extraIsShrinkHeader;
+	
+	yaffs_ObjectType extraObjectType;
+
+	unsigned extraFileLength;
+	unsigned extraEquivalentObjectId;
 
 	unsigned validMarker1;
 	
@@ -233,9 +256,9 @@ typedef enum {
 typedef struct
 {
 
-    int   softDeletions:8;  // number of soft deleted pages
-    int   pagesInUse:8;		// number of pages in use
-    __u32 blockState:4; 	// One of the above block states
+    int   softDeletions:12;  // number of soft deleted pages
+    int   pagesInUse:12;	// number of pages in use
+    yaffs_BlockState blockState:4; 	// One of the above block states
     __u32 needsRetiring:1;	// Data has failed on this block, need to get valid data off
     						// and retire the block.
 #ifdef CONFIG_YAFFS_YAFFS2
@@ -248,16 +271,6 @@ typedef struct
 
 //////////////////// Object structure ///////////////////////////
 // This is the object structure as stored on NAND
-
-typedef enum
-{
-	YAFFS_OBJECT_TYPE_UNKNOWN,
-	YAFFS_OBJECT_TYPE_FILE,
-	YAFFS_OBJECT_TYPE_SYMLINK,
-	YAFFS_OBJECT_TYPE_DIRECTORY,
-	YAFFS_OBJECT_TYPE_HARDLINK,
-	YAFFS_OBJECT_TYPE_SPECIAL
-} yaffs_ObjectType;
 
 typedef struct
 {
@@ -345,6 +358,7 @@ typedef struct
 {
 	__u32 fileSize;
 	__u32 scannedFileSize;
+	__u32 shrinkSize;
 	int   topLevel;
 	yaffs_Tnode *top;
 } yaffs_FileStructure;
@@ -380,7 +394,7 @@ struct  yaffs_ObjectStruct
 	__u8 softDeleted: 1;	// it has also been soft deleted
 	__u8 unlinked: 1;		// An unlinked file. The file should be in the unlinked pseudo directory.
 	__u8 fake:1;			// A fake object has no presence on NAND.
-	__u8 renameAllowed:1;
+	__u8 renameAllowed:1;		// Some objects are not allowed to be renamed.
 	__u8 unlinkAllowed:1;
 	__u8 dirty:1;			// the object needs to be written to flash
 	__u8 valid:1;			// When the file system is being loaded up, this 
@@ -390,9 +404,12 @@ struct  yaffs_ObjectStruct
 
 	__u8  deferedFree: 1;		// For Linux kernel. Object is removed from NAND, but still in the inode cache.
 					// Free of object is defered.
+					
+	__u8 lazyLoaded;		// Vital info has been loaded from tags. Not all info available.
+					// 
 
-							// read back the old one to update.
-	__u16 sum;				// sum of the name to speed searching
+					// read back the old one to update.
+	__u16 sum;			// sum of the name to speed searching
 	
 	struct yaffs_DeviceStruct *myDev; // The device I'm on
 	

@@ -1,5 +1,44 @@
+/*
+ * YAFFS: Yet another FFS. A NAND-flash specific file system. 
+ *
+ * yaffs_packedtags2.c: Tags packing for YAFFS2
+ *
+ * Copyright (C) 2002 Aleph One Ltd.
+ *
+ * Created by Charles Manning <charles@aleph1.co.uk>
+ *
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * version 2.1 as published by the Free Software Foundation.
+ */
+ 
 #include "yaffs_packedtags2.h"
 #include "yportenv.h"
+#include "yaffs_tagsvalidity.h"
+
+
+
+// This code packs a set of extended tags into a binary structure for NAND storage
+
+// Some of the information is "extra" struff which can be packed in to speed scanning
+// This is defined by having the EXTRA_HEADER_INFO_FLAG set.
+
+
+// Extra flags applied to chunkId
+
+#define EXTRA_HEADER_INFO_FLAG	0x80000000
+#define EXTRA_SHRINK_FLAG	0x40000000
+#define EXTRA_SPARE_FLAGS	0x30000000
+
+#define ALL_EXTRA_FLAGS		0xF0000000
+
+
+
+// Also, the top 4 bits of the object Id are set to the object type.
+#define EXTRA_OBJECT_TYPE_SHIFT (28)
+#define EXTRA_OBJECT_TYPE_MASK  ((0x0F) << EXTRA_OBJECT_TYPE_SHIFT)
+
 
 
 static void yaffs_DumpPackedTags2(const yaffs_PackedTags2 *pt)
@@ -21,6 +60,32 @@ void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t)
 	pt->t.byteCount = t->byteCount;
 	pt->t.objectId = t->objectId;
 	
+	if(t->chunkId == 0 && t->extraHeaderInfoAvailable)
+	{
+		// Store the extra header info instead
+		pt->t.chunkId = EXTRA_HEADER_INFO_FLAG | t->extraParentObjectId; // We save the parent object in the chunkId
+		if(t->extraIsShrinkHeader) 
+		{
+		    pt->t.chunkId |= EXTRA_SHRINK_FLAG;
+		}
+		
+		pt->t.objectId &= ~EXTRA_OBJECT_TYPE_MASK;
+		pt->t.objectId |= (t->extraObjectType << EXTRA_OBJECT_TYPE_SHIFT);
+		 
+		if(t->extraObjectType == YAFFS_OBJECT_TYPE_HARDLINK)
+		{
+		   pt->t.byteCount = t->extraEquivalentObjectId;
+		}
+		else if(t->extraObjectType == YAFFS_OBJECT_TYPE_FILE)
+		{
+		   pt->t.byteCount = t->extraFileLength;
+		}
+		else
+		{
+		   pt->t.byteCount = 0;
+		}
+	}
+	
 	yaffs_DumpPackedTags2(pt);
 	yaffs_DumpTags2(t);
 	
@@ -28,16 +93,15 @@ void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t)
 	
 }
 
-void yaffs_UnpackTags2(yaffs_ExtendedTags *t, const yaffs_PackedTags2 *pt)
+void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
 {
 
 	
-	if(pt->t.sequenceNumber == 0xFFFFFFFF)
-	{
-		memset(t,0,sizeof(yaffs_ExtendedTags));
-		
-	}
-	else
+	memset(t,0,sizeof(yaffs_ExtendedTags));
+	
+	yaffs_InitialiseTags(t);
+	
+	if(pt->t.sequenceNumber != 0xFFFFFFFF)
 	{
 		// Page is in use
 		yaffs_ECCOther ecc;
@@ -51,6 +115,29 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags *t, const yaffs_PackedTags2 *pt)
 		t->chunkDeleted = 0;
 		t->serialNumber = 0;
 		t->sequenceNumber = pt->t.sequenceNumber;
+		
+		// Do extra header info stuff
+		
+		if(pt->t.chunkId & EXTRA_HEADER_INFO_FLAG)
+		{
+			t->chunkId = 0;
+			t->byteCount = 0;
+			
+			t->extraHeaderInfoAvailable = 1;
+			t->extraParentObjectId = pt->t.chunkId & (~(ALL_EXTRA_FLAGS));
+			t->extraIsShrinkHeader =  (pt->t.chunkId & EXTRA_SHRINK_FLAG) ? 1 : 0;
+			t->extraObjectType = pt->t.objectId >> EXTRA_OBJECT_TYPE_SHIFT;
+			t->objectId &= ~EXTRA_OBJECT_TYPE_MASK;
+			
+			if(t->extraObjectType == YAFFS_OBJECT_TYPE_HARDLINK)
+			{
+			    t->extraEquivalentObjectId = pt->t.byteCount;
+			}
+			else 
+			{
+			    t->extraFileLength = pt->t.byteCount;
+			}
+		}
 	}
 
 	yaffs_DumpPackedTags2(pt);

@@ -12,7 +12,7 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 #
-# $Id: Makefile,v 1.1 2004-12-17 23:14:51 charles Exp $
+# $Id: Makefile,v 1.2 2005-04-29 18:11:30 charles Exp $
 #
 
 ## Change or override  KERNELDIR to your kernel
@@ -118,7 +118,7 @@ YAFFS2_CONFIGS = $(YAFFS_CONFIGS) -DCONFIG_YAFFS_YAFFS2
 CFLAGS = -D__KERNEL__ -DMODULE $(YAFFS2_CONFIGS)  -I$(KERNELDIR)/include -O2 -g -Wall
 
 
-OBJS = yaffs_fs.o yaffs_guts.o yaffs_ramem.o yaffs_mtdif.o yaffs_ecc.o yaffs_tagscompat.o yaffs_ramem2k.o yaffs_packedtags2.o yaffs_mtdif2.o
+OBJS = yaffs_fs.o yaffs_guts.o yaffs_ramem.o yaffs_mtdif.o yaffs_ecc.o yaffs_tagscompat.o yaffs_ramem2k.o yaffs_packedtags2.o yaffs_mtdif2.o yaffs_tagsvalidity.o
 
 
 all: yaffs.o

@@ -29,7 +29,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.4 2005-04-24 09:20:24 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.5 2005-04-29 07:01:18 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1212,20 +1212,35 @@ static int yaffs_statfs(struct super_block *sb, struct kstatfs *buf)
 static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 #endif
 {
+
+	
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
 	T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_statfs\n"));
 
 	yaffs_GrossLock(dev);
 	
+	
 	buf->f_type = YAFFS_MAGIC;
 	buf->f_bsize = sb->s_blocksize;
 	buf->f_namelen = 255;
-	buf->f_blocks = (dev->endBlock - dev->startBlock + 1) * YAFFS_CHUNKS_PER_BLOCK/
-						(sb->s_blocksize/YAFFS_BYTES_PER_CHUNK);
+	if(sb->s_blocksize > dev->nBytesPerChunk)
+	{
+		
+		buf->f_blocks = (dev->endBlock - dev->startBlock + 1) * dev->nChunksPerBlock/
+						(sb->s_blocksize/dev->nBytesPerChunk);
+		buf->f_bfree = yaffs_GetNumberOfFreeChunks(dev)/
+						(sb->s_blocksize/dev->nBytesPerChunk);
+	}
+	else
+	{
+		
+		buf->f_blocks = (dev->endBlock - dev->startBlock + 1) * dev->nChunksPerBlock *
+						(dev->nBytesPerChunk/sb->s_blocksize);
+		buf->f_bfree = yaffs_GetNumberOfFreeChunks(dev) *
+						(dev->nBytesPerChunk/sb->s_blocksize);
+	}
 	buf->f_files = 0;
 	buf->f_ffree = 0;
-	buf->f_bfree = yaffs_GetNumberOfFreeChunks(dev)/
-						(sb->s_blocksize/YAFFS_BYTES_PER_CHUNK);
 	buf->f_bavail =  buf->f_bfree;
 	
 	yaffs_GrossUnlock(dev);

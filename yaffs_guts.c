@@ -14,7 +14,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.6 2005-04-24 09:57:06 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.7 2005-07-03 10:32:40 charles Exp $";
 
 #include "yportenv.h"
 
@@ -3076,7 +3076,7 @@ static int yaffs_CheckFileSanity(yaffs_Object *in)
 
 static int yaffs_PutChunkIntoFile(yaffs_Object *in,int chunkInInode, int chunkInNAND, int inScan)
 {
-	// NB inScan is zero unless scanning. For forward scanning, inScan is > 0 for backward scanning inScan is < 0
+	// NB inScan is zero unless scanning. For forward scanning, inScan is > 0; for backward scanning inScan is < 0
 	yaffs_Tnode *tn;
 	yaffs_Device *dev = in->myDev;
 	int existingChunk;
@@ -3114,6 +3114,8 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in,int chunkInInode, int chunkIn
 		// chunk should ever be affected.
 		//
 		// Correction for YAFFS2: This could happen quite a lot and we need to think about efficiency! TODO
+		// Update: For backward scanning we don't need to re-read tags so this is quite cheap.
+		
 	
 		
 		if(existingChunk != 0)
@@ -3129,9 +3131,9 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in,int chunkInInode, int chunkIn
 			//
 			//
 			
-			if(inScan >= 0)
+			if(inScan > 0)
 			{
-				// No need to do this for backward scanning
+				// Only do this for forward scanning
 				yaffs_ReadChunkWithTagsFromNAND(dev,chunkInNAND, NULL,&newTags);
 			
 			
@@ -3154,13 +3156,12 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in,int chunkInInode, int chunkIn
 			newSerial = newTags.serialNumber;
 			existingSerial = existingTags.serialNumber;
 			
-			if( (inScan >= 0) &&
+			if( (inScan > 0) &&
 			    ( in->myDev->isYaffs2  ||
 			      existingChunk <= 0 ||
 			     ((existingSerial+1) & 3) == newSerial))
 			{
-				// Forward scanning or not during scanning
-				
+				// Forward scanning.				
 				// Use new
 				// Delete the old one and drop through to update the tnode
 				yaffs_DeleteChunk(dev,existingChunk,1,__LINE__);
@@ -3918,7 +3919,7 @@ int yaffs_ReadDataFromFile(yaffs_Object *in, __u8 * buffer, __u32 offset, int nB
 
 
 
-int yaffs_WriteDataToFile(yaffs_Object *in,const __u8 * buffer, __u32 offset, int nBytes)
+int yaffs_WriteDataToFile(yaffs_Object *in,const __u8 * buffer, __u32 offset, int nBytes, int writeThrough)
 {	
 	
 	int chunk;
@@ -3945,7 +3946,7 @@ int yaffs_WriteDataToFile(yaffs_Object *in,const __u8 * buffer, __u32 offset, in
 		// OK now check for the curveball where the start and end are in
 		// the same chunk.
 		
-		if(	(start + n) < dev->nBytesPerChunk)
+		if((start + n) < dev->nBytesPerChunk)
 		{
 			nToCopy = n;
 			
@@ -3973,7 +3974,7 @@ int yaffs_WriteDataToFile(yaffs_Object *in,const __u8 * buffer, __u32 offset, in
 		{
 			// An incomplete start or end chunk (or maybe both start and end chunk)
 			if(dev->nShortOpCaches > 0)
-			{
+			   {
 				yaffs_ChunkCache *cache;
 				// If we can't find the data in the cache, then load it up.
 				cache = yaffs_FindChunkCache(in,chunk);
@@ -4002,6 +4003,16 @@ int yaffs_WriteDataToFile(yaffs_Object *in,const __u8 * buffer, __u32 offset, in
 #endif
 					cache->locked = 0;
 					cache->nBytes = nToWriteBack;
+					
+					if(writeThrough)
+					{
+						chunkWritten = yaffs_WriteChunkDataToObject(cache->object,
+											    cache->chunkId,
+											    cache->data,
+											    cache->nBytes,1);
+						cache->dirty = 0;
+					}
+
 				}
 				else
 				{

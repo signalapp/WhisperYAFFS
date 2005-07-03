@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.4 2005-04-24 09:57:06 charles Exp $
+ * $Id: yaffs_guts.h,v 1.5 2005-07-03 10:32:40 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -424,10 +424,10 @@ struct  yaffs_ObjectStruct
 	struct list_head siblings;	// siblings in a directory
 								// also used for linking up the free list
 		
-	// Where's my data in NAND?
+	// Where's my object header in NAND?
 	int chunkId;		// where it lives
 
-	int nDataChunks;	
+	int nDataChunks;	// Number of data chunks attached to the file.	
 	
 	__u32 objectId;		// the object id value
 	
@@ -686,7 +686,7 @@ int yaffs_GetAttributes(yaffs_Object *obj, struct iattr *attr);
 
 // File operations
 int yaffs_ReadDataFromFile(yaffs_Object *obj, __u8 *buffer, __u32 offset, int nBytes);
-int yaffs_WriteDataToFile(yaffs_Object *obj, const __u8 *buffer, __u32 offset, int nBytes);
+int yaffs_WriteDataToFile(yaffs_Object *obj, const __u8 *buffer, __u32 offset, int nBytes, int writeThrough);
 int yaffs_ResizeFile(yaffs_Object *obj, int newSize);
 
 yaffs_Object *yaffs_MknodFile(yaffs_Object *parent,const YCHAR *name, __u32 mode, __u32 uid, __u32 gid);

@@ -29,7 +29,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.5 2005-04-29 07:01:18 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.6 2005-07-03 10:32:40 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -548,7 +548,7 @@ static int yaffs_writepage(struct page *page)
 	yaffs_GrossLock(obj->myDev);
 
 
-	nWritten = yaffs_WriteDataToFile(obj,buffer,page->index << PAGE_CACHE_SHIFT,nBytes);
+	nWritten = yaffs_WriteDataToFile(obj,buffer,page->index << PAGE_CACHE_SHIFT,nBytes,0);
 
 	yaffs_GrossUnlock(obj->myDev);
 	
@@ -786,7 +786,7 @@ static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n, loff_
 		T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_file_write about to write writing %d bytes to object %d at %d\n",n,obj->objectId,ipos));
 	}
 
-	nWritten = yaffs_WriteDataToFile(obj,buf,ipos,n);
+	nWritten = yaffs_WriteDataToFile(obj,buf,ipos,n,0);
 
 	T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_file_write writing %d bytes, %d written at %d\n",n,nWritten,ipos));
 	if(nWritten > 0)

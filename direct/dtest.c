@@ -90,7 +90,7 @@ int check_pattern_file(char *fn)
 	h = yaffs_open(fn, O_RDWR,0);
 	size = yaffs_lseek(h,0,SEEK_END);
 		
-	for(i = 0; i < size && ok; i+=256)
+	for(i = 0; i < size; i+=256)
 	{
 		yaffs_lseek(h,i,SEEK_SET);
 		yaffs_read(h,&marker,sizeof(marker));
@@ -101,6 +101,38 @@ int check_pattern_file(char *fn)
 					fn,size,i,marker,~i);
 		}
 	}
+	yaffs_close(h);
+	return ok;
+}
+
+
+
+
+
+int dump_file_data(char *fn)
+{
+	int h;
+	int marker;
+	int i = 0;
+	int size;
+	int ok = 1;
+	unsigned char b;
+	
+	h = yaffs_open(fn, O_RDWR,0);
+
+				
+	printf("%s\n",fn);
+	while(yaffs_read(h,&b,1)> 0)
+	{
+		printf("%02x",b);
+		i++;
+		if(i > 32) 
+		{
+		   printf("\n");
+		   i = 0;;
+		 }
+	}
+	printf("\n");
 	yaffs_close(h);
 	return ok;
 }
@@ -129,6 +161,95 @@ void dump_file(const char *fn)
 	}
 }
 
+void create_file_of_size(const char *fn,int syze)
+{
+	int h;
+	int n;
+	
+	
+	int iterations = (syze + strlen(fn) -1)/ strlen(fn);
+	
+	h = yaffs_open(fn, O_CREAT | O_RDWR | O_TRUNC, S_IREAD | S_IWRITE);
+		
+	while (iterations > 0)
+	{
+		yaffs_write(h,fn,strlen(fn));
+		iterations--;
+	}
+	yaffs_close (h);
+}
+
+void create_resized_file_of_size(const char *fn,int syze1,int reSyze, int syze2)
+{
+	int h;
+	int n;
+	
+	
+	int iterations;
+	
+	h = yaffs_open(fn, O_CREAT | O_RDWR | O_TRUNC, S_IREAD | S_IWRITE);
+		
+	iterations = (syze1 + strlen(fn) -1)/ strlen(fn);
+	while (iterations > 0)
+	{
+		yaffs_write(h,fn,strlen(fn));
+		iterations--;
+	}
+	
+	yaffs_truncate(h,reSyze);
+	
+	yaffs_lseek(h,0,SEEK_SET);
+	iterations = (syze2 + strlen(fn) -1)/ strlen(fn);
+	while (iterations > 0)
+	{
+		yaffs_write(h,fn,strlen(fn));
+		iterations--;
+	}
+	
+	yaffs_close (h);
+}
+
+
+void do_some_file_stuff(const char *path)
+{
+
+	char fn[100];
+
+	sprintf(fn,"%s/%s",path,"f1");
+	create_file_of_size(fn,10000);
+
+	sprintf(fn,"%s/%s",path,"fdel");
+	create_file_of_size(fn,10000);
+	yaffs_unlink(fn);
+
+	sprintf(fn,"%s/%s",path,"f2");
+	
+	create_resized_file_of_size(fn,10000,3000,4000);
+}
+
+void yaffs_backward_scan_test(const char *path)
+{
+	char fn[100];
+	
+	yaffs_StartUp();	
+	
+	yaffs_mount(path);
+	
+	do_some_file_stuff(path);
+	
+	sprintf(fn,"%s/ddd",path);
+	
+	yaffs_mkdir(fn,0);
+	
+	do_some_file_stuff(fn);
+	
+	yaffs_unmount(path);
+	
+	yaffs_mount(path);
+}
+
+
+
 void short_scan_test(const char *path, int fsize, int niterations)
 {
 	int i;
@@ -147,6 +268,8 @@ void short_scan_test(const char *path, int fsize, int niterations)
 		yaffs_unmount(path);
 	}
 }
+
+
 
 void scan_pattern_test(const char *path, int fsize, int niterations)
 {
@@ -169,8 +292,10 @@ void scan_pattern_test(const char *path, int fsize, int niterations)
 		dumpDir(path);
 		for(j = 0; j < 3; j++)
 		{
+			result = dump_file_data(fn[j]);
 			result = check_pattern_file(fn[j]);
 			make_pattern_file(fn[j],fsize); 
+			result = dump_file_data(fn[j]);
 			result = check_pattern_file(fn[j]);
 		}
 		yaffs_unmount(path);
@@ -662,11 +787,18 @@ int long_test(int argc, char *argv[])
 
 }
 
-int long_test_on_path(char *path)
+int huge_directory_test_on_path(char *path)
 {
 
+	yaffs_DIR *d;
+	yaffs_dirent *de;
+	struct yaffs_stat s;
+
 	int f;
+	int i;
 	int r;
+	int total = 0;
+	int lastTotal = 0;
 	char buffer[20];
 	
 	char str[100];
@@ -681,242 +813,41 @@ int long_test_on_path(char *path)
 	
 	yaffs_mount(path);
 	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-
-	//leave_unlinked_file("/flash",20000,0);
-	//leave_unlinked_file("/data",20000,0);
+	// Create a large number of files
 	
-	leave_unlinked_file(path,20,0);
-	
-
-	sprintf(name,"%s/%s",path,"b1");
-	f = yaffs_open(name, O_RDONLY,0);
-	
-	printf("open %s readonly, f=%d\n",name,f);
-	
-	f = yaffs_open(name, O_CREAT,S_IREAD | S_IWRITE);
-	
-	printf("open %s O_CREAT, f=%d\n",name,f);
+	for(i = 0; i < 2000; i++)
+	{
+	  sprintf(str,"%s/%d",path,i);
+	  
+	   f = yaffs_open(str,O_CREAT,S_IREAD | S_IWRITE);
+	   yaffs_close(f);
+	}
 	
 	
-	r = yaffs_write(f,"hello",1);
-	printf("write %d attempted to write to a read-only file\n",r);
 	
-	r = yaffs_close(f);
+	d = yaffs_opendir(path);
+	i = 0;
+	if (d) {
+	while((de = yaffs_readdir(d)) != NULL) {
+	if (total >lastTotal+100*9*1024||(i & 1023)==0){
+	printf("files = %d, total = %d\n",i, total);
+	lastTotal = total;
+	}
+		i++;
+		sprintf(str,"%s/%s",path,de->d_name);
+		yaffs_lstat(str,&s);
+		switch(s.st_mode & S_IFMT){
+		case S_IFREG:
+	//printf("data file");
+	total += s.st_size;
+	break;
+	}
+	}
 	
-	printf("close %d\n",r);
-
-	f = yaffs_open(name, O_RDWR,0);
+	yaffs_closedir(d);
+	}
 	
-	printf("open %s O_RDWR,f=%d\n",name,f);
-	
-	
-	r = yaffs_write(f,"hello",2);
-	printf("write %d attempted to write to a writeable file\n",r);
-	r = yaffs_write(f,"world",3);
-	printf("write %d attempted to write to a writeable file\n",r);
-	
-	r= yaffs_lseek(f,0,SEEK_END);
-	printf("seek end %d\n",r);
-	memset(buffer,0,20);
-	r = yaffs_read(f,buffer,10);
-	printf("read %d \"%s\"\n",r,buffer);
-	r= yaffs_lseek(f,0,SEEK_SET);
-	printf("seek set %d\n",r);
-	memset(buffer,0,20);
-	r = yaffs_read(f,buffer,10);
-	printf("read %d \"%s\"\n",r,buffer);
-	memset(buffer,0,20);
-	r = yaffs_read(f,buffer,10);
-	printf("read %d \"%s\"\n",r,buffer);
-
-	// Check values reading at end.
-	// A read past end of file should return 0 for 0 bytes read.
-		
-	r= yaffs_lseek(f,0,SEEK_END);
-	r = yaffs_read(f,buffer,10);
-	printf("read at end returned  %d\n",r); 
-	r= yaffs_lseek(f,500,SEEK_END);
-	r = yaffs_read(f,buffer,10);
-	printf("read past end returned  %d\n",r);       
-	
-	r = yaffs_close(f);
-	
-	printf("close %d\n",r);
-	
-	sprintf(name,"%s/%s",path,"yyfile");
-	copy_in_a_file(name,"xxx");
-	
-	// Create a file with a long name
-	sprintf(name,"%s/%s",path,"file with a long name");
-	copy_in_a_file(name,"xxx");
-	
-	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-
-	// Check stat
-	r = yaffs_stat(name,&ystat);
-	
-	// Check rename
-	sprintf(name2,"%s/%s",path,"r1");
-	r = yaffs_rename(name,name2);
-	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-	
-	// Check unlink
-	r = yaffs_unlink(name2);
-	
-	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-
-	// Check mkdir
-
-	sprintf(name,"%s/%s",path,"directory1");        
-	r = yaffs_mkdir(name,0);
-	
-	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-	printf("\nDirectory look-up of %s\n",name);
-	dumpDir(name);
-
-	// add a file to the directory                  
-	sprintf(name2,"%s/%s",name,"/file in dir with a long name");
-	copy_in_a_file(name2,"xxx");
-	
-	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-	printf("\nDirectory look-up of %s\n",name);
-	dumpDir(name);
-	
-	//  Attempt to delete directory (should fail)
-	
-	r = yaffs_rmdir(name);
-	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-	printf("\nDirectory look-up of %s\n",name);
-	dumpDir(name);
-
-	yaffs_unmount(path);
-
-	return 0;       
-	// Delete file first, then rmdir should work
-	r = yaffs_unlink(name2);
-	r = yaffs_rmdir(name);
-	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-	printf("\nDirectory look-up of %s\n",name);
-	dumpDir(name);
-
-#if 0
-	fill_disk_and_delete(path,20,20);
-	
-	printf("\nDirectory look-up of %s\n",path);
-	dumpDir(path);
-#endif
-
-	yaffs_unmount(path);
-
 	return 0;
-
-	yaffs_symlink("yyfile","/boot/slink");
-	
-	yaffs_readlink("/boot/slink",str,100);
-	printf("symlink alias is %s\n",str);
-	
-	
-	
-	
-	printf("\nDirectory look-up of /boot\n");
-	dumpDir("/boot");
-	printf("\nDirectory look-up of /boot (using stat instead of lstat)\n");
-	dumpDirFollow("/boot");
-	printf("\nDirectory look-up of /boot/directory1\n");
-	dumpDir("/boot/directory1");
-
-	h = yaffs_open("/boot/slink",O_RDWR,0);
-	
-	printf("file length is %d\n",yaffs_lseek(h,0,SEEK_END));
-	
-	yaffs_close(h);
-	
-	yaffs_unlink("/boot/slink");
-
-	
-	printf("\nDirectory look-up of /boot\n");
-	dumpDir("/boot");
-	
-	// Check chmod
-	
-	yaffs_stat("/boot/yyfile",&ystat);
-	temp_mode = ystat.st_mode;
-	
-	yaffs_chmod("/boot/yyfile",0x55555);
-	printf("\nDirectory look-up of /boot\n");
-	dumpDir("/boot");
-	
-	yaffs_chmod("/boot/yyfile",temp_mode);
-	printf("\nDirectory look-up of /boot\n");
-	dumpDir("/boot");
-	
-	// Permission checks...
-	PermissionsCheck("/boot/yyfile",0, O_WRONLY,0);
-	PermissionsCheck("/boot/yyfile",0, O_RDONLY,0);
-	PermissionsCheck("/boot/yyfile",0, O_RDWR,0);
-
-	PermissionsCheck("/boot/yyfile",S_IREAD, O_WRONLY,0);
-	PermissionsCheck("/boot/yyfile",S_IREAD, O_RDONLY,1);
-	PermissionsCheck("/boot/yyfile",S_IREAD, O_RDWR,0);
-
-	PermissionsCheck("/boot/yyfile",S_IWRITE, O_WRONLY,1);
-	PermissionsCheck("/boot/yyfile",S_IWRITE, O_RDONLY,0);
-	PermissionsCheck("/boot/yyfile",S_IWRITE, O_RDWR,0);
-	
-	PermissionsCheck("/boot/yyfile",S_IREAD | S_IWRITE, O_WRONLY,1);
-	PermissionsCheck("/boot/yyfile",S_IREAD | S_IWRITE, O_RDONLY,1);
-	PermissionsCheck("/boot/yyfile",S_IREAD | S_IWRITE, O_RDWR,1);
-
-	yaffs_chmod("/boot/yyfile",temp_mode);
-	
-	//create a zero-length file and unlink it (test for scan bug)
-	
-	h = yaffs_open("/boot/zlf",O_CREAT | O_TRUNC | O_RDWR,0);
-	yaffs_close(h);
-	
-	yaffs_unlink("/boot/zlf");
-	
-	
-	yaffs_DumpDevStruct("/boot");
-	
-	fill_disk_and_delete("/boot",20,20);
-	
-	yaffs_DumpDevStruct("/boot");
-	
-	fill_files("/boot",1,10000,0);
-	fill_files("/boot",1,10000,5000);
-	fill_files("/boot",2,10000,0);
-	fill_files("/boot",2,10000,5000);
-	
-	leave_unlinked_file("/data",20000,0);
-	leave_unlinked_file("/data",20000,5000);
-	leave_unlinked_file("/data",20000,5000);
-	leave_unlinked_file("/data",20000,5000);
-	leave_unlinked_file("/data",20000,5000);
-	leave_unlinked_file("/data",20000,5000);
-	
-	yaffs_DumpDevStruct("/boot");
-	yaffs_DumpDevStruct("/data");
-	
-
-	return 0;
-
 }
 
 int yaffs_scan_test(const char *path)
@@ -1308,26 +1239,90 @@ int truncate_test(void)
 }
 
 
+
+
+void scan_deleted_files_test(const char *mountpt)
+{
+	char fn[100];
+	char sub[100];
+	
+	const char *p;
+	
+	int i;
+	int j;
+	int k;
+	int h;
+	
+	sprintf(sub,"%s/sdir",mountpt);
+	yaffs_StartUp();
+	
+	for(j = 0; j < 10; j++)
+	{
+		printf("\n\n>>>>>>> Run %d <<<<<<<<<<<<<\n\n",j);
+		yaffs_mount(mountpt);
+		yaffs_mkdir(sub,0);
+		
+		
+		p = (j & 0) ? mountpt: sub;
+	
+		for(i = 0; i < 100; i++)
+		{
+		  sprintf(fn,"%s/%d",p,i);  
+		  
+		  if(i & 1)
+		  {
+			  h = yaffs_open(fn,O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+			  for(k = 0; k < 1000; k++)
+				  yaffs_write(h,fn,100);
+			  yaffs_close(h);
+		  }
+		  else
+		    	yaffs_mkdir(fn,0);
+		}
+		
+		for(i = 0; i < 10; i++)
+		{
+		  sprintf(fn,"%s/%d",p,i);  
+		  if(i & 1) 
+		  	yaffs_unlink(fn);
+		  else
+		  	yaffs_rmdir(fn);
+		  
+		}
+				
+		yaffs_unmount(mountpt);
+	}
+	
+	
+	
+
+}
+
 int main(int argc, char *argv[])
 {
 	//return long_test(argc,argv);
 	
 	//return cache_read_test();
 	
-	//return resize_stress_test_no_grow("/flash",2);
+	//resize_stress_test_no_grow("/flash",2);
 	
+	//huge_directory_test_on_path("/ram2k");
+	
+	 //yaffs_backward_scan_test("/flash")	;
+	 
+	 //scan_pattern_test("/flash",10000,10);
+	//short_scan_test("/flash",40000,200);
 
 	
-	scan_pattern_test("/ram2k",40000,10);
-	//short_scan_test("/flash",40000,200);
-	return 0;
+	//long_test_on_path("/ram2k");
+	//long_test_on_path("/flash");
+	scan_deleted_files_test("/flash");
 	
-	long_test_on_path("/ram2k");
-	long_test_on_path("/ram2k");
+	
 	
 	// cache_bypass_bug_test();
 	
-	 free_space_check();
+	 //free_space_check();
 	 
 	 return 0;
 	

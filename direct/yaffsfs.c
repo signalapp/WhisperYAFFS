@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.3 2005-04-24 09:18:52 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.4 2005-07-03 05:48:11 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -578,6 +578,7 @@ int yaffs_write(int fd, const void *buf, unsigned int nbyte)
 	yaffs_Object *obj = NULL;
 	int pos = 0;
 	int nWritten = -1;
+	int writeThrough = 0;
 	
 	yaffsfs_Lock();
 	h = yaffsfs_GetHandlePointer(fd);
@@ -603,7 +604,7 @@ int yaffs_write(int fd, const void *buf, unsigned int nbyte)
 			pos = h->position;
 		}
 		
-		nWritten = yaffs_WriteDataToFile(obj,buf,pos,nbyte);
+		nWritten = yaffs_WriteDataToFile(obj,buf,pos,nbyte,writeThrough);
 		
 		if(nWritten >= 0)
 		{

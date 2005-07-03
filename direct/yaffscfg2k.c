@@ -13,7 +13,7 @@
 
 #include <errno.h>
 
-unsigned yaffs_traceMask = 0xFFFFFFFF;
+unsigned yaffs_traceMask = YAFFS_TRACE_SCAN |  YAFFS_TRACE_GC | YAFFS_TRACE_GC_DETAIL | YAFFS_TRACE_WRITE | YAFFS_TRACE_ERASE | YAFFS_TRACE_TRACING | YAFFS_TRACE_ALLOCATE;
 
 
 void yaffsfs_SetError(int err)
@@ -120,7 +120,7 @@ int yaffs_StartUp(void)
 	flashDev.nReservedBlocks = 5;
 	flashDev.startBlock = 64; // First block after /boot
 	//flashDev.endBlock = 127; // Last block in 16MB
-	flashDev.endBlock = (512 * 1024 * 1024)/(flashDev.nBytesPerChunk * flashDev.nChunksPerBlock) - 1; // Last block in 512MB
+	flashDev.endBlock = (32 * 1024 * 1024)/(flashDev.nBytesPerChunk * flashDev.nChunksPerBlock) - 1; // Last block in 512MB
 	flashDev.isYaffs2 = 1;
 	flashDev.nShortOpCaches = 10; // Use caches
 	flashDev.genericDevice = (void *) 2;	// Used to identify the device in fstat.

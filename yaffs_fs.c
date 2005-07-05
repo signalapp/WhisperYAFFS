@@ -29,7 +29,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.6 2005-07-03 10:32:40 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.7 2005-07-05 23:54:59 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1365,7 +1365,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 		dev->genericDevice = NULL; // Not used for RAM emulation.
 
 		nBlocks = YAFFS_RAM_EMULATION_SIZE / (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK);
-		dev->startBlock = 1;  // Don't use block 0
+		dev->startBlock = 0;  
 		dev->endBlock = nBlocks - 1;
 		dev->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
 		dev->nBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
@@ -1383,7 +1383,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 			dev->nChunksPerBlock = nandemul2k_GetChunksPerBlock();
 			dev->nBytesPerChunk =  nandemul2k_GetBytesPerChunk();;
 			nBlocks = nandemul2k_GetNumberOfBlocks();
-			dev->startBlock = 1;  // Don't use block 0
+			dev->startBlock = 0;
 			dev->endBlock = nBlocks - 1;
 		}
 		else
@@ -1515,7 +1515,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 		// Set up the memory size parameters....
 		
 		nBlocks = mtd->size / (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK);
-		dev->startBlock = 1;  // Don't use block 0
+		dev->startBlock = 0;
 		dev->endBlock = nBlocks - 1;
 		dev->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
 		dev->nBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
@@ -1535,7 +1535,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 			dev->nBytesPerChunk = mtd->oobblock;
 			dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
 			nBlocks = mtd->size / mtd->erasesize;
-			dev->startBlock = 1;  // Don't use block 0
+			dev->startBlock = 0;
 			dev->endBlock = nBlocks - 1;
 		}
 		else

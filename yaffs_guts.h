@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.5 2005-07-03 10:32:40 charles Exp $
+ * $Id: yaffs_guts.h,v 1.6 2005-07-05 23:54:59 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -557,6 +557,12 @@ struct yaffs_DeviceStruct
 #endif
 
 	int isMounted;
+	
+	// Stuff to support block offsetting to support start block zero
+	int internalStartBlock;
+	int internalEndBlock;
+	int blockOffset;
+	int chunkOffset;
 	
 	// Block Info
 	yaffs_BlockInfo *blockInfo;

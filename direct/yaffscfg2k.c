@@ -80,7 +80,7 @@ int yaffs_StartUp(void)
 	ramDev.nBytesPerChunk = 512;
 	ramDev.nChunksPerBlock = 32;
 	ramDev.nReservedBlocks = 2; // Set this smaller for RAM
-	ramDev.startBlock = 1; // Can't use block 0
+	ramDev.startBlock = 0; // Can use block 0
 	ramDev.endBlock = 127; // Last block in 2MB.	
 	//ramDev.useNANDECC = 1;
 	ramDev.nShortOpCaches = 0;	// Disable caching on this device.
@@ -95,7 +95,7 @@ int yaffs_StartUp(void)
 	bootDev.nBytesPerChunk = 512;
 	bootDev.nChunksPerBlock = 32;
 	bootDev.nReservedBlocks = 5;
-	bootDev.startBlock = 1; // Can't use block 0
+	bootDev.startBlock = 0; // Can use block 0
 	bootDev.endBlock = 63; // Last block
 	//bootDev.useNANDECC = 0; // use YAFFS's ECC
 	bootDev.nShortOpCaches = 10; // Use caches
@@ -140,7 +140,7 @@ int yaffs_StartUp(void)
 	ram2kDev.nBytesPerChunk = nandemul2k_GetBytesPerChunk();
 	ram2kDev.nChunksPerBlock = nandemul2k_GetChunksPerBlock();
 	ram2kDev.nReservedBlocks = 5;
-	ram2kDev.startBlock = 1; // First block after /boot
+	ram2kDev.startBlock = 0; // First block after /boot
 	//ram2kDev.endBlock = 127; // Last block in 16MB
 	ram2kDev.endBlock = nandemul2k_GetNumberOfBlocks() - 1; // Last block in 512MB
 	ram2kDev.isYaffs2 = 1;

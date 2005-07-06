@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.6 2005-07-05 23:54:59 charles Exp $
+ * $Id: yaffs_guts.h,v 1.7 2005-07-06 00:36:32 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -655,12 +655,12 @@ typedef struct yaffs_DeviceStruct yaffs_Device;
 // Function to manipulate block info
 static  Y_INLINE yaffs_BlockInfo* yaffs_GetBlockInfo(yaffs_Device *dev, int blk)
 {
-	if(blk < dev->startBlock || blk > dev->endBlock)
+	if(blk < dev->internalStartBlock || blk > dev->internalEndBlock)
 	{
 		T(YAFFS_TRACE_ERROR,(TSTR("**>> yaffs: getBlockInfo block %d is not valid" TENDSTR),blk));
 		YBUG();
 	}
-	return &dev->blockInfo[blk - dev->startBlock];
+	return &dev->blockInfo[blk - dev->internalStartBlock];
 }
 
 

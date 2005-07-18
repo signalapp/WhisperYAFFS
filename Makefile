@@ -12,13 +12,13 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 #
-# $Id: Makefile,v 1.2 2005-04-29 18:11:30 charles Exp $
+# $Id: Makefile,v 1.3 2005-07-18 23:16:04 charles Exp $
 #
 
 ## Change or override  KERNELDIR to your kernel
 ## comment out USE_xxxx if you don't want these features.
 
-KERNELDIR = /usr/src/kernel-headers-2.4.27
+KERNELDIR = /usr/src/kernels/2.6.11-1.1369_FC4-i686
 
 ## Change if you are using a cross-compiler
 MAKETOOLS = 
@@ -108,7 +108,10 @@ ENABLE_SHORT_NAMES_IN_RAM = -DCONFIG_SHORT_NAMES_IN_RAM
 
 # End of configuration options.
 
-YAFFS_CONFIGS = $(USE_RAM_FOR_TEST) $(USE_MTD) $(USE_RAM_FOR_TEST_2) $(USE_MTD_2)\
+WIERD_COMPILE_CONFIGS = -DNR_IRQS=1 -DNR_IRQ_VECTORS=1
+
+YAFFS_CONFIGS = $(WIERD_COMPILE_CONFIGS) \
+                $(USE_RAM_FOR_TEST) $(USE_MTD) $(USE_RAM_FOR_TEST_2) $(USE_MTD_2)\
                 $(USE_HEADER_FILE_SIZE) $(IGNORE_CHUNK_ERASED) $(IGNORE_WRITE_VERIFY) \
                 $(ENABLE_SHORT_NAMES_IN_RAM) $(USE_NANDECC) $(USE_OLD_MTD) $(USE_WRONGECC)
 

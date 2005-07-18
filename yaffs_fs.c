@@ -15,7 +15,8 @@
  * the VFS.
  *
  * Special notes: 
- * >> sb->u.generic_sbp points to the yaffs_Device associated with this superblock
+ * >> 2.4: sb->u.generic_sbp points to the yaffs_Device associated with this superblock
+ * >> 2.6: sb->s_fs_info  points to the yaffs_Device associated with this superblock
  * >> inode->u.generic_ip points to the associated yaffs_Object.
  *
  *
@@ -29,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.7 2005-07-05 23:54:59 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.8 2005-07-18 23:16:04 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -329,7 +330,7 @@ static struct dentry * yaffs_lookup(struct inode *dir, struct dentry *dentry)
 	{
 		T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_lookup found %d\n",obj->objectId));
 		
-		inode = yaffs_get_inode(dir->i_sb, obj->st_mode,0,obj);
+		inode = yaffs_get_inode(dir->i_sb, obj->yst_mode,0,obj);
 		
 		if(inode)
 		{
@@ -612,25 +613,25 @@ static void yaffs_FillInodeFromObject(struct inode *inode, yaffs_Object *obj)
 	if (inode && obj) 
 	{
 		inode->i_ino = obj->objectId;
-		inode->i_mode = obj->st_mode;
-		inode->i_uid = obj->st_uid;
-		inode->i_gid = obj->st_gid;
+		inode->i_mode = obj->yst_mode;
+		inode->i_uid = obj->yst_uid;
+		inode->i_gid = obj->yst_gid;
 		inode->i_blksize = inode->i_sb->s_blocksize;
 //#if defined(CONFIG_KERNEL_2_5)
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 
-		inode->i_rdev = old_decode_dev(obj->st_rdev);
-		inode->i_atime.tv_sec = (time_t)(obj->st_atime);
+		inode->i_rdev = old_decode_dev(obj->yst_rdev);
+		inode->i_atime.tv_sec = (time_t)(obj->yst_atime);
 		inode->i_atime.tv_nsec = 0;
-		inode->i_mtime.tv_sec = (time_t)obj->st_mtime;
+		inode->i_mtime.tv_sec = (time_t)obj->yst_mtime;
 		inode->i_mtime.tv_nsec =0;
-		inode->i_ctime.tv_sec = (time_t)obj->st_ctime;
+		inode->i_ctime.tv_sec = (time_t)obj->yst_ctime;
 		inode->i_ctime.tv_nsec = 0;
 #else
-		inode->i_rdev = obj->st_rdev;
-		inode->i_atime = obj->st_atime;
-		inode->i_mtime = obj->st_mtime;
-		inode->i_ctime = obj->st_ctime;
+		inode->i_rdev = obj->yst_rdev;
+		inode->i_atime = obj->yst_atime;
+		inode->i_mtime = obj->yst_mtime;
+		inode->i_ctime = obj->yst_ctime;
 #endif
 		inode->i_size = yaffs_GetObjectFileLength(obj);
 		inode->i_blocks = (inode->i_size + 511) >> 9;
@@ -640,13 +641,13 @@ static void yaffs_FillInodeFromObject(struct inode *inode, yaffs_Object *obj)
 		T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_FillInode mode %x uid %d gid %d size %d count %d\n",
 				inode->i_mode, inode->i_uid, inode->i_gid, (int)inode->i_size, atomic_read(&inode->i_count)));
 		
-		switch (obj->st_mode & S_IFMT) 
+		switch (obj->yst_mode & S_IFMT) 
 		{
 			default: // fifo, device or socket
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-                               init_special_inode(inode, obj->st_mode,old_decode_dev(obj->st_rdev));
+                               init_special_inode(inode, obj->yst_mode,old_decode_dev(obj->yst_rdev));
 #else
-                                 init_special_inode(inode, obj->st_mode,(dev_t)(obj->st_rdev));
+                                 init_special_inode(inode, obj->yst_mode,(dev_t)(obj->yst_rdev));
 #endif				break;
 			case S_IFREG:	// file		
 				inode->i_op = &yaffs_file_inode_operations;
@@ -1091,7 +1092,7 @@ static int yaffs_symlink(struct inode * dir, struct dentry *dentry, const char *
 
 		struct inode* inode;
 	
-		inode = yaffs_get_inode(dir->i_sb, obj->st_mode, 0, obj);
+		inode = yaffs_get_inode(dir->i_sb, obj->yst_mode, 0, obj);
 		d_instantiate(dentry, inode);
 		T(YAFFS_TRACE_OS,(KERN_DEBUG"symlink created OK\n"));
 		return 0;
@@ -1200,7 +1201,7 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 			error = -EPERM;
 		}
 		yaffs_GrossUnlock(dev);
-		inode_setattr(inode,attr);
+		error = inode_setattr(inode,attr);
 	}
 	return error;
 }
@@ -1353,7 +1354,13 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 #ifdef CONFIG_YAFFS_RAM_ENABLED
 		// Set the yaffs_Device up for ram emulation
 
+		
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+		sb->s_fs_info =	dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
+#else
 		sb->u.generic_sbp = dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
+#endif
+
 		if(!dev)
 		{
 			// Deep shit could not allocate device structure
@@ -1696,7 +1703,7 @@ static struct file_system_type yaffs_ram_fs_type = {
 	.get_sb		= yaffs_ram_read_super,
 	.kill_sb	= kill_block_super,
 //	.kill_sb	= kill_litter_super,
-	.fs_flags	= FS_SINGLE,
+	.fs_flags	= 0 ,
 };
 #else
 static struct super_block *yaffs_ram_read_super(struct super_block * sb, void * data, int silent)
@@ -1725,7 +1732,7 @@ static struct file_system_type yaffs2_ram_fs_type = {
 	.get_sb		= yaffs2_ram_read_super,
 	.kill_sb	= kill_block_super,
 //	.kill_sb	= kill_litter_super,
-	.fs_flags	= FS_SINGLE,
+	.fs_flags	= 0 ,
 };
 #else
 static struct super_block *yaffs2_ram_read_super(struct super_block * sb, void * data, int silent)

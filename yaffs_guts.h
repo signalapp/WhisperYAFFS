@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.7 2005-07-06 00:36:32 charles Exp $
+ * $Id: yaffs_guts.h,v 1.8 2005-07-18 23:16:04 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -179,16 +179,17 @@ typedef struct
 	unsigned sequenceNumber; 	// The sequence number of this block
 
 	// Extra info if this is an object header (YAFFS2 only)
-	unsigned extraHeaderInfoAvailable; 
-	unsigned extraParentObjectId;
-	unsigned extraIsShrinkHeader;
 	
-	yaffs_ObjectType extraObjectType;
+	unsigned extraHeaderInfoAvailable; // There is extra info available if this is not zero
+	unsigned extraParentObjectId;	   // The parent object
+	unsigned extraIsShrinkHeader;	   // Is it a shrink header?
+	
+	yaffs_ObjectType extraObjectType;  // What object type?
 
-	unsigned extraFileLength;
-	unsigned extraEquivalentObjectId;
+	unsigned extraFileLength;	   // Length if it is a file
+	unsigned extraEquivalentObjectId;  // Equivalent object Id if it is a hard link
 
-	unsigned validMarker1;
+	unsigned validMarker1;	
 	
 } yaffs_ExtendedTags;
 
@@ -282,16 +283,16 @@ typedef struct
 	YCHAR  name[YAFFS_MAX_NAME_LENGTH + 1];
 
 	// Thes following apply to directories, files, symlinks - not hard links
-	__u32 st_mode;  // protection
+	__u32 yst_mode;  // protection
 
 #ifdef CONFIG_YAFFS_WINCE
 	__u32 notForWinCE[5];
 #else
-	__u32 st_uid;   // user ID of owner
-	__u32 st_gid;    // group ID of owner 
-	__u32 st_atime; // time of last access
-	__u32 st_mtime; // time of last modification
-	__u32 st_ctime; // time of last change
+	__u32 yst_uid;   // user ID of owner
+	__u32 yst_gid;    // group ID of owner 
+	__u32 yst_atime; // time of last access
+	__u32 yst_mtime; // time of last modification
+	__u32 yst_ctime; // time of last change
 #endif
 
 	// File size  applies to files only
@@ -303,7 +304,7 @@ typedef struct
 	// Alias is for symlinks only.
 	YCHAR alias[YAFFS_MAX_ALIAS_LENGTH + 1];
 	
-	__u32 st_rdev;  // device stuff for block and char devices (maj/min)
+	__u32 yst_rdev;  // device stuff for block and char devices (maj/min)
 	
 #ifdef CONFIG_YAFFS_WINCE
 	__u32 win_ctime[2];
@@ -432,7 +433,7 @@ struct  yaffs_ObjectStruct
 	__u32 objectId;		// the object id value
 	
 	
-	__u32 st_mode;  	// protection
+	__u32 yst_mode;  	// protection
 
 #ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
 	YCHAR shortName[YAFFS_SHORT_NAME_LENGTH+1];
@@ -447,14 +448,14 @@ struct  yaffs_ObjectStruct
 	__u32 win_mtime[2];
 	__u32 win_atime[2];
 #else
-	__u32 st_uid;   	// user ID of owner
-	__u32 st_gid;    	// group ID of owner 
-	__u32 st_atime; 	// time of last access
-	__u32 st_mtime; 	// time of last modification
-	__u32 st_ctime; 	// time of last change
+	__u32 yst_uid;   	// user ID of owner
+	__u32 yst_gid;    	// group ID of owner 
+	__u32 yst_atime; 	// time of last access
+	__u32 yst_mtime; 	// time of last modification
+	__u32 yst_ctime; 	// time of last change
 #endif
 
-	__u32 st_rdev; 	    // device stuff for block and char devices
+	__u32 yst_rdev; 	    // device stuff for block and char devices
 
 
 

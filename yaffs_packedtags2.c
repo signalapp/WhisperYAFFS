@@ -89,8 +89,11 @@ void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t)
 	yaffs_DumpPackedTags2(pt);
 	yaffs_DumpTags2(t);
 	
-	yaffs_ECCCalculateOther((unsigned char *)&pt->t,sizeof(yaffs_PackedTags2TagsPart),&pt->ecc);
-	
+#ifndef YAFFS_IGNORE_TAGS_ECC
+	{ 
+	  yaffs_ECCCalculateOther((unsigned char *)&pt->t,sizeof(yaffs_PackedTags2TagsPart),&pt->ecc);
+	}
+#endif
 }
 
 void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
@@ -104,9 +107,17 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
 	if(pt->t.sequenceNumber != 0xFFFFFFFF)
 	{
 		// Page is in use
-		yaffs_ECCOther ecc;
-		yaffs_ECCCalculateOther((unsigned char *)&pt->t,sizeof(yaffs_PackedTags2TagsPart),&ecc);
-		t->eccResult = yaffs_ECCCorrectOther((unsigned char *)&pt->t,sizeof(yaffs_PackedTags2TagsPart),&pt->ecc,&ecc);
+#ifdef YAFFS_IGNORE_TAGS_ECC
+		{
+			t->eccResult = 0;
+		}
+#else
+		{
+			yaffs_ECCOther ecc;
+			yaffs_ECCCalculateOther((unsigned char *)&pt->t,sizeof(yaffs_PackedTags2TagsPart),&ecc);
+			t->eccResult = yaffs_ECCCorrectOther((unsigned char *)&pt->t,sizeof(yaffs_PackedTags2TagsPart),&pt->ecc,&ecc);
+		}
+#endif
 		t->blockBad = 0;
 		t->chunkUsed = 1;
 		t->objectId = pt->t.objectId;

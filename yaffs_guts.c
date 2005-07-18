@@ -14,7 +14,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.8 2005-07-05 23:54:59 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.9 2005-07-18 23:16:04 charles Exp $";
 
 #include "yportenv.h"
 
@@ -140,6 +140,8 @@ loff_t yaffs_GetFileSize(yaffs_Object *obj);
 
 
 static int yaffs_AllocateChunk(yaffs_Device *dev,int useReserve);
+
+static void yaffs_VerifyFreeChunks(yaffs_Device *dev);
 
 #ifdef YAFFS_PARANOID
 static int yaffs_CheckFileSanity(yaffs_Object *in);
@@ -1090,6 +1092,7 @@ static void yaffs_SoftDeleteChunk(yaffs_Device *dev, int chunk)
 	if(theBlock)
 	{
 		theBlock->softDeletions++;
+		dev->nFreeChunks++;
 	}
 }
 
@@ -1386,7 +1389,7 @@ static yaffs_Object *yaffs_CreateFakeDirectory(yaffs_Device *dev,int number,__u3
 		obj->unlinkAllowed= 0;	// ... or unlink it
 		obj->deleted = 0;
 		obj->unlinked = 0;
-		obj->st_mode = mode;
+		obj->yst_mode = mode;
 		obj->myDev = dev;
 		obj->chunkId = 0; // Not a valid chunk.
 	}
@@ -1642,7 +1645,7 @@ yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev,int number,yaffs_ObjectTyp
 
 #else
 
-		theObject->st_atime = theObject->st_mtime = theObject->st_ctime = Y_CURRENT_TIME;		
+		theObject->yst_atime = theObject->yst_mtime = theObject->yst_ctime = Y_CURRENT_TIME;		
 #endif
 		switch(type)
 		{
@@ -1739,7 +1742,7 @@ yaffs_Object *yaffs_MknodObject( yaffs_ObjectType type,
 		in->valid = 1;
 		in->variantType = type;
 
-		in->st_mode  = mode;
+		in->yst_mode  = mode;
 		
 #ifdef CONFIG_YAFFS_WINCE
 		yfsd_WinFileTimeNow(in->win_atime);
@@ -1747,11 +1750,11 @@ yaffs_Object *yaffs_MknodObject( yaffs_ObjectType type,
 		in->win_ctime[1] = in->win_mtime[1] = in->win_atime[1];
 		
 #else
-		in->st_atime = in->st_mtime = in->st_ctime = Y_CURRENT_TIME;
+		in->yst_atime = in->yst_mtime = in->yst_ctime = Y_CURRENT_TIME;
 
-		in->st_rdev  = rdev;
-		in->st_uid   = uid;
-		in->st_gid   = gid;
+		in->yst_rdev  = rdev;
+		in->yst_uid   = uid;
+		in->yst_gid   = gid;
 #endif		
 		in->nDataChunks = 0;
 
@@ -2103,6 +2106,7 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,int aggressive)
 	}
 
 	pagesInUse = (aggressive)? dev->nChunksPerBlock : YAFFS_PASSIVE_GC_CHUNKS + 1;
+
 	if(aggressive)
 	{
 		iterations = dev->internalEndBlock - dev->internalStartBlock + 1;
@@ -2206,6 +2210,8 @@ static void yaffs_BlockBecameDirty(yaffs_Device *dev,int blockNo)
 	}
 	else
 	{
+		dev->nFreeChunks -= dev->nChunksPerBlock; // We lost a block of free space
+		
 		yaffs_RetireBlock(dev,blockNo);
 		T(YAFFS_TRACE_ERROR | YAFFS_TRACE_BAD_BLOCKS,(TSTR("**>> Block %d retired" TENDSTR),blockNo));
 	}
@@ -2298,6 +2304,15 @@ static int yaffs_FindBlockForAllocation(yaffs_Device *dev)
 }
 
 
+// To determine if we have enough space we just look at the 
+// number of erased blocks.
+
+static int yaffs_CheckSpaceForAllocation(yaffs_Device *dev)
+{
+	int reservedChunks = (dev->nReservedBlocks * dev->nChunksPerBlock);
+	return (dev->nFreeChunks > reservedChunks);
+}
+
 
 static int yaffs_AllocateChunk(yaffs_Device *dev,int useReserve)
 {
@@ -2311,7 +2326,7 @@ static int yaffs_AllocateChunk(yaffs_Device *dev,int useReserve)
 		dev->allocationPage = 0;
 	}
 	
-	if(!useReserve &&  dev->nErasedBlocks </*=*/ dev->nReservedBlocks)
+	if(!useReserve &&  !yaffs_CheckSpaceForAllocation(dev))
 	{
 		// Not enough space to allocate unless we're allowed to use the reserve.
 		return -1;
@@ -2354,14 +2369,6 @@ static int yaffs_AllocateChunk(yaffs_Device *dev,int useReserve)
 }
 
 
-// To determine if we have enough space we just look at the 
-// number of erased blocks.
-// The cache is allowed to use reserved blocks.
-
-static int yaffs_CheckSpaceForChunkCache(yaffs_Device *dev)
-{
-	return (dev->nErasedBlocks >= dev->nReservedBlocks);
-}
 
 
 static int yaffs_GetErasedChunks(yaffs_Device *dev)
@@ -2402,8 +2409,13 @@ int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 
 	T(YAFFS_TRACE_TRACING,(TSTR("Collecting block %d, in use %d, shrink %d, " TENDSTR),block,bi->pagesInUse,bi->hasShrinkHeader));
 	//T(("Collecting block %d n %d bits %x\n",block, bi->pagesInUse, bi->pageBits));	
+	
+	//yaffs_VerifyFreeChunks(dev);
 
 	bi->hasShrinkHeader = 0; // clear the flag so that the block can erase
+	
+	dev->nFreeChunks -= bi->softDeletions;  // Take off the number of soft deleted entries because
+						// they're going to get really deleted during GC.
 
 
 	if(!yaffs_StillSomeChunkBits(dev,block))
@@ -2414,7 +2426,7 @@ int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 	else
 	{
 
-			__u8  *buffer = yaffs_GetTempBuffer(dev,__LINE__);
+	__u8  *buffer = yaffs_GetTempBuffer(dev,__LINE__);
 
 	for(chunkInBlock = 0,oldChunk = block * dev->nChunksPerBlock; 
 	    chunkInBlock < dev->nChunksPerBlock && yaffs_StillSomeChunkBits(dev,block);
@@ -2445,7 +2457,7 @@ int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 			if(object && object->deleted && tags.chunkId != 0)
 			{
 				// Data chunk in a deleted file, throw it away
-				// It's a deleted data chunk,
+				// It's a soft deleted data chunk,
 				// No need to copy this, just forget about it and fix up the
 				// object.
 				
@@ -2512,6 +2524,7 @@ int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 
 	yaffs_ReleaseTempBuffer(dev,buffer,__LINE__);
 
+	//yaffs_VerifyFreeChunks(dev);
 
 	// Do any required cleanups
 	for(i = 0; i < cleanups; i++)
@@ -2534,6 +2547,9 @@ int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 	{
 			T(YAFFS_TRACE_GC,(TSTR("gc did not increase free chunks before %d after %d" TENDSTR),chunksBefore,chunksAfter));
 	}
+	
+	
+	//yaffs_VerifyFreeChunks(dev);
 			
 	return YAFFS_OK;
 }
@@ -2619,13 +2635,15 @@ int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 	int maxTries = 0;
 	
 	//yaffs_DoUnlinkedFileDeletion(dev);
+	
+	//yaffs_VerifyFreeChunks(dev);
 
 	// This loop should pass the first time.
 	// We'll only see looping here if the erase of the collected block fails.
 	
 	do{
 		maxTries++;
-		if(dev->nErasedBlocks <= (dev->nReservedBlocks + 2))
+		if(dev->nErasedBlocks < dev->nReservedBlocks)
 		{
 			// We need a block soon...
 			aggressive = 1;
@@ -2651,11 +2669,11 @@ int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 			gcOk =  yaffs_GarbageCollectBlock(dev,block);
 		}
 
-		if(dev->nErasedBlocks <= (dev->nReservedBlocks + 1)) 
+		if(dev->nErasedBlocks < (dev->nReservedBlocks) && block > 0) 
 		{
 			T(YAFFS_TRACE_GC,(TSTR("yaffs: GC !!!no reclaim!!! erasedBlocks %d after try %d block %d" TENDSTR),dev->nErasedBlocks,maxTries,block));
 		}
-	} while((dev->nErasedBlocks <= (dev->nReservedBlocks + 1)) && (block > 0) && (maxTries < 5));
+	} while((dev->nErasedBlocks < dev->nReservedBlocks) && (block > 0) && (maxTries < 2));
 
 	return aggressive ? gcOk: YAFFS_OK;
 }
@@ -3138,9 +3156,10 @@ void yaffs_DeleteChunk(yaffs_Device *dev,int chunkId,int markNAND,int lyn)
 	    bi->blockState == YAFFS_BLOCK_STATE_NEEDS_SCANNING ||
 	    bi->blockState == YAFFS_BLOCK_STATE_COLLECTING)
 	{
-		dev->nFreeChunks++;
+	        dev->nFreeChunks++;
 
 		yaffs_ClearChunkBit(dev,block,page);
+		
 		bi->pagesInUse--;
 		
 		if(bi->pagesInUse == 0 &&
@@ -3261,7 +3280,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int i
 		// Header data
 		oh->type = in->variantType;
 		
-		oh->st_mode = in->st_mode;
+		oh->yst_mode = in->yst_mode;
 
 #ifdef CONFIG_YAFFS_WINCE
 		oh->win_atime[0] = in->win_atime[0];
@@ -3271,12 +3290,12 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int i
 		oh->win_ctime[1] = in->win_ctime[1];
 		oh->win_mtime[1] = in->win_mtime[1];
 #else
-		oh->st_uid = in->st_uid;
-		oh->st_gid = in->st_gid;
-		oh->st_atime = in->st_atime;
-		oh->st_mtime = in->st_mtime;
-		oh->st_ctime = in->st_ctime;
-		oh->st_rdev = in->st_rdev;
+		oh->yst_uid = in->yst_uid;
+		oh->yst_gid = in->yst_gid;
+		oh->yst_atime = in->yst_atime;
+		oh->yst_mtime = in->yst_mtime;
+		oh->yst_ctime = in->yst_ctime;
+		oh->yst_rdev = in->yst_rdev;
 #endif	
 		if(in->parent)
 		{
@@ -3856,7 +3875,7 @@ int yaffs_WriteDataToFile(yaffs_Object *in,const __u8 * buffer, __u32 offset, in
 				yaffs_ChunkCache *cache;
 				// If we can't find the data in the cache, then load it up.
 				cache = yaffs_FindChunkCache(in,chunk);
-				if(!cache && yaffs_CheckSpaceForChunkCache(in->myDev))
+				if(!cache && yaffs_CheckSpaceForAllocation(in->myDev))
 				{
 					cache = yaffs_GrabChunkCache(in->myDev);
 					cache->object = in;
@@ -4108,7 +4127,7 @@ int yaffs_FlushFile(yaffs_Object *in, int updateTime)
 			yfsd_WinFileTimeNow(in->win_mtime);
 #else
 
-			in->st_mtime = Y_CURRENT_TIME;
+			in->yst_mtime = Y_CURRENT_TIME;
 
 #endif
 		}
@@ -4706,7 +4725,7 @@ static int yaffs_Scan(yaffs_Device *dev)
 					in->valid = 1;
 					in->variantType = oh->type;
 	
-					in->st_mode  = oh->st_mode;
+					in->yst_mode  = oh->yst_mode;
 #ifdef CONFIG_YAFFS_WINCE
 					in->win_atime[0] = oh->win_atime[0];
 					in->win_ctime[0] = oh->win_ctime[0];
@@ -4715,12 +4734,12 @@ static int yaffs_Scan(yaffs_Device *dev)
 					in->win_ctime[1] = oh->win_ctime[1];
 					in->win_mtime[1] = oh->win_mtime[1];
 #else
-					in->st_uid   = oh->st_uid;
-					in->st_gid   = oh->st_gid;
-					in->st_atime = oh->st_atime;
-					in->st_mtime = oh->st_mtime;
-					in->st_ctime = oh->st_ctime;
-					in->st_rdev = oh->st_rdev;
+					in->yst_uid   = oh->yst_uid;
+					in->yst_gid   = oh->yst_gid;
+					in->yst_atime = oh->yst_atime;
+					in->yst_mtime = oh->yst_mtime;
+					in->yst_ctime = oh->yst_ctime;
+					in->yst_rdev = oh->yst_rdev;
 #endif
 					in->chunkId  = chunk;
 
@@ -4732,7 +4751,7 @@ static int yaffs_Scan(yaffs_Device *dev)
 					in->valid = 1;
 					in->variantType = oh->type;
 	
-					in->st_mode  = oh->st_mode;
+					in->yst_mode  = oh->yst_mode;
 #ifdef CONFIG_YAFFS_WINCE
 					in->win_atime[0] = oh->win_atime[0];
 					in->win_ctime[0] = oh->win_ctime[0];
@@ -4741,12 +4760,12 @@ static int yaffs_Scan(yaffs_Device *dev)
 					in->win_ctime[1] = oh->win_ctime[1];
 					in->win_mtime[1] = oh->win_mtime[1];
 #else
-					in->st_uid   = oh->st_uid;
-					in->st_gid   = oh->st_gid;
-					in->st_atime = oh->st_atime;
-					in->st_mtime = oh->st_mtime;
-					in->st_ctime = oh->st_ctime;
-					in->st_rdev = oh->st_rdev;
+					in->yst_uid   = oh->yst_uid;
+					in->yst_gid   = oh->yst_gid;
+					in->yst_atime = oh->yst_atime;
+					in->yst_mtime = oh->yst_mtime;
+					in->yst_ctime = oh->yst_ctime;
+					in->yst_rdev = oh->yst_rdev;
 #endif
 					in->chunkId  = chunk;
 
@@ -5242,7 +5261,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 					in->valid = 1;
 					in->variantType = oh->type;
 	
-					in->st_mode  = oh->st_mode;
+					in->yst_mode  = oh->yst_mode;
 #ifdef CONFIG_YAFFS_WINCE
 					in->win_atime[0] = oh->win_atime[0];
 					in->win_ctime[0] = oh->win_ctime[0];
@@ -5251,12 +5270,12 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 					in->win_ctime[1] = oh->win_ctime[1];
 					in->win_mtime[1] = oh->win_mtime[1];
 #else
-					in->st_uid   = oh->st_uid;
-					in->st_gid   = oh->st_gid;
-					in->st_atime = oh->st_atime;
-					in->st_mtime = oh->st_mtime;
-					in->st_ctime = oh->st_ctime;
-					in->st_rdev = oh->st_rdev;
+					in->yst_uid   = oh->yst_uid;
+					in->yst_gid   = oh->yst_gid;
+					in->yst_atime = oh->yst_atime;
+					in->yst_mtime = oh->yst_mtime;
+					in->yst_ctime = oh->yst_ctime;
+					in->yst_rdev = oh->yst_rdev;
 #endif
 					in->chunkId  = chunk;
 
@@ -5268,7 +5287,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 					in->valid = 1;
 					in->variantType = oh->type;
 	
-					in->st_mode  = oh->st_mode;
+					in->yst_mode  = oh->yst_mode;
 #ifdef CONFIG_YAFFS_WINCE
 					in->win_atime[0] = oh->win_atime[0];
 					in->win_ctime[0] = oh->win_ctime[0];
@@ -5277,12 +5296,12 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 					in->win_ctime[1] = oh->win_ctime[1];
 					in->win_mtime[1] = oh->win_mtime[1];
 #else
-					in->st_uid   = oh->st_uid;
-					in->st_gid   = oh->st_gid;
-					in->st_atime = oh->st_atime;
-					in->st_mtime = oh->st_mtime;
-					in->st_ctime = oh->st_ctime;
-					in->st_rdev = oh->st_rdev;
+					in->yst_uid   = oh->yst_uid;
+					in->yst_gid   = oh->yst_gid;
+					in->yst_atime = oh->yst_atime;
+					in->yst_mtime = oh->yst_mtime;
+					in->yst_ctime = oh->yst_ctime;
+					in->yst_rdev = oh->yst_rdev;
 #endif
 					in->chunkId  = chunk;
 
@@ -5714,10 +5733,10 @@ unsigned yaffs_GetObjectType(yaffs_Object *obj)
 		case YAFFS_OBJECT_TYPE_SYMLINK:		return DT_LNK; break;
 		case YAFFS_OBJECT_TYPE_HARDLINK:	return DT_REG; break;
 		case YAFFS_OBJECT_TYPE_SPECIAL:		
-			if(S_ISFIFO(obj->st_mode)) return DT_FIFO;
-			if(S_ISCHR(obj->st_mode)) return DT_CHR;
-			if(S_ISBLK(obj->st_mode)) return DT_BLK;
-			if(S_ISSOCK(obj->st_mode)) return DT_SOCK;
+			if(S_ISFIFO(obj->yst_mode)) return DT_FIFO;
+			if(S_ISCHR(obj->yst_mode)) return DT_CHR;
+			if(S_ISBLK(obj->yst_mode)) return DT_BLK;
+			if(S_ISSOCK(obj->yst_mode)) return DT_SOCK;
 		default: return DT_REG; break;
 	}
 }
@@ -5741,13 +5760,13 @@ int yaffs_SetAttributes(yaffs_Object *obj, struct iattr *attr)
 {
 	unsigned int valid = attr->ia_valid;
 	
-	if(valid & ATTR_MODE) obj->st_mode = attr->ia_mode;
-	if(valid & ATTR_UID) obj->st_uid = attr->ia_uid;
-	if(valid & ATTR_GID) obj->st_gid = attr->ia_gid;
+	if(valid & ATTR_MODE) obj->yst_mode = attr->ia_mode;
+	if(valid & ATTR_UID) obj->yst_uid = attr->ia_uid;
+	if(valid & ATTR_GID) obj->yst_gid = attr->ia_gid;
 	
-	if(valid & ATTR_ATIME) obj->st_atime = Y_TIME_CONVERT(attr->ia_atime);
-	if(valid & ATTR_CTIME) obj->st_ctime = Y_TIME_CONVERT(attr->ia_ctime);
-	if(valid & ATTR_MTIME) obj->st_mtime = Y_TIME_CONVERT(attr->ia_mtime);
+	if(valid & ATTR_ATIME) obj->yst_atime = Y_TIME_CONVERT(attr->ia_atime);
+	if(valid & ATTR_CTIME) obj->yst_ctime = Y_TIME_CONVERT(attr->ia_ctime);
+	if(valid & ATTR_MTIME) obj->yst_mtime = Y_TIME_CONVERT(attr->ia_mtime);
 	
 	if(valid & ATTR_SIZE) yaffs_ResizeFile(obj,attr->ia_size);
 	
@@ -5760,13 +5779,13 @@ int yaffs_GetAttributes(yaffs_Object *obj, struct iattr *attr)
 {
 	unsigned int valid = 0;
 	
-	attr->ia_mode = obj->st_mode;	valid |= ATTR_MODE;
-	attr->ia_uid = obj->st_uid;		valid |= ATTR_UID;
-	attr->ia_gid = obj->st_gid;		valid |= ATTR_GID;
+	attr->ia_mode = obj->yst_mode;	valid |= ATTR_MODE;
+	attr->ia_uid = obj->yst_uid;		valid |= ATTR_UID;
+	attr->ia_gid = obj->yst_gid;		valid |= ATTR_GID;
 	
-	Y_TIME_CONVERT(attr->ia_atime)= obj->st_atime;	valid |= ATTR_ATIME;
-	Y_TIME_CONVERT(attr->ia_ctime) = obj->st_ctime;	valid |= ATTR_CTIME;
-	Y_TIME_CONVERT(attr->ia_mtime) = obj->st_mtime;	valid |= ATTR_MTIME;
+	Y_TIME_CONVERT(attr->ia_atime)= obj->yst_atime;	valid |= ATTR_ATIME;
+	Y_TIME_CONVERT(attr->ia_ctime) = obj->yst_ctime;	valid |= ATTR_CTIME;
+	Y_TIME_CONVERT(attr->ia_mtime) = obj->yst_mtime;	valid |= ATTR_MTIME;
 
 	attr->ia_size = yaffs_GetFileSize(obj); valid |= ATTR_SIZE;
 	
@@ -5874,6 +5893,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	dev->internalEndBlock =  dev->endBlock;
 	dev->blockOffset = 0;
 	dev->chunkOffset = 0;
+	dev->nFreeChunks = 0;
 	
 	if(dev->startBlock == 0)
 	{
@@ -6067,12 +6087,14 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	
 	// Zero out stats
 	dev->nPageReads = 0;
-    dev->nPageWrites =  0;
+   	dev->nPageWrites =  0;
 	dev->nBlockErasures = 0;
 	dev->nGCCopies = 0;
 	dev->nRetriedWrites = 0;
 
 	dev->nRetiredBlocks = 0;
+	
+	yaffs_VerifyFreeChunks(dev);
 
 	T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: yaffs_GutsInitialise() done.\n" TENDSTR)));
 	return YAFFS_OK;
@@ -6143,17 +6165,13 @@ int  yaffs_GetNumberOfFreeChunks(yaffs_Device *dev)
 
 #endif
 
-int  yaffs_GetNumberOfFreeChunks(yaffs_Device *dev)
+static int  yaffs_CountFreeChunks(yaffs_Device *dev)
 {
 	int nFree;
-	int pending;
 	int b;
-	int nDirtyCacheChunks=0;
-	
-	yaffs_BlockInfo *blk;
-	
-	struct list_head *i;	
-	yaffs_Object *l;
+
+	yaffs_BlockInfo *blk;	
+
 	
 	for(nFree = 0, b = dev->internalStartBlock; b <= dev->internalEndBlock; b++)
 	{
@@ -6163,44 +6181,36 @@ int  yaffs_GetNumberOfFreeChunks(yaffs_Device *dev)
 		{
 			case YAFFS_BLOCK_STATE_EMPTY:
 			case YAFFS_BLOCK_STATE_ALLOCATING: 
-			case YAFFS_BLOCK_STATE_FULL: nFree += (dev->nChunksPerBlock - blk->pagesInUse); break;
+			case YAFFS_BLOCK_STATE_COLLECTING:
+			case YAFFS_BLOCK_STATE_FULL: nFree += (dev->nChunksPerBlock - blk->pagesInUse + blk->softDeletions); break;
 			default: break;
 		}
-	}
-	
-	
-	pending = 0;
-	
-	// To the free chunks add the chunks that are in the deleted unlinked files.
-	list_for_each(i,&dev->deletedDir->variant.directoryVariant.children)
-	{
-		if(i)
-		{
-			l = list_entry(i, yaffs_Object,siblings);
-			if(l->deleted)
-			{
-				pending++;
-				pending += l->nDataChunks;
-			}
-		}
-	}
-	
-	
-	
-	//printf("___________ really free is %d, pending %d, nFree is %d\n",nFree,pending, nFree+pending);
-	
-	if(nFree != dev->nFreeChunks) 
-	{
-	//	printf("___________Different! really free is %d, nFreeChunks %d\n",nFree dev->nFreeChunks);
-	}
 
-	nFree += pending;
+	}
+	
+	return nFree;
+}	
+	
+
+
+int yaffs_GetNumberOfFreeChunks(yaffs_Device *dev)
+{
+	// This is what we report to the outside world
+
+	int nFree;
+	int nDirtyCacheChunks;
+		
+#if 1	
+	nFree = dev->nFreeChunks;
+#else
+	nFree = yaffs_CountFreeChunks(dev);
+#endif
 	
 	// Now count the number of dirty chunks in the cache and subtract those
 	
 	{
 		int i;
-		for(i = 0; i < dev->nShortOpCaches; i++)
+		for( nDirtyCacheChunks = 0,i = 0; i < dev->nShortOpCaches; i++)
 		{
 			if(dev->srCache[i].dirty) nDirtyCacheChunks++;
 		}
@@ -6216,7 +6226,20 @@ int  yaffs_GetNumberOfFreeChunks(yaffs_Device *dev)
 	
 }
 
+static int  yaffs_freeVerificationFailures;
 
+static void yaffs_VerifyFreeChunks(yaffs_Device *dev)
+{
+	int counted = yaffs_CountFreeChunks(dev);
+	
+	int difference = dev->nFreeChunks - counted;
+	
+	if(difference)
+	{
+		T(YAFFS_TRACE_ALWAYS,(TSTR("Freechunks verification failure %d %d %d" TENDSTR),dev->nFreeChunks,counted,difference)); 
+		yaffs_freeVerificationFailures++;	
+	}
+}
 
 /////////////////// YAFFS test code //////////////////////////////////
 

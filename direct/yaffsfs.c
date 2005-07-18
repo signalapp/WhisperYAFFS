@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.4 2005-07-03 05:48:11 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.5 2005-07-18 23:12:00 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -410,19 +410,19 @@ int yaffs_open(const char *path, int oflag, int mode)
 			
 			// Check file permissions
 			if( (oflag & (O_RDWR | O_WRONLY)) == 0 &&     // ie O_RDONLY
-			   !(obj->st_mode & S_IREAD))
+			   !(obj->yst_mode & S_IREAD))
 			{
 				openDenied = 1;
 			}
 
 			if( (oflag & O_RDWR) && 
-			   !(obj->st_mode & S_IREAD))
+			   !(obj->yst_mode & S_IREAD))
 			{
 				openDenied = 1;
 			}
 
 			if( (oflag & (O_RDWR | O_WRONLY)) && 
-			   !(obj->st_mode & S_IWRITE))
+			   !(obj->yst_mode & S_IWRITE))
 			{
 				openDenied = 1;
 			}
@@ -835,7 +835,7 @@ static int yaffsfs_DoStat(yaffs_Object *obj,struct yaffs_stat *buf)
 	{
     	buf->st_dev = (int)obj->myDev->genericDevice;
     	buf->st_ino = obj->objectId;
-    	buf->st_mode = obj->st_mode & ~S_IFMT; // clear out file type bits
+    	buf->st_mode = obj->yst_mode & ~S_IFMT; // clear out file type bits
 	
 		if(obj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY) 
 		{
@@ -853,13 +853,13 @@ static int yaffsfs_DoStat(yaffs_Object *obj,struct yaffs_stat *buf)
     	buf->st_nlink = yaffs_GetObjectLinkCount(obj);
     	buf->st_uid = 0;    
     	buf->st_gid = 0;;     
-    	buf->st_rdev = obj->st_rdev;
+    	buf->st_rdev = obj->yst_rdev;
     	buf->st_size = yaffs_GetObjectFileLength(obj);
 		buf->st_blksize = obj->myDev->nBytesPerChunk;
     	buf->st_blocks = (buf->st_size + buf->st_blksize -1)/buf->st_blksize;
-    	buf->st_atime = obj->st_atime; 
-    	buf->st_ctime = obj->st_ctime; 
-    	buf->st_mtime = obj->st_mtime; 
+    	buf->yst_atime = obj->yst_atime; 
+    	buf->yst_ctime = obj->yst_ctime; 
+    	buf->yst_mtime = obj->yst_mtime; 
 		retVal = 0;
 	}
 	return retVal;
@@ -940,7 +940,7 @@ static int yaffsfs_DoChMod(yaffs_Object *obj,mode_t mode)
 	
 	if(obj)
 	{
-		obj->st_mode = mode;
+		obj->yst_mode = mode;
 		obj->dirty = 1;
 		result = yaffs_FlushFile(obj,0);
 	}

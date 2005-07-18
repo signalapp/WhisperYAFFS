@@ -321,7 +321,7 @@ void fill_disk(char *path,int nfiles)
 		
 		while ((result = yaffs_write(h,xx,600)) == 600)
 		{
-			f = yaffs_freespace("/boot");
+			f = yaffs_freespace(path);
 		}
 		result = yaffs_close(h);
 		printf(" close %d\n",result);
@@ -1241,6 +1241,20 @@ int truncate_test(void)
 
 
 
+
+void fill_disk_test(const char *mountpt)
+{
+	int i;
+	yaffs_StartUp();
+	
+	for(i = 0; i < 5; i++)
+	{
+		yaffs_mount(mountpt);
+		fill_disk_and_delete(mountpt,100,i+1);
+		yaffs_unmount(mountpt);
+	}
+	
+}
 void scan_deleted_files_test(const char *mountpt)
 {
 	char fn[100];
@@ -1316,7 +1330,7 @@ int main(int argc, char *argv[])
 	
 	//long_test_on_path("/ram2k");
 	//long_test_on_path("/flash");
-	scan_deleted_files_test("/flash");
+	fill_disk_test("/flash");
 	
 	
 	

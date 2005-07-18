@@ -118,9 +118,9 @@ int yaffs_StartUp(void)
 	flashDev.nBytesPerChunk = 2048;
 	flashDev.nChunksPerBlock = 64;
 	flashDev.nReservedBlocks = 5;
-	flashDev.startBlock = 64; // First block after /boot
+	flashDev.startBlock = 0; 
 	//flashDev.endBlock = 127; // Last block in 16MB
-	flashDev.endBlock = (32 * 1024 * 1024)/(flashDev.nBytesPerChunk * flashDev.nChunksPerBlock) - 1; // Last block in 512MB
+	flashDev.endBlock = yflash_GetNumberOfBlocks()-1;
 	flashDev.isYaffs2 = 1;
 	flashDev.nShortOpCaches = 10; // Use caches
 	flashDev.genericDevice = (void *) 2;	// Used to identify the device in fstat.

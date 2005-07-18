@@ -41,5 +41,8 @@
 
 #endif
 
+
+int yflash_GetNumberOfBlocks(void);
+
 #endif
 

@@ -15,7 +15,7 @@
 // This provides a YAFFS nand emulation on a file for emulating 2kB pages.
 // THis is only intended as test code to test persistence etc.
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.3 2005-07-03 05:48:11 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.4 2005-07-18 23:12:00 charles Exp $";
 
 
 #include "yportenv.h"
@@ -55,7 +55,7 @@ typedef struct
 
 static yflash_Device filedisk;
 
-static int  CheckInit(yaffs_Device *dev)
+static int  CheckInit(void)
 {
 	static int initialised = 0;
 	
@@ -107,8 +107,20 @@ static int  CheckInit(yaffs_Device *dev)
 			}
 		}		
 	}
+	else
+	{
+		filedisk.nBlocks = fSize/(BLOCK_SIZE);
+	}
 	
 	return 1;
+}
+
+
+int yflash_GetNumberOfBlocks(void)
+{
+	CheckInit();
+	
+	return filedisk.nBlocks;
 }
 
 int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, yaffs_ExtendedTags *tags)
@@ -116,7 +128,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 	int written;
 	int pos;
 
-	CheckInit(dev);
+	CheckInit();
 	
 	
 	
@@ -160,7 +172,7 @@ int yflash_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	
 	yaffs_PackedTags2 pt;
 
-	CheckInit(dev);
+	CheckInit();
 	
 	memset(&pt,0,sizeof(pt));
 	lseek(filedisk.handle,(blockNo * dev->nChunksPerBlock) * PAGE_SIZE + PAGE_DATA_SIZE,SEEK_SET);
@@ -190,7 +202,7 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 	int nread;
 	int pos;
 
-	CheckInit(dev);
+	CheckInit();
 	
 	
 	
@@ -240,7 +252,7 @@ int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 
 	int i;
 		
-	CheckInit(dev);
+	CheckInit();
 	
 	if(blockNumber < 0 || blockNumber >= filedisk.nBlocks)
 	{
@@ -271,7 +283,7 @@ int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 
 int yflash_InitialiseNAND(yaffs_Device *dev)
 {
-	CheckInit(dev);
+	CheckInit();
 	
 	return YAFFS_OK;
 }

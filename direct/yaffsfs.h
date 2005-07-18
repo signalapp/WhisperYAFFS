@@ -155,6 +155,7 @@ typedef struct yaffs_dirent yaffs_dirent;
 typedef struct __opaque yaffs_DIR;
 
 
+
 struct yaffs_stat{
     int		      st_dev;      /* device */
     int           st_ino;      /* inode */
@@ -166,9 +167,9 @@ struct yaffs_stat{
     off_t         st_size;     /* total size, in bytes */
     unsigned long st_blksize;  /* blocksize for filesystem I/O */
     unsigned long st_blocks;   /* number of blocks allocated */
-    unsigned long st_atime;    /* time of last access */
-    unsigned long st_mtime;    /* time of last modification */
-    unsigned long st_ctime;    /* time of last change */
+    unsigned long yst_atime;    /* time of last access */
+    unsigned long yst_mtime;    /* time of last modification */
+    unsigned long yst_ctime;    /* time of last change */
 };
 
 int yaffs_open(const char *path, int oflag, int mode) ;

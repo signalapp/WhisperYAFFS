@@ -15,7 +15,7 @@
 
 // mtd interface for YAFFS2
 
-const char *yaffs_mtdif2_c_version = "$Id: yaffs_mtdif2.c,v 1.1 2004-12-17 04:39:04 charles Exp $";
+const char *yaffs_mtdif2_c_version = "$Id: yaffs_mtdif2.c,v 1.2 2005-07-19 20:41:59 charles Exp $";
 
 #ifdef CONFIG_YAFFS_MTD_ENABLED
  
@@ -43,7 +43,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __
 
 	yaffs_PackedTags2 pt;
 	
-	T(YAFFS_TRACE_MTD,(TSTR("nandmtd2_WriteChunkWithTagsToNAND chunk %d data %08x tags %08x" TENDSTR),chunkInNAND,data,tags));	
+	T(YAFFS_TRACE_MTD,(TSTR("nandmtd2_WriteChunkWithTagsToNAND chunk %d data %p tags %p" TENDSTR),chunkInNAND,data,tags));	
 
 	if(tags)
 	{
@@ -87,7 +87,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 	
 	yaffs_PackedTags2 pt;
 
-	T(YAFFS_TRACE_MTD,(TSTR("nandmtd2_ReadChunkWithTagsToNAND chunk %d data %08x tags %08x" TENDSTR),chunkInNAND,data,tags));	
+	T(YAFFS_TRACE_MTD,(TSTR("nandmtd2_ReadChunkWithTagsToNAND chunk %d data %p tags %p" TENDSTR),chunkInNAND,data,tags));	
 
 #ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	if(data && tags)

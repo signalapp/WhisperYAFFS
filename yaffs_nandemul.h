@@ -15,7 +15,7 @@
  *
  * yaffs_nandemul.h: Interface to emulated NAND functions
  *
- * $Id: yaffs_nandemul.h,v 1.1 2004-12-17 04:39:04 charles Exp $
+ * $Id: yaffs_nandemul.h,v 1.2 2005-07-19 20:41:59 charles Exp $
  */
  
 #ifndef __YAFFS_NANDEMUL_H__
@@ -29,7 +29,7 @@
  * transferred.
  */
  
-int nandemul_WriteChunkToNAND(struct yaffs_DeviceStruct *dev,int chunkInNAND, const __u8 *data, yaffs_Spare *spare);
+int nandemul_WriteChunkToNAND(struct yaffs_DeviceStruct *dev,int chunkInNAND, const __u8 *data, const yaffs_Spare *spare);
 int nandemul_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,int chunkInNAND, __u8 *data, yaffs_Spare *spare);
 int nandemul_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,int blockInNAND);
 int nandemul_InitialiseNAND(struct yaffs_DeviceStruct *dev);

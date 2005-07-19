@@ -15,7 +15,7 @@
  //yaffs_ramem.c
  // Since this creates the RAM block at start up it is pretty useless for testing the scanner.
 
-const char *yaffs_ramem_c_version = "$Id: yaffs_ramem.c,v 1.1 2004-12-17 04:39:04 charles Exp $";
+const char *yaffs_ramem_c_version = "$Id: yaffs_ramem.c,v 1.2 2005-07-19 20:41:59 charles Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
@@ -33,10 +33,10 @@ const char *yaffs_ramem_c_version = "$Id: yaffs_ramem.c,v 1.1 2004-12-17 04:39:0
 
 #define EM_SIZE_IN_MEG 2
 
-#define BLOCK_SIZE (32 * 528)
+#define YAFFS_BLOCK_SIZE (32 * 528)
 #define BLOCKS_PER_MEG ((1024*1024)/(32 * 512))
 #define FILE_SIZE_IN_BLOCKS (FILE_SIZE_IN_MEG * BLOCKS_PER_MEG)
-#define FILE_SIZE_IN_BYTES (FILE_SIZE_IN_BLOCKS * BLOCK_SIZE)
+#define FILE_SIZE_IN_BYTES (FILE_SIZE_IN_BLOCKS * YAFFS_BLOCK_SIZE)
 
 
 
@@ -178,7 +178,7 @@ static int  CheckInit(void)
 	return 1;
 }
 
-int nandemul_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, yaffs_Spare *spare)
+int nandemul_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_Spare *spare)
 {
 	int blk;
 	int pg;

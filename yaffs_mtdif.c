@@ -13,7 +13,7 @@
  *
  */
 
-const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.1 2004-12-17 04:39:04 charles Exp $";
+const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.2 2005-07-19 20:41:59 charles Exp $";
 
 #ifdef CONFIG_YAFFS_MTD_ENABLED
  
@@ -39,7 +39,7 @@ struct nand_oobinfo yaffs_noeccinfo = {
 };
 
 
-int nandmtd_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, yaffs_Spare *spare)
+int nandmtd_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_Spare *spare)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	size_t dummy;

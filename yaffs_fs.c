@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.8 2005-07-18 23:16:04 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.9 2005-07-19 20:41:59 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -165,75 +165,78 @@ static void yaffs_delete_inode(struct inode *);
 static void yaffs_clear_inode(struct inode *);
 
 static int yaffs_readpage(struct file *file, struct page * page);
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+static int yaffs_writepage(struct page *page, struct writeback_control *wbc);
+#else
 static int yaffs_writepage(struct page *page);
+#endif
 static int yaffs_prepare_write(struct file *f, struct page *pg, unsigned offset, unsigned to);
 static int yaffs_commit_write(struct file *f, struct page *pg, unsigned offset, unsigned to);
 
-static int yaffs_readlink(struct dentry *dentry, char *buffer, int buflen);
+static int yaffs_readlink(struct dentry *dentry, char __user *buffer, int buflen);
 static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 
 
 
 
 static struct address_space_operations yaffs_file_address_operations = {
-	readpage:		yaffs_readpage,
-	writepage:		yaffs_writepage,
-	prepare_write:	yaffs_prepare_write,
-	commit_write:	yaffs_commit_write
+	.readpage:		yaffs_readpage,
+	.writepage:		yaffs_writepage,
+	.prepare_write:	yaffs_prepare_write,
+	.commit_write:	yaffs_commit_write
 };
 
 
 static struct file_operations yaffs_file_operations = {
 
-	read:		generic_file_read,
-	write:		generic_file_write,
+	.read:		generic_file_read,
+	.write:		generic_file_write,
 
-	mmap:		generic_file_mmap,
-	flush:		yaffs_file_flush,
-	fsync:		yaffs_sync_object,
+	.mmap:		generic_file_mmap,
+	.flush:		yaffs_file_flush,
+	.fsync:		yaffs_sync_object,
 };
 
 
 static struct inode_operations yaffs_file_inode_operations = {
-	setattr:	yaffs_setattr,
+	.setattr:	yaffs_setattr,
 };
 
 
 struct inode_operations yaffs_symlink_inode_operations =
 {	
-	readlink:	yaffs_readlink,
-	follow_link:	yaffs_follow_link,
-	setattr:	yaffs_setattr
+	.readlink:	yaffs_readlink,
+	.follow_link:	yaffs_follow_link,
+	.setattr:	yaffs_setattr
 };
 
 static struct inode_operations yaffs_dir_inode_operations = {
-	create:		yaffs_create,
-	lookup:		yaffs_lookup,
-	link:		yaffs_link,
-	unlink:		yaffs_unlink,	
-	symlink:	yaffs_symlink,
-	mkdir:		yaffs_mkdir,
-	rmdir:		yaffs_unlink,
-	mknod:		yaffs_mknod,
-	rename:		yaffs_rename,
-	setattr:	yaffs_setattr,
+	.create:		yaffs_create,
+	.lookup:		yaffs_lookup,
+	.link:		yaffs_link,
+	.unlink:		yaffs_unlink,	
+	.symlink:	yaffs_symlink,
+	.mkdir:		yaffs_mkdir,
+	.rmdir:		yaffs_unlink,
+	.mknod:		yaffs_mknod,
+	.rename:		yaffs_rename,
+	.setattr:	yaffs_setattr,
 };
 
 static struct file_operations yaffs_dir_operations = {
-	read:		generic_read_dir,
-	readdir:	yaffs_readdir,
-	fsync:		yaffs_sync_object,
+	.read:		generic_read_dir,
+	.readdir:	yaffs_readdir,
+	.fsync:		yaffs_sync_object,
 };
 
 
 static struct super_operations yaffs_super_ops = {
-	statfs:			yaffs_statfs,
-	read_inode:		yaffs_read_inode,
-	put_inode:		yaffs_put_inode,
-	put_super:		yaffs_put_super,
-//	remount_fs:
-	delete_inode:		yaffs_delete_inode,
-	clear_inode:		yaffs_clear_inode,
+	.statfs:			yaffs_statfs,
+	.read_inode:		yaffs_read_inode,
+	.put_inode:		yaffs_put_inode,
+	.put_super:		yaffs_put_super,
+	.delete_inode:		yaffs_delete_inode,
+	.clear_inode:		yaffs_clear_inode,
 };
 
 
@@ -252,7 +255,7 @@ static void yaffs_GrossUnlock(yaffs_Device *dev)
 
 }
 
-static int yaffs_readlink(struct dentry *dentry, char *buffer, int buflen)
+static int yaffs_readlink(struct dentry *dentry, char __user *buffer, int buflen)
 {
 	unsigned char *alias;
 	int ret;
@@ -463,8 +466,12 @@ static int yaffs_readpage_nolock(struct file *f, struct page * pg)
 	dev = obj->myDev;
 	
 	
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+        BUG_ON(!PageLocked(pg));
+#else
 	if (!PageLocked(pg))
                 PAGE_BUG(pg);
+#endif
 
 	pg_buf = kmap(pg);
 	/* FIXME: Can kmap fail? */
@@ -508,7 +515,11 @@ static int yaffs_readpage(struct file *f, struct page * pg)
 // writepage inspired by/stolen from smbfs
 //
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+static int yaffs_writepage(struct page *page, struct writeback_control *wbc)
+#else
 static int yaffs_writepage(struct page *page)
+#endif
 {
 	struct address_space *mapping = page->mapping;
 	struct inode *inode;
@@ -648,7 +659,8 @@ static void yaffs_FillInodeFromObject(struct inode *inode, yaffs_Object *obj)
                                init_special_inode(inode, obj->yst_mode,old_decode_dev(obj->yst_rdev));
 #else
                                  init_special_inode(inode, obj->yst_mode,(dev_t)(obj->yst_rdev));
-#endif				break;
+#endif				
+                        break;
 			case S_IFREG:	// file		
 				inode->i_op = &yaffs_file_inode_operations;
 				inode->i_fop = &yaffs_file_operations;
@@ -934,7 +946,8 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode, int r
                         obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,current->uid, current->gid,old_encode_dev(rdev));
 #else
                         obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,current->uid, current->gid,rdev);
-#endif			break;
+#endif			
+                break;
 		case S_IFREG:	// file		
 			T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_mknod: making file\n"));
 			obj = yaffs_MknodFile(parent,dentry->d_name.name,mode,current->uid, current->gid);
@@ -1201,7 +1214,8 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 			error = -EPERM;
 		}
 		yaffs_GrossUnlock(dev);
-		error = inode_setattr(inode,attr);
+		if (!error)
+			error = inode_setattr(inode,attr);
 	}
 	return error;
 }
@@ -1436,13 +1450,13 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 			return NULL;
 		}
 
-		T(YAFFS_TRACE_OS,(" erase %x\n",mtd->erase));
-		T(YAFFS_TRACE_OS,(" read %x\n",mtd->read));
-		T(YAFFS_TRACE_OS,(" write %x\n",mtd->write));
-		T(YAFFS_TRACE_OS,(" readoob %x\n",mtd->read_oob));
-		T(YAFFS_TRACE_OS,(" writeoob %x\n",mtd->write_oob));
-		T(YAFFS_TRACE_OS,(" block_isbad %x\n",mtd->block_isbad));
-		T(YAFFS_TRACE_OS,(" block_markbad %x\n",mtd->block_markbad));
+		T(YAFFS_TRACE_OS,(" erase %p\n",mtd->erase));
+		T(YAFFS_TRACE_OS,(" read %p\n",mtd->read));
+		T(YAFFS_TRACE_OS,(" write %p\n",mtd->write));
+		T(YAFFS_TRACE_OS,(" readoob %p\n",mtd->read_oob));
+		T(YAFFS_TRACE_OS,(" writeoob %p\n",mtd->write_oob));
+		T(YAFFS_TRACE_OS,(" block_isbad %p\n",mtd->block_isbad));
+		T(YAFFS_TRACE_OS,(" block_markbad %p\n",mtd->block_markbad));
 		T(YAFFS_TRACE_OS,(" oobblock %d\n",mtd->oobblock));
 		T(YAFFS_TRACE_OS,(" oobsize %d\n",mtd->oobsize));
 		T(YAFFS_TRACE_OS,(" erasesize %d\n",mtd->erasesize));
@@ -1693,7 +1707,7 @@ static DECLARE_FSTYPE(yaffs2_fs_type, "yaffs2", yaffs2_read_super, FS_REQUIRES_D
 static struct super_block *yaffs_ram_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
 {
 
-    return get_sb_bdev(fs, flags, dev_name, data, yaffs_internal_read_super_ram);
+    return get_sb_nodev(fs, flags, data, yaffs_internal_read_super_ram);
 }
 
 
@@ -1701,8 +1715,7 @@ static struct file_system_type yaffs_ram_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "yaffsram",
 	.get_sb		= yaffs_ram_read_super,
-	.kill_sb	= kill_block_super,
-//	.kill_sb	= kill_litter_super,
+	.kill_sb	= kill_litter_super,
 	.fs_flags	= 0 ,
 };
 #else
@@ -1722,7 +1735,7 @@ static DECLARE_FSTYPE(yaffs_ram_fs_type, "yaffsram", yaffs_ram_read_super, FS_SI
 static struct super_block *yaffs2_ram_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
 {
 
-    return get_sb_bdev(fs, flags, dev_name, data, yaffs2_internal_read_super_ram);
+    return get_sb_nodev(fs, flags, data, yaffs2_internal_read_super_ram);
 }
 
 
@@ -1730,8 +1743,7 @@ static struct file_system_type yaffs2_ram_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "yaffs2ram",
 	.get_sb		= yaffs2_ram_read_super,
-	.kill_sb	= kill_block_super,
-//	.kill_sb	= kill_litter_super,
+	.kill_sb	= kill_litter_super,
 	.fs_flags	= 0 ,
 };
 #else

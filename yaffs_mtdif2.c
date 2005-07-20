@@ -15,7 +15,7 @@
 
 // mtd interface for YAFFS2
 
-const char *yaffs_mtdif2_c_version = "$Id: yaffs_mtdif2.c,v 1.2 2005-07-19 20:41:59 charles Exp $";
+const char *yaffs_mtdif2_c_version = "$Id: yaffs_mtdif2.c,v 1.3 2005-07-20 18:57:05 charles Exp $";
 
 #ifdef CONFIG_YAFFS_MTD_ENABLED
  
@@ -130,7 +130,7 @@ int nandmtd2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	T(YAFFS_TRACE_MTD,(TSTR("nandmtd2_MarkNANDBlockBad %d" TENDSTR),blockNo));	
 	
 	
-	retval = mtd->block_markbad(mtd,blockNo);
+	retval = mtd->block_markbad(mtd,blockNo * dev->nChunksPerBlock * dev->nBytesPerChunk);
 
     if (retval == 0)
     	return YAFFS_OK;
@@ -145,7 +145,7 @@ int nandmtd2_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_B
 	int retval;
 	
 	T(YAFFS_TRACE_MTD,(TSTR("nandmtd2_QueryNANDBlock %d" TENDSTR),blockNo));	
-	retval = mtd->block_isbad(mtd,blockNo);
+	retval = mtd->block_isbad(mtd,blockNo* dev->nChunksPerBlock * dev->nBytesPerChunk);
 	
 	if(retval)
 	{

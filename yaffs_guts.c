@@ -14,7 +14,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.9 2005-07-18 23:16:04 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.10 2005-07-26 03:05:28 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2417,6 +2417,7 @@ int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 	dev->nFreeChunks -= bi->softDeletions;  // Take off the number of soft deleted entries because
 						// they're going to get really deleted during GC.
 
+	dev->isDoingGC = 1;
 
 	if(!yaffs_StillSomeChunkBits(dev,block))
 	{
@@ -2549,6 +2550,8 @@ int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 	}
 	
 	
+	dev->isDoingGC = 0;
+	
 	//yaffs_VerifyFreeChunks(dev);
 			
 	return YAFFS_OK;
@@ -2634,9 +2637,13 @@ int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 	int gcOk = YAFFS_OK;
 	int maxTries = 0;
 	
-	//yaffs_DoUnlinkedFileDeletion(dev);
-	
 	//yaffs_VerifyFreeChunks(dev);
+	
+	if(dev->isDoingGC)
+	{
+		// Bail out so we don't get recursive gc
+		return YAFFS_OK;
+	}
 
 	// This loop should pass the first time.
 	// We'll only see looping here if the erase of the collected block fails.
@@ -6017,6 +6024,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	dev->tagsEccUnfixed=0;
 	dev->nErasureFailures = 0;
 	dev->nErasedBlocks = 0;
+	dev->isDoingGC = 0;
 	
 	//dev->localBuffer = YMALLOC(dev->nBytesPerChunk);
 	// Initialise temporary buffers

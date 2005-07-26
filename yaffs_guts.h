@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.8 2005-07-18 23:16:04 charles Exp $
+ * $Id: yaffs_guts.h,v 1.9 2005-07-26 03:05:28 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -583,6 +583,7 @@ struct yaffs_DeviceStruct
 	int  nFreeTnodes;
 	yaffs_TnodeList *allocatedTnodeList;
 
+	int   isDoingGC;
 
 	int   nObjectsCreated;
 	yaffs_Object *freeObjects;

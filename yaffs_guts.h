@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.9 2005-07-26 03:05:28 charles Exp $
+ * $Id: yaffs_guts.h,v 1.10 2005-07-26 23:04:34 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -505,6 +505,9 @@ typedef struct {
 
 struct yaffs_DeviceStruct
 {
+	struct list_head devList;
+	const char *name;
+
 	// Entry parameters set up way early. Yaffs sets up the rest.
 	int   nBytesPerChunk; 	 // Should be a power of 2 >= 512
 	int	  nChunksPerBlock;	 // does not need to be a power of 2

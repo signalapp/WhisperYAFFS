@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.10 2005-07-26 20:23:30 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.11 2005-07-26 23:04:34 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -44,6 +44,7 @@ extern const char *yaffs_guts_c_version;
 #include <linux/list.h>
 #include <linux/fs.h>
 #include <linux/proc_fs.h>
+#include <linux/smp_lock.h>
 #include <linux/pagemap.h>
 #include <linux/mtd/mtd.h>
 #include <linux/interrupt.h>
@@ -1278,14 +1279,7 @@ static void yaffs_read_inode (struct inode *inode)
 
 }
 
-
-
-// Todo
-// Currently we only can report a single partition. Need to use lists here
-static yaffs_Device *yaffs_dev;
-static yaffs_Device *yaffsram_dev;
-
-
+static LIST_HEAD(yaffs_dev_list);
 
 static void yaffs_put_super(struct super_block *sb)
 {
@@ -1299,9 +1293,9 @@ static void yaffs_put_super(struct super_block *sb)
 	yaffs_Deinitialise(dev);
 	yaffs_GrossUnlock(dev);
 
-	if(dev == yaffs_dev) yaffs_dev = NULL;
-	if(dev == yaffsram_dev) yaffsram_dev = NULL;
-		
+	/* we assume this is protected by lock_kernel() in mount/umount */
+	list_del(&dev->devList);
+
 	kfree(dev);
 }
 
@@ -1329,7 +1323,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 	int nBlocks;
 	struct inode * inode = NULL;
 	struct dentry * root;
-	yaffs_Device *dev;
+	yaffs_Device *dev = 0;
 	int err;
 	
 	sb->s_magic = YAFFS_MAGIC;
@@ -1384,6 +1378,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 
 		memset(dev,0,sizeof(yaffs_Device));
 		dev->genericDevice = NULL; // Not used for RAM emulation.
+		dev->name = sb->s_type->name;
 
 		nBlocks = YAFFS_RAM_EMULATION_SIZE / (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK);
 		dev->startBlock = 0;  
@@ -1415,9 +1410,6 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 			dev->initialiseNAND = nandemul_InitialiseNAND;
 			dev->isYaffs2 = 0;
 		}
-		
-		yaffsram_dev = dev;
-		
 #endif
 
 	}
@@ -1532,6 +1524,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 
 		memset(dev,0,sizeof(yaffs_Device));
 		dev->genericDevice = mtd; 
+		dev->name = mtd->name;
 
 		// Set up the memory size parameters....
 		
@@ -1574,11 +1567,11 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 #ifdef CONFIG_YAFFS_USE_NANDECC
 		dev->useNANDECC = 1;
 #endif
-
-		yaffs_dev = dev;
-		
 #endif
 	}
+
+	/* we assume this is protected by lock_kernel() in mount/umount */
+	list_add_tail(&dev->devList, &yaffs_dev_list);
 
 	init_MUTEX(&dev->grossLock);
 	
@@ -1762,9 +1755,8 @@ static DECLARE_FSTYPE(yaffs2_ram_fs_type, "yaffs2ram", yaffs2_ram_read_super, FS
 static struct proc_dir_entry *my_proc_entry;
 static struct proc_dir_entry *my_proc_ram_write_entry;
 
-static char * yaffs_dump_dev(char *buf,yaffs_Device *dev,char *name)
+static char * yaffs_dump_dev(char *buf,yaffs_Device *dev)
 {
-	buf +=sprintf(buf,"\nDevice %s\n",name);
 	buf +=sprintf(buf,"startBlock......... %d\n",dev->startBlock);
 	buf +=sprintf(buf,"endBlock........... %d\n",dev->endBlock);
 	buf +=sprintf(buf,"chunkGroupBits..... %d\n",dev->chunkGroupBits);
@@ -1794,7 +1786,6 @@ static char * yaffs_dump_dev(char *buf,yaffs_Device *dev,char *name)
 	buf +=sprintf(buf,"useNANDECC......... %d\n",dev->useNANDECC);
 	buf +=sprintf(buf,"isYaffs2........... %d\n",dev->isYaffs2);
 
-	
 	return buf;	
 }
 
@@ -1807,24 +1798,43 @@ static int  yaffs_proc_read(
 	void *data
 	)
 {
+	struct list_head *item;
+	char *buf = page;
+	int step = offset;
+	int n = 0;
 
-	char my_buffer[3000];
-	char *buf;
-	buf = my_buffer;
+	/* Get proc_file_read() to step 'offset' by one on each sucessive call.
+	 * We use 'offset' (*ppos) to indicate where we are in devList.
+	 * This also assumes the user has posted a read buffer large
+	 * enough to hold the complete output; but that's life in /proc.
+	 */
 
-	if (offset > 0) return 0;
+	*(int *)start = 1;
 
-	/* Fill the buffer and get its length */
-	buf +=sprintf(buf,"YAFFS built:"__DATE__ " "__TIME__"\n%s\n%s\n", yaffs_fs_c_version,yaffs_guts_c_version);
-	
-	if(yaffs_dev) buf = yaffs_dump_dev(buf,yaffs_dev,"yaffs");
-	if(yaffsram_dev) buf = yaffs_dump_dev(buf,yaffsram_dev,"yaffsram");
-	
+	/* Print header first */
+	if (step == 0) {
+		buf += sprintf(buf, "YAFFS built:" __DATE__ " "__TIME__
+		"\n%s\n%s\n", yaffs_fs_c_version, yaffs_guts_c_version);
+	}
 
-	strcpy(page,my_buffer);
-	return strlen(my_buffer);
+	/* hold lock_kernel while traversing yaffs_dev_list */
+	lock_kernel();
+
+	/* Locate and print the Nth entry.  Order N-squared but N is small. */
+	list_for_each(item, &yaffs_dev_list) {
+		yaffs_Device *dev = list_entry(item, yaffs_Device, devList);
+		if (n < step) {
+			n++;
+			continue;
+		}
+		buf += sprintf(buf,"\nDevice %d \"%s\"\n", n, dev->name);
+		buf = yaffs_dump_dev(buf, dev);
+		break;
+	}
+	unlock_kernel();
+
+	return buf-page < count ? buf-page : count;
 }
-
 
 static int  yaffs_proc_ram_write(
         char *page,
@@ -1870,8 +1880,6 @@ static int __init init_yaffs_fs(void)
 {
 	int error = 0;
 	struct file_system_to_install *fsinst;	
-	
-	yaffs_dev = yaffsram_dev = NULL;
 	
    T(YAFFS_TRACE_ALWAYS,("yaffs " __DATE__ " " __TIME__ " Installing. \n"));
 

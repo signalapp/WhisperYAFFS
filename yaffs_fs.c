@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.9 2005-07-19 20:41:59 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.10 2005-07-26 20:23:30 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -180,63 +180,63 @@ static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 
 
 static struct address_space_operations yaffs_file_address_operations = {
-	.readpage:		yaffs_readpage,
-	.writepage:		yaffs_writepage,
-	.prepare_write:	yaffs_prepare_write,
-	.commit_write:	yaffs_commit_write
+	.readpage=		yaffs_readpage,
+	.writepage=		yaffs_writepage,
+	.prepare_write=	yaffs_prepare_write,
+	.commit_write=	yaffs_commit_write
 };
 
 
 static struct file_operations yaffs_file_operations = {
 
-	.read:		generic_file_read,
-	.write:		generic_file_write,
+	.read=		generic_file_read,
+	.write=		generic_file_write,
 
-	.mmap:		generic_file_mmap,
-	.flush:		yaffs_file_flush,
-	.fsync:		yaffs_sync_object,
+	.mmap=		generic_file_mmap,
+	.flush=		yaffs_file_flush,
+	.fsync=		yaffs_sync_object,
 };
 
 
 static struct inode_operations yaffs_file_inode_operations = {
-	.setattr:	yaffs_setattr,
+	.setattr=	yaffs_setattr,
 };
 
 
 struct inode_operations yaffs_symlink_inode_operations =
 {	
-	.readlink:	yaffs_readlink,
-	.follow_link:	yaffs_follow_link,
-	.setattr:	yaffs_setattr
+	.readlink=	yaffs_readlink,
+	.follow_link=	yaffs_follow_link,
+	.setattr=	yaffs_setattr
 };
 
 static struct inode_operations yaffs_dir_inode_operations = {
-	.create:		yaffs_create,
-	.lookup:		yaffs_lookup,
-	.link:		yaffs_link,
-	.unlink:		yaffs_unlink,	
-	.symlink:	yaffs_symlink,
-	.mkdir:		yaffs_mkdir,
-	.rmdir:		yaffs_unlink,
-	.mknod:		yaffs_mknod,
-	.rename:		yaffs_rename,
-	.setattr:	yaffs_setattr,
+	.create=		yaffs_create,
+	.lookup=		yaffs_lookup,
+	.link=		yaffs_link,
+	.unlink=		yaffs_unlink,	
+	.symlink=	yaffs_symlink,
+	.mkdir=		yaffs_mkdir,
+	.rmdir=		yaffs_unlink,
+	.mknod=		yaffs_mknod,
+	.rename=		yaffs_rename,
+	.setattr=	yaffs_setattr,
 };
 
 static struct file_operations yaffs_dir_operations = {
-	.read:		generic_read_dir,
-	.readdir:	yaffs_readdir,
-	.fsync:		yaffs_sync_object,
+	.read=		generic_read_dir,
+	.readdir=	yaffs_readdir,
+	.fsync=		yaffs_sync_object,
 };
 
 
 static struct super_operations yaffs_super_ops = {
-	.statfs:			yaffs_statfs,
-	.read_inode:		yaffs_read_inode,
-	.put_inode:		yaffs_put_inode,
-	.put_super:		yaffs_put_super,
-	.delete_inode:		yaffs_delete_inode,
-	.clear_inode:		yaffs_clear_inode,
+	.statfs=			yaffs_statfs,
+	.read_inode=		yaffs_read_inode,
+	.put_inode=		yaffs_put_inode,
+	.put_super=		yaffs_put_super,
+	.delete_inode=		yaffs_delete_inode,
+	.clear_inode=		yaffs_clear_inode,
 };
 
 

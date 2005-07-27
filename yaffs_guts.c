@@ -1,4 +1,3 @@
-
 /*
  * YAFFS: Yet another FFS. A NAND-flash specific file system. 
  *
@@ -14,7 +13,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.10 2005-07-26 03:05:28 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.11 2005-07-27 02:00:48 charles Exp $";
 
 #include "yportenv.h"
 
@@ -654,13 +653,13 @@ static int yaffs_CreateTnodes(yaffs_Device *dev,int nTnodes)
     {
     	newTnodes[i].internal[0] = &newTnodes[i+1];
 #ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
-    	newTnodes[i].internal[YAFFS_NTNODES_INTERNAL] = 1;
+    	newTnodes[i].internal[YAFFS_NTNODES_INTERNAL] = (void *)1;
 #endif
     }
     	
 	newTnodes[nTnodes - 1].internal[0] = dev->freeTnodes;
 #ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
-   	newTnodes[nTnodes - 1].internal[YAFFS_NTNODES_INTERNAL] = 1;
+   	newTnodes[nTnodes - 1].internal[YAFFS_NTNODES_INTERNAL] = (void *)1;
 #endif
 	dev->freeTnodes = newTnodes;
 	dev->nFreeTnodes+= nTnodes;
@@ -705,7 +704,7 @@ static yaffs_Tnode *yaffs_GetTnode(yaffs_Device *dev)
 	{
 		tn = dev->freeTnodes;
 #ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
-    	if(tn->internal[YAFFS_NTNODES_INTERNAL] != 1)
+    	if(tn->internal[YAFFS_NTNODES_INTERNAL] != (void *)1)
 		{
 			// Hoosterman, this thing looks like it isn't in the list
 				T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: Tnode list bug 1" TENDSTR)));
@@ -733,7 +732,7 @@ static void yaffs_FreeTnode(yaffs_Device*dev, yaffs_Tnode *tn)
 			// Hoosterman, this thing looks like it is already in the list
 				T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: Tnode list bug 2" TENDSTR)));
 		}
-		tn->internal[YAFFS_NTNODES_INTERNAL] = 1;
+		tn->internal[YAFFS_NTNODES_INTERNAL] = (void *)1;
 #endif
 		tn->internal[0] = dev->freeTnodes;
 		dev->freeTnodes = tn;
@@ -3421,7 +3420,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int i
 static void yaffs_FlushFilesChunkCache(yaffs_Object *obj)
 {
 	yaffs_Device *dev = obj->myDev;
-	int lowest;
+	int lowest = -99; // Stop compiler whining.
 	int i;
 	yaffs_ChunkCache *cache;
 	int chunkWritten = 0;
@@ -4971,10 +4970,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 	
 	dev->sequenceNumber = YAFFS_LOWEST_SEQUENCE_NUMBER;
 	
-	if(dev->isYaffs2)
-	{
-		blockIndex = YMALLOC(nBlocks * sizeof(yaffs_BlockIndex));		
-	}
+	blockIndex = YMALLOC(nBlocks * sizeof(yaffs_BlockIndex));		
 	
 	
 	// Scan all the blocks to determine their state
@@ -5032,7 +5028,6 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 	
 	// Sort the blocks
 	// Dungy old bubble sort for now...
-	if(dev->isYaffs2)
 	{
 		yaffs_BlockIndex temp;
 		int i;
@@ -5050,12 +5045,9 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 	
 	
 	// Now scan the blocks looking at the data.
-	if(dev->isYaffs2)
-	{
-		startIterator = 0;
-		endIterator = nBlocksToScan-1;
-		T(YAFFS_TRACE_SCAN_DEBUG,(TSTR("%d blocks to be scanned" TENDSTR),nBlocksToScan));
-	}
+	startIterator = 0;
+	endIterator = nBlocksToScan-1;
+	T(YAFFS_TRACE_SCAN_DEBUG,(TSTR("%d blocks to be scanned" TENDSTR),nBlocksToScan));
 
 	
 	// For each block.... backwards

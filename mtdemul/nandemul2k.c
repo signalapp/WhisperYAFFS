@@ -27,7 +27,9 @@
 #include <linux/mtd/mtd.h>
 #include <linux/interrupt.h>
 #include <linux/string.h>
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0))
 #include <linux/locks.h>
+#endif
 
 #include <asm/uaccess.h>
 #include <linux/mtd/mtd.h>

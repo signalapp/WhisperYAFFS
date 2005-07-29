@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.12 2005-07-27 20:23:15 charles Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.13 2005-07-29 20:13:23 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -153,13 +153,6 @@ static int yaffs_statfs(struct super_block *sb, struct kstatfs *buf);
 static int yaffs_statfs(struct super_block *sb, struct statfs *buf);
 #endif
 static void yaffs_read_inode (struct inode *inode);
-
-//#if defined(CONFIG_KERNEL_2_5)
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-static struct super_block *yaffs_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data);
-#else
-static struct super_block *yaffs_read_super(struct super_block * sb, void * data, int silent);
-#endif
 
 static void yaffs_put_inode (struct inode *inode);
 static void yaffs_delete_inode(struct inode *);
@@ -1605,29 +1598,15 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 }
 
 
-static int yaffs_internal_read_super_ram(struct super_block * sb, void * data, int silent)
-{
-	 return yaffs_internal_read_super(1,1,sb,data,silent) ? 0 : -1;
-}
+
+#ifdef CONFIG_YAFFS_MTD_ENABLED
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_internal_read_super_mtd(struct super_block * sb, void * data, int silent)
 {
 	 return yaffs_internal_read_super(1,0,sb,data,silent) ? 0 : -1;
 }
 
-static int yaffs2_internal_read_super_ram(struct super_block * sb, void * data, int silent)
-{
-	 return yaffs_internal_read_super(2,1,sb,data,silent) ? 0 : -1;
-}
-static int yaffs2_internal_read_super_mtd(struct super_block * sb, void * data, int silent)
-{
-	 return yaffs_internal_read_super(2,0,sb,data,silent) ? 0 : -1;
-}
-
-
-
-#ifdef CONFIG_YAFFS_MTD_ENABLED
-//#if defined(CONFIG_KERNEL_2_5)
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static struct super_block *yaffs_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
 {
 
@@ -1658,6 +1637,11 @@ static DECLARE_FSTYPE(yaffs_fs_type, "yaffs", yaffs_read_super, FS_REQUIRES_DEV)
 #ifdef CONFIG_YAFFS2_MTD_ENABLED
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+static int yaffs2_internal_read_super_mtd(struct super_block * sb, void * data, int silent)
+{
+	 return yaffs_internal_read_super(2,0,sb,data,silent) ? 0 : -1;
+}
+
 static struct super_block *yaffs2_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
 {
 
@@ -1689,6 +1673,11 @@ static DECLARE_FSTYPE(yaffs2_fs_type, "yaffs2", yaffs2_read_super, FS_REQUIRES_D
 #ifdef CONFIG_YAFFS_RAM_ENABLED
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+static int yaffs_internal_read_super_ram(struct super_block * sb, void * data, int silent)
+{
+	 return yaffs_internal_read_super(1,1,sb,data,silent) ? 0 : -1;
+}
+
 static struct super_block *yaffs_ram_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
 {
 
@@ -1717,6 +1706,11 @@ static DECLARE_FSTYPE(yaffs_ram_fs_type, "yaffsram", yaffs_ram_read_super, FS_SI
 #ifdef CONFIG_YAFFS2_RAM_ENABLED
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+static int yaffs2_internal_read_super_ram(struct super_block * sb, void * data, int silent)
+{
+	 return yaffs_internal_read_super(2,1,sb,data,silent) ? 0 : -1;
+}
+
 static struct super_block *yaffs2_ram_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
 {
 

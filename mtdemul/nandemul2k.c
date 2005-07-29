@@ -286,11 +286,16 @@ static int nand_write (struct mtd_info *mtd, loff_t to, size_t len,
 			size_t *retlen, const u_char *buf);
 static int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 				size_t *retlen, const u_char *buf,
-				const u_char *oob_buf, struct nand_oobinfo *dummy);
+				u_char *oob_buf, struct nand_oobinfo *dummy);
 static int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len,
 				size_t *retlen, const u_char *buf);
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,7))
+static int nand_writev (struct mtd_info *mtd, const struct kvec *vecs,
+				unsigned long count, loff_t to, size_t *retlen);
+#else
 static int nand_writev (struct mtd_info *mtd, const struct iovec *vecs,
 				unsigned long count, loff_t to, size_t *retlen);
+#endif
 static int nand_erase (struct mtd_info *mtd, struct erase_info *instr);
 static void nand_sync (struct mtd_info *mtd);
 
@@ -413,7 +418,7 @@ static int nand_write (struct mtd_info *mtd, loff_t to, size_t len,
  */
 static int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 				size_t *retlen, const u_char *buf,
-				const u_char *oob_buf, struct nand_oobinfo *dummy)
+				u_char *oob_buf, struct nand_oobinfo *dummy)
 {
 
 	int 	start, page;
@@ -509,8 +514,13 @@ static int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len,
 /*
  * NAND write with iovec
  */
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,7))
+static int nand_writev (struct mtd_info *mtd, const struct kvec *vecs,
+				unsigned long count, loff_t to, size_t *retlen)
+#else
 static int nand_writev (struct mtd_info *mtd, const struct iovec *vecs,
 				unsigned long count, loff_t to, size_t *retlen)
+#endif
 {
 	return -EINVAL;
 }
@@ -564,12 +574,12 @@ static int nand_erase (struct mtd_info *mtd, struct erase_info *instr)
 }
 
 
-int nand_block_isbad(struct mtd_info *mtd,int blockNo)
+static int nand_block_isbad(struct mtd_info *mtd, loff_t ofs)
 {
 	return 0;
 }
 
-int nand_block_markbad(struct mtd_info *mtd, int blockNo)
+static int nand_block_markbad(struct mtd_info *mtd, loff_t ofs)
 {
 	return 0;
 }

@@ -597,7 +597,7 @@ static void nand_sync (struct mtd_info *mtd)
 /*
  * Scan for the NAND device
  */
-int nand_scan (struct mtd_info *mtd,int nchips)
+static int nandemul2k_scan (struct mtd_info *mtd,int nchips)
 {
 	mtd->oobblock = PAGE_DATA_SIZE;
 	mtd->oobsize =  PAGE_SPARE_SIZE;
@@ -665,7 +665,7 @@ int __init nandemul2k_init (void)
 	
 	CheckInit();
 
-	nand_scan(&nandemul2k_mtd,1);
+	nandemul2k_scan(&nandemul2k_mtd,1);
 
 	// Build the partition table
 

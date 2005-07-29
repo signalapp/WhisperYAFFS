@@ -35,8 +35,8 @@
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 #include <linux/mtd/nand.h>
+#include "../yaffs_nandemul2k.h"
 
-#define T(f,x) printk x
 #define ALLOCATE(x) kmalloc(x,GFP_KERNEL)
 #define FREE(x)     kfree(x)
 

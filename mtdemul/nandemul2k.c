@@ -630,6 +630,8 @@ static int nandemul2k_scan (struct mtd_info *mtd,int nchips)
 	mtd->suspend = NULL;
 	mtd->resume = NULL;
 
+	mtd->name = "NANDemul2k";
+
 	/* Return happy */
 	return 0;
 }

@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.14 2005-07-29 20:25:43 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.15 2005-07-29 23:51:18 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -57,12 +57,13 @@ extern const char *yaffs_guts_c_version;
 #include <asm/statfs.h>
 #define UnlockPage(p) unlock_page(p)
 #define Page_Uptodate(page)	test_bit(PG_uptodate, &(page)->flags)
-//#define kdevname(x) cdevname(to_kdev_t(x))
-#define kdevname(x) "(unavailable)"	// temporary fix
+#define yaffs_devname(sb, buf)	bdevname(sb->s_bdev, buf)	// FIXME: use sb->s_id instead ?
 
 #else
 
 #include <linux/locks.h>
+#define	BDEVNAME_SIZE		0
+#define	yaffs_devname(sb, buf)	kdevname(sb->s_dev)
 
 #endif
 
@@ -1313,6 +1314,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 	struct inode * inode = NULL;
 	struct dentry * root;
 	yaffs_Device *dev = 0;
+	char devname_buf[BDEVNAME_SIZE+1];
 	int err;
 	
 	sb->s_magic = YAFFS_MAGIC;
@@ -1322,10 +1324,10 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 		printk(KERN_INFO"yaffs: sb is NULL\n");
 	else if(!sb->s_dev)
 		printk(KERN_INFO"yaffs: sb->s_dev is NULL\n");
-	else if(! kdevname(sb->s_dev))
-		printk(KERN_INFO"yaffs: kdevname is NULL\n");
+	else if(!yaffs_devname(sb, devname_buf))
+		printk(KERN_INFO"yaffs: devname is NULL\n");
 	else
-		printk(KERN_INFO"yaffs: dev is %d name is \"%s\"\n", sb->s_dev, kdevname(sb->s_dev));
+		printk(KERN_INFO"yaffs: dev is %d name is \"%s\"\n", sb->s_dev, yaffs_devname(sb, devname_buf));
 
 	
 
@@ -1408,7 +1410,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 		struct mtd_info *mtd;
 		
 		T(YAFFS_TRACE_ALWAYS,("yaffs: Attempting MTD mount on %u.%u, \"%s\"\n",
-		 MAJOR(sb->s_dev),MINOR(sb->s_dev),kdevname(sb->s_dev)));
+		 MAJOR(sb->s_dev),MINOR(sb->s_dev), yaffs_devname(sb, devname_buf)));
 			
 		// Check it's an mtd device.....
 		if(MAJOR(sb->s_dev) != MTD_BLOCK_MAJOR)

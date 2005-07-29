@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.13 2005-07-29 20:13:23 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.14 2005-07-29 20:25:43 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -904,6 +904,8 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode, int r
 	yaffs_Object *parent = yaffs_InodeToObject(dir);
 	
 	int error = -ENOSPC;
+	uid_t uid = current->fsuid;
+	gid_t gid = (dir->i_mode & S_ISGID) ? dir->i_gid : current->fsgid;
 
 	if(parent)
 	{
@@ -929,18 +931,18 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode, int r
 			// Special (socket, fifo, device...)
 			T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_mknod: making special\n"));
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-                        obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,current->uid, current->gid,old_encode_dev(rdev));
+                        obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,uid, gid,old_encode_dev(rdev));
 #else
-                        obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,current->uid, current->gid,rdev);
+                        obj = yaffs_MknodSpecial(parent,dentry->d_name.name,mode,uid, gid,rdev);
 #endif			
                 break;
 		case S_IFREG:	// file		
 			T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_mknod: making file\n"));
-			obj = yaffs_MknodFile(parent,dentry->d_name.name,mode,current->uid, current->gid);
+			obj = yaffs_MknodFile(parent,dentry->d_name.name,mode,uid, gid);
 			break;
 		case S_IFDIR:	// directory
 			T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_mknod: making directory\n"));
-			obj = yaffs_MknodDirectory(parent,dentry->d_name.name,mode,current->uid, current->gid);
+			obj = yaffs_MknodDirectory(parent,dentry->d_name.name,mode,uid, gid);
 			break;
 		case S_IFLNK:	// symlink
 			T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_mknod: making file\n"));
@@ -1076,13 +1078,15 @@ static int yaffs_symlink(struct inode * dir, struct dentry *dentry, const char *
 {
 	yaffs_Object *obj;
 	yaffs_Device *dev;
+	uid_t uid = current->fsuid;
+	gid_t gid = (dir->i_mode & S_ISGID) ? dir->i_gid : current->fsgid;
 	
 	T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_symlink\n"));
 	
 	dev = yaffs_InodeToObject(dir)->myDev;
 	yaffs_GrossLock(dev);
 	obj = yaffs_MknodSymLink(yaffs_InodeToObject(dir), dentry->d_name.name, 
-							 S_IFLNK | S_IRWXUGO, current->uid, current->gid,
+							 S_IFLNK | S_IRWXUGO, uid, gid,
 							 symname);
 	yaffs_GrossUnlock(dev);
 

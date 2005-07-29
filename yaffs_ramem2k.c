@@ -15,10 +15,12 @@
  //yaffs_ramem2k.c: RAM emulation in-kernel for 2K pages (YAFFS2)
 
 
-const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.2 2005-04-24 09:26:08 charles Exp $";
+const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.3 2005-07-29 19:57:38 luc Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
+#else
+#include <linux/config.h>
 #endif
 
 #ifdef CONFIG_YAFFS_RAM_ENABLED

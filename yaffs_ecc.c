@@ -29,8 +29,11 @@
 // Bit 0 of each entry indicates whether the entry has an odd or even parity, and therefore
 // this bytes influence on the line parity.
 
-const char *yaffs_ecc_c_version = "$Id: yaffs_ecc.c,v 1.2 2005-03-16 04:00:36 charles Exp $";
+const char *yaffs_ecc_c_version = "$Id: yaffs_ecc.c,v 1.3 2005-07-29 19:57:38 luc Exp $";
 
+#ifdef	__KERNEL__
+#include <linux/config.h>
+#endif
 
 #include "yaffs_ecc.h"
 

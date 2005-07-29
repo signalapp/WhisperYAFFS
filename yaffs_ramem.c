@@ -15,10 +15,12 @@
  //yaffs_ramem.c
  // Since this creates the RAM block at start up it is pretty useless for testing the scanner.
 
-const char *yaffs_ramem_c_version = "$Id: yaffs_ramem.c,v 1.2 2005-07-19 20:41:59 charles Exp $";
+const char *yaffs_ramem_c_version = "$Id: yaffs_ramem.c,v 1.3 2005-07-29 19:57:38 luc Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
+#else
+#include <linux/config.h>
 #endif
 
 #ifdef CONFIG_YAFFS_RAM_ENABLED

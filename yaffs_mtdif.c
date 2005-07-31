@@ -13,11 +13,11 @@
  *
  */
 
-const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.4 2005-07-31 04:08:08 marty Exp $";
-
-#ifdef CONFIG_YAFFS_MTD_ENABLED
+const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.5 2005-07-31 06:47:12 marty Exp $";
  
 #include "yportenv.h"
+
+#ifdef CONFIG_YAFFS_MTD_ENABLED
 
 #include "yaffs_mtdif.h"
 

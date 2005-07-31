@@ -10,7 +10,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_tagscompat.c,v 1.2 2005-03-16 04:00:36 charles Exp $
+ * $Id: yaffs_tagscompat.c,v 1.3 2005-07-31 06:47:12 marty Exp $
  */
 
 #include "yaffs_guts.h"
@@ -18,11 +18,12 @@
 #include "yaffs_ecc.h"
 
 static void yaffs_HandleReadDataError(yaffs_Device *dev,int chunkInNAND);
+#ifdef NOTYET
 static void yaffs_CheckWrittenBlock(yaffs_Device *dev,int chunkInNAND);
 static void yaffs_HandleWriteChunkOk(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_Spare *spare);
 static void yaffs_HandleUpdateChunk(yaffs_Device *dev,int chunkInNAND, const yaffs_Spare *spare);
 static void yaffs_HandleWriteChunkError(yaffs_Device *dev,int chunkInNAND);
-
+#endif
 
 
 static const char yaffs_countBitsTable[256] =
@@ -305,8 +306,7 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 	return retVal;
 }
 
-
-
+#ifdef NOTYET
 static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,int chunkInNAND)
 {
 
@@ -331,7 +331,7 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,int chunkInNAND
 	return YAFFS_OK;
 
 }
-
+#endif
 
 #if 0
 int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,int blockInNAND)
@@ -480,6 +480,7 @@ static void yaffs_HandleReadDataError(yaffs_Device *dev,int chunkInNAND)
 }
 
 
+#ifdef NOTYET
 static void yaffs_CheckWrittenBlock(yaffs_Device *dev,int chunkInNAND)
 {
 }
@@ -530,6 +531,7 @@ static int yaffs_VerifyCompare(const __u8 *d0, const __u8 * d1, const yaffs_Spar
 
 	return 1;
 }
+#endif /* NOTYET */
 
 #if 0
 typedef struct

@@ -15,11 +15,11 @@
 
 // mtd interface for YAFFS2
 
-const char *yaffs_mtdif2_c_version = "$Id: yaffs_mtdif2.c,v 1.3 2005-07-20 18:57:05 charles Exp $";
-
-#ifdef CONFIG_YAFFS_MTD_ENABLED
+const char *yaffs_mtdif2_c_version = "$Id: yaffs_mtdif2.c,v 1.4 2005-07-31 06:47:12 marty Exp $";
  
 #include "yportenv.h"
+
+#ifdef CONFIG_YAFFS_MTD_ENABLED
 
 #include "yaffs_mtdif2.h"
 

@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.18 2005-07-31 04:09:26 marty Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.19 2005-07-31 06:47:12 marty Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1826,6 +1826,7 @@ static int  yaffs_proc_read(
 	return buf-page < count ? buf-page : count;
 }
 
+#ifdef CONFIG_YAFFS2_RAM_ENABLED
 static int  yaffs_proc_ram_write(
         char *page,
 	char **start,
@@ -1839,8 +1840,7 @@ static int  yaffs_proc_ram_write(
 	printk(KERN_DEBUG "yaffs write size %d\n",count);
 	return count;
 }
-
-
+#endif
 
 // Stuff to handle installation of file systems
 struct file_system_to_install

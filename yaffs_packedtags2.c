@@ -29,7 +29,8 @@
 
 #define EXTRA_HEADER_INFO_FLAG	0x80000000
 #define EXTRA_SHRINK_FLAG	0x40000000
-#define EXTRA_SPARE_FLAGS	0x30000000
+#define EXTRA_SHADOWS_FLAG	0x20000000
+#define EXTRA_SPARE_FLAGS	0x10000000
 
 #define ALL_EXTRA_FLAGS		0xF0000000
 
@@ -67,6 +68,10 @@ void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t)
 		if(t->extraIsShrinkHeader) 
 		{
 		    pt->t.chunkId |= EXTRA_SHRINK_FLAG;
+		}
+		if(t->extraShadows) 
+		{
+		    pt->t.chunkId |= EXTRA_SHADOWS_FLAG;
 		}
 		
 		pt->t.objectId &= ~EXTRA_OBJECT_TYPE_MASK;
@@ -137,6 +142,7 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
 			t->extraHeaderInfoAvailable = 1;
 			t->extraParentObjectId = pt->t.chunkId & (~(ALL_EXTRA_FLAGS));
 			t->extraIsShrinkHeader =  (pt->t.chunkId & EXTRA_SHRINK_FLAG) ? 1 : 0;
+			t->extraShadows =  (pt->t.chunkId & EXTRA_SHADOWS_FLAG) ? 1 : 0;
 			t->extraObjectType = pt->t.objectId >> EXTRA_OBJECT_TYPE_SHIFT;
 			t->objectId &= ~EXTRA_OBJECT_TYPE_MASK;
 			

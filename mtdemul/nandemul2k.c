@@ -650,9 +650,9 @@ __setup("sizeInMB=",sizeInMB);
 
 static struct mtd_partition nandemul2k_partition[] =
 {
-	{ name: "NANDemul partition 1",
-	  offset:  0,
-	  size: 0 },
+	{ .name		= "NANDemul partition 1",
+	  .offset	= 0,
+	  .size		= 0 },
 };
 
 static int nPartitions = sizeof(nandemul2k_partition)/sizeof(nandemul2k_partition[0]);

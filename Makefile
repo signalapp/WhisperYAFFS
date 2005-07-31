@@ -12,7 +12,7 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 #
-# $Id: Makefile,v 1.3 2005-07-18 23:16:04 charles Exp $
+# $Id: Makefile,v 1.4 2005-07-31 09:26:35 marty Exp $
 #
 
 ## Change or override  KERNELDIR to your kernel
@@ -30,29 +30,30 @@ LD=$(MAKETOOLS)ld
 # Comment out the stuff you don't want.
 #
 
+# CONFIG_YAFFS_YAFFS1
+# This adds the yaffs file system support for working with a
+# a 512 byte / page NAND mtd.
+
+USE_MTD = -DCONFIG_YAFFS_YAFFS1
+
+# CONFIG_YAFFS_YAFFS2
+# This adds the yaffs2 file system support for working with a 
+# 2048 or larger byte / page NAND mtd.
+
+USE_MTD_2 = -DCONFIG_YAFFS_YAFFS2
+
+
 # CONFIG_YAFFS_RAM_ENABLED.
 # This adds the yaffsram file system support. Nice for testing on x86, but uses 2MB of RAM.
 # Don't enable for NAND-based targets.
 
-USE_RAM_FOR_TEST = -DCONFIG_YAFFS_RAM_ENABLED
-
-
-# CONFIG_YAFFS_MTD_ENABLED.
-# This adds the yaffs file system support for working with a NAND mtd.
-
-USE_MTD = -DCONFIG_YAFFS_MTD_ENABLED
+# USE_RAM_FOR_TEST = -DCONFIG_YAFFS_RAM_ENABLED
 
 # CONFIG_YAFFS2_RAM_ENABLED.
 # This adds the yaffs2ram file system support. Nice for testing on x86, but uses 2MB of RAM.
 # Don't enable for NAND-based targets.
 
-USE_RAM_FOR_TEST_2 = -DCONFIG_YAFFS2_RAM_ENABLED
-
-
-# CONFIG_YAFFS2_MTD_ENABLED.
-# This adds the yaffs2 file system support for working with a NAND mtd.
-
-USE_MTD_2 = -DCONFIG_YAFFS2_MTD_ENABLED
+# USE_RAM_FOR_TEST_2 = -DCONFIG_YAFFS2_RAM_ENABLED
 
 # CONFIG_YAFFS_USE_OLD_MTD
 # Enable this to use the old MTD stuff that did not have yaffs support.
@@ -116,7 +117,7 @@ YAFFS_CONFIGS = $(WIERD_COMPILE_CONFIGS) \
                 $(ENABLE_SHORT_NAMES_IN_RAM) $(USE_NANDECC) $(USE_OLD_MTD) $(USE_WRONGECC)
 
 
-YAFFS2_CONFIGS = $(YAFFS_CONFIGS) -DCONFIG_YAFFS_YAFFS2
+YAFFS2_CONFIGS = $(YAFFS_CONFIGS)
 
 CFLAGS = -D__KERNEL__ -DMODULE $(YAFFS2_CONFIGS)  -I$(KERNELDIR)/include -O2 -g -Wall
 

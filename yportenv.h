@@ -15,7 +15,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yportenv.h,v 1.5 2004-12-17 04:39:04 charles Exp $
+ * $Id: yportenv.h,v 1.6 2005-07-31 00:26:57 charles Exp $
  *
  */
  
@@ -32,11 +32,12 @@
 
 
 // Linux kernel
-#include "linux/kernel.h"
-#include "linux/version.h"
-#include "linux/mm.h"
-#include "linux/string.h"
-#include "linux/slab.h"
+#include <linux/config.h>
+#include <linux/kernel.h>
+#include <linux/version.h>
+#include <linux/mm.h>
+#include <linux/string.h>
+#include <linux/slab.h>
 
 #define YCHAR char
 #define YUCHAR unsigned char

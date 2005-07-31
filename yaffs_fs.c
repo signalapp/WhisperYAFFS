@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.17 2005-07-31 04:08:08 marty Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.18 2005-07-31 04:09:26 marty Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1744,7 +1744,6 @@ static DECLARE_FSTYPE(yaffs2_ram_fs_type, "yaffs2ram", yaffs2_ram_read_super, FS
 
 
 static struct proc_dir_entry *my_proc_entry;
-static struct proc_dir_entry *my_proc_ram_write_entry;
 
 static char * yaffs_dump_dev(char *buf,yaffs_Device *dev)
 {

@@ -29,11 +29,9 @@
 // Bit 0 of each entry indicates whether the entry has an odd or even parity, and therefore
 // this bytes influence on the line parity.
 
-const char *yaffs_ecc_c_version = "$Id: yaffs_ecc.c,v 1.3 2005-07-29 19:57:38 luc Exp $";
+const char *yaffs_ecc_c_version = "$Id: yaffs_ecc.c,v 1.4 2005-07-31 00:28:04 charles Exp $";
 
-#ifdef	__KERNEL__
-#include <linux/config.h>
-#endif
+#include "yportenv.h"
 
 #include "yaffs_ecc.h"
 
@@ -259,26 +257,6 @@ int yaffs_ECCCorrectOther(unsigned char *data, unsigned nBytes, yaffs_ECCOther *
 	{
 		// Single bit (recoverable) error in data
 
-#if 0
-		unsigned byte;
-		unsigned bit;
-#endif
-
-#ifdef CONFIG_YAFFS_ECC_WRONG_ORDER
-		// swap the bytes to correct for the wrong order
-		unsigned char t;
-		
-#if 0 // NCB
-		t = d0;
-		d0 = d1;
-		d1 = t;
-#else
-		t = cDelta;
-		cDelta = lDelta;
-		lDelta = t;
-#endif
-#endif
-		
 		bit = 0;
 
 		if(cDelta & 0x20) bit |= 0x04;

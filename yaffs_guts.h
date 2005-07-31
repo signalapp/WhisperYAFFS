@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.10 2005-07-26 23:04:34 charles Exp $
+ * $Id: yaffs_guts.h,v 1.11 2005-07-31 06:52:40 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -183,6 +183,7 @@ typedef struct
 	unsigned extraHeaderInfoAvailable; // There is extra info available if this is not zero
 	unsigned extraParentObjectId;	   // The parent object
 	unsigned extraIsShrinkHeader;	   // Is it a shrink header?
+	unsigned extraShadows;		   // Does this shadow another object?
 	
 	yaffs_ObjectType extraObjectType;  // What object type?
 
@@ -310,12 +311,14 @@ typedef struct
 	__u32 win_ctime[2];
 	__u32 win_atime[2];
 	__u32 win_mtime[2];
-	__u32 roomToGrow[5];
+	__u32 roomToGrow[4];
 #else
-	__u32 roomToGrow[11];
+	__u32 roomToGrow[10];
 #endif
 
-	// isShrink applies to bject headers written when we shrink the file (ie resize)
+	int shadowsObject; // This object header shadows the specified object if not > 0
+
+	// isShrink applies to object headers written when we shrink the file (ie resize)
 	__u32 isShrink;
 	
 } yaffs_ObjectHeader;
@@ -537,7 +540,7 @@ struct yaffs_DeviceStruct
 	int (*initialiseNAND)(struct yaffs_DeviceStruct *dev);
 
 #ifdef CONFIG_YAFFS_YAFFS2
-	int (*writeChunkWithTagsToNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, const __u8 *data, yaffs_ExtendedTags *tags);
+	int (*writeChunkWithTagsToNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, const __u8 *data, const yaffs_ExtendedTags *tags);
 	int (*readChunkWithTagsFromNAND)(struct yaffs_DeviceStruct *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags);
 	int (*markNANDBlockBad)(struct yaffs_DeviceStruct *dev, int blockNo);
 	int (*queryNANDBlock)(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, int *sequenceNumber);

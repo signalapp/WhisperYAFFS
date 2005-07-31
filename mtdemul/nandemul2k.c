@@ -253,7 +253,7 @@ int nandemul2k_GetNumberOfBlocks(void) {return nandemul2k_CalcNBlocks();}
 
 
 
-int nandemul2k_ReadId(__u8 *vendorId, __u8 *deviceId)
+static int nandemul2k_ReadId(__u8 *vendorId, __u8 *deviceId)
 {
 	*vendorId = 'Y'; 
 	*deviceId = '2';
@@ -262,7 +262,7 @@ int nandemul2k_ReadId(__u8 *vendorId, __u8 *deviceId)
 }
 
 
-int nandemul2k_ReadStatus(__u8 *status)
+static int nandemul2k_ReadStatus(__u8 *status)
 {
 		*status = 0;
 		return 1;

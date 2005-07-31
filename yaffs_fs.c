@@ -30,9 +30,8 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.16 2005-07-31 03:58:17 marty Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.17 2005-07-31 04:08:08 marty Exp $";
 extern const char *yaffs_guts_c_version;
-
 
 
 #include <linux/config.h>
@@ -192,7 +191,7 @@ static struct inode_operations yaffs_file_inode_operations = {
 	.setattr	= yaffs_setattr,
 };
 
-struct inode_operations yaffs_symlink_inode_operations = {	
+static struct inode_operations yaffs_symlink_inode_operations = {	
 	.readlink	= yaffs_readlink,
 	.follow_link	= yaffs_follow_link,
 	.setattr	= yaffs_setattr,

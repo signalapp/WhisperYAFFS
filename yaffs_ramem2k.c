@@ -15,7 +15,7 @@
  //yaffs_ramem2k.c: RAM emulation in-kernel for 2K pages (YAFFS2)
 
 
-const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.3 2005-07-29 19:57:38 luc Exp $";
+const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.4 2005-07-31 04:08:08 marty Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
@@ -262,7 +262,7 @@ int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8
 }
 
 
-int nandemul2k_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
+static int nandemul2k_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
 {
 	int blk;
 	int pg;

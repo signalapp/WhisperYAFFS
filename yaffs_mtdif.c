@@ -13,7 +13,7 @@
  *
  */
 
-const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.3 2005-07-31 04:05:14 marty Exp $";
+const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.4 2005-07-31 04:08:08 marty Exp $";
 
 #ifdef CONFIG_YAFFS_MTD_ENABLED
  
@@ -29,12 +29,12 @@ const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.3 2005-07-31 04:05:1
 #include "linux/mtd/nand.h"
 #endif
 
-struct nand_oobinfo yaffs_oobinfo = {
+static struct nand_oobinfo yaffs_oobinfo = {
 	.useecc = 1,
 	.eccpos = {8, 9, 10, 13, 14, 15}
 };
 
-struct nand_oobinfo yaffs_noeccinfo = {
+static struct nand_oobinfo yaffs_noeccinfo = {
 	.useecc = 0,
 };
 

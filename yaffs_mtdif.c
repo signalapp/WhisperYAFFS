@@ -13,11 +13,11 @@
  *
  */
 
-const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.5 2005-07-31 06:47:12 marty Exp $";
+const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.6 2005-07-31 08:38:41 marty Exp $";
  
 #include "yportenv.h"
 
-#ifdef CONFIG_YAFFS_MTD_ENABLED
+#ifdef CONFIG_YAFFS_YAFFS1
 
 #include "yaffs_mtdif.h"
 
@@ -159,5 +159,5 @@ int nandmtd_InitialiseNAND(yaffs_Device *dev)
 	return YAFFS_OK;
 }
 
-#endif // CONFIG_YAFFS_MTD_ENABLED
+#endif // CONFIG_YAFFS_YAFFS1
 

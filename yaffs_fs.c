@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.19 2005-07-31 06:47:12 marty Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.20 2005-07-31 08:38:41 marty Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -88,11 +88,11 @@ unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS;
 #include "yaffs_nandemul2k.h"
 #endif
 
-#ifdef CONFIG_YAFFS_MTD_ENABLED
+#ifdef CONFIG_YAFFS_YAFFS1
 #include <linux/mtd/mtd.h>
 #include "yaffs_mtdif.h"
 #include "yaffs_mtdif2.h"
-#endif //CONFIG_YAFFS_MTD_ENABLED
+#endif //CONFIG_YAFFS_YAFFS1
 
 //#define T(x) printk x
 
@@ -1289,7 +1289,7 @@ static void yaffs_put_super(struct super_block *sb)
 }
 
 
-#ifdef CONFIG_YAFFS_MTD_ENABLED
+#ifdef CONFIG_YAFFS_YAFFS1
 
 static void  yaffs_MTDPutSuper(struct super_block *sb)
 {
@@ -1330,13 +1330,8 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 
 	
 
-#ifdef CONFIG_YAFFS_USE_CHUNK_SIZE
-	sb->s_blocksize = YAFFS_BYTES_PER_CHUNK;
-	sb->s_blocksize_bits = YAFFS_CHUNK_SIZE_SHIFT;
-#else
 	sb->s_blocksize = PAGE_CACHE_SIZE;
 	sb->s_blocksize_bits = PAGE_CACHE_SHIFT;
-#endif
 	T(YAFFS_TRACE_OS,("yaffs_read_super: Using yaffs%d\n",yaffsVersion));
 	T(YAFFS_TRACE_OS,("yaffs_read_super: %s block size %d\n", useRam ? "RAM" : "MTD",(int)(sb->s_blocksize)));
 
@@ -1405,7 +1400,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 	}
 	else
 	{	
-#if defined(CONFIG_YAFFS_MTD_ENABLED) || defined(CONFIG_YAFFS2_MTD_ENABLED)
+#if defined(CONFIG_YAFFS_YAFFS1) || defined(CONFIG_YAFFS_YAFFS2)
 		struct mtd_info *mtd;
 		
 		T(YAFFS_TRACE_ALWAYS,("yaffs: Attempting MTD mount on %u.%u, \"%s\"\n",
@@ -1604,7 +1599,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 
 
 
-#ifdef CONFIG_YAFFS_MTD_ENABLED
+#ifdef CONFIG_YAFFS_YAFFS1
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_internal_read_super_mtd(struct super_block * sb, void * data, int silent)
@@ -1637,9 +1632,9 @@ static struct super_block *yaffs_read_super(struct super_block * sb, void * data
 static DECLARE_FSTYPE(yaffs_fs_type, "yaffs", yaffs_read_super, FS_REQUIRES_DEV);
 #endif
 
-#endif // CONFIG_YAFFS_MTD_ENABLED
+#endif // CONFIG_YAFFS_YAFFS1
 
-#ifdef CONFIG_YAFFS2_MTD_ENABLED
+#ifdef CONFIG_YAFFS_YAFFS2
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs2_internal_read_super_mtd(struct super_block * sb, void * data, int silent)
@@ -1672,7 +1667,7 @@ static struct super_block *yaffs2_read_super(struct super_block * sb, void * dat
 static DECLARE_FSTYPE(yaffs2_fs_type, "yaffs2", yaffs2_read_super, FS_REQUIRES_DEV);
 #endif
 
-#endif // CONFIG_YAFFS2_MTD_ENABLED
+#endif // CONFIG_YAFFS_YAFFS2
 
 
 #ifdef CONFIG_YAFFS_RAM_ENABLED
@@ -1857,10 +1852,10 @@ static struct file_system_to_install fs_to_install[] =
 #ifdef CONFIG_YAFFS2_RAM_ENABLED
      { &yaffs2_ram_fs_type,0},
 #endif
-#ifdef CONFIG_YAFFS_MTD_ENABLED
+#ifdef CONFIG_YAFFS_YAFFS1
      { &yaffs_fs_type,0},
 #endif
-#ifdef CONFIG_YAFFS2_MTD_ENABLED
+#ifdef CONFIG_YAFFS_YAFFS2
      { &yaffs2_fs_type,0},
 #endif
      { NULL,0}

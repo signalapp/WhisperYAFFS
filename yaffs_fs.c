@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.15 2005-07-29 23:51:18 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.16 2005-07-31 03:58:17 marty Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1406,7 +1406,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 	}
 	else
 	{	
-#ifdef CONFIG_YAFFS_MTD_ENABLED
+#if defined(CONFIG_YAFFS_MTD_ENABLED) || defined(CONFIG_YAFFS2_MTD_ENABLED)
 		struct mtd_info *mtd;
 		
 		T(YAFFS_TRACE_ALWAYS,("yaffs: Attempting MTD mount on %u.%u, \"%s\"\n",

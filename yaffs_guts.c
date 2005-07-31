@@ -13,7 +13,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.11 2005-07-27 02:00:48 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.12 2005-07-31 06:54:19 charles Exp $";
 
 #include "yportenv.h"
 
@@ -102,7 +102,7 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in,int chunkInInode, int chunkIn
 
 static yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev,int number,yaffs_ObjectType type);
 static void yaffs_AddObjectToDirectory(yaffs_Object *directory, yaffs_Object *obj);
-static int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int isShrink);
+static int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int isShrink, int shadows);
 static void yaffs_RemoveObjectFromDirectory(yaffs_Object *obj);
 static int yaffs_CheckStructures(void);
 static int yaffs_DeleteWorker(yaffs_Object *in, yaffs_Tnode *tn, __u32 level, int chunkOffset,int *limit);
@@ -207,7 +207,7 @@ static Y_INLINE int yaffs_QueryInitialBlockState(yaffs_Device *dev,int blockNo, 
 		return yaffs_TagsCompatabilityQueryNANDBlock(dev,blockNo,state,sequenceNumber);
 }
 
-int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,int blockInNAND)
+static int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,int blockInNAND)
 {
 	int result;
 	
@@ -588,7 +588,7 @@ static __u16 yaffs_CalcNameSum(const YCHAR *name)
 	return sum;
 }
 
-void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name)
+static void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name)
 {
 #ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
 					if(name && yaffs_strlen(name) <= YAFFS_SHORT_NAME_LENGTH)
@@ -968,7 +968,7 @@ static yaffs_Tnode *yaffs_AddOrFindLevel0Tnode(yaffs_Device *dev, yaffs_FileStru
 }
 
 
-int yaffs_FindChunkInGroup(yaffs_Device *dev, int theChunk, yaffs_ExtendedTags *tags, int objectId, int chunkInInode)
+static int yaffs_FindChunkInGroup(yaffs_Device *dev, int theChunk, yaffs_ExtendedTags *tags, int objectId, int chunkInInode)
 {
 	int j;
 	
@@ -1495,7 +1495,7 @@ static void yaffs_InitialiseObjects(yaffs_Device *dev)
 
 
 
-int yaffs_FindNiceObjectBucket(yaffs_Device *dev)
+static int yaffs_FindNiceObjectBucket(yaffs_Device *dev)
 {
 	static int x = 0;
 	int i;
@@ -1571,7 +1571,7 @@ static int yaffs_CreateNewObjectNumber(yaffs_Device *dev)
 	return n;	
 }
 
-void yaffs_HashObject(yaffs_Object *in)
+static void yaffs_HashObject(yaffs_Object *in)
 {
 	int bucket = yaffs_HashFunction(in->objectId);
 	yaffs_Device *dev = in->myDev;
@@ -1676,7 +1676,7 @@ yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev,int number,yaffs_ObjectTyp
 	return theObject;
 }
 
-yaffs_Object *yaffs_FindOrCreateObjectByNumber(yaffs_Device *dev, int number,yaffs_ObjectType type)
+static yaffs_Object *yaffs_FindOrCreateObjectByNumber(yaffs_Device *dev, int number,yaffs_ObjectType type)
 {
 	yaffs_Object *theObject = NULL;
 	
@@ -1694,7 +1694,7 @@ yaffs_Object *yaffs_FindOrCreateObjectByNumber(yaffs_Device *dev, int number,yaf
 
 }
 
-YCHAR *yaffs_CloneString(const YCHAR *str)
+static YCHAR *yaffs_CloneString(const YCHAR *str)
 {
 	YCHAR *newStr = NULL;
 	
@@ -1713,7 +1713,7 @@ YCHAR *yaffs_CloneString(const YCHAR *str)
 // equivalentObject only has meaning for a hard link;
 // aliasString only has meaning for a sumlink.
 // rdev only has meaning for devices (a subset of special objects)
-yaffs_Object *yaffs_MknodObject( yaffs_ObjectType type,
+static yaffs_Object *yaffs_MknodObject( yaffs_ObjectType type,
 								 yaffs_Object *parent,
 								 const YCHAR *name, 
 								 __u32 mode,
@@ -1783,7 +1783,7 @@ yaffs_Object *yaffs_MknodObject( yaffs_ObjectType type,
 		}
 
 		if(/*yaffs_GetNumberOfFreeChunks(dev) <= 0 || */
-		   yaffs_UpdateObjectHeader(in,name,0,0) < 0)
+		   yaffs_UpdateObjectHeader(in,name,0,0,0) < 0)
 		{
 			// Could not create the object header, fail the creation
 			yaffs_DestroyObject(in);
@@ -1833,10 +1833,12 @@ yaffs_Object *yaffs_Link(yaffs_Object *parent, const YCHAR *name, yaffs_Object *
 }
 
 
-static int yaffs_ChangeObjectName(yaffs_Object *obj, yaffs_Object *newDir, const YCHAR *newName,int force)
+static int yaffs_ChangeObjectName(yaffs_Object *obj, yaffs_Object *newDir, const YCHAR *newName,int force,int shadows)
 {
 	int unlinkOp;
 	int deleteOp;
+	
+	yaffs_Object * existingTarget;
 
 	if(newDir == NULL)
 	{
@@ -1861,13 +1863,16 @@ static int yaffs_ChangeObjectName(yaffs_Object *obj, yaffs_Object *newDir, const
 
 	deleteOp = (newDir == obj->myDev->deletedDir);
 	
+	existingTarget = yaffs_FindObjectByName(newDir,newName);
+	
 	// If the object is a file going into the unlinked directory, then it is OK to just stuff it in since
 	// duplicate names are allowed.
 	// Otherwise only proceed if the new name does not exist and if we're putting it into a directory.
 	if( (unlinkOp|| 
 		 deleteOp ||
 		 force || 
-		 !yaffs_FindObjectByName(newDir,newName))  &&
+		 (shadows > 0) ||
+		 !existingTarget)  &&
 	     newDir->variantType == YAFFS_OBJECT_TYPE_DIRECTORY)
 	{
 		yaffs_SetObjectName(obj,newName);
@@ -1878,7 +1883,7 @@ static int yaffs_ChangeObjectName(yaffs_Object *obj, yaffs_Object *newDir, const
 		if(unlinkOp) obj->unlinked = 1;
 		
 		// If it is a deletion then we mark it as a shrink for gc purposes.
-		if(yaffs_UpdateObjectHeader(obj,newName,0,deleteOp) >= 0)
+		if(yaffs_UpdateObjectHeader(obj,newName,0,deleteOp,shadows) >= 0)
 		{
 			return YAFFS_OK;
 		}
@@ -1892,6 +1897,7 @@ static int yaffs_ChangeObjectName(yaffs_Object *obj, yaffs_Object *newDir, const
 int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName, yaffs_Object *newDir, const YCHAR *newName)
 {
 	yaffs_Object *obj;
+	yaffs_Object *existingTarget;
 	int force = 0;
 	
 #ifdef CONFIG_YAFFS_CASE_INSENSITIVE
@@ -1905,9 +1911,29 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName, yaffs_Object 
 #endif
 	
 	obj = yaffs_FindObjectByName(oldDir,oldName);
+	
 	if(obj && obj->renameAllowed)
 	{
-		return yaffs_ChangeObjectName(obj,newDir,newName,force);
+	
+		// Now do the handling for an existing target, if there is one
+	
+		existingTarget = yaffs_FindObjectByName(newDir,newName);
+		if(existingTarget &&
+		   existingTarget->variantType == YAFFS_OBJECT_TYPE_DIRECTORY &&
+		   !list_empty(&existingTarget->variant.directoryVariant.children))
+		 {
+		 	// There is a target that is a non-empty directory, so we have to fail
+			return YAFFS_FAIL; // EEXIST or ENOTEMPTY
+		 }
+		 else if(existingTarget)
+		 {
+		 	// Nuke the target first, using shadowing
+			 yaffs_ChangeObjectName(obj,newDir,newName,force,existingTarget->objectId);
+			 yaffs_Unlink(newDir,newName);
+		 }
+		
+		
+		return yaffs_ChangeObjectName(obj,newDir,newName,force,0);
 	}
 	return YAFFS_FAIL;
 }
@@ -2385,7 +2411,7 @@ static int yaffs_GetErasedChunks(yaffs_Device *dev)
 
 }
 
-int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
+static int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 {
 	int oldChunk;
 	int newChunk;
@@ -2629,7 +2655,7 @@ static void yaffs_DoUnlinkedFileDeletion(yaffs_Device *dev)
 // The idea is to help clear out space in a more spread-out manner.
 // Dunno if it really does anything useful.
 //
-int yaffs_CheckGarbageCollection(yaffs_Device *dev)
+static int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 {
 	int block;
 	int aggressive; 
@@ -2837,7 +2863,7 @@ static int yaffs_TagsMatch(const yaffs_ExtendedTags *tags, int objectId, int chu
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int yaffs_FindChunkInFile(yaffs_Object *in,int chunkInInode,yaffs_ExtendedTags *tags)
+static int yaffs_FindChunkInFile(yaffs_Object *in,int chunkInInode,yaffs_ExtendedTags *tags)
 {
 	//Get the Tnode, then get the level 0 offset chunk offset
     yaffs_Tnode *tn;     
@@ -2865,7 +2891,7 @@ int yaffs_FindChunkInFile(yaffs_Object *in,int chunkInInode,yaffs_ExtendedTags *
     return retVal;
 }
 
-int yaffs_FindAndDeleteChunkInFile(yaffs_Object *in,int chunkInInode,yaffs_ExtendedTags *tags)
+static int yaffs_FindAndDeleteChunkInFile(yaffs_Object *in,int chunkInInode,yaffs_ExtendedTags *tags)
 {
 	//Get the Tnode, then get the level 0 offset chunk offset
     yaffs_Tnode *tn;     
@@ -3092,7 +3118,7 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in,int chunkInInode, int chunkIn
 
 
 
-int yaffs_ReadChunkDataFromObject(yaffs_Object *in,int chunkInInode, __u8 *buffer)
+static int yaffs_ReadChunkDataFromObject(yaffs_Object *in,int chunkInInode, __u8 *buffer)
 {
     int chunkInNAND = yaffs_FindChunkInFile(in,chunkInInode,NULL);
     
@@ -3187,7 +3213,7 @@ void yaffs_DeleteChunk(yaffs_Device *dev,int chunkId,int markNAND,int lyn)
 
 
 
-int yaffs_WriteChunkDataToObject(yaffs_Object *in,int chunkInInode, const __u8 *buffer,int nBytes,int useReserve)
+static int yaffs_WriteChunkDataToObject(yaffs_Object *in,int chunkInInode, const __u8 *buffer,int nBytes,int useReserve)
 {
 	// Find old chunk Need to do this to get serial number
 	// Write new one and patch into tree.
@@ -3243,7 +3269,7 @@ int yaffs_WriteChunkDataToObject(yaffs_Object *in,int chunkInInode, const __u8 *
 // UpdateObjectHeader updates the header on NAND for an object.
 // If name is not NULL, then that new name is used.
 //
-int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int isShrink)
+int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int isShrink,int shadows)
 {
 
 	yaffs_BlockInfo *bi;
@@ -3287,6 +3313,9 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int i
 		oh->type = in->variantType;
 		
 		oh->yst_mode = in->yst_mode;
+		
+		// shadowing
+		oh->shadowsObject = shadows;
 
 #ifdef CONFIG_YAFFS_WINCE
 		oh->win_atime[0] = in->win_atime[0];
@@ -3367,6 +3396,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in,const YCHAR *name, int force,int i
 		newTags.extraFileLength = oh->fileSize;
 		newTags.extraIsShrinkHeader = oh->isShrink;
 		newTags.extraEquivalentObjectId = oh->equivalentObjectId;
+		newTags.extraShadows = (oh->shadowsObject > 0) ? 1 : 0;
 		newTags.extraObjectType  = in->variantType;
 		
 		// Create new chunk in NAND
@@ -4085,7 +4115,7 @@ int yaffs_ResizeFile(yaffs_Object *in, int newSize)
 		   in->parent->objectId != YAFFS_OBJECTID_DELETED
 		  )
 		{
-			yaffs_UpdateObjectHeader(in,NULL, 0, 1);
+			yaffs_UpdateObjectHeader(in,NULL, 0, 1,0);
 		}
 
 		
@@ -4138,7 +4168,7 @@ int yaffs_FlushFile(yaffs_Object *in, int updateTime)
 #endif
 		}
 
-		retVal = (yaffs_UpdateObjectHeader(in,NULL,0,0) >= 0)? YAFFS_OK : YAFFS_FAIL;
+		retVal = (yaffs_UpdateObjectHeader(in,NULL,0,0,0) >= 0)? YAFFS_OK : YAFFS_FAIL;
 	}
 	else
 	{
@@ -4159,7 +4189,7 @@ static int yaffs_DoGenericObjectDeletion(yaffs_Object *in)
 	if(in->myDev->isYaffs2 && (in->parent != in->myDev->deletedDir))
 	{
 		// Move to the unlinked directory so we have a record that it was deleted.
-		yaffs_ChangeObjectName(in, in->myDev->deletedDir,NULL,0);
+		yaffs_ChangeObjectName(in, in->myDev->deletedDir,NULL,0,0);
 
 	}
 
@@ -4222,7 +4252,7 @@ static int yaffs_UnlinkFile(yaffs_Object *in)
 #endif
 		if(immediateDeletion)
 		{
-			retVal = yaffs_ChangeObjectName(in, in->myDev->deletedDir,NULL,0);
+			retVal = yaffs_ChangeObjectName(in, in->myDev->deletedDir,NULL,0,0);
 			T(YAFFS_TRACE_TRACING,(TSTR("yaffs: immediate deletion of file %d" TENDSTR),in->objectId));
 			in->deleted=1;
 			in->myDev->nDeletedFiles++;
@@ -4234,7 +4264,7 @@ static int yaffs_UnlinkFile(yaffs_Object *in)
 		}
 		else
 		{
-			retVal = yaffs_ChangeObjectName(in, in->myDev->unlinkedDir,NULL,0);
+			retVal = yaffs_ChangeObjectName(in, in->myDev->unlinkedDir,NULL,0,0);
 		}
 	
 	}
@@ -4353,7 +4383,7 @@ static int yaffs_UnlinkWorker(yaffs_Object *obj)
 		
 		yaffs_GetObjectName(hl,name,YAFFS_MAX_NAME_LENGTH+1);
 		
-		retVal = yaffs_ChangeObjectName(obj, hl->parent, name,0);
+		retVal = yaffs_ChangeObjectName(obj, hl->parent, name,0,0);
 		
 		if(retVal == YAFFS_OK)
 		{
@@ -4403,6 +4433,11 @@ int yaffs_Unlink(yaffs_Object *dir, const YCHAR *name)
 
 //////////////// Initialisation Scanning /////////////////
 
+
+void yaffs_HandleShadowedObject(yaffs_Device *dev, int objId, int backwardScanning)
+{
+	//Todo
+}
 
 #if 0
 // For now we use the SmartMedia check.
@@ -4702,6 +4737,11 @@ static int yaffs_Scan(yaffs_Device *dev)
 				
 				in = yaffs_FindOrCreateObjectByNumber(dev,tags.objectId,oh->type);
 				
+				if(oh->shadowsObject > 0)
+				{
+					yaffs_HandleShadowedObject(dev,oh->shadowsObject,0);
+				}
+				
 				if(in->valid)
 				{
 					// We have already filled this one. We have a duplicate and need to resolve it.
@@ -4906,6 +4946,8 @@ static int yaffs_Scan(yaffs_Device *dev)
 		
 	}
 	
+	// Handle the unlinked files. Since they were left in an unlinked state we should
+	// just delete them.
 	{
 		struct list_head *i;	
 		struct list_head *n;
@@ -5303,6 +5345,12 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 					in->yst_rdev = oh->yst_rdev;
 #endif
 					in->chunkId  = chunk;
+					
+					if(oh->shadowsObject > 0)
+					{
+						yaffs_HandleShadowedObject(dev,oh->shadowsObject,0);
+					}
+
 
 					yaffs_SetObjectName(in,oh->name);
 					in->dirty = 0;
@@ -5769,7 +5817,7 @@ int yaffs_SetAttributes(yaffs_Object *obj, struct iattr *attr)
 	
 	if(valid & ATTR_SIZE) yaffs_ResizeFile(obj,attr->ia_size);
 	
-	yaffs_UpdateObjectHeader(obj,NULL,1,0);
+	yaffs_UpdateObjectHeader(obj,NULL,1,0,0);
 	
 	return YAFFS_OK;
 	
@@ -5841,7 +5889,7 @@ int yaffs_DumpObject(yaffs_Object *obj)
 ///////////////////////// Initialisation code ///////////////////////////
 
 
-int yaffs_CheckDevFunctions(const yaffs_Device *dev)
+static int yaffs_CheckDevFunctions(const yaffs_Device *dev)
 {
 
 	// Common functions, gotta have

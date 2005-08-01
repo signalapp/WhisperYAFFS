@@ -35,21 +35,20 @@ config YAFFS_YAFFS2
 
 	  If unsure, say Y.
 
-config YAFFS_USE_NANDECC
-	bool "Use ECC functions of the generic MTD-NAND driver"
-	depends on YAFFS_FS
-	default y
+config YAFFS_DOES_ECC
+	bool "Lets Yaffs do its own ECC"
+	depends on YAFFS_FS && YAFFS_YAFFS1
+	default n
 	help
-	  This enables the ECC functions of the generic MTD-NAND driver.
-	  This will not work if you are using the old mtd.
+	  This enables Yaffs to use its own ECC functions instead of using
+	  the ones from the generic MTD-NAND driver.
 
-	  NB Use NAND ECC does not work at present with yaffsram.
-
-	  If unsure, say Y.
+	  If unsure, say N.
 
 config YAFFS_ECC_WRONG_ORDER
 	bool "Use the same ecc byte order as Steven Hill's nand_ecc.c"
-	depends on YAFFS_FS && !YAFFS_USE_NANDECC
+	depends on YAFFS_FS && YAFFS_DOES_ECC
+	default n
 	help
 	  This makes yaffs_ecc.c use the same ecc byte order as
 	  Steven Hill's nand_ecc.c. If not set, then you get the

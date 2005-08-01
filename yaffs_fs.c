@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.25 2005-08-01 20:55:24 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.26 2005-08-01 21:02:22 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1409,7 +1409,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion, struct su
 	
 	dev->putSuperFunc = yaffs_MTDPutSuper;
 	
-#ifdef CONFIG_YAFFS_USE_NANDECC
+#ifndef CONFIG_YAFFS_DOES_ECC
 	dev->useNANDECC = 1;
 #endif
 

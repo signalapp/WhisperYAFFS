@@ -26,15 +26,6 @@ config YAFFS_YAFFS1
 
 	  If unsure, say Y.
 
-config YAFFS_YAFFS2
-	bool "2048 byte (or larger) / page devices"
-	depends on YAFFS_FS
-	default y
-	help
-	  Enable YAFFS2 support -- yaffs for >= 2048 byte / page larger devices
-
-	  If unsure, say Y.
-
 config YAFFS_DOES_ECC
 	bool "Lets Yaffs do its own ECC"
 	depends on YAFFS_FS && YAFFS_YAFFS1
@@ -55,6 +46,15 @@ config YAFFS_ECC_WRONG_ORDER
 	  same ecc byte order as SmartMedia.
 
 	  If unsure, say N.
+
+config YAFFS_YAFFS2
+	bool "2048 byte (or larger) / page devices"
+	depends on YAFFS_FS
+	default y
+	help
+	  Enable YAFFS2 support -- yaffs for >= 2048 byte / page larger devices
+
+	  If unsure, say Y.
 
 config YAFFS_DISABLE_CHUNK_ERASED_CHECK
 	bool "Turn off debug chunk erase check"

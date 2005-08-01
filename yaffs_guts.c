@@ -13,7 +13,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.13 2005-08-01 04:53:01 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.14 2005-08-01 23:36:56 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5278,7 +5278,8 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 							isShrink = 1;
 						}
 												
-						if(in->variant.fileVariant.shrinkSize > thisSize)
+						if(isShrink &&
+						   in->variant.fileVariant.shrinkSize > thisSize)
 						{
 							in->variant.fileVariant.shrinkSize = thisSize;
 						}
@@ -5406,15 +5407,13 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 							{
 								in->variant.fileVariant.fileSize = oh->fileSize;
 								in->variant.fileVariant.scannedFileSize = in->variant.fileVariant.fileSize;
-							}
+							}									
 							
-													
-							
-							if(in->variant.fileVariant.shrinkSize > oh->fileSize)
+							if(oh->isShrink &&
+							   in->variant.fileVariant.shrinkSize > oh->fileSize)
 							{
 								in->variant.fileVariant.shrinkSize = oh->fileSize;
-							}
-													
+							}						
 								
 							break;
 						case YAFFS_OBJECT_TYPE_HARDLINK:

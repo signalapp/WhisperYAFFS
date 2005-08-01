@@ -12,7 +12,7 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 #
-# $Id: Makefile,v 1.4 2005-07-31 09:26:35 marty Exp $
+# $Id: Makefile,v 1.5 2005-08-01 20:52:35 luc Exp $
 #
 
 ## Change or override  KERNELDIR to your kernel
@@ -54,13 +54,6 @@ USE_MTD_2 = -DCONFIG_YAFFS_YAFFS2
 # Don't enable for NAND-based targets.
 
 # USE_RAM_FOR_TEST_2 = -DCONFIG_YAFFS2_RAM_ENABLED
-
-# CONFIG_YAFFS_USE_OLD_MTD
-# Enable this to use the old MTD stuff that did not have yaffs support.
-# You can use this to get around compilation problems, but the best
-# thing to do is to upgrade your MTD support. You will get better speed.
-
-#USE_OLD_MTD = -DCONFIG_YAFFS_USE_OLD_MTD
 
 # CONFIG_YAFFS_USE_NANDECC
 # This enables the ECC functions of the generic MTD-NAND driver.
@@ -114,7 +107,7 @@ WIERD_COMPILE_CONFIGS = -DNR_IRQS=1 -DNR_IRQ_VECTORS=1
 YAFFS_CONFIGS = $(WIERD_COMPILE_CONFIGS) \
                 $(USE_RAM_FOR_TEST) $(USE_MTD) $(USE_RAM_FOR_TEST_2) $(USE_MTD_2)\
                 $(USE_HEADER_FILE_SIZE) $(IGNORE_CHUNK_ERASED) $(IGNORE_WRITE_VERIFY) \
-                $(ENABLE_SHORT_NAMES_IN_RAM) $(USE_NANDECC) $(USE_OLD_MTD) $(USE_WRONGECC)
+                $(ENABLE_SHORT_NAMES_IN_RAM) $(USE_NANDECC) $(USE_WRONGECC)
 
 
 YAFFS2_CONFIGS = $(YAFFS_CONFIGS)

@@ -15,7 +15,7 @@
 
 // mtd interface for YAFFS2
 
-const char *yaffs_mtdif2_c_version = "$Id: yaffs_mtdif2.c,v 1.5 2005-07-31 08:38:41 marty Exp $";
+const char *yaffs_mtdif2_c_version = "$Id: yaffs_mtdif2.c,v 1.6 2005-08-01 20:52:35 luc Exp $";
  
 #include "yportenv.h"
 
@@ -50,7 +50,6 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __
 		yaffs_PackTags2(&pt,tags);
 	}
 
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	if(data && tags)
 	{
 		if(dev->useNANDECC)
@@ -60,15 +59,12 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __
 	}
 	else
 	{
-#endif
 	if(data)
 		retval = mtd->write(mtd,addr,dev->nBytesPerChunk,&dummy,data);
 	if(tags)
 		retval = mtd->write_oob(mtd,addr,mtd->oobsize,&dummy,(__u8 *)&pt);
 		
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	}
-#endif
 
     if (retval == 0)
     	return YAFFS_OK;
@@ -89,7 +85,6 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 
 	T(YAFFS_TRACE_MTD,(TSTR("nandmtd2_ReadChunkWithTagsToNAND chunk %d data %p tags %p" TENDSTR),chunkInNAND,data,tags));	
 
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	if(data && tags)
 	{
 		if(dev->useNANDECC)
@@ -103,14 +98,11 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 	}
 	else
 	{
-#endif
 	if(data)
 		retval = mtd->read(mtd,addr,dev->nBytesPerChunk,&dummy,data);
 	if(tags)
 		retval = mtd->read_oob(mtd,addr,mtd->oobsize,&dummy,dev->spareBuffer);
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	}
-#endif
 
     memcpy(&pt,dev->spareBuffer,sizeof(pt));
     

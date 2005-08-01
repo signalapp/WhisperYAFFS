@@ -13,7 +13,7 @@
  *
  */
 
-const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.6 2005-07-31 08:38:41 marty Exp $";
+const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.7 2005-08-01 20:52:35 luc Exp $";
  
 #include "yportenv.h"
 
@@ -24,10 +24,7 @@ const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.6 2005-07-31 08:38:4
 #include "linux/mtd/mtd.h"
 #include "linux/types.h"
 #include "linux/time.h"
-
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 #include "linux/mtd/nand.h"
-#endif
 
 static struct nand_oobinfo yaffs_oobinfo = {
 	.useecc = 1,
@@ -49,7 +46,6 @@ int nandmtd_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data,
 	
 	__u8 *spareAsBytes = (__u8 *)spare;
 
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	if(data && spare)
 	{
 		if(dev->useNANDECC)
@@ -59,14 +55,11 @@ int nandmtd_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data,
 	}
 	else
 	{
-#endif
 	if(data)
 		retval = mtd->write(mtd,addr,dev->nBytesPerChunk,&dummy,data);
 	if(spare)
 		retval = mtd->write_oob(mtd,addr,YAFFS_BYTES_PER_SPARE,&dummy,spareAsBytes);
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	}
-#endif
 
     if (retval == 0)
     	return YAFFS_OK;
@@ -84,7 +77,6 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaf
 	
 	__u8 *spareAsBytes = (__u8 *)spare;
 	
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	if(data && spare)
 	{
 		if(dev->useNANDECC)
@@ -99,14 +91,11 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaf
 	}
 	else
 	{
-#endif
 	if(data)
 		retval = mtd->read(mtd,addr,dev->nBytesPerChunk,&dummy,data);
 	if(spare)
 		retval = mtd->read_oob(mtd,addr,YAFFS_BYTES_PER_SPARE,&dummy,spareAsBytes);
-#ifndef	CONFIG_YAFFS_USE_OLD_MTD
 	}
-#endif
 
     if (retval == 0)
     	return YAFFS_OK;

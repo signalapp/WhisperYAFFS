@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.22 2005-08-01 20:50:24 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.23 2005-08-01 20:52:35 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1384,10 +1384,8 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 			   !mtd->block_markbad ||
 			   !mtd->read  ||
 			   !mtd->write ||
-#ifndef CONFIG_YAFFS_USE_OLD_MTD
 			   !mtd->write_ecc ||
 			   !mtd->read_ecc ||
-#endif
 			   !mtd->read_oob ||
 			   !mtd->write_oob )
 			{
@@ -1407,10 +1405,8 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 			if(!mtd->erase ||
 			   !mtd->read  ||
 			   !mtd->write ||
-#ifndef CONFIG_YAFFS_USE_OLD_MTD
 			   !mtd->write_ecc ||
 			   !mtd->read_ecc ||
-#endif
 			   !mtd->read_oob ||
 			   !mtd->write_oob )
 			{

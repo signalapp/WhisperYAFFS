@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.20 2005-07-31 08:38:41 marty Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.21 2005-08-01 20:49:38 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -700,55 +700,6 @@ struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,yaffs_Ob
 	
 	return inode;
 }
-
-#if 0
-
-// No longer used because we use generic rw */
-static ssize_t yaffs_file_read(struct file *f, char *buf, size_t n, loff_t *pos)
-{
-	yaffs_Object *obj;
-	int nRead,ipos;
-	struct inode *inode;
-	yaffs_Device *dev;
-	
-	T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_file_read\n"));
-
-	obj  = yaffs_DentryToObject(f->f_dentry);
-	
-	dev = obj->myDev;
-	
-	yaffs_GrossLock(dev);
-	
-	inode = f->f_dentry->d_inode;
-	
-	if (*pos < inode->i_size) 
-	{
-			if (*pos + n > inode->i_size)
-			{
-				n = inode->i_size - *pos;
-			}
-	}
-	else
-	{
-		n = 0;
-	}
-	
-	nRead = yaffs_ReadDataFromFile(obj,buf,*pos,n);
-	if(nRead > 0)
-	{
-		f->f_pos += nRead;
-	}
-	
-	yaffs_GrossUnlock(dev);
-	
-	ipos = *pos;
-	
-	T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_file_read read %d bytes, %d read at %d\n",n,nRead,ipos));
-	return nRead;
-	
-}
-
-#endif
 
 static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n, loff_t *pos)
 {

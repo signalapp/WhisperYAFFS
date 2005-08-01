@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.24 2005-08-01 20:54:45 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.25 2005-08-01 20:55:24 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1241,6 +1241,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion, struct su
 	struct dentry * root;
 	yaffs_Device *dev = 0;
 	char devname_buf[BDEVNAME_SIZE+1];
+	struct mtd_info *mtd;
 	int err;
 	
 	sb->s_magic = YAFFS_MAGIC;
@@ -1267,155 +1268,150 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion, struct su
 #endif
 
 
-	
+	T(YAFFS_TRACE_ALWAYS,("yaffs: Attempting MTD mount on %u.%u, \"%s\"\n",
+	 MAJOR(sb->s_dev),MINOR(sb->s_dev), yaffs_devname(sb, devname_buf)));
+		
+	// Check it's an mtd device.....
+	if(MAJOR(sb->s_dev) != MTD_BLOCK_MAJOR)
 	{
-		struct mtd_info *mtd;
-		
-		T(YAFFS_TRACE_ALWAYS,("yaffs: Attempting MTD mount on %u.%u, \"%s\"\n",
-		 MAJOR(sb->s_dev),MINOR(sb->s_dev), yaffs_devname(sb, devname_buf)));
-			
-		// Check it's an mtd device.....
-		if(MAJOR(sb->s_dev) != MTD_BLOCK_MAJOR)
+		return NULL; // This isn't an mtd device
+	} 
+	
+	// Get the device
+	mtd = get_mtd_device(NULL, MINOR(sb->s_dev));
+	if (!mtd) 
+	{
+		T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device #%u doesn't appear to exist\n", MINOR(sb->s_dev)));
+		return NULL;
+	}
+	
+	// Check it's NAND
+	if(mtd->type != MTD_NANDFLASH)
+	{
+		T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device is not NAND it's type %d\n", mtd->type));
+		return NULL;
+	}
+
+	T(YAFFS_TRACE_OS,(" erase %p\n",mtd->erase));
+	T(YAFFS_TRACE_OS,(" read %p\n",mtd->read));
+	T(YAFFS_TRACE_OS,(" write %p\n",mtd->write));
+	T(YAFFS_TRACE_OS,(" readoob %p\n",mtd->read_oob));
+	T(YAFFS_TRACE_OS,(" writeoob %p\n",mtd->write_oob));
+	T(YAFFS_TRACE_OS,(" block_isbad %p\n",mtd->block_isbad));
+	T(YAFFS_TRACE_OS,(" block_markbad %p\n",mtd->block_markbad));
+	T(YAFFS_TRACE_OS,(" oobblock %d\n",mtd->oobblock));
+	T(YAFFS_TRACE_OS,(" oobsize %d\n",mtd->oobsize));
+	T(YAFFS_TRACE_OS,(" erasesize %d\n",mtd->erasesize));
+	T(YAFFS_TRACE_OS,(" size %d\n",mtd->size));
+
+	if(yaffsVersion == 2)
+	{
+		// Check for version 2 style functions
+		if(!mtd->erase ||
+		   !mtd->block_isbad ||
+		   !mtd->block_markbad ||
+		   !mtd->read  ||
+		   !mtd->write ||
+		   !mtd->write_ecc ||
+		   !mtd->read_ecc ||
+		   !mtd->read_oob ||
+		   !mtd->write_oob )
 		{
-			return NULL; // This isn't an mtd device
-		} 
-		
-		// Get the device
-		mtd = get_mtd_device(NULL, MINOR(sb->s_dev));
-		if (!mtd) 
-		{
-			T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device #%u doesn't appear to exist\n", MINOR(sb->s_dev)));
+			T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device does not support required functions\n"));;
 			return NULL;
 		}
-		
-		// Check it's NAND
-		if(mtd->type != MTD_NANDFLASH)
+	
+		if(mtd->oobblock < YAFFS_MIN_YAFFS2_CHUNK_SIZE ||
+		   mtd->oobsize < YAFFS_MIN_YAFFS2_SPARE_SIZE)
 		{
-			T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device is not NAND it's type %d\n", mtd->type));
+			T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device does not support have the right page sizes\n"));
+			return NULL;
+		}		}
+	else
+	{
+		// Check for V1 style functions
+		if(!mtd->erase ||
+		   !mtd->read  ||
+		   !mtd->write ||
+		   !mtd->write_ecc ||
+		   !mtd->read_ecc ||
+		   !mtd->read_oob ||
+		   !mtd->write_oob )
+		{
+			T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device does not support required functions\n"));;
 			return NULL;
 		}
-
-		T(YAFFS_TRACE_OS,(" erase %p\n",mtd->erase));
-		T(YAFFS_TRACE_OS,(" read %p\n",mtd->read));
-		T(YAFFS_TRACE_OS,(" write %p\n",mtd->write));
-		T(YAFFS_TRACE_OS,(" readoob %p\n",mtd->read_oob));
-		T(YAFFS_TRACE_OS,(" writeoob %p\n",mtd->write_oob));
-		T(YAFFS_TRACE_OS,(" block_isbad %p\n",mtd->block_isbad));
-		T(YAFFS_TRACE_OS,(" block_markbad %p\n",mtd->block_markbad));
-		T(YAFFS_TRACE_OS,(" oobblock %d\n",mtd->oobblock));
-		T(YAFFS_TRACE_OS,(" oobsize %d\n",mtd->oobsize));
-		T(YAFFS_TRACE_OS,(" erasesize %d\n",mtd->erasesize));
-		T(YAFFS_TRACE_OS,(" size %d\n",mtd->size));
-
-		if(yaffsVersion == 2)
+	
+		if(mtd->oobblock != YAFFS_BYTES_PER_CHUNK ||
+		   mtd->oobsize != YAFFS_BYTES_PER_SPARE)
 		{
-			// Check for version 2 style functions
-			if(!mtd->erase ||
-			   !mtd->block_isbad ||
-			   !mtd->block_markbad ||
-			   !mtd->read  ||
-			   !mtd->write ||
-			   !mtd->write_ecc ||
-			   !mtd->read_ecc ||
-			   !mtd->read_oob ||
-			   !mtd->write_oob )
-			{
-				T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device does not support required functions\n"));;
-				return NULL;
-			}
-		
-			if(mtd->oobblock < YAFFS_MIN_YAFFS2_CHUNK_SIZE ||
-			   mtd->oobsize < YAFFS_MIN_YAFFS2_SPARE_SIZE)
-			{
-				T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device does not support have the right page sizes\n"));
-				return NULL;
-			}		}
-		else
-		{
-			// Check for V1 style functions
-			if(!mtd->erase ||
-			   !mtd->read  ||
-			   !mtd->write ||
-			   !mtd->write_ecc ||
-			   !mtd->read_ecc ||
-			   !mtd->read_oob ||
-			   !mtd->write_oob )
-			{
-				T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device does not support required functions\n"));;
-				return NULL;
-			}
-		
-			if(mtd->oobblock != YAFFS_BYTES_PER_CHUNK ||
-			   mtd->oobsize != YAFFS_BYTES_PER_SPARE)
-			{
-				T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device does not support have the right page sizes\n"));
-				return NULL;
-			}
+			T(YAFFS_TRACE_ALWAYS,("yaffs: MTD device does not support have the right page sizes\n"));
+			return NULL;
 		}
-		   
+	}
+	   
 
-			// OK, so if we got here, we have an MTD that's NAND and looks 
-			// like it has the right capabilities
-			// Set the yaffs_Device up for mtd
+		// OK, so if we got here, we have an MTD that's NAND and looks 
+		// like it has the right capabilities
+		// Set the yaffs_Device up for mtd
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-		sb->s_fs_info =	dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
+	sb->s_fs_info =	dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
 #else
-		sb->u.generic_sbp = dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
+	sb->u.generic_sbp = dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
 #endif
-		if(!dev)
-		{
-			// Deep shit could not allocate device structure
-			T(YAFFS_TRACE_ALWAYS,("yaffs_read_super: Failed trying to allocate yaffs_Device. \n"));
-			return NULL;
-		}
+	if(!dev)
+	{
+		// Deep shit could not allocate device structure
+		T(YAFFS_TRACE_ALWAYS,("yaffs_read_super: Failed trying to allocate yaffs_Device. \n"));
+		return NULL;
+	}
 
-		memset(dev,0,sizeof(yaffs_Device));
-		dev->genericDevice = mtd; 
-		dev->name = mtd->name;
+	memset(dev,0,sizeof(yaffs_Device));
+	dev->genericDevice = mtd; 
+	dev->name = mtd->name;
 
-		// Set up the memory size parameters....
-		
-		nBlocks = mtd->size / (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK);
+	// Set up the memory size parameters....
+	
+	nBlocks = mtd->size / (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK);
+	dev->startBlock = 0;
+	dev->endBlock = nBlocks - 1;
+	dev->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
+	dev->nBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
+	dev->nReservedBlocks = 5;
+	dev->nShortOpCaches = 10; // Enable short op caching
+	
+
+	// ... and the functions.
+	if(yaffsVersion == 2)
+	{
+		dev->writeChunkWithTagsToNAND = nandmtd2_WriteChunkWithTagsToNAND;
+		dev->readChunkWithTagsFromNAND = nandmtd2_ReadChunkWithTagsFromNAND;
+		dev->markNANDBlockBad = nandmtd2_MarkNANDBlockBad;
+		dev->queryNANDBlock = nandmtd2_QueryNANDBlock;
+		dev->spareBuffer = YMALLOC(mtd->oobsize);
+		dev->isYaffs2 = 1;
+		dev->nBytesPerChunk = mtd->oobblock;
+		dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
+		nBlocks = mtd->size / mtd->erasesize;
 		dev->startBlock = 0;
 		dev->endBlock = nBlocks - 1;
-		dev->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
-		dev->nBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
-		dev->nReservedBlocks = 5;
-		dev->nShortOpCaches = 10; // Enable short op caching
-		
-
-		// ... and the functions.
-		if(yaffsVersion == 2)
-		{
-			dev->writeChunkWithTagsToNAND = nandmtd2_WriteChunkWithTagsToNAND;
-			dev->readChunkWithTagsFromNAND = nandmtd2_ReadChunkWithTagsFromNAND;
-			dev->markNANDBlockBad = nandmtd2_MarkNANDBlockBad;
-			dev->queryNANDBlock = nandmtd2_QueryNANDBlock;
-			dev->spareBuffer = YMALLOC(mtd->oobsize);
-			dev->isYaffs2 = 1;
-			dev->nBytesPerChunk = mtd->oobblock;
-			dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
-			nBlocks = mtd->size / mtd->erasesize;
-			dev->startBlock = 0;
-			dev->endBlock = nBlocks - 1;
-		}
-		else
-		{
-			dev->writeChunkToNAND = nandmtd_WriteChunkToNAND;
-			dev->readChunkFromNAND = nandmtd_ReadChunkFromNAND;
-			dev->isYaffs2 = 0;
-		}
-		// ... and common functions
-		dev->eraseBlockInNAND = nandmtd_EraseBlockInNAND;
-		dev->initialiseNAND = nandmtd_InitialiseNAND;
-		
-		dev->putSuperFunc = yaffs_MTDPutSuper;
-		
-#ifdef CONFIG_YAFFS_USE_NANDECC
-		dev->useNANDECC = 1;
-#endif
 	}
+	else
+	{
+		dev->writeChunkToNAND = nandmtd_WriteChunkToNAND;
+		dev->readChunkFromNAND = nandmtd_ReadChunkFromNAND;
+		dev->isYaffs2 = 0;
+	}
+	// ... and common functions
+	dev->eraseBlockInNAND = nandmtd_EraseBlockInNAND;
+	dev->initialiseNAND = nandmtd_InitialiseNAND;
+	
+	dev->putSuperFunc = yaffs_MTDPutSuper;
+	
+#ifdef CONFIG_YAFFS_USE_NANDECC
+	dev->useNANDECC = 1;
+#endif
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
 	list_add_tail(&dev->devList, &yaffs_dev_list);

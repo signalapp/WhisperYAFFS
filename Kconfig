@@ -4,6 +4,7 @@
 
 config YAFFS_FS
 	tristate "YAFFS2 file system support"
+	default n
 	help
 	  YAFFS2, or Yet Another Flash Filing System, is a filing system
 	  optimised for NAND Flash chips.
@@ -19,6 +20,7 @@ config YAFFS_FS
 config YAFFS_YAFFS1
 	bool "512 byte / page devices"
 	depends on YAFFS_FS
+	default y
 	help
 	  Enable YAFFS1 support -- yaffs for 512 byte / page devices
 
@@ -27,6 +29,7 @@ config YAFFS_YAFFS1
 config YAFFS_YAFFS2
 	bool "2048 byte (or larger) / page devices"
 	depends on YAFFS_FS
+	default y
 	help
 	  Enable YAFFS2 support -- yaffs for >= 2048 byte / page larger devices
 

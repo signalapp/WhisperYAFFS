@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.23 2005-08-01 20:52:35 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.24 2005-08-01 20:54:45 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -77,16 +77,6 @@ extern const char *yaffs_guts_c_version;
 unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS;
 //unsigned yaffs_traceMask = 0xFFFFFFFF;
 
-
-#ifdef CONFIG_YAFFS_RAM_ENABLED
-#include "yaffs_nandemul.h" 
-// 2 MB of RAM for emulation
-#define YAFFS_RAM_EMULATION_SIZE  0x200000
-#endif //CONFIG_YAFFS_RAM_ENABLED
-
-#if CONFIG_YAFFS2_RAM_ENABLED
-#include "yaffs_nandemul2k.h"
-#endif
 
 #ifdef CONFIG_YAFFS_YAFFS1
 #include <linux/mtd/mtd.h>
@@ -1244,7 +1234,7 @@ static void  yaffs_MTDPutSuper(struct super_block *sb)
 #endif
 
 
-static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam, struct super_block * sb, void * data, int silent)
+static struct super_block *yaffs_internal_read_super(int yaffsVersion, struct super_block * sb, void * data, int silent)
 {
 	int nBlocks;
 	struct inode * inode = NULL;
@@ -1270,7 +1260,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 	sb->s_blocksize = PAGE_CACHE_SIZE;
 	sb->s_blocksize_bits = PAGE_CACHE_SHIFT;
 	T(YAFFS_TRACE_OS,("yaffs_read_super: Using yaffs%d\n",yaffsVersion));
-	T(YAFFS_TRACE_OS,("yaffs_read_super: %s block size %d\n", useRam ? "RAM" : "MTD",(int)(sb->s_blocksize)));
+	T(YAFFS_TRACE_OS,("yaffs_read_super: block size %d\n", (int)(sb->s_blocksize)));
 
 #ifdef CONFIG_YAFFS_DISABLE_WRITE_VERIFY
 	T(YAFFS_TRACE_OS,("yaffs: Write verification disabled. All guarantees null and void\n"));
@@ -1278,66 +1268,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 
 
 	
-	if(useRam)
 	{
-
-#ifdef CONFIG_YAFFS_RAM_ENABLED
-		// Set the yaffs_Device up for ram emulation
-
-		
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-		sb->s_fs_info =	dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
-#else
-		sb->u.generic_sbp = dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
-#endif
-
-		if(!dev)
-		{
-			// Deep shit could not allocate device structure
-			T(YAFFS_TRACE_OS,("yaffs_read_super: Failed trying to allocate yaffs_Device.\n"));
-			return NULL;
-		}
-
-		memset(dev,0,sizeof(yaffs_Device));
-		dev->genericDevice = NULL; // Not used for RAM emulation.
-		dev->name = sb->s_type->name;
-
-		nBlocks = YAFFS_RAM_EMULATION_SIZE / (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK);
-		dev->startBlock = 0;  
-		dev->endBlock = nBlocks - 1;
-		dev->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
-		dev->nBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
-		dev->nReservedBlocks = 5;
-		
-		if(yaffsVersion == 2)
-		{
-			dev->writeChunkWithTagsToNAND  = nandemul2k_WriteChunkWithTagsToNAND;
-			dev->readChunkWithTagsFromNAND = nandemul2k_ReadChunkWithTagsFromNAND;
-			dev->markNANDBlockBad          = nandemul2k_MarkNANDBlockBad;
-			dev->queryNANDBlock            = nandemul2k_QueryNANDBlock;
-			dev->eraseBlockInNAND          = nandemul2k_EraseBlockInNAND;
-			dev->initialiseNAND            = nandemul2k_InitialiseNAND;
-			dev->isYaffs2 = 1;
-			dev->nChunksPerBlock = nandemul2k_GetChunksPerBlock();
-			dev->nBytesPerChunk =  nandemul2k_GetBytesPerChunk();;
-			nBlocks = nandemul2k_GetNumberOfBlocks();
-			dev->startBlock = 0;
-			dev->endBlock = nBlocks - 1;
-		}
-		else
-		{
-			dev->writeChunkToNAND = nandemul_WriteChunkToNAND;
-			dev->readChunkFromNAND = nandemul_ReadChunkFromNAND;
-			dev->eraseBlockInNAND = nandemul_EraseBlockInNAND;
-			dev->initialiseNAND = nandemul_InitialiseNAND;
-			dev->isYaffs2 = 0;
-		}
-#endif
-
-	}
-	else
-	{	
-#if defined(CONFIG_YAFFS_YAFFS1) || defined(CONFIG_YAFFS_YAFFS2)
 		struct mtd_info *mtd;
 		
 		T(YAFFS_TRACE_ALWAYS,("yaffs: Attempting MTD mount on %u.%u, \"%s\"\n",
@@ -1484,7 +1415,6 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 #ifdef CONFIG_YAFFS_USE_NANDECC
 		dev->useNANDECC = 1;
 #endif
-#endif
 	}
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
@@ -1536,7 +1466,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_internal_read_super_mtd(struct super_block * sb, void * data, int silent)
 {
-	 return yaffs_internal_read_super(1,0,sb,data,silent) ? 0 : -1;
+	 return yaffs_internal_read_super(1,sb,data,silent) ? 0 : -1;
 }
 
 static struct super_block *yaffs_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
@@ -1555,7 +1485,7 @@ static struct file_system_type yaffs_fs_type = {
 #else
 static struct super_block *yaffs_read_super(struct super_block * sb, void * data, int silent)
 {
-	return yaffs_internal_read_super(1,0,sb,data,silent);
+	return yaffs_internal_read_super(1,sb,data,silent);
 }
 
 static DECLARE_FSTYPE(yaffs_fs_type, "yaffs", yaffs_read_super, FS_REQUIRES_DEV);
@@ -1568,7 +1498,7 @@ static DECLARE_FSTYPE(yaffs_fs_type, "yaffs", yaffs_read_super, FS_REQUIRES_DEV)
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs2_internal_read_super_mtd(struct super_block * sb, void * data, int silent)
 {
-	 return yaffs_internal_read_super(2,0,sb,data,silent) ? 0 : -1;
+	 return yaffs_internal_read_super(2,sb,data,silent) ? 0 : -1;
 }
 
 static struct super_block *yaffs2_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
@@ -1587,7 +1517,7 @@ static struct file_system_type yaffs2_fs_type = {
 #else
 static struct super_block *yaffs2_read_super(struct super_block * sb, void * data, int silent)
 {
-	return yaffs_internal_read_super(2,0,sb,data,silent);
+	return yaffs_internal_read_super(2,sb,data,silent);
 }
 
 static DECLARE_FSTYPE(yaffs2_fs_type, "yaffs2", yaffs2_read_super, FS_REQUIRES_DEV);
@@ -1595,72 +1525,6 @@ static DECLARE_FSTYPE(yaffs2_fs_type, "yaffs2", yaffs2_read_super, FS_REQUIRES_D
 
 #endif // CONFIG_YAFFS_YAFFS2
 
-
-#ifdef CONFIG_YAFFS_RAM_ENABLED
-
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-static int yaffs_internal_read_super_ram(struct super_block * sb, void * data, int silent)
-{
-	 return yaffs_internal_read_super(1,1,sb,data,silent) ? 0 : -1;
-}
-
-static struct super_block *yaffs_ram_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
-{
-
-    return get_sb_nodev(fs, flags, data, yaffs_internal_read_super_ram);
-}
-
-
-static struct file_system_type yaffs_ram_fs_type = {
-	.owner		= THIS_MODULE,
-	.name		= "yaffsram",
-	.get_sb		= yaffs_ram_read_super,
-	.kill_sb	= kill_litter_super,
-	.fs_flags	= 0 ,
-};
-#else
-static struct super_block *yaffs_ram_read_super(struct super_block * sb, void * data, int silent)
-{
-	return yaffs_internal_read_super(1,1,sb,data,silent);
-}
-
-static DECLARE_FSTYPE(yaffs_ram_fs_type, "yaffsram", yaffs_ram_read_super, FS_SINGLE);
-#endif
-
-#endif // CONFIG_YAFFS_RAM_ENABLED
-
-#ifdef CONFIG_YAFFS2_RAM_ENABLED
-
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-static int yaffs2_internal_read_super_ram(struct super_block * sb, void * data, int silent)
-{
-	 return yaffs_internal_read_super(2,1,sb,data,silent) ? 0 : -1;
-}
-
-static struct super_block *yaffs2_ram_read_super(struct file_system_type * fs, int flags, const char *dev_name, void *data)
-{
-
-    return get_sb_nodev(fs, flags, data, yaffs2_internal_read_super_ram);
-}
-
-
-static struct file_system_type yaffs2_ram_fs_type = {
-	.owner		= THIS_MODULE,
-	.name		= "yaffs2ram",
-	.get_sb		= yaffs2_ram_read_super,
-	.kill_sb	= kill_litter_super,
-	.fs_flags	= 0 ,
-};
-#else
-static struct super_block *yaffs2_ram_read_super(struct super_block * sb, void * data, int silent)
-{
-	return yaffs_internal_read_super(2,1,sb,data,silent);
-}
-
-static DECLARE_FSTYPE(yaffs2_ram_fs_type, "yaffs2ram", yaffs2_ram_read_super, FS_SINGLE);
-#endif
-
-#endif // CONFIG_YAFFS2_RAM_ENABLED
 
 
 
@@ -1747,22 +1611,6 @@ static int  yaffs_proc_read(
 	return buf-page < count ? buf-page : count;
 }
 
-#ifdef CONFIG_YAFFS2_RAM_ENABLED
-static int  yaffs_proc_ram_write(
-        char *page,
-	char **start,
-	off_t offset,
-	int count,
-	int *eof,
-	void *data
-	)
-{
-
-	printk(KERN_DEBUG "yaffs write size %d\n",count);
-	return count;
-}
-#endif
-
 // Stuff to handle installation of file systems
 struct file_system_to_install
 {
@@ -1772,12 +1620,6 @@ struct file_system_to_install
 
 static struct file_system_to_install fs_to_install[] =
 {
-#ifdef CONFIG_YAFFS_RAM_ENABLED
-     { &yaffs_ram_fs_type, 0},
-#endif
-#ifdef CONFIG_YAFFS2_RAM_ENABLED
-     { &yaffs2_ram_fs_type,0},
-#endif
 #ifdef CONFIG_YAFFS_YAFFS1
      { &yaffs_fs_type,0},
 #endif

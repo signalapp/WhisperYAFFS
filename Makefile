@@ -12,7 +12,7 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 #
-# $Id: Makefile,v 1.5 2005-08-01 20:52:35 luc Exp $
+# $Id: Makefile,v 1.6 2005-08-01 20:54:45 luc Exp $
 #
 
 ## Change or override  KERNELDIR to your kernel
@@ -42,18 +42,6 @@ USE_MTD = -DCONFIG_YAFFS_YAFFS1
 
 USE_MTD_2 = -DCONFIG_YAFFS_YAFFS2
 
-
-# CONFIG_YAFFS_RAM_ENABLED.
-# This adds the yaffsram file system support. Nice for testing on x86, but uses 2MB of RAM.
-# Don't enable for NAND-based targets.
-
-# USE_RAM_FOR_TEST = -DCONFIG_YAFFS_RAM_ENABLED
-
-# CONFIG_YAFFS2_RAM_ENABLED.
-# This adds the yaffs2ram file system support. Nice for testing on x86, but uses 2MB of RAM.
-# Don't enable for NAND-based targets.
-
-# USE_RAM_FOR_TEST_2 = -DCONFIG_YAFFS2_RAM_ENABLED
 
 # CONFIG_YAFFS_USE_NANDECC
 # This enables the ECC functions of the generic MTD-NAND driver.

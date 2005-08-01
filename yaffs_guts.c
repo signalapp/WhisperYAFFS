@@ -13,7 +13,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.12 2005-07-31 06:54:19 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.13 2005-08-01 04:53:01 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5587,6 +5587,10 @@ yaffs_Object *yaffs_FindObjectByName(yaffs_Object *directory,const YCHAR *name)
 	
 	yaffs_Object *l;
 	
+	if(!name)
+	{
+		return NULL;
+	}
 
 	if(!directory)
 	{

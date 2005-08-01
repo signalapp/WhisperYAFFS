@@ -44,13 +44,14 @@
 
 
 
-#define EM_SIZE_IN_MEG 4
-#define PAGE_DATA_SIZE  (2048)
-#define PAGE_SPARE_SIZE (64)
-#define PAGES_PER_BLOCK (64)
 #define NAND_SHIFT      (11)   // Shifter for 2k
+#define PAGE_DATA_SIZE  (1 << NAND_SHIFT)
+#define PAGE_SPARE_SIZE (64)
+#define BLK_SHIFT	6
+#define PAGES_PER_BLOCK (1 << BLK_SHIFT)	// = 64
 
 
+#define EM_SIZE_IN_MEG 4
 #define EM_SIZE_IN_BYTES (EM_SIZE_IN_MEG * (1<<20))
 
 #define PAGE_TOTAL_SIZE (PAGE_DATA_SIZE+PAGE_SPARE_SIZE)
@@ -557,8 +558,8 @@ static int nand_erase (struct mtd_info *mtd, struct erase_info *instr)
 		return -EINVAL;
 	}
 
-	nBlocks = instr->len >> (NAND_SHIFT + 5);
-	block = instr->addr >> (NAND_SHIFT + 5);
+	nBlocks = instr->len >> (NAND_SHIFT + BLK_SHIFT);
+	block = instr->addr >> (NAND_SHIFT + BLK_SHIFT);
 
 	for(i = 0; i < nBlocks; i++)
 	{

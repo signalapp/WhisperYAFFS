@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.21 2005-08-01 20:49:38 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.22 2005-08-01 20:50:24 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -100,9 +100,7 @@ unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS;
 
 #define yaffs_InodeToObject(iptr) ((yaffs_Object *)((iptr)->u.generic_ip))
 #define yaffs_DentryToObject(dptr) yaffs_InodeToObject((dptr)->d_inode)
-//NCB #define yaffs_SuperToDevice(sb)	((yaffs_Device *)sb->u.generic_sbp)
 
-//#if defined(CONFIG_KERNEL_2_5)
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 #define yaffs_SuperToDevice(sb)	((yaffs_Device *)sb->s_fs_info)
 #else
@@ -112,10 +110,6 @@ unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS;
 
 static void yaffs_put_super(struct super_block *sb);
 
-#if 0
-static ssize_t yaffs_file_read(struct file *f, char *buf, size_t n, loff_t *pos);
-#endif
-
 static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n, loff_t *pos);
 
 static int yaffs_file_flush(struct file* file);
@@ -124,7 +118,6 @@ static int yaffs_sync_object(struct file * file, struct dentry *dentry, int data
 
 static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir);
 
-//#if defined(CONFIG_KERNEL_2_5)	/* Added NCB 185-8-2003 */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidata *n);
 static struct dentry * yaffs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *n);
@@ -137,7 +130,6 @@ static int yaffs_unlink(struct inode * dir, struct dentry *dentry);
 static int yaffs_symlink(struct inode * dir, struct dentry *dentry, const char * symname);
 static int yaffs_mkdir(struct inode * dir, struct dentry * dentry, int mode);
 
-//#if defined(CONFIG_KERNEL_2_5)
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode, dev_t dev);
 #else
@@ -146,7 +138,6 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode, int d
 static int yaffs_rename(struct inode * old_dir, struct dentry *old_dentry, struct inode * new_dir,struct dentry *new_dentry);
 static int yaffs_setattr(struct dentry *dentry, struct iattr *attr);
 
-//#if defined(CONFIG_KERNEL_2_5)	/* Added NCB 185-8-2003 */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_statfs(struct super_block *sb, struct kstatfs *buf);
 #else
@@ -290,7 +281,6 @@ struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,yaffs_Ob
 /*
  * Lookup is used to find objects in the fs
  */
-//#if defined(CONFIG_KERNEL_2_5)	/* Added NCB 185-8-2003 */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 
 static struct dentry * yaffs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *n)
@@ -614,7 +604,6 @@ static void yaffs_FillInodeFromObject(struct inode *inode, yaffs_Object *obj)
 		inode->i_uid = obj->yst_uid;
 		inode->i_gid = obj->yst_gid;
 		inode->i_blksize = inode->i_sb->s_blocksize;
-//#if defined(CONFIG_KERNEL_2_5)
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 
 		inode->i_rdev = old_decode_dev(obj->yst_rdev);
@@ -840,7 +829,6 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 /*
  * File creation. Allocate an inode, and we're done..
  */
-//#if defined(CONFIG_KERNEL_2_5)
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode, dev_t rdev)
 #else
@@ -934,7 +922,6 @@ static int yaffs_mkdir(struct inode * dir, struct dentry * dentry, int mode)
 	return retVal;
 }
 
-//#if defined(CONFIG_KERNEL_2_5)	/* Added NCB 185-8-2003 */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidata *n)
 #else
@@ -1161,7 +1148,6 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 	return error;
 }
 
-//#if defined(CONFIG_KERNEL_2_5)	/* Added NCB 185-8-2003 */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_statfs(struct super_block *sb, struct kstatfs *buf)
 #else
@@ -1445,7 +1431,6 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,int useRam
 			// like it has the right capabilities
 			// Set the yaffs_Device up for mtd
 
-//#if defined(CONFIG_KERNEL_2_5)
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 		sb->s_fs_info =	dev = kmalloc(sizeof(yaffs_Device),GFP_KERNEL);
 #else
@@ -1564,14 +1549,11 @@ static struct super_block *yaffs_read_super(struct file_system_type * fs, int fl
     return get_sb_bdev(fs, flags, dev_name, data, yaffs_internal_read_super_mtd);
 }
 
-/* changes NCB 2.5.70 */
-//static DECLARE_FSTYPE(yaffs_fs_type, "yaffs", yaffs_read_super, FS_REQUIRES_DEV);
 static struct file_system_type yaffs_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "yaffs",
 	.get_sb		= yaffs_read_super,
 	.kill_sb	= kill_block_super,
-//	.kill_sb	= kill_litter_super,
 	.fs_flags	= FS_REQUIRES_DEV,
 };
 #else
@@ -1599,14 +1581,11 @@ static struct super_block *yaffs2_read_super(struct file_system_type * fs, int f
     return get_sb_bdev(fs, flags, dev_name, data, yaffs2_internal_read_super_mtd);
 }
 
-/* changes NCB 2.5.70 */
-//static DECLARE_FSTYPE(yaffs_fs_type, "yaffs", yaffs_read_super, FS_REQUIRES_DEV);
 static struct file_system_type yaffs2_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "yaffs2",
 	.get_sb		= yaffs2_read_super,
 	.kill_sb	= kill_block_super,
-//	.kill_sb	= kill_litter_super,
 	.fs_flags	= FS_REQUIRES_DEV,
 };
 #else

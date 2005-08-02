@@ -13,7 +13,7 @@
  *
  */
 
-const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.7 2005-08-01 20:52:35 luc Exp $";
+const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.8 2005-08-02 19:17:55 luc Exp $";
  
 #include "yportenv.h"
 
@@ -28,6 +28,9 @@ const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.7 2005-08-01 20:52:3
 
 static struct nand_oobinfo yaffs_oobinfo = {
 	.useecc = 1,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,8))
+	.eccbytes = 6,
+#endif
 	.eccpos = {8, 9, 10, 13, 14, 15}
 };
 

@@ -13,7 +13,7 @@
  *
  */
 
-const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.8 2005-08-02 19:17:55 luc Exp $";
+const char *yaffs_mtdif_c_version = "$Id: yaffs_mtdif.c,v 1.9 2005-08-02 19:18:44 luc Exp $";
  
 #include "yportenv.h"
 
@@ -52,9 +52,9 @@ int nandmtd_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data,
 	if(data && spare)
 	{
 		if(dev->useNANDECC)
-			mtd->write_ecc(mtd,addr,dev->nBytesPerChunk,&dummy,data,spareAsBytes,&yaffs_oobinfo);
+			retval = mtd->write_ecc(mtd,addr,dev->nBytesPerChunk,&dummy,data,spareAsBytes,&yaffs_oobinfo);
 		else
-			mtd->write_ecc(mtd,addr,dev->nBytesPerChunk,&dummy,data,spareAsBytes,&yaffs_noeccinfo);
+			retval = mtd->write_ecc(mtd,addr,dev->nBytesPerChunk,&dummy,data,spareAsBytes,&yaffs_noeccinfo);
 	}
 	else
 	{

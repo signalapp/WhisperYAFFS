@@ -13,7 +13,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.14 2005-08-01 23:36:56 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.15 2005-08-02 04:24:22 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2517,6 +2517,18 @@ static int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 				tags.serialNumber++;
 
 				dev->nGCCopies++;
+				
+				if(tags.chunkId == 0)
+				{
+					// It is an object Id,
+					// We need to nuke the shrinkheader flags first
+					// We no longer want the shrinkHeader flag since its work is done
+					// and if it is left in place it will mess up scanning.
+					
+					yaffs_ObjectHeader *oh = (yaffs_ObjectHeader *)buffer;
+					oh->isShrink = 0;
+					tags.extraIsShrinkHeader = 0;
+				}
 
 				newChunk = yaffs_WriteNewChunkWithTagsToNAND(dev, buffer, &tags,1);
 			

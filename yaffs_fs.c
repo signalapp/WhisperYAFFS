@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.26 2005-08-01 21:02:22 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.27 2005-08-04 22:47:36 luc Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -488,6 +488,7 @@ static int yaffs_writepage(struct page *page)
 #endif
 {
 	struct address_space *mapping = page->mapping;
+	loff_t offset = (loff_t)page->index << PAGE_CACHE_SHIFT;
 	struct inode *inode;
 	unsigned long end_index;
 	char *buffer;
@@ -500,6 +501,14 @@ static int yaffs_writepage(struct page *page)
 	inode = mapping->host;
 	if (!inode)
 		BUG();
+
+	if (offset > inode->i_size)
+	{
+		T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_writepage at %08x, inode size = %08x!!!\n", (unsigned)(page->index << PAGE_CACHE_SHIFT), (unsigned) inode->i_size));
+		T(YAFFS_TRACE_OS,(KERN_DEBUG"                -> don't care!!\n"));
+		unlock_page(page);
+		return 0;
+	}
 
 	end_index = inode->i_size >> PAGE_CACHE_SHIFT;
 
@@ -525,8 +534,12 @@ static int yaffs_writepage(struct page *page)
 	obj = yaffs_InodeToObject(inode);
 	yaffs_GrossLock(obj->myDev);
 
+	T(YAFFS_TRACE_OS,(KERN_DEBUG"yaffs_writepage at %08x, size %08x\n", (unsigned)(page->index << PAGE_CACHE_SHIFT), nBytes));
+	T(YAFFS_TRACE_OS,(KERN_DEBUG"writepag0: obj = %05x, ino = %05x\n", (int) obj->variant.fileVariant.fileSize, (int) inode->i_size));
 
 	nWritten = yaffs_WriteDataToFile(obj,buffer,page->index << PAGE_CACHE_SHIFT,nBytes,0);
+
+	T(YAFFS_TRACE_OS,(KERN_DEBUG"writepag1: obj = %05x, ino = %05x\n", (int) obj->variant.fileVariant.fileSize, (int) inode->i_size));
 
 	yaffs_GrossUnlock(obj->myDev);
 	

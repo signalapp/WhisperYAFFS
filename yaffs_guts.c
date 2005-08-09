@@ -13,7 +13,7 @@
  */
  //yaffs_guts.c
 
-const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.15 2005-08-02 04:24:22 charles Exp $";
+const char *yaffs_guts_c_version="$Id: yaffs_guts.c,v 1.16 2005-08-09 03:52:23 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1925,9 +1925,11 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName, yaffs_Object 
 		 	// There is a target that is a non-empty directory, so we have to fail
 			return YAFFS_FAIL; // EEXIST or ENOTEMPTY
 		 }
-		 else if(existingTarget)
+		 else if(existingTarget &&
+		 	 existingTarget != obj)
 		 {
-		 	// Nuke the target first, using shadowing
+		 	// Nuke the target first, using shadowing, 
+			// but only if it isn't the same object
 			 yaffs_ChangeObjectName(obj,newDir,newName,force,existingTarget->objectId);
 			 yaffs_Unlink(newDir,newName);
 		 }
@@ -2524,9 +2526,12 @@ static int  yaffs_GarbageCollectBlock(yaffs_Device *dev,int block)
 					// We need to nuke the shrinkheader flags first
 					// We no longer want the shrinkHeader flag since its work is done
 					// and if it is left in place it will mess up scanning.
+					// Also, clear out any shadowing stuff
 					
 					yaffs_ObjectHeader *oh = (yaffs_ObjectHeader *)buffer;
 					oh->isShrink = 0;
+					oh->shadowsObject = -1;
+					tags.extraShadows = 0;
 					tags.extraIsShrinkHeader = 0;
 				}
 
@@ -4097,6 +4102,11 @@ int yaffs_ResizeFile(yaffs_Object *in, int newSize)
 		return yaffs_GetFileSize(in);
 	}
 	
+	if(newSize == oldFileSize)
+	{
+		return oldFileSize;
+	}
+	
 	if(newSize < oldFileSize)
 	{
 
@@ -4120,24 +4130,20 @@ int yaffs_ResizeFile(yaffs_Object *in, int newSize)
 		in->variant.fileVariant.fileSize = newSize;
 		
 		yaffs_PruneFileStructure(dev,&in->variant.fileVariant);
-		
-		// Write a new object header to show we've shrunk the file
-		// Do this only if the file is not in the deleted directories.
-		if(in->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
-		   in->parent->objectId != YAFFS_OBJECTID_DELETED
-		  )
-		{
-			yaffs_UpdateObjectHeader(in,NULL, 0, 1,0);
-		}
+	}
+			
+	// Write a new object header.
+	// show we've shrunk the file, if need be
+	// Do this only if the file is not in the deleted directories.
+	if(in->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
+	   in->parent->objectId != YAFFS_OBJECTID_DELETED
+	  )
+	{
+		yaffs_UpdateObjectHeader(in,NULL, 0, (newSize < oldFileSize) ? 1 : 0 ,0);
+	}
 
 		
-		return newSize;
-		
-	}
-	else
-	{
-		return oldFileSize;
-	}
+	return newSize;
 }
 
 
@@ -4446,9 +4452,32 @@ int yaffs_Unlink(yaffs_Object *dir, const YCHAR *name)
 //////////////// Initialisation Scanning /////////////////
 
 
-void yaffs_HandleShadowedObject(yaffs_Device *dev, int objId, int backwardScanning)
+static void yaffs_HandleShadowedObject(yaffs_Device *dev, int objId, int backwardScanning)
 {
-	//Todo
+	yaffs_Object *obj;
+	
+	if(!backwardScanning)
+	{
+		// Handle YAFFS1 forward scanning case
+		// For YAFFS1 we always do the deletion
+		
+	}
+	else
+	{	// Handle YAFFS2 case (backward scanning)
+		// If the shadowed object exists then ignore.
+		if(yaffs_FindObjectByNumber(dev,objId))
+		{
+			return;
+		}
+	}
+	
+	// Let's create it (if it does not exist) assuming it is a file so that it can do shrinking etc.
+	// We put it in unlinked dir to be cleaned up after the scanning
+	obj = yaffs_FindOrCreateObjectByNumber(dev,objId,YAFFS_OBJECT_TYPE_FILE);
+	yaffs_AddObjectToDirectory(dev->unlinkedDir,obj);
+	obj->variant.fileVariant.shrinkSize = 0;
+	obj->valid = 1; // So that we don't read any other infor for this file
+	
 }
 
 #if 0
@@ -5361,7 +5390,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 					
 					if(oh->shadowsObject > 0)
 					{
-						yaffs_HandleShadowedObject(dev,oh->shadowsObject,0);
+						yaffs_HandleShadowedObject(dev,oh->shadowsObject,1);
 					}
 
 
@@ -5417,6 +5446,9 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 							
 							if(in->variant.fileVariant.scannedFileSize < oh->fileSize)
 							{
+								// This covers the case where the file size is > than where the data is
+								// This will happen if the file is resized to be larger than its current
+								// data extents.
 								in->variant.fileVariant.fileSize = oh->fileSize;
 								in->variant.fileVariant.scannedFileSize = in->variant.fileVariant.fileSize;
 							}									

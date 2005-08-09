@@ -30,7 +30,7 @@
  */
 
 
-const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.27 2005-08-04 22:47:36 luc Exp $";
+const char *yaffs_fs_c_version = "$Id: yaffs_fs.c,v 1.28 2005-08-09 03:52:23 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 
@@ -1095,10 +1095,8 @@ static int yaffs_rename(struct inode * old_dir, struct dentry *old_dentry, struc
 	else
 	{
 	   
-		// Unlink the target if it exists
-		removed = yaffs_Unlink(yaffs_InodeToObject(new_dir),new_dentry->d_name.name);
-
-	
+	        // Now does unlinking internally using shadowing mechanism
+	        
 		retVal =  yaffs_RenameObject(yaffs_InodeToObject(old_dir),old_dentry->d_name.name,
 									yaffs_InodeToObject(new_dir),new_dentry->d_name.name);
 									

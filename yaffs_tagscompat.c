@@ -10,7 +10,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_tagscompat.c,v 1.3 2005-07-31 06:47:12 marty Exp $
+ * $Id: yaffs_tagscompat.c,v 1.4 2005-08-09 04:22:30 charles Exp $
  */
 
 #include "yaffs_guts.h"
@@ -333,137 +333,12 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,int chunkInNAND
 }
 #endif
 
-#if 0
-int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,int blockInNAND)
-{
-	dev->nBlockErasures++;
-	return dev->eraseBlockInNAND(dev,blockInNAND);
-}
 
-int yaffs_InitialiseNAND(struct yaffs_DeviceStruct *dev)
-{
-	return dev->initialiseNAND(dev);
-}
-
-#endif
-
-#if 0
-static int yaffs_WriteNewChunkToNAND(struct yaffs_DeviceStruct *dev, const __u8 *data, yaffs_Spare *spare,int useReserve)
-{
-	int chunk;
-
-	int writeOk = 1;
-	int attempts = 0;
-
-	unsigned char rbData[YAFFS_BYTES_PER_CHUNK];
-	yaffs_Spare rbSpare;
-
-	do{
-		chunk = yaffs_AllocateChunk(dev,useReserve);
-
-		if(chunk >= 0)
-		{
-
-			// First check this chunk is erased...
-#ifndef CONFIG_YAFFS_DISABLE_CHUNK_ERASED_CHECK
-			writeOk = yaffs_CheckChunkErased(dev,chunk);
-#endif
-			if(!writeOk)
-			{
-				T(YAFFS_TRACE_ERROR,(TSTR("**>> yaffs chunk %d was not erased" TENDSTR),chunk));
-			}
-			else
-			{
-				writeOk =  yaffs_WriteChunkToNAND(dev,chunk,data,spare);
-			}
-			attempts++;
-			if(writeOk)
-			{
-				// Readback & verify
-				// If verify fails, then delete this chunk and try again
-				// To verify we compare everything except the block and
-				// page status bytes.
-				// NB We check a raw read without ECC correction applied
-				yaffs_ReadChunkFromNAND(dev,chunk,rbData,&rbSpare,0);
-
-#ifndef CONFIG_YAFFS_DISABLE_WRITE_VERIFY
-				if(!yaffs_VerifyCompare(data,rbData,spare,&rbSpare))
-				{
-					// Didn't verify
-					T(YAFFS_TRACE_ERROR,(TSTR("**>> yaffs write verify failed on chunk %d" TENDSTR), chunk));
-
-					writeOk = 0;
-				}
-#endif
-
-			}
-			if(writeOk)
-			{
-				// Copy the data into the write buffer.
-				// NB We do this at the end to prevent duplicates in the case of a write error.
-				//Todo
-				yaffs_HandleWriteChunkOk(dev,chunk,data,spare);
-			}
-			else
-			{
-				yaffs_HandleWriteChunkError(dev,chunk);
-			}
-		}
-
-	} while(chunk >= 0 && ! writeOk);
-
-	if(attempts > 1)
-	{
-		T(YAFFS_TRACE_ERROR,(TSTR("**>> yaffs write required %d attempts" TENDSTR),attempts));
-		dev->nRetriedWrites+= (attempts - 1);
-	}
-
-	return chunk;
-}
-
-#endif
 
 ///
 // Functions for robustisizing
 //
 //
-#if 0
-
-static void yaffs_RetireBlock(yaffs_Device *dev,int blockInNAND)
-{
-	// Ding the blockStatus in the first two pages of the block.
-
-	yaffs_Spare spare;
-
-	memset(&spare, 0xff,sizeof(yaffs_Spare));
-
-	spare.blockStatus = 0;
-
-	// TODO change this retirement marking for other NAND types
-	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->nChunksPerBlock, NULL , &spare);
-	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->nChunksPerBlock + 1, NULL , &spare);
-
-	yaffs_GetBlockInfo(dev,blockInNAND)->blockState = YAFFS_BLOCK_STATE_DEAD;
-	dev->nRetiredBlocks++;
-}
-
-#endif
-
-#if 0
-static int yaffs_RewriteBufferedBlock(yaffs_Device *dev)
-{
-	dev->doingBufferedBlockRewrite = 1;
-	//
-	//	Remove erased chunks
-	//  Rewrite existing chunks to a new block
-	//	Set current write block to the new block
-
-	dev->doingBufferedBlockRewrite = 0;
-
-	return 1;
-}
-
-#endif
 
 static void yaffs_HandleReadDataError(yaffs_Device *dev,int chunkInNAND)
 {
@@ -533,43 +408,7 @@ static int yaffs_VerifyCompare(const __u8 *d0, const __u8 * d1, const yaffs_Spar
 }
 #endif /* NOTYET */
 
-#if 0
-typedef struct
-{
 
-	unsigned validMarker0;
-	unsigned chunkUsed;		    //  Status of the chunk: used or unused
-	unsigned objectId;			// If 0 then this is not part of an object (unused)
-	unsigned chunkId;			// If 0 then this is a header
-	unsigned byteCount;		    // Only valid for data chunks
-	// The following stuff only has meaning when we read
-	yaffs_ECCResult eccResult;  // Only valid when we read.
-	unsigned blockBad;			// Only valid on reading
-
-	// YAFFS 1 stuff	
-	unsigned chunkDeleted;		// The chunk is marked deleted
-	unsigned serialNumber; 		// Yaffs1 2-bit serial number
-	
-	// YAFFS2 stuff
-	unsigned sequenceNumber; 	// The sequence number of this block
-
-	unsigned validMarker1;
-
-} yaffs_ExtendedTags;
-
-
-typedef struct
-{   
-    unsigned chunkId:20;
-    unsigned serialNumber:2;
-    unsigned byteCount:10;
-    unsigned objectId:18;
-    unsigned ecc:12;
-    unsigned unusedStuff:2;
-} yaffs_Tags;
-
-
-#endif
 
 int yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *eTags)
 {

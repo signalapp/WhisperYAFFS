@@ -10,7 +10,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_tagscompat.c,v 1.4 2005-08-09 04:22:30 charles Exp $
+ * $Id: yaffs_tagscompat.c,v 1.5 2005-08-10 20:34:40 charles Exp $
  */
 
 #include "yaffs_guts.h"
@@ -496,7 +496,7 @@ int yaffs_TagsCompatabilityMarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int 
 
 	memset(&spare, 0xff,sizeof(yaffs_Spare));
 
-	spare.blockStatus = 0;
+	spare.blockStatus = 'Y';
 
 	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->nChunksPerBlock, NULL , &spare);
 	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->nChunksPerBlock + 1, NULL , &spare);

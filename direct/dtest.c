@@ -1255,6 +1255,29 @@ void fill_disk_test(const char *mountpt)
 	}
 	
 }
+
+void rename_over_test(const char *mountpt)
+{
+	int i;
+	char a[100];
+	char b[100];
+	
+	sprintf(a,"%s/a",mountpt);
+	sprintf(b,"%s/b",mountpt);
+	
+	yaffs_StartUp();
+	
+	yaffs_mount(mountpt);
+	i = yaffs_open(a,O_CREAT | O_TRUNC | O_RDWR, 0); 
+	yaffs_close(i);
+	i = yaffs_open(b,O_CREAT | O_TRUNC | O_RDWR, 0);
+	yaffs_close(i);
+	yaffs_rename(a,b);
+	
+	
+	yaffs_unmount(mountpt);
+	
+}
 void scan_deleted_files_test(const char *mountpt)
 {
 	char fn[100];
@@ -1312,13 +1335,121 @@ void scan_deleted_files_test(const char *mountpt)
 
 }
 
+
+void write_10k(int h)
+{
+   int i;
+   const char *s="0123456789";
+   for(i = 0; i < 1000; i++)
+     yaffs_write(h,s,10);
+
+}
+void write_200k_file(const char *fn, const char *fdel, const char *fdel1)
+{
+   int h1;
+   int h2;
+   int i;
+   
+   h1 = yaffs_open(fn, O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+   
+   for(i = 0; i < 100000; i+= 10000)
+   {
+   	write_10k(h1);
+   	write_10k(h2);
+   }
+   
+   if(yaffs_lseek(h1,0,SEEK_SET) != 1000000)
+   {
+   	printf("Could not write file\n");
+   }
+   
+   yaffs_unlink(fdel);
+   for(i = 0; i < 100000; i+= 10000)
+   {
+   	write_10k(h1);
+   	write_10k(h2);
+   }
+   
+   if(yaffs_lseek(h1,0,SEEK_SET) != 2000000)
+   {
+   	printf("Could not write file\n");
+   }
+   
+   yaffs_close(h1);
+   yaffs_close(h2);
+   yaffs_unlink(fdel1);
+   
+   
+   
+}
+
+void verify_200k_file(const char *fn)
+{
+   int h1;
+   int i;
+   char x[11];
+   const char *s="0123456789";
+   
+   h1 = yaffs_open(fn, O_RDONLY, 0);
+   
+   for(i = 0; i < 200000; i+= 10)
+   {
+   	yaffs_read(h1,x,10);
+	if(strncmp(x,s,10) != 0)
+	{
+		printf("File verification failed at %d\n",i);
+	}
+   }
+      
+   yaffs_close(h1);
+   
+	
+}
+
+
+void check_resize_gc_bug(const char *mountpt)
+{
+
+	char a[30];
+	char b[30];
+	char c[30];
+	
+	int i;
+	
+	sprintf(a,"%s/a",mountpt);
+	sprintf(b,"%s/b",mountpt);
+	sprintf(c,"%s/c",mountpt);
+	
+
+	
+	
+	yaffs_StartUp();
+	yaffs_mount(mountpt);
+	yaffs_unlink(a);
+	yaffs_unlink(b);
+	
+	for(i = 0; i < 50; i++)
+	{  
+	   printf("A\n");write_200k_file(a,"",c);
+	   printf("B\n");verify_200k_file(a);
+	   printf("C\n");write_200k_file(b,a,c);
+	   printf("D\n");verify_200k_file(b);
+	   yaffs_unmount(mountpt);
+	   yaffs_mount(mountpt);
+	   printf("E\n");verify_200k_file(a);
+	   printf("F\n");verify_200k_file(b);
+	}
+		
+}
+
+
 int main(int argc, char *argv[])
 {
 	//return long_test(argc,argv);
 	
 	//return cache_read_test();
 	
-	//resize_stress_test_no_grow("/flash",2);
+	//resize_stress_test_no_grow("/flash",20);
 	
 	//huge_directory_test_on_path("/ram2k");
 	
@@ -1329,14 +1460,17 @@ int main(int argc, char *argv[])
 
 	
 	//long_test_on_path("/ram2k");
-	//long_test_on_path("/flash");
-	fill_disk_test("/flash");
+	// long_test_on_path("/flash");
+	//fill_disk_test("/flash");
+	rename_over_test("/flash");
 	
 	
 	
 	// cache_bypass_bug_test();
 	
 	 //free_space_check();
+	 
+	 //check_resize_gc_bug("/flash");
 	 
 	 return 0;
 	

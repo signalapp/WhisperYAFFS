@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_mtdif.h,v 1.2 2005-07-19 20:41:59 charles Exp $
+ * $Id: yaffs_mtdif.h,v 1.3 2005-08-11 01:07:43 marty Exp $
  */
 
 #ifndef __YAFFS_MTDIF_H__
@@ -22,12 +22,10 @@
 
 #include "yaffs_guts.h"
 
-int nandmtd_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_Spare *spare);
-int nandmtd_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_Spare *spare);
-int nandmtd_EraseBlockInNAND(yaffs_Device *dev, int blockNumber);
-int nandmtd_InitialiseNAND(yaffs_Device *dev);
+int nandmtd_WriteChunkToNAND(yaffs_Device * dev, int chunkInNAND,
+			     const __u8 * data, const yaffs_Spare * spare);
+int nandmtd_ReadChunkFromNAND(yaffs_Device * dev, int chunkInNAND, __u8 * data,
+			      yaffs_Spare * spare);
+int nandmtd_EraseBlockInNAND(yaffs_Device * dev, int blockNumber);
+int nandmtd_InitialiseNAND(yaffs_Device * dev);
 #endif
-
-
-
-

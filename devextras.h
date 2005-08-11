@@ -17,10 +17,10 @@
  * Most of these are from kernel includes placed here so we can use them in 
  * applications.
  *
- * $Id: devextras.h,v 1.1 2004-11-03 08:14:07 charles Exp $
+ * $Id: devextras.h,v 1.2 2005-08-11 02:37:49 marty Exp $
  *
  */
- 
+
 #ifndef __EXTRAS_H__
 #define __EXTRAS_H__
 
@@ -31,12 +31,11 @@
 
 #if !(defined __KERNEL__) || (defined WIN32)
 
-// User space defines
+/* User space defines */
 
-typedef unsigned char   __u8;
-typedef unsigned short  __u16;
-typedef unsigned        __u32;
-
+typedef unsigned char __u8;
+typedef unsigned short __u16;
+typedef unsigned __u32;
 
 /*
  * Simple doubly linked list implementation.
@@ -47,9 +46,8 @@ typedef unsigned        __u32;
  * generate better code by using them directly rather than
  * using the generic single-entry routines.
  */
- 
- #define prefetch(x) 1
- 
+
+#define prefetch(x) 1
 
 struct list_head {
 	struct list_head *next, *prev;
@@ -70,9 +68,9 @@ struct list_head {
  * This is only for internal list manipulation where we know
  * the prev/next entries already!
  */
-static __inline__ void __list_add(struct list_head * new,
-	struct list_head * prev,
-	struct list_head * next)
+static __inline__ void __list_add(struct list_head *new,
+				  struct list_head *prev,
+				  struct list_head *next)
 {
 	next->prev = new;
 	new->next = next;
@@ -101,7 +99,8 @@ static __inline__ void list_add(struct list_head *new, struct list_head *head)
  * Insert a new entry before the specified head.
  * This is useful for implementing queues.
  */
-static __inline__ void list_add_tail(struct list_head *new, struct list_head *head)
+static __inline__ void list_add_tail(struct list_head *new,
+				     struct list_head *head)
 {
 	__list_add(new, head->prev, head);
 }
@@ -113,8 +112,8 @@ static __inline__ void list_add_tail(struct list_head *new, struct list_head *he
  * This is only for internal list manipulation where we know
  * the prev/next entries already!
  */
-static __inline__ void __list_del(struct list_head * prev,
-				  struct list_head * next)
+static __inline__ void __list_del(struct list_head *prev,
+				  struct list_head *next)
 {
 	next->prev = prev;
 	prev->next = next;
@@ -123,7 +122,8 @@ static __inline__ void __list_del(struct list_head * prev,
 /**
  * list_del - deletes entry from list.
  * @entry: the element to delete from the list.
- * Note: list_empty on entry does not return true after this, the entry is in an undefined state.
+ * Note: list_empty on entry does not return true after this, the entry is
+ * in an undefined state.
  */
 static __inline__ void list_del(struct list_head *entry)
 {
@@ -154,7 +154,8 @@ static __inline__ int list_empty(struct list_head *head)
  * @list: the new list to add.
  * @head: the place to add it in the first list.
  */
-static __inline__ void list_splice(struct list_head *list, struct list_head *head)
+static __inline__ void list_splice(struct list_head *list,
+				   struct list_head *head)
 {
 	struct list_head *first = list->next;
 
@@ -189,7 +190,8 @@ static __inline__ void list_splice(struct list_head *list, struct list_head *hea
         	pos = pos->next, prefetch(pos->next))
 
 /**
- * list_for_each_safe	-	iterate over a list safe against removal of list entry
+ * list_for_each_safe	-	iterate over a list safe against removal
+ *                              of list entry
  * @pos:	the &struct list_head to use as a loop counter.
  * @n:		another &struct list_head to use as temporary storage
  * @head:	the head for your list.
@@ -197,9 +199,6 @@ static __inline__ void list_splice(struct list_head *list, struct list_head *hea
 #define list_for_each_safe(pos, n, head) \
 	for (pos = (head)->next, n = pos->next; pos != (head); \
 		pos = n, n = pos->next)
-
-
-
 
 /*
  * File types
@@ -234,21 +233,19 @@ static __inline__ void list_splice(struct list_head *list, struct list_head *hea
 #define ATTR_FORCE	512	/* Not a change, but a change it */
 #define ATTR_ATTR_FLAG	1024
 
-
 struct iattr {
-	unsigned int	ia_valid;
-	unsigned		ia_mode;
-	unsigned		ia_uid;
-	unsigned		ia_gid;
-	unsigned		ia_size;
-	unsigned		ia_atime;
-	unsigned	ia_mtime;
-	unsigned	ia_ctime;
-	unsigned int	ia_attr_flags;
+	unsigned int ia_valid;
+	unsigned ia_mode;
+	unsigned ia_uid;
+	unsigned ia_gid;
+	unsigned ia_size;
+	unsigned ia_atime;
+	unsigned ia_mtime;
+	unsigned ia_ctime;
+	unsigned int ia_attr_flags;
 };
 
 #define KERN_DEBUG
-
 
 #else
 
@@ -261,11 +258,8 @@ struct iattr {
 
 #endif
 
-
-
 #if defined WIN32
 #undef new
-#endif 
-
 #endif
 
+#endif

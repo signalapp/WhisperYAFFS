@@ -14,12 +14,10 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
  */
- 
+
 #ifndef __YAFFSINTERFACE_H__
 #define __YAFFSINTERFACE_H__
-
 
 int yaffs_Initialise(unsigned nBlocks);
 
 #endif
-

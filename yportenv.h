@@ -15,13 +15,12 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yportenv.h,v 1.6 2005-07-31 00:26:57 charles Exp $
+ * $Id: yportenv.h,v 1.7 2005-08-11 02:33:03 marty Exp $
  *
  */
- 
+
 #ifndef __YPORTENV_H__
 #define __YPORTENV_H__
-
 
 #if defined CONFIG_YAFFS_WINCE
 
@@ -29,9 +28,7 @@
 
 #elif  defined __KERNEL__
 
-
-
-// Linux kernel
+/* Linux kernel */
 #include <linux/config.h>
 #include <linux/kernel.h>
 #include <linux/version.h>
@@ -53,7 +50,7 @@
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
 
-//#define YPRINTF(x) printk x
+/* #define YPRINTF(x) printk x */
 #define YMALLOC(x) kmalloc(x,GFP_KERNEL)
 #define YFREE(x)   kfree(x)
 
@@ -75,15 +72,14 @@
 #define TSTR(x) KERN_WARNING x
 #define TOUT(p) printk p
 
-
 #elif defined CONFIG_YAFFS_DIRECT
 
-// Direct interface
+/* Direct interface */
 #include "ydirectenv.h"
 
 #elif defined CONFIG_YAFFS_UTIL
 
-// Stuff for YAFFS utilities
+/* Stuff for YAFFS utilities */
 
 #include "stdlib.h"
 #include "stdio.h"
@@ -93,7 +89,6 @@
 
 #define YMALLOC(x) malloc(x)
 #define YFREE(x)   free(x)
-
 
 #define YCHAR char
 #define YUCHAR unsigned char
@@ -106,19 +101,16 @@
 
 #define Y_INLINE inline
 
-//#define YINFO(s) YPRINTF(( __FILE__ " %d %s\n",__LINE__,s))
-//#define YALERT(s) YINFO(s)
-
+/* #define YINFO(s) YPRINTF(( __FILE__ " %d %s\n",__LINE__,s)) */
+/* #define YALERT(s) YINFO(s) */
 
 #define TENDSTR "\n"
 #define TSTR(x) x
 #define TOUT(p) printf p
 
-
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
-//#define YPRINTF(x) printf x
-
+/* #define YPRINTF(x) printf x */
 
 #define YAFFS_ROOT_MODE				0666
 #define YAFFS_LOSTNFOUND_MODE		0666
@@ -127,11 +119,10 @@
 #define yaffs_strcmp(a,b) strcmp(a,b)
 
 #else
-// Should have specified a configuration type
+/* Should have specified a configuration type */
 #error Unknown configuration
 
-#endif 
-
+#endif
 
 extern unsigned yaffs_traceMask;
 
@@ -153,13 +144,10 @@ extern unsigned yaffs_traceMask;
 #define YAFFS_TRACE_ALWAYS		0x40000000
 #define YAFFS_TRACE_BUG			0x80000000
 
-#define T(mask,p) do{ if((mask) & (yaffs_traceMask | YAFFS_TRACE_ERROR)) TOUT(p);} while(0) 
-
+#define T(mask,p) do{ if((mask) & (yaffs_traceMask | YAFFS_TRACE_ERROR)) TOUT(p);} while(0)
 
 #ifndef CONFIG_YAFFS_WINCE
 #define YBUG() T(YAFFS_TRACE_BUG,(TSTR("==>> yaffs bug: " __FILE__ " %d" TENDSTR),__LINE__))
 #endif
 
 #endif
-
-

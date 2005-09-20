@@ -14,11 +14,10 @@
  */
 
 const char *yaffs_mtdif_c_version =
-    "$Id: yaffs_mtdif.c,v 1.10 2005-08-11 01:07:43 marty Exp $";
+    "$Id: yaffs_mtdif.c,v 1.11 2005-09-20 05:23:41 charles Exp $";
 
 #include "yportenv.h"
 
-#ifdef CONFIG_YAFFS_YAFFS1
 
 #include "yaffs_mtdif.h"
 
@@ -155,4 +154,3 @@ int nandmtd_InitialiseNAND(yaffs_Device * dev)
 	return YAFFS_OK;
 }
 
-#endif	/* CONFIG_YAFFS_YAFFS1 */

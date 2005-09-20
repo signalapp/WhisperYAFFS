@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.18 2005-08-16 02:28:04 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.19 2005-09-20 05:08:50 charles Exp $";
 
 #include "yportenv.h"
 
@@ -57,6 +57,8 @@ static void yaffs_HandleUpdateChunk(yaffs_Device * dev, int chunkInNAND,
 				    const yaffs_ExtendedTags * tags);
 
 /* Other local prototypes */
+static int yaffs_UnlinkObject( yaffs_Object *obj);
+
 static int yaffs_WriteNewChunkWithTagsToNAND(yaffs_Device * dev,
 					     const __u8 * buffer,
 					     yaffs_ExtendedTags * tags,
@@ -1729,10 +1731,10 @@ int yaffs_RenameObject(yaffs_Object * oldDir, const YCHAR * oldName,
 			 */
 			yaffs_ChangeObjectName(obj, newDir, newName, force,
 					       existingTarget->objectId);
-			yaffs_Unlink(newDir, newName);
+			yaffs_UnlinkObject(existingTarget);
 		}
 
-		return yaffs_ChangeObjectName(obj, newDir, newName, force, 0);
+		return yaffs_ChangeObjectName(obj, newDir, newName, 1, 0);
 	}
 	return YAFFS_FAIL;
 }
@@ -3771,11 +3773,9 @@ static int yaffs_UnlinkWorker(yaffs_Object * obj)
 	}
 }
 
-int yaffs_Unlink(yaffs_Object * dir, const YCHAR * name)
-{
-	yaffs_Object *obj;
 
-	obj = yaffs_FindObjectByName(dir, name);
+static int yaffs_UnlinkObject( yaffs_Object *obj)
+{
 
 	if (obj && obj->unlinkAllowed) {
 		return yaffs_UnlinkWorker(obj);
@@ -3783,6 +3783,13 @@ int yaffs_Unlink(yaffs_Object * dir, const YCHAR * name)
 
 	return YAFFS_FAIL;
 
+}
+int yaffs_Unlink(yaffs_Object * dir, const YCHAR * name)
+{
+	yaffs_Object *obj;
+
+	obj = yaffs_FindObjectByName(dir, name);
+	return yaffs_UnlinkObject(obj);
 }
 
 /*----------------------- Initialisation Scanning ---------------------- */
@@ -4910,6 +4917,18 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 /*------------------------------  Directory Functions ----------------------------- */
 
+static void yaffs_RemoveObjectFromDirectory(yaffs_Object * obj)
+{
+	yaffs_Device *dev = obj->myDev;
+	
+	if(dev && dev->removeObjectCallback)
+		dev->removeObjectCallback(obj);
+	   
+	list_del_init(&obj->siblings);
+	obj->parent = NULL;
+}
+
+
 static void yaffs_AddObjectToDirectory(yaffs_Object * directory,
 				       yaffs_Object * obj)
 {
@@ -4935,7 +4954,7 @@ static void yaffs_AddObjectToDirectory(yaffs_Object * directory,
 
 	} else if (!list_empty(&obj->siblings)) {
 		/* If it is holed up somewhere else, un hook it */
-		list_del_init(&obj->siblings);
+		yaffs_RemoveObjectFromDirectory(obj);
 	}
 	/* Now add it */
 	list_add(&obj->siblings, &directory->variant.directoryVariant.children);
@@ -4947,12 +4966,6 @@ static void yaffs_AddObjectToDirectory(yaffs_Object * directory,
 		obj->myDev->nUnlinkedFiles++;
 		obj->renameAllowed = 0;
 	}
-}
-
-static void yaffs_RemoveObjectFromDirectory(yaffs_Object * obj)
-{
-	list_del_init(&obj->siblings);
-	obj->parent = NULL;
 }
 
 yaffs_Object *yaffs_FindObjectByName(yaffs_Object * directory,

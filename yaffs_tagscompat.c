@@ -10,7 +10,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_tagscompat.c,v 1.6 2005-08-11 02:33:03 marty Exp $
+ * $Id: yaffs_tagscompat.c,v 1.7 2005-09-20 23:12:38 charles Exp $
  */
 
 #include "yaffs_guts.h"
@@ -213,13 +213,13 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 			if (eccResult1 > 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
-				   ("**>>ecc error fix performed on chunk %d:0"
+				   ("**>>yaffs ecc error fix performed on chunk %d:0"
 				    TENDSTR), chunkInNAND));
 				dev->eccFixed++;
 			} else if (eccResult1 < 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
-				   ("**>>ecc error unfixed on chunk %d:0"
+				   ("**>>yaffs ecc error unfixed on chunk %d:0"
 				    TENDSTR), chunkInNAND));
 				dev->eccUnfixed++;
 			}
@@ -227,13 +227,13 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 			if (eccResult2 > 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
-				   ("**>>ecc error fix performed on chunk %d:1"
+				   ("**>>yaffs ecc error fix performed on chunk %d:1"
 				    TENDSTR), chunkInNAND));
 				dev->eccFixed++;
 			} else if (eccResult2 < 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
-				   ("**>>ecc error unfixed on chunk %d:1"
+				   ("**>>yaffs ecc error unfixed on chunk %d:1"
 				    TENDSTR), chunkInNAND));
 				dev->eccUnfixed++;
 			}
@@ -262,24 +262,24 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 			if (nspare.eccres1 > 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
-				   ("**>>ecc error fix performed on chunk %d:0"
+				   ("**>>mtd ecc error fix performed on chunk %d:0"
 				    TENDSTR), chunkInNAND));
 			} else if (nspare.eccres1 < 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
-				   ("**>>ecc error unfixed on chunk %d:0"
+				   ("**>>mtd ecc error unfixed on chunk %d:0"
 				    TENDSTR), chunkInNAND));
 			}
 
 			if (nspare.eccres2 > 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
-				   ("**>>ecc error fix performed on chunk %d:1"
+				   ("**>>mtd ecc error fix performed on chunk %d:1"
 				    TENDSTR), chunkInNAND));
 			} else if (nspare.eccres2 < 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
-				   ("**>>ecc error unfixed on chunk %d:1"
+				   ("**>>mtd ecc error unfixed on chunk %d:1"
 				    TENDSTR), chunkInNAND));
 			}
 

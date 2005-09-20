@@ -14,7 +14,7 @@
  */
 
 const char *yaffs_mtdif_c_version =
-    "$Id: yaffs_mtdif.c,v 1.11 2005-09-20 05:23:41 charles Exp $";
+    "$Id: yaffs_mtdif.c,v 1.12 2005-09-20 23:14:14 charles Exp $";
 
 #include "yportenv.h"
 
@@ -89,7 +89,8 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device * dev, int chunkInNAND, __u8 * data,
 	__u8 *spareAsBytes = (__u8 *) spare;
 
 	if (data && spare) {
-		if (dev->useNANDECC) {	/* Careful, this call adds 2 ints */
+		if (dev->useNANDECC) {	
+			/* Careful, this call adds 2 ints */
 			/* to the end of the spare data.  Calling function */
 			/* should allocate enough memory for spare, */
 			/* i.e. [YAFFS_BYTES_PER_SPARE+2*sizeof(int)]. */

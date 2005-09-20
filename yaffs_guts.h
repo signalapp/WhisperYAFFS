@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.13 2005-08-11 02:51:49 charles Exp $
+ * $Id: yaffs_guts.h,v 1.14 2005-09-20 05:05:40 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -526,6 +526,13 @@ struct yaffs_DeviceStruct {
 #endif
 
 	int isYaffs2;
+	
+	/* The removeObjectCallback function must be supplied by OS flavours that 
+	 * need it. The Linux kernel does not use this, but yaffs direct does use
+	 * it to implement the faster readdir
+	 */
+	void (*removeObjectCallback)(struct yaffs_ObjectStruct *obj);
+	
 
 	/* End of stuff that must be set before initialisation. */
 
@@ -732,7 +739,7 @@ int yaffs_DumpObject(yaffs_Object * obj);
 
 void yaffs_GutsTest(yaffs_Device * dev);
 
-/* AAAA few useful functions */
+/* A few useful functions */
 void yaffs_InitialiseTags(yaffs_ExtendedTags * tags);
 void yaffs_DeleteChunk(yaffs_Device * dev, int chunkId, int markNAND, int lyn);
 int yaffs_CheckFF(__u8 * buffer, int nBytes);

@@ -25,32 +25,15 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.5 2005-07-18 23:12:00 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.6 2005-09-20 05:05:40 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
 
 
-//
-// Directory search context
-//
-// NB this is an opaque structure.
-
-struct yaffsfs_ObjectListEntry
-{
-	int objectId;
-	struct yaffsfs_ObjectListEntry *next;
-};
-
-
-typedef struct
-{
-	__u32 magic;
-	yaffs_dirent de;
-	struct yaffsfs_ObjectListEntry *list;
-	char name[NAME_MAX+1];
-	
-} yaffsfs_DirectorySearchContext;
+/* Some forward references */
+static yaffs_Object *yaffsfs_FindObject(yaffs_Object *relativeDirectory, const char *path, int symDepth);
+static void yaffsfs_RemoveObjectCallback(yaffs_Object *obj);
 
 
 // Handle management.
@@ -65,10 +48,6 @@ typedef struct
 	__u32 position;		// current position in file
 	yaffs_Object *obj;	// the object
 }yaffsfs_Handle;
-
-
-static yaffs_Object *yaffsfs_FindObject(yaffs_Object *relativeDirectory, const char *path, int symDepth);
-
 
 
 static yaffsfs_Handle yaffsfs_handle[YAFFSFS_N_HANDLES];
@@ -1140,6 +1119,8 @@ off_t yaffs_freespace(const char *path)
 	return retVal;	
 }
 
+
+
 void yaffs_initialise(yaffsfs_DeviceConfiguration *cfgList)
 {
 	
@@ -1154,6 +1135,7 @@ void yaffs_initialise(yaffsfs_DeviceConfiguration *cfgList)
 	while(cfg && cfg->prefix && cfg->dev)
 	{
 		cfg->dev->isMounted = 0;
+		cfg->dev->removeObjectCallback = yaffsfs_RemoveObjectCallback;
 		cfg++;
 	}
 	
@@ -1163,6 +1145,93 @@ void yaffs_initialise(yaffsfs_DeviceConfiguration *cfgList)
 
 //
 // Directory search stuff.
+
+//
+// Directory search context
+//
+// NB this is an opaque structure.
+
+
+typedef struct
+{
+	__u32 magic;
+	yaffs_dirent de;		/* directory entry being used by this dsc */
+	char name[NAME_MAX+1];		/* name of directory being searched */
+	yaffs_Object *dirObj;		/* ptr to directory being searched */
+	yaffs_Object *nextReturn;	/* obj to be returned by next readddir */
+	int offset;
+	struct list_head others;	
+} yaffsfs_DirectorySearchContext;
+
+
+
+static struct list_head search_contexts;
+
+
+static void yaffsfs_SetDirRewound(yaffsfs_DirectorySearchContext *dsc)
+{
+	if(dsc &&
+	   dsc->dirObj &&
+	   dsc->dirObj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY){
+	   
+	   dsc->offset = 0;
+	   
+	   if( list_empty(&dsc->dirObj->variant.directoryVariant.children)){
+	   	dsc->nextReturn = NULL;
+	   } else {
+	      	dsc->nextReturn = list_entry(dsc->dirObj->variant.directoryVariant.children.next,
+						yaffs_Object,siblings);
+	   }
+	} else {
+		/* Hey someone isn't playing nice! */
+	}
+}
+
+static void yaffsfs_DirAdvance(yaffsfs_DirectorySearchContext *dsc)
+{
+	if(dsc &&
+	   dsc->dirObj &&
+	   dsc->dirObj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY){
+	   
+	   if( dsc->nextReturn == NULL ||
+	       list_empty(&dsc->dirObj->variant.directoryVariant.children)){
+	   	dsc->nextReturn = NULL;
+	   } else {
+		   struct list_head *next = dsc->nextReturn->siblings.next;
+   
+		   if( next == &dsc->dirObj->variant.directoryVariant.children)
+	   		dsc->nextReturn = NULL; /* end of list */
+	   	   else 
+		   	dsc->nextReturn = list_entry(next,yaffs_Object,siblings);
+	   }
+	} else {
+		/* Hey someone isn't playing nice! */
+	}
+}
+
+static void yaffsfs_RemoveObjectCallback(yaffs_Object *obj)
+{
+
+	struct list_head *i;
+	yaffsfs_DirectorySearchContext *dsc;
+	
+	/* if search contexts not initilised then skip */
+	if(!search_contexts.next)
+		return;
+		
+	/* Iteratethrough the directory search contexts.
+	 * If any are the one being removed, then advance the dsc to
+	 * the next one to prevent a hanging ptr.
+	 */
+	 list_for_each(i, &search_contexts) {
+		if (i) {
+			dsc = list_entry(i, yaffsfs_DirectorySearchContext,others);
+			if(dsc->nextReturn == obj)
+				yaffsfs_DirAdvance(dsc);
+		}
+	}
+				
+}
 
 yaffs_DIR *yaffs_opendir(const char *dirname)
 {
@@ -1182,9 +1251,14 @@ yaffs_DIR *yaffs_opendir(const char *dirname)
 		if(dsc)
 		{
 			dsc->magic = YAFFS_MAGIC;
-			dsc->list = NULL;
 			memset(dsc->name,0,NAME_MAX+1);
 			strncpy(dsc->name,dirname,NAME_MAX);
+			INIT_LIST_HEAD(&dsc->others);
+			
+			if(!search_contexts.next)
+				INIT_LIST_HEAD(&search_contexts);
+				
+			list_add(&dsc->others,&search_contexts);	
 		}
 	
 	}
@@ -1198,75 +1272,20 @@ struct yaffs_dirent *yaffs_readdir(yaffs_DIR *dirp)
 {
 	yaffsfs_DirectorySearchContext *dsc = (yaffsfs_DirectorySearchContext *)dirp;
 	struct yaffs_dirent *retVal = NULL;
-	struct list_head *i;	
-	yaffs_Object *entry = NULL;
-	int offset;
-	yaffs_Object *obj = NULL;
-	struct yaffsfs_ObjectListEntry *list = NULL;
-	int inList = 0;
 		
 	yaffsfs_Lock();
 	
-	offset = -1;
-	
-	if(dsc && dsc->magic == YAFFS_MAGIC)
-	{
+	if(dsc && dsc->magic == YAFFS_MAGIC){
 		yaffsfs_SetError(0);
-		
-		obj = yaffsfs_FindObject(NULL,dsc->name,0);
-	
-		if(obj && obj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY)
-		{
-			
-			list_for_each(i,&obj->variant.directoryVariant.children)
-			{		
-					offset++;
-					entry = (i) ?  list_entry(i, yaffs_Object,siblings) : NULL;
-			
-					if(entry)
-					{
-						list = dsc->list;
-						inList = 0;
-						while(list && !inList)
-						{
-							if(list->objectId == entry->objectId)
-							{
-								inList = 1;
-							}
-							list = list->next;
-						}
-						
-						if(!inList) goto foundNew;
-					}
-				
-			}
-			
-			foundNew:
-			
-			if(!inList && entry)
-			{
-				//This is the entry we're going to return;
-				struct yaffsfs_ObjectListEntry *le;
-				
-				le = YMALLOC(sizeof(struct yaffsfs_ObjectListEntry));
-				
-				if(le)
-				{
-					le->next =  dsc->list;
-					le->objectId = entry->objectId;
-					dsc->list = le;
-					
-					dsc->de.d_ino = yaffs_GetEquivalentObject(entry)->objectId;
-					dsc->de.d_off = offset;
-					yaffs_GetObjectName(entry,dsc->de.d_name,NAME_MAX+1);
-					dsc->de.d_reclen = sizeof(struct yaffs_dirent);
-					
-					retVal = &dsc->de;
-				}
-				
-			}
-		}
-
+		if(dsc->nextReturn){
+			dsc->de.d_ino = yaffs_GetEquivalentObject(dsc->nextReturn)->objectId;
+			dsc->de.d_off = dsc->offset++;
+			yaffs_GetObjectName(dsc->nextReturn,dsc->de.d_name,NAME_MAX+1);
+			dsc->de.d_reclen = sizeof(struct yaffs_dirent);
+			retVal = &dsc->de;
+			yaffsfs_DirAdvance(dsc);
+		} else
+			retVal = NULL;
 	}
 	else
 	{
@@ -1279,29 +1298,15 @@ struct yaffs_dirent *yaffs_readdir(yaffs_DIR *dirp)
 	
 }
 
-void yaffsfs_ListClear(yaffsfs_DirectorySearchContext *dsc) 
-{
-	
-	struct yaffsfs_ObjectListEntry *le;
-	
-	if(dsc && dsc->magic == YAFFS_MAGIC)
-	{
-		while(dsc->list)
-		{
-			le = dsc->list;
-			dsc->list = dsc->list->next;
-			YFREE(le);
-		}
-	}
-	
-}
 
 void yaffs_rewinddir(yaffs_DIR *dirp)
 {
 	yaffsfs_DirectorySearchContext *dsc = (yaffsfs_DirectorySearchContext *)dirp;
-		
+	
 	yaffsfs_Lock();
-	yaffsfs_ListClear(dsc);
+	
+	yaffsfs_SetDirRewound(dsc);
+
 	yaffsfs_Unlock();
 }
 
@@ -1311,13 +1316,14 @@ int yaffs_closedir(yaffs_DIR *dirp)
 	yaffsfs_DirectorySearchContext *dsc = (yaffsfs_DirectorySearchContext *)dirp;
 		
 	yaffsfs_Lock();
-	yaffsfs_ListClear(dsc);
 	dsc->magic = 0;
+	list_del(&dsc->others); /* unhook from list */
 	YFREE(dsc);
 	yaffsfs_Unlock();
 	return 0;
 }
 
+// end of directory stuff
 
 
 int yaffs_symlink(const char *oldpath, const char *newpath)

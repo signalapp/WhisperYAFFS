@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.29 2005-08-11 01:07:43 marty Exp $";
+    "$Id: yaffs_fs.c,v 1.30 2005-09-20 05:22:43 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -72,14 +72,11 @@ extern const char *yaffs_guts_c_version;
 #include "yportenv.h"
 #include "yaffs_guts.h"
 
-unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS;
-/*unsigned yaffs_traceMask = 0xFFFFFFFF; */
+unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS /* | 0xFFFFFFFF */; 
 
-#ifdef CONFIG_YAFFS_YAFFS1
 #include <linux/mtd/mtd.h>
 #include "yaffs_mtdif.h"
 #include "yaffs_mtdif2.h"
-#endif				/*CONFIG_YAFFS_YAFFS1 */
 
 /*#define T(x) printk x */
 
@@ -1100,9 +1097,9 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 {
 	yaffs_Device *dev;
 	int retVal = YAFFS_FAIL;
-	int removed = 0;
 	yaffs_Object *target;
 
+        T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_rename\n"));
 	dev = yaffs_InodeToObject(old_dir)->myDev;
 
 	yaffs_GrossLock(dev);
@@ -1111,15 +1108,21 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	target =
 	    yaffs_FindObjectByName(yaffs_InodeToObject(new_dir),
 				   new_dentry->d_name.name);
+	
+	
 
 	if (target &&
 	    target->variantType == YAFFS_OBJECT_TYPE_DIRECTORY &&
 	    !list_empty(&target->variant.directoryVariant.children)) {
+	    
+	        T(YAFFS_TRACE_OS, (KERN_DEBUG "target is non-empty dir\n"));
+
 		retVal = YAFFS_FAIL;
 	} else {
 
 		/* Now does unlinking internally using shadowing mechanism */
-
+	        T(YAFFS_TRACE_OS, (KERN_DEBUG "calling yaffs_RenameObject\n"));
+		
 		retVal =
 		    yaffs_RenameObject(yaffs_InodeToObject(old_dir),
 				       old_dentry->d_name.name,
@@ -1130,10 +1133,8 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	yaffs_GrossUnlock(dev);
 
 	if (retVal == YAFFS_OK) {
-		if (removed == YAFFS_OK) {
-			new_dentry->d_inode->i_nlink--;
-			mark_inode_dirty(new_dentry->d_inode);
-		}
+		new_dentry->d_inode->i_nlink--;
+		mark_inode_dirty(new_dentry->d_inode);
 
 		return 0;
 	} else {
@@ -1248,7 +1249,6 @@ static void yaffs_put_super(struct super_block *sb)
 	kfree(dev);
 }
 
-#ifdef CONFIG_YAFFS_YAFFS1
 
 static void yaffs_MTDPutSuper(struct super_block *sb)
 {
@@ -1262,7 +1262,6 @@ static void yaffs_MTDPutSuper(struct super_block *sb)
 	put_mtd_device(mtd);
 }
 
-#endif
 
 static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 						     struct super_block *sb,
@@ -1486,7 +1485,6 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	return sb;
 }
 
-#ifdef CONFIG_YAFFS_YAFFS1
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_internal_read_super_mtd(struct super_block *sb, void *data,
@@ -1522,7 +1520,6 @@ static DECLARE_FSTYPE(yaffs_fs_type, "yaffs", yaffs_read_super,
 		      FS_REQUIRES_DEV);
 #endif
 
-#endif				/* CONFIG_YAFFS_YAFFS1 */
 
 #ifdef CONFIG_YAFFS_YAFFS2
 
@@ -1652,12 +1649,12 @@ struct file_system_to_install {
 };
 
 static struct file_system_to_install fs_to_install[] = {
-#ifdef CONFIG_YAFFS_YAFFS1
+//#ifdef CONFIG_YAFFS_YAFFS1
 	{&yaffs_fs_type, 0},
-#endif
-#ifdef CONFIG_YAFFS_YAFFS2
+//#endif
+//#ifdef CONFIG_YAFFS_YAFFS2
 	{&yaffs2_fs_type, 0},
-#endif
+//#endif
 	{NULL, 0}
 };
 

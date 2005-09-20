@@ -1,4 +1,5 @@
 ifneq ($(KERNELRELEASE),)
+	EXTRA_CFLAGS += -DYAFFS_OUT_OF_TREE
 
 	obj-m := yaffs2.o
 
@@ -8,7 +9,6 @@ ifneq ($(KERNELRELEASE),)
 	yaffs2-objs += yaffs_tagscompat.o yaffs_tagsvalidity.o
 
 else
-
 	KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 	PWD := $(shell pwd)
 

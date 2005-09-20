@@ -1,7 +1,7 @@
 #ifndef __YAFFS_CONFIG_H__
 #define __YAFFS_CONFIG_H__
 
-#ifdef KBUILD_MODNAME
+#ifdef YAFFS_OUT_OF_TREE
 #define CONFIG_YAFFS_FS
 #define CONFIG_YAFFS_YAFFS1
 #define CONFIG_YAFFS_YAFFS2

@@ -5,6 +5,8 @@
 config YAFFS_FS
 	tristate "YAFFS2 file system support"
 	default n
+	select YAFFS_YAFFS1
+	select YAFFS_YAFFS2
 	help
 	  YAFFS2, or Yet Another Flash Filing System, is a filing system
 	  optimised for NAND Flash chips.

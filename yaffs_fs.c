@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.30 2005-09-20 05:22:43 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.31 2005-09-21 01:14:03 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1133,8 +1133,10 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	yaffs_GrossUnlock(dev);
 
 	if (retVal == YAFFS_OK) {
-		new_dentry->d_inode->i_nlink--;
-		mark_inode_dirty(new_dentry->d_inode);
+		if(target) {
+			new_dentry->d_inode->i_nlink--;
+			mark_inode_dirty(new_dentry->d_inode);
+		}
 
 		return 0;
 	} else {

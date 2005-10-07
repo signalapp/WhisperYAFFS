@@ -855,6 +855,30 @@ int yaffs_scan_test(const char *path)
 }
 
 
+void rename_over_test(const char *mountpt)
+{
+	int i;
+	char a[100];
+	char b[100];
+	
+	sprintf(a,"%s/a",mountpt);
+	sprintf(b,"%s/b",mountpt);
+	
+	yaffs_StartUp();
+	
+	yaffs_mount(mountpt);
+	i = yaffs_open(a,O_CREAT | O_TRUNC | O_RDWR, 0); 
+	yaffs_close(i);
+	i = yaffs_open(b,O_CREAT | O_TRUNC | O_RDWR, 0);
+	yaffs_close(i);
+	yaffs_rename(a,b); // rename over
+	yaffs_rename(b,a); // rename back again (not renaimng over)
+	yaffs_rename(a,b); // rename back again (not renaimng over)
+	
+	
+	yaffs_unmount(mountpt);
+	
+}
 
 int resize_stress_test(const char *path)
 {
@@ -1256,28 +1280,117 @@ void fill_disk_test(const char *mountpt)
 	
 }
 
-void rename_over_test(const char *mountpt)
+
+
+void lookup_test(const char *mountpt)
 {
 	int i;
+	int h;
 	char a[100];
 	char b[100];
 	
-	sprintf(a,"%s/a",mountpt);
-	sprintf(b,"%s/b",mountpt);
+
+	yaffs_DIR *d;
+	yaffs_dirent *de;
+	struct yaffs_stat s;
+	char str[100];
+
+	yaffs_StartUp();
+	
+	yaffs_mount(mountpt);
+				
+	d = yaffs_opendir(mountpt);
+	
+	if(!d)
+	{
+		printf("opendir failed\n");
+	}
+	else
+	{
+		
+		for(i = 0; (de = yaffs_readdir(d)) != NULL; i++)
+		{
+			printf("unlinking %s\n",de->d_name);
+			yaffs_unlink(de->d_name);
+		}
+		
+		printf("%d files deleted\n",i);
+	}
+	
+	
+	for(i = 0; i < 2000; i++){
+	sprintf(a,"%s/%d",mountpt,i);
+		h =  yaffs_open(a,O_CREAT | O_TRUNC | O_RDWR, 0);
+		yaffs_close(h);
+	}
+
+	yaffs_rewinddir(d);
+	for(i = 0; (de = yaffs_readdir(d)) != NULL; i++)
+	{
+		printf("%d  %s\n",i,de->d_name);
+	}	
+	
+	printf("%d files listed\n\n\n",i);
+	
+	yaffs_rewinddir(d);
+	yaffs_readdir(d);
+	yaffs_readdir(d);
+	yaffs_readdir(d);
+	
+	for(i = 0; i < 2000; i++){
+		sprintf(a,"%s/%d",mountpt,i);
+		yaffs_unlink(a);
+	}
+	
+		
+	yaffs_unmount(mountpt);
+	
+}
+
+void freespace_test(const char *mountpt)
+{
+	int i;
+	int h;
+	char a[100];
+	char b[100];
+	
+	int  f0;
+	int f1;
+	int f2;
+	int f3;
+	sprintf(a,"%s/aaa",mountpt);
 	
 	yaffs_StartUp();
 	
 	yaffs_mount(mountpt);
-	i = yaffs_open(a,O_CREAT | O_TRUNC | O_RDWR, 0); 
-	yaffs_close(i);
-	i = yaffs_open(b,O_CREAT | O_TRUNC | O_RDWR, 0);
-	yaffs_close(i);
-	yaffs_rename(a,b);
 	
+	f0 = yaffs_freespace(mountpt);
 	
+	h = yaffs_open(a, O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	
+	for(i = 0; i < 100; i++)
+		yaffs_write(h,a,100);
+	
+	yaffs_close(h);
+	
+	f1 = yaffs_freespace(mountpt);
+	
+	yaffs_unlink(a);
+	
+	f2 = yaffs_freespace(mountpt);
+	
+		
 	yaffs_unmount(mountpt);
+	yaffs_mount(mountpt);
+	
+	f3 = yaffs_freespace(mountpt);
+	
+	printf("%d\n%d\n%d\n%d\n",f0, f1,f2,f3);
+	
 	
 }
+
+
 void scan_deleted_files_test(const char *mountpt)
 {
 	char fn[100];
@@ -1380,8 +1493,8 @@ void write_200k_file(const char *fn, const char *fdel, const char *fdel1)
    yaffs_unlink(fdel1);
    
    
-   
 }
+
 
 void verify_200k_file(const char *fn)
 {
@@ -1401,8 +1514,7 @@ void verify_200k_file(const char *fn)
 	}
    }
       
-   yaffs_close(h1);
-   
+   yaffs_close(h1);	   
 	
 }
 
@@ -1462,7 +1574,9 @@ int main(int argc, char *argv[])
 	//long_test_on_path("/ram2k");
 	// long_test_on_path("/flash");
 	//fill_disk_test("/flash");
-	rename_over_test("/flash");
+	// rename_over_test("/flash");
+	//lookup_test("/flash");
+	freespace_test("/flash");
 	
 	
 	

@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.6 2005-09-20 05:05:40 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.7 2005-10-07 03:48:50 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -144,30 +144,47 @@ int yaffsfs_Match(char a, char b)
 // yaffsfs_FindDevice
 // yaffsfs_FindRoot
 // Scan the configuration list to find the root.
+// Curveballs: Should match paths that end in '/' too
+// Curveball2 Might have "/x/ and "/x/y". Need to return the longest match
 static yaffs_Device *yaffsfs_FindDevice(const char *path, char **restOfPath)
 {
 	yaffsfs_DeviceConfiguration *cfg = yaffsfs_configurationList;
 	const char *leftOver;
 	const char *p;
+	yaffs_Device *retval = NULL;
+	int thisMatchLength;
+	int longestMatch = -1;
 	
+	// Check all configs, choose the one that:
+	// 1) Actually matches a prefix (ie /a amd /abc will not match
+	// 2) Matches the longest.
 	while(cfg && cfg->prefix && cfg->dev)
 	{
 		leftOver = path;
 		p = cfg->prefix;
-		while(*p && *leftOver && yaffsfs_Match(*p,*leftOver))
+		thisMatchLength = 0;
+		
+		while(*p &&  //unmatched part of prefix 
+		      strcmp(p,"/") && // the rest of the prefix is not / (to catch / at end)
+		      *leftOver && 
+		      yaffsfs_Match(*p,*leftOver))
 		{
 			p++;
 			leftOver++;
+			thisMatchLength++;
 		}
-		if(!*p && (!*leftOver || *leftOver == '/'))
+		if((!*p || strcmp(p,"/") == 0) &&      // end of prefix
+		   (!*leftOver || *leftOver == '/') && // no more in this path name part
+		   (thisMatchLength > longestMatch))
 		{
 			// Matched prefix
 			*restOfPath = (char *)leftOver;
-			return cfg->dev;
+			retval = cfg->dev;
+			longestMatch = thisMatchLength;
 		}
 		cfg++;
 	}
-	return NULL;
+	return retval;
 }
 
 static yaffs_Object *yaffsfs_FindRoot(const char *path, char **restOfPath)
@@ -1250,8 +1267,9 @@ yaffs_DIR *yaffs_opendir(const char *dirname)
 		dir = (yaffs_DIR *)dsc;
 		if(dsc)
 		{
+			memset(dsc,0,sizeof(yaffsfs_DirectorySearchContext));
 			dsc->magic = YAFFS_MAGIC;
-			memset(dsc->name,0,NAME_MAX+1);
+			dsc->dirObj = obj;
 			strncpy(dsc->name,dirname,NAME_MAX);
 			INIT_LIST_HEAD(&dsc->others);
 			
@@ -1259,7 +1277,7 @@ yaffs_DIR *yaffs_opendir(const char *dirname)
 				INIT_LIST_HEAD(&search_contexts);
 				
 			list_add(&dsc->others,&search_contexts);	
-		}
+			yaffsfs_SetDirRewound(dsc);		}
 	
 	}
 	

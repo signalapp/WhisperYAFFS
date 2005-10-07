@@ -59,12 +59,19 @@ static yaffs_Device flashDev;
 static yaffs_Device ram2kDev;
 
 static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
-
+#if 0
 	{ "/ram", &ramDev},
 	{ "/boot", &bootDev},
-	{ "/flash", &flashDev},
+	{ "/flash/", &flashDev},
 	{ "/ram2k", &ram2kDev},
 	{(void *)0,(void *)0}
+#else
+	{ "/", &ramDev},
+	{ "/flash/boot", &bootDev},
+	{ "/flash/", &flashDev},
+	{ "/ram2k", &ram2kDev},
+	{(void *)0,(void *)0}
+#endif
 };
 
 

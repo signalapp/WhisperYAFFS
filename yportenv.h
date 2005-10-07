@@ -15,7 +15,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yportenv.h,v 1.8 2005-09-18 05:31:26 marty Exp $
+ * $Id: yportenv.h,v 1.9 2005-10-07 02:46:50 charles Exp $
  *
  */
 
@@ -37,6 +37,7 @@
 #include <linux/mm.h>
 #include <linux/string.h>
 #include <linux/slab.h>
+#include <linux/vmalloc.h>
 
 #define YCHAR char
 #define YUCHAR unsigned char
@@ -55,6 +56,8 @@
 /* #define YPRINTF(x) printk x */
 #define YMALLOC(x) kmalloc(x,GFP_KERNEL)
 #define YFREE(x)   kfree(x)
+#define YMALLOC_ALT(x) vmalloc(x)
+#define YFREE_ALT(x)   vfree(x)
 
 #define YAFFS_ROOT_MODE				0666
 #define YAFFS_LOSTNFOUND_MODE		0666
@@ -91,6 +94,8 @@
 
 #define YMALLOC(x) malloc(x)
 #define YFREE(x)   free(x)
+#define YMALLOC_ALT(x) malloc(x)
+#define YFREE_ALT(x) free(x)
 
 #define YCHAR char
 #define YUCHAR unsigned char

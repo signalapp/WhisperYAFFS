@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.15 2005-10-07 02:46:50 charles Exp $
+ * $Id: yaffs_guts.h,v 1.16 2005-10-09 07:55:00 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -561,8 +561,9 @@ struct yaffs_DeviceStruct {
 
 	/* Block Info */
 	yaffs_BlockInfo *blockInfo;
-	int blockInfoAlt;	/* was allocated using alternative strategy */
 	__u8 *chunkBits;	/* bitmap of chunks in use */
+	unsigned blockInfoAlt:1;	/* was allocated using alternative strategy */
+	unsigned chunkBitsAlt:1;	/* was allocated using alternative strategy */
 	int chunkBitmapStride;	/* Number of bytes of chunkBits per block. 
 				 * Must be consistent with nChunksPerBlock.
 				 */

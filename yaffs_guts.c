@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.20 2005-10-07 02:46:49 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.21 2005-10-09 07:55:00 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1757,6 +1757,13 @@ static int yaffs_InitialiseBlocks(yaffs_Device * dev, int nBlocks)
 	/* Set up dynamic blockinfo stuff. */
 	dev->chunkBitmapStride = (dev->nChunksPerBlock + 7) / 8;
 	dev->chunkBits = YMALLOC(dev->chunkBitmapStride * nBlocks);
+	if(!dev->chunkBits){
+		dev->chunkBits = YMALLOC_ALT(dev->chunkBitmapStride * nBlocks);
+		dev->chunkBitsAlt = 1;
+	}
+	else
+		dev->chunkBitsAlt = 0;
+	
 	if (dev->blockInfo && dev->chunkBits) {
 		memset(dev->blockInfo, 0, nBlocks * sizeof(yaffs_BlockInfo));
 		memset(dev->chunkBits, 0, dev->chunkBitmapStride * nBlocks);
@@ -1776,7 +1783,12 @@ static void yaffs_DeinitialiseBlocks(yaffs_Device * dev)
 	dev->blockInfoAlt = 0;
 
 	dev->blockInfo = NULL;
-	YFREE(dev->chunkBits);
+	
+	if(dev->chunkBitsAlt)
+		YFREE_ALT(dev->chunkBits);
+	else
+		YFREE(dev->chunkBits);
+	dev->chunkBitsAlt = 0;
 	dev->chunkBits = NULL;
 }
 

@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.21 2005-10-09 07:55:00 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.22 2005-10-13 02:17:00 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2659,14 +2659,6 @@ void yaffs_DeleteChunk(yaffs_Device * dev, int chunkId, int markNAND, int lyn)
 
 	if (markNAND &&
 	    bi->blockState != YAFFS_BLOCK_STATE_COLLECTING && !dev->isYaffs2) {
-
-#ifdef CONFIG_MTD_NAND_VERIFY_WRITE
-
-		/* Read data before write, to ensure correct ecc 
-		 * if we're using MTD verification under Linux
-		 */
-		yaffs_ReadChunkFromNAND(dev, chunkId, NULL, &spare, 0);
-#endif
 
 		yaffs_InitialiseTags(&tags);
 

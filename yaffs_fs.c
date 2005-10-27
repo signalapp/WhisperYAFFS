@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.32 2005-10-27 07:22:49 marty Exp $";
+    "$Id: yaffs_fs.c,v 1.33 2005-10-27 22:24:04 marty Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1493,7 +1493,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 static int yaffs_internal_read_super_mtd(struct super_block *sb, void *data,
 					 int silent)
 {
-	return yaffs_internal_read_super(1, sb, data, silent) ? 0 : -1;
+	return yaffs_internal_read_super(1, sb, data, silent) ? 0 : -EINVAL;
 }
 
 static struct super_block *yaffs_read_super(struct file_system_type *fs,
@@ -1530,7 +1530,7 @@ static DECLARE_FSTYPE(yaffs_fs_type, "yaffs", yaffs_read_super,
 static int yaffs2_internal_read_super_mtd(struct super_block *sb, void *data,
 					  int silent)
 {
-	return yaffs_internal_read_super(2, sb, data, silent) ? 0 : -1;
+	return yaffs_internal_read_super(2, sb, data, silent) ? 0 : -EINVAL;
 }
 
 static struct super_block *yaffs2_read_super(struct file_system_type *fs,

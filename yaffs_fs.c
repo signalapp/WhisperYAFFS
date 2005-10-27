@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.31 2005-09-21 01:14:03 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.32 2005-10-27 07:22:49 marty Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -604,9 +604,10 @@ static int yaffs_commit_write(struct file *f, struct page *pg, unsigned offset,
 	}
 
 	T(YAFFS_TRACE_OS,
-	  (KERN_DEBUG "yaffs_commit_write returning %d\n", nWritten));
+	  (KERN_DEBUG "yaffs_commit_write returning %d\n",
+	   nWritten == nBytes ? 0 : -1));
 
-	return nWritten;
+	return nWritten == nBytes ? 0 : -1;
 
 }
 

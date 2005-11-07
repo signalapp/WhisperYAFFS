@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.22 2005-10-13 02:17:00 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.23 2005-11-07 07:19:34 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5325,7 +5325,7 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 	int extraBits;
 	int nBlocks;
 
-	T(YAFFS_TRACE_ALWAYS, (TSTR("yaffs: yaffs_GutsInitialise()" TENDSTR)));
+	T(YAFFS_TRACE_TRACING, (TSTR("yaffs: yaffs_GutsInitialise()" TENDSTR)));
 
 	/* Check stuff that must be set */
 
@@ -5528,7 +5528,7 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 
 	yaffs_VerifyFreeChunks(dev);
 
-	T(YAFFS_TRACE_ALWAYS,
+	T(YAFFS_TRACE_TRACING,
 	  (TSTR("yaffs: yaffs_GutsInitialise() done.\n" TENDSTR)));
 	return YAFFS_OK;
 

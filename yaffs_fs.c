@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.33 2005-10-27 22:24:04 marty Exp $";
+    "$Id: yaffs_fs.c,v 1.34 2005-11-14 21:00:54 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -152,7 +152,11 @@ static int yaffs_commit_write(struct file *f, struct page *pg, unsigned offset,
 
 static int yaffs_readlink(struct dentry *dentry, char __user * buffer,
 			  int buflen);
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,13))
+static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
+#else
 static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
+#endif
 
 static struct address_space_operations yaffs_file_address_operations = {
 	.readpage = yaffs_readpage,
@@ -243,7 +247,11 @@ static int yaffs_readlink(struct dentry *dentry, char __user * buffer,
 	return ret;
 }
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,13))
+static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
+#else
 static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
+#endif
 {
 	unsigned char *alias;
 	int ret;
@@ -256,11 +264,19 @@ static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	yaffs_GrossUnlock(dev);
 
 	if (!alias)
-		return -ENOMEM;
+        {
+		ret = -ENOMEM;
+		goto out;
+        }
 
 	ret = vfs_follow_link(nd, alias);
 	kfree(alias);
+out:
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,13))
+	return ERR_PTR (ret);
+#else
 	return ret;
+#endif
 }
 
 struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,
@@ -398,6 +414,9 @@ static void yaffs_delete_inode(struct inode *inode)
 		yaffs_DeleteFile(obj);
 		yaffs_GrossUnlock(dev);
 	}
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,13))
+        truncate_inode_pages (&inode->i_data, 0);
+#endif
 	clear_inode(inode);
 }
 

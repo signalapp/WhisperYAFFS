@@ -10,7 +10,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_tagscompat.c,v 1.7 2005-09-20 23:12:38 charles Exp $
+ * $Id: yaffs_tagscompat.c,v 1.8 2005-11-29 20:54:32 marty Exp $
  */
 
 #include "yaffs_guts.h"
@@ -455,20 +455,22 @@ int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device * dev,
 			int deleted =
 			    (yaffs_CountBits(spare.pageStatus) < 7) ? 1 : 0;
 
-			yaffs_GetTagsFromSpare(dev, &spare, &tags);
-
 			eTags->chunkDeleted = deleted;
-			eTags->objectId = tags.objectId;
-			eTags->chunkId = tags.chunkId;
-			eTags->byteCount = tags.byteCount;
-			eTags->serialNumber = tags.serialNumber;
 			eTags->eccResult = eccResult;
 			eTags->blockBad = 0;	/* We're reading it */
 			/* therefore it is not a bad block */
-
 			eTags->chunkUsed =
 			    (memcmp(&spareFF, &spare, sizeof(spareFF)) !=
 			     0) ? 1 : 0;
+
+			if (eTags->chunkUsed) {
+				yaffs_GetTagsFromSpare(dev, &spare, &tags);
+
+				eTags->objectId = tags.objectId;
+				eTags->chunkId = tags.chunkId;
+				eTags->byteCount = tags.byteCount;
+				eTags->serialNumber = tags.serialNumber;
+			}
 		}
 
 		return YAFFS_OK;

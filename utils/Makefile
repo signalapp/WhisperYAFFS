@@ -25,22 +25,30 @@ MAKETOOLS =
 
 CC=$(MAKETOOLS)gcc
 
-MKYAFFS2SOURCES = mkyaffs2image.c
-MKYAFFS2LINKS = yaffs_ecc.c yaffs_packedtags2.c yaffs_tagsvalidity.c
+COMMONLINKS = yaffs_ecc.c
+COMMONOBJS = $(COMMONLINKS:.c=.o)
 
+MKYAFFSSOURCES = mkyaffsimage.c
+MKYAFFSIMAGEOBJS = $(MKYAFFSSOURCES:.c=.o)
+
+MKYAFFS2SOURCES = mkyaffs2image.c
+MKYAFFS2LINKS = yaffs_packedtags2.c yaffs_tagsvalidity.c
 MKYAFFS2IMAGEOBJS = $(MKYAFFS2SOURCES:.c=.o) $(MKYAFFS2LINKS:.c=.o)
 
-all: mkyaffs2image
+all: mkyaffsimage mkyaffs2image
 
-$(MKYAFFS2IMAGEOBJS): %.o: %.c
+$(COMMONLINKS) $(MKYAFFSLINKS) $(MKYAFFS2LINKS):
+	ln -s ../$@ $@
+
+$(COMMONOBJS) $(MKYAFFSIMAGEOBJS) $(MKYAFFS2IMAGEOBJS) : %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
-mkyaffs2image: $(MKYAFFS2IMAGEOBJS)
-	$(CC) -o $@ $(MKYAFFS2IMAGEOBJS)
+mkyaffsimage: $(COMMONOBJS) $(MKYAFFSIMAGEOBJS)
+	$(CC) -o $@ $(COMMONOBJS) $(MKYAFFSIMAGEOBJS)
 
-$(MKYAFFS2LINKS):
-	ln -s ../$@ $@
+mkyaffs2image: $(COMMONOBJS) $(MKYAFFS2IMAGEOBJS)
+	$(CC) -o $@ $(COMMONOBJS) $(MKYAFFS2IMAGEOBJS)
 
 
 clean:
-	rm -f $(MKYAFFS2IMAGEOBJS) core
+	rm -f $(COMMONOBJS) $(MKYAFFSIMAGEOBJS) $(MKYAFFS2IMAGEOBJS) $(COMMONLINKS) $(MKYAFFSLINKS) $(MKYAFFS2LINKS) mkyaffsimage mkyaffs2image core

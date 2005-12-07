@@ -58,6 +58,21 @@ config YAFFS_YAFFS2
 
 	  If unsure, say Y.
 
+config YAFFS_DISABLE_WIDE_TNODES
+	bool "Turn off wide tnodes"
+	depends on YAFFS_FS
+	default n
+	help
+	  Wide tnodes are only used for large NAND arrays (>=32MB for
+	  512-byte page devices and >=128MB for 2k page devices). They use 
+	  slightly more RAM but are faster since they eliminate chunk group
+	  searching.
+
+	  Setting this to 'y' will force tnode width to 16 bits and make
+	  large arrays slower.
+
+	  If unsure, say N.
+
 config YAFFS_DISABLE_CHUNK_ERASED_CHECK
 	bool "Turn off debug chunk erase check"
 	depends on YAFFS_FS

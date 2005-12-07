@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.34 2005-11-14 21:00:54 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.35 2005-12-07 22:19:26 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1463,6 +1463,10 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 
 #ifndef CONFIG_YAFFS_DOES_ECC
 	dev->useNANDECC = 1;
+#endif
+
+#ifdef CONFIG_YAFFS_DISABLE_WIDE_TNODES
+	dev->wideTnodesDisabled = 1;
 #endif
 
 	/* we assume this is protected by lock_kernel() in mount/umount */

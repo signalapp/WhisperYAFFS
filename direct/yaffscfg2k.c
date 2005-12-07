@@ -68,9 +68,9 @@ static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 #else
 	{ "/", &ramDev},
 	{ "/flash/boot", &bootDev},
-	{ "/flash/", &flashDev},
+	{ "/flash/flash", &flashDev},
 	{ "/ram2k", &ram2kDev},
-	{(void *)0,(void *)0}
+	{(void *)0,(void *)0} /* Null entry to terminate list */
 #endif
 };
 
@@ -129,6 +129,7 @@ int yaffs_StartUp(void)
 	//flashDev.endBlock = 127; // Last block in 16MB
 	flashDev.endBlock = yflash_GetNumberOfBlocks()-1;
 	flashDev.isYaffs2 = 1;
+	flashDev.wideTnodesDisabled=0;
 	flashDev.nShortOpCaches = 10; // Use caches
 	flashDev.genericDevice = (void *) 2;	// Used to identify the device in fstat.
 	flashDev.writeChunkWithTagsToNAND = yflash_WriteChunkWithTagsToNAND;

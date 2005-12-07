@@ -1390,6 +1390,56 @@ void freespace_test(const char *mountpt)
 	
 }
 
+void simple_rw_test(const char *mountpt)
+{
+	int i;
+	int h;
+	char a[100];
+	
+	int x;
+	int result;
+
+	sprintf(a,"%s/aaa",mountpt);
+	
+	yaffs_StartUp();
+	
+	yaffs_mount(mountpt);
+	
+	yaffs_unlink(a);
+	
+	h = yaffs_open(a,O_CREAT| O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	
+	for(i = 100000;i < 200000; i++){
+		result = yaffs_write(h,&i,sizeof(i));
+		
+		if(result != 4)
+		{
+			printf("write error\n");
+			exit(1);
+		}
+	}
+	
+	//yaffs_close(h);
+	
+	// h = yaffs_open(a,O_RDWR, S_IREAD | S_IWRITE);
+	
+	
+	yaffs_lseek(h,0,SEEK_SET);
+	
+	for(i = 100000; i < 200000; i++){
+		result = yaffs_read(h,&x,sizeof(x));
+		
+		if(result != 4 || x != i){
+			printf("read error %d %x %x\n",i,result,x);
+		}
+	}
+	
+	printf("Simple rw test passed\n");
+	
+	
+	
+}
+
 
 void scan_deleted_files_test(const char *mountpt)
 {
@@ -1573,10 +1623,11 @@ int main(int argc, char *argv[])
 	
 	//long_test_on_path("/ram2k");
 	// long_test_on_path("/flash");
-	//fill_disk_test("/flash");
+	simple_rw_test("/flash/flash");
+	fill_disk_test("/flash/flash");
 	// rename_over_test("/flash");
 	//lookup_test("/flash");
-	freespace_test("/flash");
+	freespace_test("/flash/flash");
 	
 	
 	

@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.23 2005-11-07 07:19:34 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.24 2005-12-07 21:49:18 charles Exp $";
 
 #include "yportenv.h"
 
@@ -538,15 +538,23 @@ static void yaffs_SetObjectName(yaffs_Object * obj, const YCHAR * name)
 static int yaffs_CreateTnodes(yaffs_Device * dev, int nTnodes)
 {
 	int i;
+	int tnodeSize;
 	yaffs_Tnode *newTnodes;
+	__u8 *mem;
+	yaffs_Tnode *current;
+	yaffs_Tnode *next;
 	yaffs_TnodeList *tnl;
 
 	if (nTnodes < 1)
 		return YAFFS_OK;
+		
+	/* Calculate the tnode size in bytes for variable width tnode support.
+	 * Must be a multiple of 32-bits  */
+	tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
 
 	/* make these things */
 
-	newTnodes = YMALLOC(nTnodes * sizeof(yaffs_Tnode));
+	mem = newTnodes = YMALLOC(nTnodes * tnodeSize);
 
 	if (!newTnodes) {
 		T(YAFFS_TRACE_ERROR,
@@ -555,6 +563,7 @@ static int yaffs_CreateTnodes(yaffs_Device * dev, int nTnodes)
 	}
 
 	/* Hook them into the free list */
+#if 0
 	for (i = 0; i < nTnodes - 1; i++) {
 		newTnodes[i].internal[0] = &newTnodes[i + 1];
 #ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
@@ -567,6 +576,21 @@ static int yaffs_CreateTnodes(yaffs_Device * dev, int nTnodes)
 	newTnodes[nTnodes - 1].internal[YAFFS_NTNODES_INTERNAL] = (void *)1;
 #endif
 	dev->freeTnodes = newTnodes;
+#else
+	/* New hookup for wide tnodes */
+	for(i = 0; i < nTnodes -1; i++) {
+		current = (yaffs_Tnode *) &mem[i * tnodeSize];
+		next = (yaffs_Tnode *) &mem[(i+1) * tnodeSize];
+		current->internal[0] = next;
+	}
+	
+	current = (yaffs_Tnode *) &mem[(nTnodes - 1) * tnodeSize];
+	current->internal[0] = dev->freeTnodes;
+	dev->freeTnodes = (yaffs_Tnode *)mem;
+
+#endif
+
+
 	dev->nFreeTnodes += nTnodes;
 	dev->nTnodesCreated += nTnodes;
 
@@ -615,7 +639,7 @@ static yaffs_Tnode *yaffs_GetTnode(yaffs_Device * dev)
 		dev->freeTnodes = dev->freeTnodes->internal[0];
 		dev->nFreeTnodes--;
 		/* zero out */
-		memset(tn, 0, sizeof(yaffs_Tnode));
+		memset(tn, 0, (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8);
 	}
 
 	return tn;
@@ -664,6 +688,64 @@ static void yaffs_InitialiseTnodes(yaffs_Device * dev)
 	dev->nFreeTnodes = 0;
 	dev->nTnodesCreated = 0;
 
+}
+
+
+void yaffs_PutLevel0Tnode(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos, unsigned val)
+{
+  __u32 *map = (__u32 *)tn;
+  __u32 bitInMap;
+  __u32 bitInWord;
+  __u32 wordInMap;
+  __u32 mask;
+  
+  pos &= YAFFS_TNODES_LEVEL0_MASK;
+  val >>= dev->chunkGroupBits;
+  
+  bitInMap = pos * dev->tnodeWidth;
+  wordInMap = bitInMap /32;
+  bitInWord = bitInMap & (32 -1);
+  
+  mask = dev->tnodeMask << bitInWord;
+  
+  map[wordInMap] &= ~mask;
+  map[wordInMap] |= (mask & (val << bitInWord));
+  
+  if(dev->tnodeWidth > (32-bitInWord)) {
+    bitInWord = (32 - bitInWord);
+    wordInMap++;;
+    mask = dev->tnodeMask >> (/*dev->tnodeWidth -*/ bitInWord);
+    map[wordInMap] &= ~mask;
+    map[wordInMap] |= (mask & (val >> bitInWord));
+  }
+}
+
+__u32 yaffs_GetChunkGroupBase(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos)
+{
+  __u32 *map = (__u32 *)tn;
+  __u32 bitInMap;
+  __u32 bitInWord;
+  __u32 wordInMap;
+  __u32 val;
+  
+  pos &= YAFFS_TNODES_LEVEL0_MASK;
+  
+  bitInMap = pos * dev->tnodeWidth;
+  wordInMap = bitInMap /32;
+  bitInWord = bitInMap & (32 -1);
+  
+  val = map[wordInMap] >> bitInWord;
+  
+  if(dev->tnodeWidth > (32-bitInWord)) {
+    bitInWord = (32 - bitInWord);
+    wordInMap++;;
+    val |= (map[wordInMap] << bitInWord);
+  }
+  
+  val &= dev->tnodeMask;
+  val <<= dev->chunkGroupBits;
+  
+  return val;
 }
 
 /* ------------------- End of individual tnode manipulation -----------------*/
@@ -883,15 +965,12 @@ static int yaffs_DeleteWorker(yaffs_Object * in, yaffs_Tnode * tn, __u32 level,
 
 			for (i = YAFFS_NTNODES_LEVEL0 - 1; i >= 0 && !hitLimit;
 			     i--) {
-				if (tn->level0[i]) {
+			        theChunk = yaffs_GetChunkGroupBase(dev,tn,i);
+				if (theChunk) {
 
 					chunkInInode =
 					    (chunkOffset <<
 					     YAFFS_TNODES_LEVEL0_BITS) + i;
-
-					theChunk =
-					    tn->level0[i] << dev->
-					    chunkGroupBits;
 
 					foundChunk =
 					    yaffs_FindChunkInGroup(dev,
@@ -914,7 +993,7 @@ static int yaffs_DeleteWorker(yaffs_Object * in, yaffs_Tnode * tn, __u32 level,
 
 					}
 
-					tn->level0[i] = 0;
+					yaffs_PutLevel0Tnode(dev,tn,i,0);
 				}
 
 			}
@@ -985,17 +1064,14 @@ static int yaffs_SoftDeleteWorker(yaffs_Object * in, yaffs_Tnode * tn,
 		} else if (level == 0) {
 
 			for (i = YAFFS_NTNODES_LEVEL0 - 1; i >= 0; i--) {
-				if (tn->level0[i]) {
+				theChunk = yaffs_GetChunkGroupBase(dev,tn,i);
+				if (theChunk) {
 					/* Note this does not find the real chunk, only the chunk group.
 					 * We make an assumption that a chunk group is not larger than 
 					 * a block.
 					 */
-					theChunk =
-					    (tn->level0[i] << dev->
-					     chunkGroupBits);
-
 					yaffs_SoftDeleteChunk(dev, theChunk);
-					tn->level0[i] = 0;
+					yaffs_PutLevel0Tnode(dev,tn,i,0);
 				}
 
 			}
@@ -2382,9 +2458,7 @@ static int yaffs_FindChunkInFile(yaffs_Object * in, int chunkInInode,
 	tn = yaffs_FindLevel0Tnode(dev, &in->variant.fileVariant, chunkInInode);
 
 	if (tn) {
-		theChunk =
-		    tn->level0[chunkInInode & YAFFS_TNODES_LEVEL0_MASK] << 
-		    		dev->chunkGroupBits;
+		theChunk = yaffs_GetChunkGroupBase(dev,tn,chunkInInode);
 
 		retVal =
 		    yaffs_FindChunkInGroup(dev, theChunk, tags, in->objectId,
@@ -2413,9 +2487,7 @@ static int yaffs_FindAndDeleteChunkInFile(yaffs_Object * in, int chunkInInode,
 
 	if (tn) {
 
-		theChunk =
-		    tn->level0[chunkInInode & YAFFS_TNODES_LEVEL0_MASK] << dev->
-		    chunkGroupBits;
+		theChunk = yaffs_GetChunkGroupBase(dev,tn,chunkInInode);
 
 		retVal =
 		    yaffs_FindChunkInGroup(dev, theChunk, tags, in->objectId,
@@ -2423,7 +2495,7 @@ static int yaffs_FindAndDeleteChunkInFile(yaffs_Object * in, int chunkInInode,
 
 		/* Delete the entry in the filestructure (if found) */
 		if (retVal != -1) {
-			tn->level0[chunkInInode & YAFFS_TNODES_LEVEL0_MASK] = 0;
+			yaffs_PutLevel0Tnode(dev,tn,chunkInInode,0);
 		}
 	} else {
 		/*T(("No level 0 found for %d\n", chunkInInode)); */
@@ -2466,9 +2538,7 @@ static int yaffs_CheckFileSanity(yaffs_Object * in)
 
 		if (tn) {
 
-			theChunk =
-			    tn->level0[chunk & YAFFS_TNODES_LEVEL0_MASK] << in->
-			    myDev->chunkGroupBits;
+			theChunk = yaffs_GetChunkGroupBase(dev,tn,chunk);
 
 			if (yaffs_CheckChunkBits
 			    (dev, theChunk / dev->nChunksPerBlock,
@@ -2534,7 +2604,7 @@ static int yaffs_PutChunkIntoFile(yaffs_Object * in, int chunkInInode,
 		return YAFFS_FAIL;
 	}
 
-	existingChunk = tn->level0[chunkInInode & YAFFS_TNODES_LEVEL0_MASK];
+	existingChunk = yaffs_GetChunkGroupBase(dev,tn,chunkInInode);
 
 	if (inScan != 0) {
 		/* If we're scanning then we need to test for duplicates
@@ -2613,8 +2683,7 @@ static int yaffs_PutChunkIntoFile(yaffs_Object * in, int chunkInInode,
 		in->nDataChunks++;
 	}
 
-	tn->level0[chunkInInode & YAFFS_TNODES_LEVEL0_MASK] =
-	    (chunkInNAND >> dev->chunkGroupBits);
+	yaffs_PutLevel0Tnode(dev,tn,chunkInInode,chunkInNAND);
 
 	return YAFFS_OK;
 }
@@ -5408,16 +5477,33 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 
 	if (extraBits > 0)
 		bits++;
-
-	/* Level0 Tnodes are 16 bits, so if the bitwidth of the
+	
+	/* Set up tnode width if wide tnodes are enabled. */
+	if(!dev->wideTnodesDisabled){
+		/* bits must be even so that we end up with 32-bit words */
+		if(bits & 1)
+			bits++;
+		if(bits < 16)
+			dev->tnodeWidth = 16;
+		else
+			dev->tnodeWidth = bits;
+	}
+	else
+		dev->tnodeWidth = 16;
+ 
+	dev->tnodeMask = (1<<dev->tnodeWidth)-1;
+		
+	/* Level0 Tnodes are 16 bits or wider (if wide tnodes are enabled),
+	 * so if the bitwidth of the
 	 * chunk range we're using is greater than 16 we need
 	 * to figure out chunk shift and chunkGroupSize
 	 */
-	if (bits <= 16) {
+		 
+	if (bits <= dev->tnodeWidth)
 		dev->chunkGroupBits = 0;
-	} else {
-		dev->chunkGroupBits = bits - 16;
-	}
+	else
+		dev->chunkGroupBits = bits - dev->tnodeWidth;
+		
 
 	dev->chunkGroupSize = 1 << dev->chunkGroupBits;
 

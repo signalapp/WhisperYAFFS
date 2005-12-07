@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.16 2005-10-09 07:55:00 charles Exp $
+ * $Id: yaffs_guts.h,v 1.17 2005-12-07 21:49:18 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -325,7 +325,7 @@ union yaffs_Tnode_union {
 #else
 	union yaffs_Tnode_union *internal[YAFFS_NTNODES_INTERNAL];
 #endif
-	__u16 level0[YAFFS_NTNODES_LEVEL0];
+/*	__u16 level0[YAFFS_NTNODES_LEVEL0]; */
 
 };
 
@@ -533,6 +533,8 @@ struct yaffs_DeviceStruct {
 	 */
 	void (*removeObjectCallback)(struct yaffs_ObjectStruct *obj);
 	
+	int wideTnodesDisabled; /* Set to disable wide tnodes */
+	
 
 	/* End of stuff that must be set before initialisation. */
 
@@ -540,6 +542,11 @@ struct yaffs_DeviceStruct {
 
 	__u16 chunkGroupBits;	/* 0 for devices <= 32MB. else log2(nchunks) - 16 */
 	__u16 chunkGroupSize;	/* == 2^^chunkGroupBits */
+	
+	/* Stuff to support wide tnodes */
+	__u32 tnodeWidth;
+	__u32 tnodeMask;
+	
 
 #ifdef __KERNEL__
 

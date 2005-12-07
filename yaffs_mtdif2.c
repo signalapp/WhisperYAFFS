@@ -16,7 +16,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.8 2005-09-20 05:23:41 charles Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.9 2005-12-07 21:49:18 charles Exp $";
 
 #include "yportenv.h"
 
@@ -93,7 +93,8 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	   ("nandmtd2_ReadChunkWithTagsToNAND chunk %d data %p tags %p"
 	    TENDSTR), chunkInNAND, data, tags));
 
-	if (data && tags) {
+	if (1 ||  /* Always do this */
+	    data && tags) {
 		if (dev->useNANDECC) {
 			retval =
 			    mtd->read_ecc(mtd, addr, dev->nBytesPerChunk,

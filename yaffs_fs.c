@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.35 2005-12-07 22:19:26 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.36 2005-12-08 00:54:55 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -309,6 +309,9 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry)
 				   dentry->d_name.name);
 
 	obj = yaffs_GetEquivalentObject(obj);	/* in case it was a hardlink */
+	
+	/* Can't hold gross lock when calling yaffs_get_inode() */
+	yaffs_GrossUnlock(dev);
 
 	if (obj) {
 		T(YAFFS_TRACE_OS,
@@ -325,8 +328,6 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry)
 			/*dget(dentry); // try to solve directory bug */
 			d_add(dentry, inode);
 
-			yaffs_GrossUnlock(dev);
-
 			/* return dentry; */
 			return NULL;
 #endif
@@ -336,7 +337,6 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry)
 		T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_lookup not found\n"));
 
 	}
-	yaffs_GrossUnlock(dev);
 
 /* added NCB for 2.5/6 compatability - forces add even if inode is
  * NULL which creates dentry hash */
@@ -725,6 +725,7 @@ struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,
 
 	/* NB Side effect: iget calls back to yaffs_read_inode(). */
 	/* iget also increments the inode's i_count */
+	/* NB You can't be holding grossLock or deadlock will happen! */
 
 	return inode;
 }
@@ -940,6 +941,9 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 		obj = NULL;	/* Do we ever get here? */
 		break;
 	}
+	
+	/* Can not call yaffs_get_inode() with gross lock held */
+	yaffs_GrossUnlock(dev);
 
 	if (obj) {
 		inode = yaffs_get_inode(dir->i_sb, mode, rdev, obj);
@@ -953,8 +957,6 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 		  (KERN_DEBUG "yaffs_mknod failed making object\n"));
 		error = -ENOMEM;
 	}
-
-	yaffs_GrossUnlock(dev);
 
 	return error;
 }
@@ -1236,8 +1238,9 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 
 static void yaffs_read_inode(struct inode *inode)
 {
-	/* NB This is called as a side effect of other functions and
-	 * thus gross locking should always be in place already.
+	/* NB This is called as a side effect of other functions, but
+	 * we had to release the lock to prevent deadlocks, so 
+	 * need to lock again.
 	 */
 
 	yaffs_Object *obj;
@@ -1246,10 +1249,13 @@ static void yaffs_read_inode(struct inode *inode)
 	T(YAFFS_TRACE_OS,
 	  (KERN_DEBUG "yaffs_read_inode for %d\n", (int)inode->i_ino));
 
+	yaffs_GrossLock(dev);
+	
 	obj = yaffs_FindObjectByNumber(dev, inode->i_ino);
 
 	yaffs_FillInodeFromObject(inode, obj);
 
+	yaffs_GrossUnlock(dev);
 }
 
 static LIST_HEAD(yaffs_dev_list);
@@ -1481,13 +1487,14 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	T(YAFFS_TRACE_OS,
 	  ("yaffs_read_super: guts initialised %s\n",
 	   (err == YAFFS_OK) ? "OK" : "FAILED"));
+	
+	/* Release lock before yaffs_get_inode() */
+	yaffs_GrossUnlock(dev);
 
 	/* Create root inode */
 	if (err == YAFFS_OK)
 		inode = yaffs_get_inode(sb, S_IFDIR | 0755, 0,
 					yaffs_Root(dev));
-
-	yaffs_GrossUnlock(dev);
 
 	if (!inode)
 		return NULL;

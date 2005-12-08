@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.24 2005-12-07 21:49:18 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.25 2005-12-08 00:51:15 charles Exp $";
 
 #include "yportenv.h"
 
@@ -541,7 +541,7 @@ static int yaffs_CreateTnodes(yaffs_Device * dev, int nTnodes)
 	int tnodeSize;
 	yaffs_Tnode *newTnodes;
 	__u8 *mem;
-	yaffs_Tnode *current;
+	yaffs_Tnode *curr;
 	yaffs_Tnode *next;
 	yaffs_TnodeList *tnl;
 
@@ -554,7 +554,8 @@ static int yaffs_CreateTnodes(yaffs_Device * dev, int nTnodes)
 
 	/* make these things */
 
-	mem = newTnodes = YMALLOC(nTnodes * tnodeSize);
+	newTnodes = YMALLOC(nTnodes * tnodeSize);
+	mem = (__u8 *)newTnodes;
 
 	if (!newTnodes) {
 		T(YAFFS_TRACE_ERROR,
@@ -579,13 +580,13 @@ static int yaffs_CreateTnodes(yaffs_Device * dev, int nTnodes)
 #else
 	/* New hookup for wide tnodes */
 	for(i = 0; i < nTnodes -1; i++) {
-		current = (yaffs_Tnode *) &mem[i * tnodeSize];
+		curr = (yaffs_Tnode *) &mem[i * tnodeSize];
 		next = (yaffs_Tnode *) &mem[(i+1) * tnodeSize];
-		current->internal[0] = next;
+		curr->internal[0] = next;
 	}
 	
-	current = (yaffs_Tnode *) &mem[(nTnodes - 1) * tnodeSize];
-	current->internal[0] = dev->freeTnodes;
+	curr = (yaffs_Tnode *) &mem[(nTnodes - 1) * tnodeSize];
+	curr->internal[0] = dev->freeTnodes;
 	dev->freeTnodes = (yaffs_Tnode *)mem;
 
 #endif

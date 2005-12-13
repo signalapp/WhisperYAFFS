@@ -44,7 +44,7 @@ unsigned yaffs_traceMask=0;
 #define chunkSize 2048
 #define spareSize 64
 
-const char * mkyaffsimage_c_version = "$Id: mkyaffs2image.c,v 1.1 2005-11-02 06:45:24 charles Exp $";
+const char * mkyaffsimage_c_version = "$Id: mkyaffs2image.c,v 1.2 2005-12-13 00:34:58 tpoynor Exp $";
 
 
 typedef struct
@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
 	
 	printf("mkyaffs2image: image building tool for YAFFS2 built "__DATE__"\n");
 	
-	if(argc <= 3)
+	if(argc < 3)
 	{
 		printf("usage: mkyaffs2image dir image_file [convert]\n");
 		printf("           dir        the directory tree to be converted\n");

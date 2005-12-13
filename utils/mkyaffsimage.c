@@ -532,7 +532,7 @@ int main(int argc, char *argv[])
 	
 	printf("mkyaffsimage: image building tool for YAFFS built "__DATE__"\n");
 	
-	if(argc <= 3)
+	if(argc < 3)
 	{
 		printf("usage: mkyaffsimage dir image_file [convert]\n");
 		printf("           dir        the directory tree to be converted\n");

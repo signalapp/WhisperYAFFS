@@ -58,6 +58,17 @@ config YAFFS_YAFFS2
 
 	  If unsure, say Y.
 
+config YAFFS_AUTO_YAFFS2
+	bool "Autoselect yaffs2 format"
+	depends on YAFFS_YAFFS2
+	default y
+	help
+	  Without this, you need to explicitely use yaffs2 as the file
+	  system type. With this, you can say "yaffs" and yaffs or yaffs2
+          will be used depending on the device page size.
+
+	  If unsure, say Y.
+
 config YAFFS_DISABLE_WIDE_TNODES
 	bool "Turn off wide tnodes"
 	depends on YAFFS_FS

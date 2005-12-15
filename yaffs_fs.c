@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.37 2005-12-14 01:18:45 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.38 2005-12-15 20:27:56 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1365,7 +1365,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	T(YAFFS_TRACE_OS, (" erasesize %d\n", mtd->erasesize));
 	T(YAFFS_TRACE_OS, (" size %d\n", mtd->size));
 	
-#if CONFIG_YAFFS_AUTO_YAFFS2
+#ifdef CONFIG_YAFFS_AUTO_YAFFS2
 
 	if (yaffsVersion == 1 && 
 	    mtd->oobblock >= 2048) {

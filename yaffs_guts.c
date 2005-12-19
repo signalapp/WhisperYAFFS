@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.25 2005-12-08 00:51:15 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.26 2005-12-19 21:46:07 charles Exp $";
 
 #include "yportenv.h"
 
@@ -4894,11 +4894,13 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 						break;
 					case YAFFS_OBJECT_TYPE_HARDLINK:
-						in->variant.hardLinkVariant.equivalentObjectId =
+						if(!in->deleted) {
+						  in->variant.hardLinkVariant.equivalentObjectId =
 						    oh->equivalentObjectId;
-						in->hardLinks.next =
+						  in->hardLinks.next =
 						    (struct list_head *) hardList;
-						hardList = in;
+						  hardList = in;
+						}
 						break;
 					case YAFFS_OBJECT_TYPE_DIRECTORY:
 						/* Do nothing */

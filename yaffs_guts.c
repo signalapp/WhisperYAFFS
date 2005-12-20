@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.26 2005-12-19 21:46:07 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.27 2005-12-20 04:02:18 charles Exp $";
 
 #include "yportenv.h"
 
@@ -4437,7 +4437,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 	yaffs_Object *in;
 	yaffs_Object *parent;
 	int nBlocks = dev->internalEndBlock - dev->internalStartBlock + 1;
-
+	int itsUnlinked;
 	__u8 *chunkData;
 
 	yaffs_BlockIndex *blockIndex = NULL;
@@ -4847,11 +4847,8 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 					yaffs_AddObjectToDirectory(parent, in);
 
-					if ((parent == dev->deletedDir ||
-					     parent == dev->unlinkedDir)) {
-					     /* If it is unlinked at start up then it wants deleting */
-						in->deleted = 1;
-					}
+					itsUnlinked = (parent == dev->deletedDir) ||
+						      (parent == dev->unlinkedDir);
 
 					if (oh->isShrink) {
 						/* Mark the block as having a shrinkHeader */
@@ -4894,7 +4891,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 						break;
 					case YAFFS_OBJECT_TYPE_HARDLINK:
-						if(!in->deleted) {
+						if(!itsUnlinked) {
 						  in->variant.hardLinkVariant.equivalentObjectId =
 						    oh->equivalentObjectId;
 						  in->hardLinks.next =

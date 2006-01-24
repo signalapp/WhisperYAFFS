@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.38 2005-12-15 20:27:56 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.39 2006-01-24 22:22:52 tpoynor Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -171,6 +171,10 @@ static struct file_operations yaffs_file_operations = {
 	.mmap = generic_file_mmap,
 	.flush = yaffs_file_flush,
 	.fsync = yaffs_sync_object,
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+	.sendfile = generic_file_sendfile,
+#endif
+
 };
 
 static struct inode_operations yaffs_file_inode_operations = {

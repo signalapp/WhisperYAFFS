@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.39 2006-01-24 22:22:52 tpoynor Exp $";
+    "$Id: yaffs_fs.c,v 1.40 2006-01-25 01:21:08 tpoynor Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -628,9 +628,9 @@ static int yaffs_commit_write(struct file *f, struct page *pg, unsigned offset,
 
 	T(YAFFS_TRACE_OS,
 	  (KERN_DEBUG "yaffs_commit_write returning %d\n",
-	   nWritten == nBytes ? 0 : -1));
+	   nWritten == nBytes ? 0 : nWritten));
 
-	return nWritten == nBytes ? 0 : -1;
+	return nWritten == nBytes ? 0 : nWritten;
 
 }
 
@@ -788,8 +788,7 @@ static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
 
 	}
 	yaffs_GrossUnlock(dev);
-
-	return nWritten != n ? -ENOSPC : nWritten;
+	return nWritten == 0 ? -ENOSPC : nWritten;
 }
 
 static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)

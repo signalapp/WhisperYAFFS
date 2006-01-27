@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.17 2005-12-07 21:49:18 charles Exp $
+ * $Id: yaffs_guts.h,v 1.18 2006-01-27 00:44:10 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -392,8 +392,6 @@ struct yaffs_ObjectStruct {
 				 * still in the inode cache. Free of object is defered.
 				 * until the inode is released.
 				 */
-
-	__u8 lazyLoaded;	/* Vital info has been loaded from tags. Not all info available. */
 
 	__u16 sum;		/* sum of the name to speed searching */
 

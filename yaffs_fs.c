@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.40 2006-01-25 01:21:08 tpoynor Exp $";
+    "$Id: yaffs_fs.c,v 1.41 2006-01-27 23:54:21 tpoynor Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -48,6 +48,7 @@ extern const char *yaffs_guts_c_version;
 #include <linux/mtd/mtd.h>
 #include <linux/interrupt.h>
 #include <linux/string.h>
+#include <linux/ctype.h>
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 
@@ -1687,6 +1688,118 @@ static int yaffs_proc_read(char *page,
 	return buf - page < count ? buf - page : count;
 }
 
+/**
+ * Set the verbosity of the warnings and error messages.
+ *
+ */
+
+static struct {
+	char *mask_name;
+	unsigned mask_bitfield;
+} mask_flags[] = {
+	{"allocate", YAFFS_TRACE_ALLOCATE},
+	{"always", YAFFS_TRACE_ALWAYS},
+	{"bad_blocks", YAFFS_TRACE_BAD_BLOCKS},
+	{"buffers", YAFFS_TRACE_BUFFERS},
+	{"bug", YAFFS_TRACE_BUG},
+	{"deletion", YAFFS_TRACE_DELETION},
+	{"erase", YAFFS_TRACE_ERASE},
+	{"error", YAFFS_TRACE_ERROR},
+	{"gc_detail", YAFFS_TRACE_GC_DETAIL},
+	{"gc", YAFFS_TRACE_GC},
+	{"mtd", YAFFS_TRACE_MTD},
+	{"nandaccess", YAFFS_TRACE_NANDACCESS},
+	{"os", YAFFS_TRACE_OS},
+	{"scan_debug", YAFFS_TRACE_SCAN_DEBUG},
+	{"scan", YAFFS_TRACE_SCAN},
+	{"tracing", YAFFS_TRACE_TRACING},
+	{"write", YAFFS_TRACE_WRITE},
+	{"all", 0xffffffff},
+	{"none", 0},
+	{NULL, 0},
+};
+
+static int yaffs_proc_write(struct file *file, const char *buf,
+					 unsigned long count, void *data)
+{
+	unsigned rg = 0, mask_bitfield;
+	char *end, *mask_name;
+	int i;
+	int done = 0;
+	int add, len;
+	int pos = 0;
+
+	rg = yaffs_traceMask;
+
+	while (!done && (pos < count)) {
+		done = 1;
+		while ((pos < count) && isspace(buf[pos])) {
+			pos++;
+		}
+
+		switch (buf[pos]) {
+		case '+':
+		case '-':
+		case '=':
+			add = buf[pos];
+			pos++;
+			break;
+
+		default:
+			add = ' ';
+			break;
+		}
+		mask_name = NULL;
+		mask_bitfield = simple_strtoul(buf + pos, &end, 0);
+		if (end > buf + pos) {
+			mask_name = "numeral";
+			len = end - (buf + pos);
+			done = 0;
+		} else {
+
+			for (i = 0; mask_flags[i].mask_name != NULL; i++) {
+				len = strlen(mask_flags[i].mask_name);
+				if (strncmp(buf + pos, mask_flags[i].mask_name, len) == 0) {
+					mask_name = mask_flags[i].mask_name;
+					mask_bitfield = mask_flags[i].mask_bitfield;
+					done = 0;
+					break;
+				}
+			}
+		}
+
+		if (mask_name != NULL) {
+			pos += len;
+			done = 0;
+			switch(add) {
+			case '-':
+				rg &= ~mask_bitfield;
+				break;
+			case '+':
+				rg |= mask_bitfield;
+				break;
+			case '=':
+				rg = mask_bitfield;
+				break;
+			default:
+				rg |= mask_bitfield;
+				break;
+			}
+		}
+	}
+
+	yaffs_traceMask = rg;
+	if (rg & YAFFS_TRACE_ALWAYS) {
+		for (i = 0; mask_flags[i].mask_name != NULL; i++) {
+			char flag;
+			flag = ((rg & mask_flags[i].mask_bitfield) == mask_flags[i].mask_bitfield) ? '+' : '-';
+			printk("%c%s\n", flag, mask_flags[i].mask_name);
+		}
+	}
+
+	return count;
+}
+
 /* Stuff to handle installation of file systems */
 struct file_system_to_install {
 	struct file_system_type *fst;
@@ -1712,11 +1825,15 @@ static int __init init_yaffs_fs(void)
 	  ("yaffs " __DATE__ " " __TIME__ " Installing. \n"));
 
 	/* Install the proc_fs entry */
-	my_proc_entry = create_proc_read_entry("yaffs",
+	my_proc_entry = create_proc_entry("yaffs",
 					       S_IRUGO | S_IFREG,
-					       &proc_root,
-					       yaffs_proc_read, NULL);
-	if (!my_proc_entry) {
+					       &proc_root);
+
+	if (my_proc_entry) {
+		my_proc_entry->write_proc = yaffs_proc_write;
+		my_proc_entry->read_proc = yaffs_proc_read;
+		my_proc_entry->data = NULL;
+	} else {
 		return -ENOMEM;
 	}
 

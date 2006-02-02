@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.27 2005-12-20 04:02:18 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.28 2006-02-02 22:14:44 charles Exp $";
 
 #include "yportenv.h"
 
@@ -335,6 +335,7 @@ static Y_INLINE int yaffs_StillSomeChunkBits(yaffs_Device * dev, int blk)
  
 static Y_INLINE int yaffs_HashFunction(int n)
 {
+	n = abs(n);
 	return (n % YAFFS_NOBJECT_BUCKETS);
 }
 

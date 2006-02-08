@@ -1347,6 +1347,49 @@ void lookup_test(const char *mountpt)
 	
 }
 
+void link_test(const char *mountpt)
+{
+	int i;
+	int h;
+	char a[100];
+	char b[100];
+	char c[100];
+	
+	int  f0;
+	int f1;
+	int f2;
+	int f3;
+	sprintf(a,"%s/aaa",mountpt);
+	sprintf(b,"%s/bbb",mountpt);
+	sprintf(c,"%s/ccc",mountpt);
+	
+	yaffs_StartUp();
+	
+	yaffs_mount(mountpt);
+	
+	
+	h = yaffs_open(a, O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	for(i = 0; i < 100; i++)
+		yaffs_write(h,a,100);
+	
+	yaffs_close(h);
+	
+	yaffs_unlink(b);
+	yaffs_unlink(c);
+	yaffs_link(a,b);
+	yaffs_link(a,c);
+	yaffs_unlink(b);
+	yaffs_unlink(c);
+	yaffs_unlink(a);
+	
+	
+	yaffs_unmount(mountpt);
+	yaffs_mount(mountpt);
+	
+	printf("link test done\n");	
+	
+}
+
 void freespace_test(const char *mountpt)
 {
 	int i;
@@ -1623,11 +1666,14 @@ int main(int argc, char *argv[])
 	
 	//long_test_on_path("/ram2k");
 	// long_test_on_path("/flash");
-	simple_rw_test("/flash/flash");
-	fill_disk_test("/flash/flash");
+	//simple_rw_test("/flash/flash");
+	//fill_disk_test("/flash/flash");
 	// rename_over_test("/flash");
 	//lookup_test("/flash");
-	freespace_test("/flash/flash");
+	//freespace_test("/flash/flash");
+	
+	link_test("/flash/flash");
+	
 	
 	
 	

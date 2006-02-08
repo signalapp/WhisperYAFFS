@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.7 2005-10-07 03:48:50 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.8 2006-02-08 22:38:24 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1402,7 +1402,66 @@ int yaffs_readlink(const char *path, char *buf, int bufsiz)
 	return retVal;
 }
 
-int yaffs_link(const char *oldpath, const char *newpath); 
+int yaffs_link(const char *oldpath, const char *newpath)
+{
+	// Creates a link called newpath to existing oldpath
+	yaffs_Object *obj = NULL;
+	yaffs_Object *target = NULL;
+	int retVal;
+
+		
+	yaffsfs_Lock();
+	
+	obj = yaffsfs_FindObject(NULL,oldpath,0);
+	target = yaffsfs_FindObject(NULL,newpath,0);
+	
+	if(!obj)
+	{
+		yaffsfs_SetError(-ENOENT);
+		retVal = -1;
+	}
+	else if(target)
+	{
+		yaffsfs_SetError(-EEXIST);
+		retVal = -1;
+	}
+	else	
+	{
+		yaffs_Object *newdir = NULL;
+		yaffs_Object *link = NULL;
+		
+		char *newname;
+		
+		newdir = yaffsfs_FindDirectory(NULL,newpath,&newname,0);
+		
+		if(!newdir)
+		{
+			yaffsfs_SetError(-ENOTDIR);
+			retVal = -1;
+		}
+		else if(newdir->myDev != obj->myDev)
+		{
+			yaffsfs_SetError(-EXDEV);
+			retVal = -1;
+		}
+		if(newdir && strlen(newname) > 0)
+		{
+			link = yaffs_Link(newdir,newname,obj);
+			if(link)
+				retVal = 0;
+			else
+			{
+				yaffsfs_SetError(-ENOSPC);
+				retVal = -1;
+			}
+
+		}
+	}
+	yaffsfs_Unlock();
+	
+	return retVal;
+}
+
 int yaffs_mknod(const char *pathname, mode_t mode, dev_t dev);
 
 int yaffs_DumpDevStruct(const char *path)

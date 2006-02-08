@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.28 2006-02-02 22:14:44 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.29 2006-02-08 22:29:14 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2347,6 +2347,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 				   ("yaffs: About to finally delete object %d"
 				    TENDSTR), object->objectId));
 				yaffs_DoGenericObjectDeletion(object);
+				object->myDev->nDeletedFiles--;
 			}
 
 		}
@@ -5691,6 +5692,8 @@ int yaffs_GetNumberOfFreeChunks(yaffs_Device * dev)
 	nFree = yaffs_CountFreeChunks(dev);
 #endif
 
+	nFree += dev->nDeletedFiles;
+	
 	/* Now count the number of dirty chunks in the cache and subtract those */
 
 	{

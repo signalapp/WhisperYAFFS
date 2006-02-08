@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.41 2006-01-27 23:54:21 tpoynor Exp $";
+    "$Id: yaffs_fs.c,v 1.42 2006-02-08 07:52:51 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -838,6 +838,15 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 
 	curoffs = 1;
 
+	/* If the directory has changed since the open or last call to
+	   readdir, rewind to after the 2 canned entries. */
+
+	if (f->f_version != inode->i_version) {
+		offset = 2;
+		f->f_pos = offset;
+		f->f_version = inode->i_version;
+	}
+
 	list_for_each(i, &obj->variant.directoryVariant.children) {
 		curoffs++;
 		if (curoffs >= offset) {
@@ -1006,15 +1015,15 @@ static int yaffs_unlink(struct inode *dir, struct dentry *dentry)
 
 	retVal = yaffs_Unlink(yaffs_InodeToObject(dir), dentry->d_name.name);
 
-	yaffs_GrossUnlock(dev);
-
 	if (retVal == YAFFS_OK) {
 		dentry->d_inode->i_nlink--;
+		dir->i_version++;
+		yaffs_GrossUnlock(dev);
 		mark_inode_dirty(dentry->d_inode);
 		return 0;
-	} else {
-		return -ENOTEMPTY;
 	}
+	yaffs_GrossUnlock(dev);
+	return -ENOTEMPTY;
 }
 
 /*

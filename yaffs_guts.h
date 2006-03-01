@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.18 2006-01-27 00:44:10 charles Exp $
+ * $Id: yaffs_guts.h,v 1.19 2006-03-01 08:15:45 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -386,13 +386,14 @@ struct yaffs_ObjectStruct {
 				 * object might be created before the data
 				 * is available (ie. file data records appear before the header).
 				 */
-	__u8 serial;		/* serial number of chunk in NAND. Cached here */
+	__u8 lazyLoaded:1;	/* This object has been lazy loaded and is missing some detail */
 
 	__u8 deferedFree:1;	/* For Linux kernel. Object is removed from NAND, but is
 				 * still in the inode cache. Free of object is defered.
 				 * until the inode is released.
 				 */
 
+	__u8 serial;		/* serial number of chunk in NAND. Cached here */
 	__u16 sum;		/* sum of the name to speed searching */
 
 	struct yaffs_DeviceStruct *myDev;	/* The device I'm on */

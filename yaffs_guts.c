@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.29 2006-02-08 22:29:14 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.30 2006-03-01 08:14:32 charles Exp $";
 
 #include "yportenv.h"
 
@@ -4418,6 +4418,46 @@ static int yaffs_Scan(yaffs_Device * dev)
 	return YAFFS_OK;
 }
 
+static void yaffs_CheckObjectDetailsLoaded(yaffs_Object *in)
+{
+	__u8 *chunkData;
+	yaffs_ObjectHeader *oh;
+	yaffs_Device *dev = in->myDev;
+	
+	if(in->lazyLoaded){
+		in->lazyLoaded = 0;
+		chunkData = yaffs_GetTempBuffer(dev, __LINE__);
+
+		yaffs_ReadChunkWithTagsFromNAND(dev,in->chunkId,chunkData,NULL);
+		oh = (yaffs_ObjectHeader *) chunkData;		
+
+		in->yst_mode = oh->yst_mode;
+#ifdef CONFIG_YAFFS_WINCE
+		in->win_atime[0] = oh->win_atime[0];
+		in->win_ctime[0] = oh->win_ctime[0];
+		in->win_mtime[0] = oh->win_mtime[0];
+		in->win_atime[1] = oh->win_atime[1];
+		in->win_ctime[1] = oh->win_ctime[1];
+		in->win_mtime[1] = oh->win_mtime[1];
+#else
+		in->yst_uid = oh->yst_uid;
+		in->yst_gid = oh->yst_gid;
+		in->yst_atime = oh->yst_atime;
+		in->yst_mtime = oh->yst_mtime;
+		in->yst_ctime = oh->yst_ctime;
+		in->yst_rdev = oh->yst_rdev;
+		
+#endif
+		yaffs_SetObjectName(in, oh->name);
+		
+		if(in->variantType == YAFFS_OBJECT_TYPE_SYMLINK)
+			 in->variant.symLinkVariant.alias =
+						    yaffs_CloneString(oh->alias);
+						    
+		yaffs_ReleaseTempBuffer(dev,chunkData, __LINE__);
+	}
+}
+
 static int yaffs_ScanBackwards(yaffs_Device * dev)
 {
 	yaffs_ExtendedTags tags;
@@ -4441,6 +4481,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 	int nBlocks = dev->internalEndBlock - dev->internalStartBlock + 1;
 	int itsUnlinked;
 	__u8 *chunkData;
+	
+	int fileSize;
+	int isShrink;
+	int equivalentObjectId;
+	
 
 	yaffs_BlockIndex *blockIndex = NULL;
 
@@ -4665,7 +4710,15 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					     tags.extraObjectType);
 				}
 
-				if (!in || !in->valid) {
+				if (!in ||
+#ifdef CONFIG_YAFFS_DISABLE_LAZY_LOAD
+				    !in->valid ||
+#endif
+				    tags.extraShadows ||
+				    (!in->valid &&
+				    (tags.objectId == YAFFS_OBJECTID_ROOT ||
+				     tags.objectId == YAFFS_OBJECTID_LOSTNFOUND))
+				    ) {
 
 					/* If we don't have  valid info then we need to read the chunk
 					 * TODO In future we can probably defer reading the chunk and 
@@ -4700,21 +4753,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					 * we first have to suck out resize info if it is a file.
 					 */
 
-					if ((in->variantType ==
-					     YAFFS_OBJECT_TYPE_FILE) && ((oh
-									  &&
-									  oh->
-									  type
-									  ==
-									  YAFFS_OBJECT_TYPE_FILE)
-									 ||
-									 (tags.
-									  extraHeaderInfoAvailable
-									  &&
-									  tags.
-									  extraObjectType
-									  ==
-									  YAFFS_OBJECT_TYPE_FILE))
+					if ((in->variantType == YAFFS_OBJECT_TYPE_FILE) && 
+					     ((oh && 
+					       oh-> type == YAFFS_OBJECT_TYPE_FILE)||
+					      (tags.extraHeaderInfoAvailable  &&
+					       tags.extraObjectType == YAFFS_OBJECT_TYPE_FILE))
 					    ) {
 						__u32 thisSize =
 						    (oh) ? oh->fileSize : tags.
@@ -4762,68 +4805,96 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 				     YAFFS_OBJECTID_LOSTNFOUND)) {
 					/* We only load some info, don't fiddle with directory structure */
 					in->valid = 1;
-					in->variantType = oh->type;
+					
+					if(oh) {
+						in->variantType = oh->type;
 
-					in->yst_mode = oh->yst_mode;
+						in->yst_mode = oh->yst_mode;
 #ifdef CONFIG_YAFFS_WINCE
-					in->win_atime[0] = oh->win_atime[0];
-					in->win_ctime[0] = oh->win_ctime[0];
-					in->win_mtime[0] = oh->win_mtime[0];
-					in->win_atime[1] = oh->win_atime[1];
-					in->win_ctime[1] = oh->win_ctime[1];
-					in->win_mtime[1] = oh->win_mtime[1];
+						in->win_atime[0] = oh->win_atime[0];
+						in->win_ctime[0] = oh->win_ctime[0];
+						in->win_mtime[0] = oh->win_mtime[0];
+						in->win_atime[1] = oh->win_atime[1];
+						in->win_ctime[1] = oh->win_ctime[1];
+						in->win_mtime[1] = oh->win_mtime[1];
 #else
-					in->yst_uid = oh->yst_uid;
-					in->yst_gid = oh->yst_gid;
-					in->yst_atime = oh->yst_atime;
-					in->yst_mtime = oh->yst_mtime;
-					in->yst_ctime = oh->yst_ctime;
-					in->yst_rdev = oh->yst_rdev;
+						in->yst_uid = oh->yst_uid;
+						in->yst_gid = oh->yst_gid;
+						in->yst_atime = oh->yst_atime;
+						in->yst_mtime = oh->yst_mtime;
+						in->yst_ctime = oh->yst_ctime;
+						in->yst_rdev = oh->yst_rdev;
+		
 #endif
+					} else {
+						in->variantType = tags.extraObjectType;
+						in->lazyLoaded = 1;
+					}
+						
 					in->chunkId = chunk;
 
 				} else if (!in->valid) {
 					/* we need to load this info */
 
 					in->valid = 1;
-					in->variantType = oh->type;
-
-					in->yst_mode = oh->yst_mode;
-#ifdef CONFIG_YAFFS_WINCE
-					in->win_atime[0] = oh->win_atime[0];
-					in->win_ctime[0] = oh->win_ctime[0];
-					in->win_mtime[0] = oh->win_mtime[0];
-					in->win_atime[1] = oh->win_atime[1];
-					in->win_ctime[1] = oh->win_ctime[1];
-					in->win_mtime[1] = oh->win_mtime[1];
-#else
-					in->yst_uid = oh->yst_uid;
-					in->yst_gid = oh->yst_gid;
-					in->yst_atime = oh->yst_atime;
-					in->yst_mtime = oh->yst_mtime;
-					in->yst_ctime = oh->yst_ctime;
-					in->yst_rdev = oh->yst_rdev;
-#endif
 					in->chunkId = chunk;
+					
+					if(oh) {
+						in->variantType = oh->type;
 
-					if (oh->shadowsObject > 0) {
-						yaffs_HandleShadowedObject(dev,
+						in->yst_mode = oh->yst_mode;
+#ifdef CONFIG_YAFFS_WINCE
+						in->win_atime[0] = oh->win_atime[0];
+						in->win_ctime[0] = oh->win_ctime[0];
+						in->win_mtime[0] = oh->win_mtime[0];
+						in->win_atime[1] = oh->win_atime[1];
+						in->win_ctime[1] = oh->win_ctime[1];
+						in->win_mtime[1] = oh->win_mtime[1];
+#else
+						in->yst_uid = oh->yst_uid;
+						in->yst_gid = oh->yst_gid;
+						in->yst_atime = oh->yst_atime;
+						in->yst_mtime = oh->yst_mtime;
+						in->yst_ctime = oh->yst_ctime;
+						in->yst_rdev = oh->yst_rdev;
+#endif
+
+						if (oh->shadowsObject > 0) 
+							yaffs_HandleShadowedObject(dev,
 									   oh->
 									   shadowsObject,
 									   1);
-					}
+					
 
-					yaffs_SetObjectName(in, oh->name);
+						yaffs_SetObjectName(in, oh->name);
+						parent =
+						    yaffs_FindOrCreateObjectByNumber
+					    		(dev, oh->parentObjectId,
+					     		 YAFFS_OBJECT_TYPE_DIRECTORY);
+
+						 fileSize = oh->fileSize;
+ 						 isShrink = oh->isShrink;
+						 equivalentObjectId = oh->equivalentObjectId;
+
+					}
+					else {
+						in->variantType = tags.extraObjectType;
+						parent =
+						    yaffs_FindOrCreateObjectByNumber
+					    		(dev, tags.extraParentObjectId,
+					     		 YAFFS_OBJECT_TYPE_DIRECTORY);
+						 fileSize = tags.extraFileLength;
+						 isShrink = tags.extraIsShrinkHeader;
+						 equivalentObjectId = tags.extraEquivalentObjectId;
+						in->lazyLoaded = 1;
+
+					}
 					in->dirty = 0;
 
 					/* directory stuff...
 					 * hook up to parent
 					 */
 
-					parent =
-					    yaffs_FindOrCreateObjectByNumber
-					    (dev, oh->parentObjectId,
-					     YAFFS_OBJECT_TYPE_DIRECTORY);
 					if (parent->variantType ==
 					    YAFFS_OBJECT_TYPE_UNKNOWN) {
 						/* Set up as a directory */
@@ -4852,7 +4923,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					itsUnlinked = (parent == dev->deletedDir) ||
 						      (parent == dev->unlinkedDir);
 
-					if (oh->isShrink) {
+					if (isShrink) {
 						/* Mark the block as having a shrinkHeader */
 						bi->hasShrinkHeader = 1;
 					}
@@ -4871,31 +4942,27 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					case YAFFS_OBJECT_TYPE_FILE:
 
 						if (in->variant.fileVariant.
-						    scannedFileSize <
-						    oh->fileSize) {
+						    scannedFileSize < fileSize) {
 							/* This covers the case where the file size is greater
 							 * than where the data is
 							 * This will happen if the file is resized to be larger 
 							 * than its current data extents.
 							 */
-							in->variant.fileVariant.fileSize =
-							    oh->fileSize;
+							in->variant.fileVariant.fileSize = fileSize;
 							in->variant.fileVariant.scannedFileSize =
 							    in->variant.fileVariant.fileSize;
 						}
 
-						if (oh->isShrink &&
-						    in->variant.fileVariant.shrinkSize > 
-						    oh->fileSize) {
-							in->variant.fileVariant.shrinkSize =
-							    oh->fileSize;
+						if (isShrink &&
+						    in->variant.fileVariant.shrinkSize > fileSize) {
+							in->variant.fileVariant.shrinkSize = fileSize;
 						}
 
 						break;
 					case YAFFS_OBJECT_TYPE_HARDLINK:
 						if(!itsUnlinked) {
 						  in->variant.hardLinkVariant.equivalentObjectId =
-						    oh->equivalentObjectId;
+						    equivalentObjectId;
 						  in->hardLinks.next =
 						    (struct list_head *) hardList;
 						  hardList = in;
@@ -4908,8 +4975,8 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 						/* Do nothing */
 						break;
 					case YAFFS_OBJECT_TYPE_SYMLINK:
-						in->variant.symLinkVariant.
-						    alias =
+						if(oh)
+						   in->variant.symLinkVariant.alias =
 						    yaffs_CloneString(oh->
 								      alias);
 						break;
@@ -5087,6 +5154,8 @@ yaffs_Object *yaffs_FindObjectByName(yaffs_Object * directory,
 	list_for_each(i, &directory->variant.directoryVariant.children) {
 		if (i) {
 			l = list_entry(i, yaffs_Object, siblings);
+			
+			yaffs_CheckObjectDetailsLoaded(l);
 
 			/* Special case for lost-n-found */
 			if (l->objectId == YAFFS_OBJECTID_LOSTNFOUND) {
@@ -5164,6 +5233,8 @@ yaffs_Object *yaffs_GetEquivalentObject(yaffs_Object * obj)
 int yaffs_GetObjectName(yaffs_Object * obj, YCHAR * name, int buffSize)
 {
 	memset(name, 0, buffSize * sizeof(YCHAR));
+	
+	yaffs_CheckObjectDetailsLoaded(obj);
 
 	if (obj->objectId == YAFFS_OBJECTID_LOSTNFOUND) {
 		yaffs_strncpy(name, YAFFS_LOSTNFOUND_NAME, buffSize - 1);

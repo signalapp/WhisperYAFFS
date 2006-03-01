@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.8 2006-02-08 22:38:24 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.9 2006-03-01 08:18:09 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -999,13 +999,14 @@ int yaffs_fchmod(int fd, mode_t mode)
 int yaffs_mkdir(const char *path, mode_t mode)
 {
 	yaffs_Object *parent = NULL;
-	yaffs_Object *dir;
+	yaffs_Object *dir = NULL;
 	char *name;
 	int retVal= -1;
 	
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,path,&name,0);
-	dir = yaffs_MknodDirectory(parent,name,mode,0,0);
+	if(parent)
+		dir = yaffs_MknodDirectory(parent,name,mode,0,0);
 	if(dir)
 	{
 		retVal = 0;

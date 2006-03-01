@@ -5,6 +5,7 @@
 config YAFFS_FS
 	tristate "YAFFS2 file system support"
 	default n
+	depends on MTD
 	select YAFFS_YAFFS1
 	select YAFFS_YAFFS2
 	help
@@ -68,6 +69,26 @@ config YAFFS_AUTO_YAFFS2
           will be used depending on the device page size.
 
 	  If unsure, say Y.
+
+config YAFFS_DISABLE_LAZY_LOAD
+	bool "Disable lazy loading"
+	depends on YAFFS_YAFFS2
+	default n
+	help
+	  "Lazy loading" defers loading file details until they are
+	  required. This saves mount time, but makes the first look-up
+	  a bit longer.
+
+	  Lazy loading will only happen if enabled by this option being 'n'
+	  and if the appropriate tags are available, else yaffs2 will
+	  automatically fall back to immediate loading and do the right
+	  thing.
+
+	  Lazy laoding will be required by checkpointing.
+
+	  Setting this to 'y' will disable lazy loading.
+
+	  If unsure, say N.
 
 config YAFFS_DISABLE_WIDE_TNODES
 	bool "Turn off wide tnodes"

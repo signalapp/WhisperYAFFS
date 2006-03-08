@@ -248,6 +248,35 @@ void yaffs_backward_scan_test(const char *path)
 	yaffs_mount(path);
 }
 
+char xxzz[2000];
+
+
+void yaffs_device_flush_test(const char *path)
+{
+	char fn[100];
+	int h;
+	int i;
+	
+	yaffs_StartUp();	
+	
+	yaffs_mount(path);
+	
+	do_some_file_stuff(path);
+	
+	// Open and add some data to a few files
+	for(i = 0; i < 10; i++) {
+	
+		sprintf(fn,"%s/ff%d",path,i);
+
+		h = yaffs_open(fn, O_CREAT | O_RDWR | O_TRUNC, S_IWRITE | S_IREAD);
+		yaffs_write(h,xxzz,2000);
+		yaffs_write(h,xxzz,2000);
+	}
+	yaffs_unmount(path);
+	
+	yaffs_mount(path);
+}
+
 
 
 void short_scan_test(const char *path, int fsize, int niterations)
@@ -1658,7 +1687,9 @@ int main(int argc, char *argv[])
 	
 	//huge_directory_test_on_path("/ram2k");
 	
-	 //yaffs_backward_scan_test("/flash")	;
+	 //yaffs_backward_scan_test("/flash/flash");
+	 yaffs_device_flush_test("/flash/flash");
+
 	 
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash",40000,200);
@@ -1672,7 +1703,7 @@ int main(int argc, char *argv[])
 	//lookup_test("/flash");
 	//freespace_test("/flash/flash");
 	
-	link_test("/flash/flash");
+	//link_test("/flash/flash");
 	
 	
 	

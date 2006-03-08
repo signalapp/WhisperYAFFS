@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.30 2006-03-01 08:14:32 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.31 2006-03-08 07:59:20 charles Exp $";
 
 #include "yportenv.h"
 
@@ -3036,6 +3036,36 @@ static void yaffs_FlushFilesChunkCache(yaffs_Object * obj)
 	}
 
 }
+
+/*yaffs_FlushEntireDeviceCache(dev)
+ *
+ *
+ */
+
+void yaffs_FlushEntireDeviceCache(yaffs_Device *dev)
+{
+	yaffs_Object *obj;
+	int nCaches = dev->nShortOpCaches;
+	int i;
+	
+	/* Find a dirty object in the cache and flush it...
+	 * until there are no further dirty objects.
+	 */
+	do {
+		obj = NULL;
+		for( i = 0; i < nCaches && !obj; i++) {
+			if (dev->srCache[i].object &&
+			    dev->srCache[i].dirty)
+				obj = dev->srCache[i].object;
+			    
+		}
+		if(obj)
+			yaffs_FlushFilesChunkCache(obj);
+			
+	} while(obj);
+	
+}
+
 
 /* Grab us a cache chunk for use.
  * First look for an empty one. 

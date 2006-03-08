@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.42 2006-02-08 07:52:51 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.43 2006-03-08 07:59:20 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1278,6 +1278,9 @@ static void yaffs_put_super(struct super_block *sb)
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
 
 	yaffs_GrossLock(dev);
+	
+	yaffs_FlushEntireDeviceCache(dev);
+	
 	if (dev->putSuperFunc) {
 		dev->putSuperFunc(sb);
 	}

@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.19 2006-03-01 08:15:45 charles Exp $
+ * $Id: yaffs_guts.h,v 1.20 2006-03-08 07:59:20 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -674,6 +674,8 @@ static Y_INLINE yaffs_BlockInfo *yaffs_GetBlockInfo(yaffs_Device * dev, int blk)
 
 int yaffs_GutsInitialise(yaffs_Device * dev);
 void yaffs_Deinitialise(yaffs_Device * dev);
+
+void yaffs_FlushEntireDeviceCache(yaffs_Device *dev);
 
 int yaffs_GetNumberOfFreeChunks(yaffs_Device * dev);
 

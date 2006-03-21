@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.43 2006-03-08 07:59:20 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.44 2006-03-21 20:31:08 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1289,6 +1289,11 @@ static void yaffs_put_super(struct super_block *sb)
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
 	list_del(&dev->devList);
+	
+	if(dev->spareBuffer){
+		YFREE(dev->spareBuffer);
+		dev->spareBuffer = NULL;
+	}
 
 	kfree(dev);
 }

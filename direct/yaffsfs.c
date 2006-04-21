@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.10 2006-03-08 07:59:20 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.11 2006-04-21 20:24:35 colin Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1411,7 +1411,7 @@ int yaffs_link(const char *oldpath, const char *newpath)
 	// Creates a link called newpath to existing oldpath
 	yaffs_Object *obj = NULL;
 	yaffs_Object *target = NULL;
-	int retVal;
+	int retVal = 0;
 
 		
 	yaffsfs_Lock();

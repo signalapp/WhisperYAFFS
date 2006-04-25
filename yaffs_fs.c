@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.44 2006-03-21 20:31:08 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.45 2006-04-25 00:41:43 wookey Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1413,7 +1413,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		if (mtd->oobblock < YAFFS_MIN_YAFFS2_CHUNK_SIZE ||
 		    mtd->oobsize < YAFFS_MIN_YAFFS2_SPARE_SIZE) {
 			T(YAFFS_TRACE_ALWAYS,
-			  ("yaffs: MTD device does not support have the "
+			  ("yaffs: MTD device does not have the "
 			   "right page sizes\n"));
 			return NULL;
 		}
@@ -1908,5 +1908,5 @@ module_init(init_yaffs_fs)
 module_exit(exit_yaffs_fs)
 
 MODULE_DESCRIPTION("YAFFS2 - a NAND specific flash file system");
-MODULE_AUTHOR("Charles Manning, Aleph One Ltd., 2002,2003,2004");
+MODULE_AUTHOR("Charles Manning, Aleph One Ltd., 2002-2006");
 MODULE_LICENSE("GPL");

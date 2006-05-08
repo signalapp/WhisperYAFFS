@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.20 2006-03-08 07:59:20 charles Exp $
+ * $Id: yaffs_guts.h,v 1.21 2006-05-08 10:13:34 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -64,7 +64,10 @@
 
 #define YAFFS_NOBJECT_BUCKETS		256
 
+
 #define YAFFS_OBJECT_SPACE		0x40000
+
+#define YAFFS_NCHECKPOINT_OBJECTS	5000
 
 #ifdef CONFIG_YAFFS_UNICODE
 #define YAFFS_MAX_NAME_LENGTH		127
@@ -76,11 +79,17 @@
 
 #define YAFFS_SHORT_NAME_LENGTH		15
 
-/* Some special object ids */
+/* Some special object ids for pseudo objects */
 #define YAFFS_OBJECTID_ROOT		1
 #define YAFFS_OBJECTID_LOSTNFOUND	2
 #define YAFFS_OBJECTID_UNLINKED		3
 #define YAFFS_OBJECTID_DELETED		4
+
+/* Sseudo object ids for checkpointing */
+#define YAFFS_OBJECTID_SB_HEADER	0x10
+#define YAFFS_OBJECTID_CHECKPOINT_DATA	0x20
+
+/* */
 
 #define YAFFS_MAX_SHORT_OP_CACHES	20
 
@@ -463,6 +472,31 @@ typedef struct {
 	int count;
 } yaffs_ObjectBucket;
 
+
+/* yaffs_CheckpointObject holds the definition of an object as dumped 
+ * by checkpointing.
+ */
+
+typedef struct {
+        int structType;
+	__u32 objectId;		
+	__u32 parentId;
+	int chunkId;
+			
+	yaffs_ObjectType variantType:3;
+	__u8 deleted:1;		
+	__u8 softDeleted:1;	
+	__u8 unlinked:1;	
+	__u8 fake:1;		
+	__u8 renameAllowed:1;
+	__u8 unlinkAllowed:1;
+	__u8 serial;		
+	
+	int nDataChunks;	
+	__u32 fileSizeOrEquivalentObjectId;
+
+}yaffs_CheckpointObject;
+
 /*--------------------- Temporary buffers ----------------
  *
  * These are chunk-sized working buffers. Each device has a few
@@ -488,6 +522,13 @@ struct yaffs_DeviceStruct {
 	int endBlock;		/* End block we're allowed to use */
 	int nReservedBlocks;	/* We want this tuneable so that we can reduce */
 				/* reserved blocks on NOR and RAM. */
+	/* Stuff used by checkpointing */
+	int headerBlock;
+	int checkpointStartBlock;
+	int checkpointEndBlock;
+
+	
+
 
 	int nShortOpCaches;	/* If <= 0, then short op caching is disabled, else
 				 * the number of short op caches (don't use too many)
@@ -558,13 +599,24 @@ struct yaffs_DeviceStruct {
 #endif
 
 	int isMounted;
+	
+	int isCheckpointed;
 
 	/* Stuff to support block offsetting to support start block zero */
 	int internalStartBlock;
 	int internalEndBlock;
 	int blockOffset;
 	int chunkOffset;
+	
 
+	/* Runtime checkpointing stuff */
+	int checkpointBlock;
+	int checkpointPage;
+	int checkpointByteCount;
+	int checkpointByteOffset;
+	__u8 *checkpointBuffer;
+	int checkpointOpenForWrite;
+	
 	/* Block Info */
 	yaffs_BlockInfo *blockInfo;
 	__u8 *chunkBits;	/* bitmap of chunks in use */
@@ -657,6 +709,45 @@ struct yaffs_DeviceStruct {
 
 typedef struct yaffs_DeviceStruct yaffs_Device;
 
+/* The static layout of bllock usage etc is stored in the super block header */
+typedef struct {
+        int StructType;
+	int version;
+	int checkpointStartBlock;
+	int checkpointEndBlock;
+	int startBlock;
+	int endBlock;
+	int rfu[100];
+} yaffs_SuperBlockHeader;
+	
+/* The CheckpointDevice structure holds the device information that changes at runtime and
+ * must be preserved over unmount/mount cycles.
+ */
+typedef struct {
+        int structType;
+	int nErasedBlocks;
+	int allocationBlock;	/* Current block being allocated off */
+	__u32 allocationPage;
+	int nFreeChunks;
+
+	int nDeletedFiles;		/* Count of files awaiting deletion;*/
+	int nUnlinkedFiles;		/* Count of unlinked files. */
+	int nBackgroundDeletions;	/* Count of background deletions. */
+
+	/* yaffs2 runtime stuff */
+	unsigned sequenceNumber;	/* Sequence number of currently allocating block */
+	unsigned oldestDirtySequence;
+
+} yaffs_CheckpointDevice;
+
+
+typedef struct {
+    int structType;
+    __u32 magic;
+    __u32 version;
+    __u32 head;
+} yaffs_CheckpointValidity;
+
 /* Function to manipulate block info */
 static Y_INLINE yaffs_BlockInfo *yaffs_GetBlockInfo(yaffs_Device * dev, int blk)
 {
@@ -674,8 +765,6 @@ static Y_INLINE yaffs_BlockInfo *yaffs_GetBlockInfo(yaffs_Device * dev, int blk)
 
 int yaffs_GutsInitialise(yaffs_Device * dev);
 void yaffs_Deinitialise(yaffs_Device * dev);
-
-void yaffs_FlushEntireDeviceCache(yaffs_Device *dev);
 
 int yaffs_GetNumberOfFreeChunks(yaffs_Device * dev);
 
@@ -704,6 +793,12 @@ int yaffs_ResizeFile(yaffs_Object * obj, int newSize);
 yaffs_Object *yaffs_MknodFile(yaffs_Object * parent, const YCHAR * name,
 			      __u32 mode, __u32 uid, __u32 gid);
 int yaffs_FlushFile(yaffs_Object * obj, int updateTime);
+
+/* Flushing and checkpointing */
+void yaffs_FlushEntireDeviceCache(yaffs_Device *dev);
+
+int yaffs_CheckpointSave(yaffs_Device *dev);
+int yaffs_CheckpointRestore(yaffs_Device *dev);
 
 /* Directory operations */
 yaffs_Object *yaffs_MknodDirectory(yaffs_Object * parent, const YCHAR * name,

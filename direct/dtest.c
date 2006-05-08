@@ -496,7 +496,7 @@ void dumpDirFollow(const char *dname)
 }
 
 
-void dumpDir(const char *dname)
+void dump_directory_tree_worker(const char *dname,int recursive)
 {
 	yaffs_DIR *d;
 	yaffs_dirent *de;
@@ -517,7 +517,7 @@ void dumpDir(const char *dname)
 			
 			yaffs_lstat(str,&s);
 			
-			printf("%s length %d mode %X ",de->d_name,(int)s.st_size,s.st_mode);
+			printf("%s length %d mode %X ",str,(int)s.st_size,s.st_mode);
 			switch(s.st_mode & S_IFMT)
 			{
 				case S_IFREG: printf("data file"); break;
@@ -531,15 +531,29 @@ void dumpDir(const char *dname)
 				default: printf("unknown"); break;
 			}
 			
-			printf("\n");           
+			printf("\n");
+
+			if((s.st_mode & S_IFMT) == S_IFDIR && recursive)
+				dump_directory_tree_worker(str,1);
+							
 		}
 		
 		yaffs_closedir(d);
 	}
-	printf("\n");
-	
-	printf("Free space in %s is %d\n\n",dname,(int)yaffs_freespace(dname));
 
+}
+
+static void dump_directory_tree(const char *dname)
+{
+	dump_directory_tree_worker(dname,1);
+	printf("\n");
+	printf("Free space in %s is %d\n\n",dname,(int)yaffs_freespace(dname));
+}
+
+void dumpDir(const char *dname)
+{	dump_directory_tree_worker(dname,0);
+	printf("\n");
+	printf("Free space in %s is %d\n\n",dname,(int)yaffs_freespace(dname));
 }
 
 
@@ -1582,18 +1596,18 @@ void write_10k(int h)
 void write_200k_file(const char *fn, const char *fdel, const char *fdel1)
 {
    int h1;
-   int h2;
    int i;
+   int offs;
    
    h1 = yaffs_open(fn, O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
    
    for(i = 0; i < 100000; i+= 10000)
    {
    	write_10k(h1);
-   	write_10k(h2);
    }
    
-   if(yaffs_lseek(h1,0,SEEK_SET) != 1000000)
+   offs = yaffs_lseek(h1,0,SEEK_CUR);
+   if( offs != 100000)
    {
    	printf("Could not write file\n");
    }
@@ -1602,18 +1616,16 @@ void write_200k_file(const char *fn, const char *fdel, const char *fdel1)
    for(i = 0; i < 100000; i+= 10000)
    {
    	write_10k(h1);
-   	write_10k(h2);
    }
    
-   if(yaffs_lseek(h1,0,SEEK_SET) != 2000000)
+   offs = yaffs_lseek(h1,0,SEEK_CUR);
+   if( offs != 200000)
    {
    	printf("Could not write file\n");
    }
    
    yaffs_close(h1);
-   yaffs_close(h2);
    yaffs_unlink(fdel1);
-   
    
 }
 
@@ -1624,17 +1636,21 @@ void verify_200k_file(const char *fn)
    int i;
    char x[11];
    const char *s="0123456789";
+   int errCount = 0;
    
    h1 = yaffs_open(fn, O_RDONLY, 0);
    
-   for(i = 0; i < 200000; i+= 10)
+   for(i = 0; i < 200000 && errCount < 10; i+= 10)
    {
    	yaffs_read(h1,x,10);
 	if(strncmp(x,s,10) != 0)
 	{
-		printf("File verification failed at %d\n",i);
+		printf("File %s verification failed at %d\n",fn,i);
+		errCount++;
 	}
    }
+   if(errCount >= 10)
+   	printf("Too many errors... aborted\n");
       
    yaffs_close(h1);	   
 	
@@ -1677,6 +1693,44 @@ void check_resize_gc_bug(const char *mountpt)
 }
 
 
+void multi_mount_test(const char *mountpt,int nmounts)
+{
+
+	char a[30];
+	char b[30];
+	char c[30];
+	
+	int i;
+	int j;
+	
+	sprintf(a,"%s/a",mountpt);
+	
+
+	
+	
+	yaffs_StartUp();
+	
+	for(i = 0; i < nmounts; i++){
+		printf("############### Iteration %d   Start\n",i);
+		yaffs_mount(mountpt);
+		dump_directory_tree(mountpt);
+		yaffs_mkdir(a,0);
+		for(j = 0; j < i; j++){
+			sprintf(b,"%s/%d",a,j);
+			verify_200k_file(b);
+		}
+		sprintf(b,"%s/%d",a,i);
+
+		write_200k_file(b,"","");
+		
+		printf("######## Iteration %d   Start\n",i);
+		dump_directory_tree(mountpt);
+		
+		yaffs_unmount(mountpt);
+	}
+}
+
+
 int main(int argc, char *argv[])
 {
 	//return long_test(argc,argv);
@@ -1688,11 +1742,13 @@ int main(int argc, char *argv[])
 	//huge_directory_test_on_path("/ram2k");
 	
 	 //yaffs_backward_scan_test("/flash/flash");
-	 yaffs_device_flush_test("/flash/flash");
+	// yaffs_device_flush_test("/flash/flash");
 
 	 
 	 //scan_pattern_test("/flash",10000,10);
-	//short_scan_test("/flash",40000,200);
+	//short_scan_test("/flash/flash",40000,200);
+	 multi_mount_test("/flash/flash",20);
+
 
 	
 	//long_test_on_path("/ram2k");

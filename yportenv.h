@@ -15,7 +15,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yportenv.h,v 1.9 2005-10-07 02:46:50 charles Exp $
+ * $Id: yportenv.h,v 1.10 2006-05-08 10:13:34 charles Exp $
  *
  */
 
@@ -148,6 +148,7 @@ extern unsigned yaffs_traceMask;
 #define YAFFS_TRACE_GC_DETAIL		0x00001000
 #define YAFFS_TRACE_SCAN_DEBUG		0x00002000
 #define YAFFS_TRACE_MTD			0x00004000
+#define YAFFS_TRACE_CHECKPOINT		0x00008000
 #define YAFFS_TRACE_ALWAYS		0x40000000
 #define YAFFS_TRACE_BUG			0x80000000
 

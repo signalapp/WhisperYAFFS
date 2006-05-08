@@ -125,7 +125,9 @@ int yaffs_StartUp(void)
 	flashDev.nBytesPerChunk = 2048;
 	flashDev.nChunksPerBlock = 64;
 	flashDev.nReservedBlocks = 5;
-	flashDev.startBlock = 0; 
+	flashDev.checkpointStartBlock = 1;
+	flashDev.checkpointEndBlock = 20;
+	flashDev.startBlock = 21; 
 	//flashDev.endBlock = 127; // Last block in 16MB
 	flashDev.endBlock = yflash_GetNumberOfBlocks()-1;
 	flashDev.isYaffs2 = 1;

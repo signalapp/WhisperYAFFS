@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.11 2006-04-21 20:24:35 colin Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.12 2006-05-08 10:13:35 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1078,6 +1078,7 @@ int yaffs_unmount(const char *path)
 			int inUse;
 			
 			yaffs_FlushEntireDeviceCache(dev);
+			yaffs_CheckpointSave(dev);
 			
 			for(i = inUse = 0; i < YAFFSFS_N_HANDLES && !inUse; i++)
 			{

@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.45 2006-04-25 00:41:43 wookey Exp $";
+    "$Id: yaffs_fs.c,v 1.46 2006-05-08 10:13:34 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -73,7 +73,10 @@ extern const char *yaffs_guts_c_version;
 #include "yportenv.h"
 #include "yaffs_guts.h"
 
-unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | YAFFS_TRACE_BAD_BLOCKS /* | 0xFFFFFFFF */; 
+unsigned yaffs_traceMask = YAFFS_TRACE_ALWAYS | 
+			   YAFFS_TRACE_BAD_BLOCKS | 
+			   YAFFS_TRACE_CHECKPOINT
+			   /* | 0xFFFFFFFF */; 
 
 #include <linux/mtd/mtd.h>
 #include "yaffs_mtdif.h"
@@ -1284,7 +1287,10 @@ static void yaffs_put_super(struct super_block *sb)
 	if (dev->putSuperFunc) {
 		dev->putSuperFunc(sb);
 	}
+	
+	yaffs_CheckpointSave(dev);
 	yaffs_Deinitialise(dev);
+	
 	yaffs_GrossUnlock(dev);
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
@@ -1484,7 +1490,9 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		dev->nBytesPerChunk = mtd->oobblock;
 		dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
 		nBlocks = mtd->size / mtd->erasesize;
-		dev->startBlock = 0;
+		dev->checkpointStartBlock = 0;
+		dev->checkpointEndBlock = 20;
+		dev->startBlock = dev->checkpointEndBlock + 1;
 		dev->endBlock = nBlocks - 1;
 	} else {
 		dev->writeChunkToNAND = nandmtd_WriteChunkToNAND;

@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.46 2006-05-08 10:13:34 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.47 2006-05-17 09:36:06 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -132,6 +132,9 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 			struct inode *new_dir, struct dentry *new_dentry);
 static int yaffs_setattr(struct dentry *dentry, struct iattr *attr);
 
+static int yaffs_sync_fs(struct super_block *sb);
+static int yaffs_write_super(struct super_block *sb);
+
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_statfs(struct super_block *sb, struct kstatfs *buf);
 #else
@@ -217,6 +220,8 @@ static struct super_operations yaffs_super_ops = {
 	.put_super = yaffs_put_super,
 	.delete_inode = yaffs_delete_inode,
 	.clear_inode = yaffs_clear_inode,
+	.sync_fs = yaffs_sync_fs,
+	.write_super = yaffs_write_super,
 };
 
 static void yaffs_GrossLock(yaffs_Device * dev)
@@ -1252,6 +1257,47 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 	return 0;
 }
 
+
+
+static int yaffs_do_sync_fs(struct super_block *sb)
+{
+
+	yaffs_Device *dev = yaffs_SuperToDevice(sb);
+	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_do_sync_fs\n"));
+
+	if(sb->s_dirt) {
+		yaffs_GrossLock(dev);
+
+		if(dev)
+			yaffs_CheckpointSave(dev);
+		
+		yaffs_GrossUnlock(dev);
+
+		sb->s_dirt = 0;
+	}
+	return 0;
+}
+
+
+static int yaffs_write_super(struct super_block *sb)
+{
+
+	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_write_super\n"));
+	return 0; /* yaffs_do_sync_fs(sb);*/
+	
+}
+
+
+static int yaffs_sync_fs(struct super_block *sb)
+{
+
+	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_sync_fs\n"));
+	
+	return 0; /* yaffs_do_sync_fs(sb);*/
+	
+}
+
+
 static void yaffs_read_inode(struct inode *inode)
 {
 	/* NB This is called as a side effect of other functions, but
@@ -1279,6 +1325,8 @@ static LIST_HEAD(yaffs_dev_list);
 static void yaffs_put_super(struct super_block *sb)
 {
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
+
+	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_put_super\n"));
 
 	yaffs_GrossLock(dev);
 	
@@ -1317,6 +1365,15 @@ static void yaffs_MTDPutSuper(struct super_block *sb)
 	put_mtd_device(mtd);
 }
 
+
+static void yaffs_MarkSuperBlockDirty(void *vsb)
+{
+	struct super_block *sb = (struct super_block *)vsb;
+	
+	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_MarkSuperBlockDirty() sb = %p\n",sb));
+//	if(sb)
+//		sb->s_dirt = 1;
+}
 
 static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 						     struct super_block *sb,
@@ -1490,9 +1547,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		dev->nBytesPerChunk = mtd->oobblock;
 		dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
 		nBlocks = mtd->size / mtd->erasesize;
-		dev->checkpointStartBlock = 0;
-		dev->checkpointEndBlock = 20;
-		dev->startBlock = dev->checkpointEndBlock + 1;
+		dev->startBlock = 0;
 		dev->endBlock = nBlocks - 1;
 	} else {
 		dev->writeChunkToNAND = nandmtd_WriteChunkToNAND;
@@ -1504,6 +1559,10 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	dev->initialiseNAND = nandmtd_InitialiseNAND;
 
 	dev->putSuperFunc = yaffs_MTDPutSuper;
+	
+	dev->superBlock = (void *)sb;
+	dev->markSuperBlockDirty = yaffs_MarkSuperBlockDirty;
+	
 
 #ifndef CONFIG_YAFFS_DOES_ECC
 	dev->useNANDECC = 1;

@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.21 2006-05-08 10:13:34 charles Exp $
+ * $Id: yaffs_guts.h,v 1.22 2006-05-17 09:31:06 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -88,6 +88,7 @@
 /* Sseudo object ids for checkpointing */
 #define YAFFS_OBJECTID_SB_HEADER	0x10
 #define YAFFS_OBJECTID_CHECKPOINT_DATA	0x20
+#define YAFFS_SEQUENCE_CHECKPOINT_DATA  0x21
 
 /* */
 
@@ -240,18 +241,22 @@ typedef enum {
 
 	YAFFS_BLOCK_STATE_ALLOCATING,
 	/* This block is partially allocated. 
+	 * At least one page holds valid data.
 	 * This is the one currently being used for page
 	 * allocation. Should never be more than one of these
 	 */
 
 	YAFFS_BLOCK_STATE_FULL,	
 	/* All the pages in this block have been allocated.
-	 * At least one page holds valid data.
 	 */
 
 	YAFFS_BLOCK_STATE_DIRTY,
 	/* All pages have been allocated and deleted. 
 	 * Erase me, reuse me.
+	 */
+
+	YAFFS_BLOCK_STATE_CHECKPOINT,	
+	/* This block is assigned to holding checkpoint data.
 	 */
 
 	YAFFS_BLOCK_STATE_COLLECTING,	
@@ -522,10 +527,15 @@ struct yaffs_DeviceStruct {
 	int endBlock;		/* End block we're allowed to use */
 	int nReservedBlocks;	/* We want this tuneable so that we can reduce */
 				/* reserved blocks on NOR and RAM. */
-	/* Stuff used by checkpointing */
-	int headerBlock;
+	
+	/* Stuff used by the partitioned checkpointing mechanism */
 	int checkpointStartBlock;
 	int checkpointEndBlock;
+	
+	/* Stuff used by the shared space checkpointing mechanism */
+	/* If this value is zero, then this mechanism is disabled */
+	
+	int nCheckpointReservedBlocks; /* Blocks to reserve for checkpoint data */
 
 	
 
@@ -541,6 +551,8 @@ struct yaffs_DeviceStruct {
 	void *genericDevice;	/* Pointer to device context
 				 * On an mtd this holds the mtd pointer.
 				 */
+        void *superBlock;
+        
 	/* NAND access functions (Must be set before calling YAFFS)*/
 
 	int (*writeChunkToNAND) (struct yaffs_DeviceStruct * dev,
@@ -572,6 +584,9 @@ struct yaffs_DeviceStruct {
 	 * it to implement the faster readdir
 	 */
 	void (*removeObjectCallback)(struct yaffs_ObjectStruct *obj);
+	
+	/* Callback to mark the superblock dirsty */
+	void (*markSuperBlockDirty)(void * superblock);
 	
 	int wideTnodesDisabled; /* Set to disable wide tnodes */
 	
@@ -610,12 +625,17 @@ struct yaffs_DeviceStruct {
 	
 
 	/* Runtime checkpointing stuff */
-	int checkpointBlock;
-	int checkpointPage;
+	int checkpointPageSequence;   /* running sequence number of checkpoint pages */
 	int checkpointByteCount;
 	int checkpointByteOffset;
 	__u8 *checkpointBuffer;
 	int checkpointOpenForWrite;
+	int blocksInCheckpoint;
+	int checkpointCurrentChunk;
+	int checkpointCurrentBlock;
+	int checkpointNextBlock;
+	int *checkpointBlockList;
+	int checkpointMaxBlocks;
 	
 	/* Block Info */
 	yaffs_BlockInfo *blockInfo;

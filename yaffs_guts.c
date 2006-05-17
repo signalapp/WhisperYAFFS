@@ -1,5 +1,5 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
+ * YAFFS: Yet another FFS. A NAND-flash specific file system.
  *
  * Copyright (C) 2002 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.32 2006-05-08 10:13:34 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.33 2006-05-17 09:20:26 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1900,9 +1900,17 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 
 		bi = yaffs_GetBlockInfo(dev, b);
 
+#if 0
+		if (bi->blockState == YAFFS_BLOCK_STATE_CHECKPOINT) {
+			dirtiest = b;
+			pagesInUse = 0;
+		}
+		else 
+#endif
+
 		if (bi->blockState == YAFFS_BLOCK_STATE_FULL &&
-		    (bi->pagesInUse - bi->softDeletions) < pagesInUse &&
-		    yaffs_BlockNotDisqualifiedFromGC(dev, bi)) {
+		      (bi->pagesInUse - bi->softDeletions) < pagesInUse &&
+		        yaffs_BlockNotDisqualifiedFromGC(dev, bi)) {
 			dirtiest = b;
 			pagesInUse = (bi->pagesInUse - bi->softDeletions);
 		}
@@ -2028,10 +2036,20 @@ static int yaffs_FindBlockForAllocation(yaffs_Device * dev)
 }
 
 
-
+// Check if there's space to allocate...
+// Thinks.... do we need top make this ths same as yaffs_GetFreeChunks()?
 static int yaffs_CheckSpaceForAllocation(yaffs_Device * dev)
 {
-	int reservedChunks = (dev->nReservedBlocks * dev->nChunksPerBlock);
+	int reservedChunks;
+	int reservedBlocks = dev->nReservedBlocks;
+	int checkpointBlocks;
+	
+	checkpointBlocks =  dev->nCheckpointReservedBlocks - dev->blocksInCheckpoint;
+	if(checkpointBlocks < 0)
+		checkpointBlocks = 0;
+	
+	reservedChunks = ((reservedBlocks + checkpointBlocks) * dev->nChunksPerBlock);
+	
 	return (dev->nFreeChunks > reservedChunks);
 }
 
@@ -2108,6 +2126,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 	int retVal = YAFFS_OK;
 	int cleanups = 0;
 	int i;
+	int isCheckpointBlock;
 
 	int chunksBefore = yaffs_GetErasedChunks(dev);
 	int chunksAfter;
@@ -2118,6 +2137,8 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 
 	yaffs_Object *object;
 
+	isCheckpointBlock = (bi->blockState == YAFFS_BLOCK_STATE_CHECKPOINT);
+	
 	bi->blockState = YAFFS_BLOCK_STATE_COLLECTING;
 
 	T(YAFFS_TRACE_TRACING,
@@ -2135,7 +2156,8 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 
 	dev->isDoingGC = 1;
 
-	if (!yaffs_StillSomeChunkBits(dev, block)) {
+	if (isCheckpointBlock ||
+	    !yaffs_StillSomeChunkBits(dev, block)) {
 		T(YAFFS_TRACE_TRACING,
 		  (TSTR
 		   ("Collecting block %d that has no chunks in use" TENDSTR),
@@ -3387,7 +3409,7 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object * in, yaffs_Tnode * tn,
 static int yaffs_WriteCheckpointTnodes(yaffs_Object *obj)
 {
 	__u32 endMarker = ~0;
-	int ok;
+	int ok = 1;
 	
 	if(obj->variantType == YAFFS_OBJECT_TYPE_FILE){
 		ok = yaffs_CheckpointTnodeWorker(obj,
@@ -3539,10 +3561,10 @@ static int yaffs_WriteCheckpointData(yaffs_Device *dev)
 		
 	yaffs_CheckpointClose(dev);
 		
-	if(ok)
+//	if(dev->checkpointBytes)
 	    	dev->isCheckpointed = 1;
-	 else 
-	 	dev->isCheckpointed = 0;
+//	 else 
+	 	//dev->isCheckpointed = 0;
 
 	return dev->isCheckpointed;
 }
@@ -3562,13 +3584,14 @@ static int yaffs_ReadCheckpointData(yaffs_Device *dev)
 	if(ok)
 		ok = yaffs_ReadCheckpointValidityMarker(dev,0);
 		
-		
-	if(ok)
-	    	dev->isCheckpointed = 1;
-	 else 
-	 	dev->isCheckpointed = 0;
+
 
 	yaffs_CheckpointClose(dev);
+
+//	if(ok)
+	    	dev->isCheckpointed = 1;
+//	 else 
+//	 	dev->isCheckpointed = 0;
 
 	return ok ? 1 : 0;
 
@@ -3579,6 +3602,8 @@ static void yaffs_InvalidateCheckpoint(yaffs_Device *dev)
 	if(dev->isCheckpointed){
 		dev->isCheckpointed = 0;
 		yaffs_CheckpointInvalidateStream(dev);
+		if(dev->superBlock && dev->markSuperBlockDirty)
+			dev->markSuperBlockDirty(dev->superBlock);
 	}
 }
 
@@ -3782,6 +3807,7 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, __u32 offset,
 				yaffs_ChunkCache *cache;
 				/* If we can't find the data in the cache, then load the cache */
 				cache = yaffs_FindChunkCache(in, chunk);
+				
 				if (!cache
 				    && yaffs_CheckSpaceForAllocation(in->
 								     myDev)) {
@@ -3793,6 +3819,14 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, __u32 offset,
 					yaffs_ReadChunkDataFromObject(in, chunk,
 								      cache->
 								      data);
+				}
+				else if(cache && 
+				        !cache->dirty &&
+					!yaffs_CheckSpaceForAllocation(in->myDev)){
+					/* Drop the cache if it was a read cache item and
+					 * no space check has been made for it.
+					 */ 
+					 cache = NULL;
 				}
 
 				if (cache) {
@@ -4925,11 +4959,18 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 		bi->blockState = state;
 		bi->sequenceNumber = sequenceNumber;
 
+		if(bi->sequenceNumber == YAFFS_SEQUENCE_CHECKPOINT_DATA)
+			bi->blockState = state = YAFFS_BLOCK_STATE_CHECKPOINT;
+			
 		T(YAFFS_TRACE_SCAN_DEBUG,
 		  (TSTR("Block scanning block %d state %d seq %d" TENDSTR), blk,
 		   state, sequenceNumber));
 
-		if (state == YAFFS_BLOCK_STATE_DEAD) {
+		
+		if(state == YAFFS_BLOCK_STATE_CHECKPOINT){
+			/* todo .. fix free space ? */
+			
+		} else if (state == YAFFS_BLOCK_STATE_DEAD) {
 			T(YAFFS_TRACE_BAD_BLOCKS,
 			  (TSTR("block %d is bad" TENDSTR), blk));
 		} else if (state == YAFFS_BLOCK_STATE_EMPTY) {
@@ -6174,6 +6215,7 @@ int yaffs_GetNumberOfFreeChunks(yaffs_Device * dev)
 
 	int nFree;
 	int nDirtyCacheChunks;
+	int blocksForCheckpoint;
 
 #if 1
 	nFree = dev->nFreeChunks;
@@ -6196,6 +6238,13 @@ int yaffs_GetNumberOfFreeChunks(yaffs_Device * dev)
 	nFree -= nDirtyCacheChunks;
 
 	nFree -= ((dev->nReservedBlocks + 1) * dev->nChunksPerBlock);
+	
+	/* Now we figure out how much to reserve for the checkpoint and report that... */
+	blocksForCheckpoint = dev->nCheckpointReservedBlocks - dev->blocksInCheckpoint;
+	if(blocksForCheckpoint < 0)
+		blocksForCheckpoint = 0;
+		
+	nFree -= (blocksForCheckpoint * dev->nChunksPerBlock);
 
 	if (nFree < 0)
 		nFree = 0;

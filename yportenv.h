@@ -15,7 +15,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yportenv.h,v 1.10 2006-05-08 10:13:34 charles Exp $
+ * $Id: yportenv.h,v 1.11 2006-05-21 09:39:12 charles Exp $
  *
  */
 
@@ -58,6 +58,10 @@
 #define YFREE(x)   kfree(x)
 #define YMALLOC_ALT(x) vmalloc(x)
 #define YFREE_ALT(x)   vfree(x)
+#define YMALLOC_DMA(x) YMALLOC(x)
+
+// KR - added for use in scan so processes aren't blocked indefinitely.
+#define YYIELD() schedule()
 
 #define YAFFS_ROOT_MODE				0666
 #define YAFFS_LOSTNFOUND_MODE		0666

@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.2 2006-05-17 09:31:07 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.3 2006-05-21 09:39:12 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -24,16 +24,12 @@ static int yaffs_CheckpointSpaceOk(yaffs_Device *dev)
 
 	int blocksAvailable = dev->nErasedBlocks - dev->nReservedBlocks;
 	
-	if(blocksAvailable < 0)
-		blocksAvailable = 0;
-		
-	T(YAFFS_TRACE_CHECKPOINT,(TSTR("checkpt blocks available" TENDSTR)));
+	T(YAFFS_TRACE_CHECKPOINT,
+		(TSTR("checkpt blocks available = %d" TENDSTR),
+		blocksAvailable));
 		
 	
-	if(blocksAvailable <= 0)
-		return 0;
-	   	
-	return 1;
+	return (blocksAvailable <= 0) ? 0 : 1;
 }
 
 
@@ -167,6 +163,7 @@ int yaffs_CheckpointOpen(yaffs_Device *dev, int forWriting)
 		dev->checkpointByteOffset = dev->nBytesPerChunk;
 		/* A checkpoint block list of 1 checkpoint block per 16 block is (hopefully)
 		 * going to be way more than we need */
+		dev->blocksInCheckpoint = 0;
 		dev->checkpointMaxBlocks = (dev->endBlock - dev->startBlock)/16 + 2;
 		dev->checkpointBlockList = YMALLOC(sizeof(int) * dev->checkpointMaxBlocks);
 		for(i = 0; i < dev->checkpointMaxBlocks; i++)

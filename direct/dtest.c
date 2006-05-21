@@ -1723,12 +1723,64 @@ void multi_mount_test(const char *mountpt,int nmounts)
 
 		write_200k_file(b,"","");
 		
-		printf("######## Iteration %d   Start\n",i);
+		printf("######## Iteration %d   End\n",i);
 		dump_directory_tree(mountpt);
 		
 		yaffs_unmount(mountpt);
 	}
 }
+
+
+void yaffs_touch(const char *fn)
+{
+	yaffs_chmod(fn, S_IREAD | S_IWRITE);
+}
+
+void checkpoint_fill_test(const char *mountpt,int nmounts)
+{
+
+	char a[50];
+	char b[50];
+	char c[50];
+	
+	int i;
+	int j;
+	int h;
+	
+	sprintf(a,"%s/a",mountpt);
+	
+
+	
+	
+	yaffs_StartUp();
+	
+	for(i = 0; i < nmounts; i++){
+		printf("############### Iteration %d   Start\n",i);
+		yaffs_mount(mountpt);
+		dump_directory_tree(mountpt);
+		yaffs_mkdir(a,0);
+		
+		sprintf(b,"%s/zz",a);
+		
+		h = yaffs_open(b,O_CREAT | O_RDWR,S_IREAD |S_IWRITE);
+		
+		
+		while(yaffs_write(h,c,50) == 50){}
+		
+		yaffs_close(h);
+		
+		for(j = 0; j < 100; j++){
+			printf("touch %d\n",j);
+			yaffs_touch(b);
+			yaffs_unmount(mountpt);
+			yaffs_mount(mountpt);
+		}
+
+		dump_directory_tree(mountpt);		
+		yaffs_unmount(mountpt);
+	}
+}
+
 
 
 int main(int argc, char *argv[])
@@ -1747,7 +1799,8 @@ int main(int argc, char *argv[])
 	 
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
-	 multi_mount_test("/flash/flash",20);
+	 //multi_mount_test("/flash/flash",20);
+	 checkpoint_fill_test("/flash/flash",20);
 
 
 	

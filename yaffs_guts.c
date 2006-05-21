@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.33 2006-05-17 09:20:26 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.34 2006-05-21 09:39:12 charles Exp $";
 
 #include "yportenv.h"
 
@@ -22,6 +22,9 @@ const char *yaffs_guts_c_version =
 #include "yaffs_tagsvalidity.h"
 
 #include "yaffs_tagscompat.h"
+#ifndef CONFIG_YAFFS_OWN_SORT
+#include "yaffs_qsort.h"
+#endif
 #include "yaffs_nand.h"
 
 #include "yaffs_checkptrw.h"
@@ -163,6 +166,32 @@ static void yaffs_ReleaseTempBuffer(yaffs_Device * dev, __u8 * buffer,
 		dev->unmanagedTempDeallocations++;
 	}
 
+}
+
+/*
+ * Determine if we have a managed buffer.
+ */
+int yaffs_IsManagedTempBuffer(yaffs_Device * dev, const __u8 * buffer)
+{
+	int i;
+	for (i = 0; i < YAFFS_N_TEMP_BUFFERS; i++) {
+		if (dev->tempBuffer[i].buffer == buffer)
+			return 1;
+
+	}
+
+    for (i = 0; i < dev->nShortOpCaches; i++) {
+        if( dev->srCache[i].data == buffer )
+            return 1;
+
+    }
+
+    if (buffer == dev->checkpointBuffer)
+      return 1;
+
+    T(YAFFS_TRACE_ALWAYS,
+	  (TSTR("yaffs: unmaged buffer detected.\n" TENDSTR)));
+    return 0;
 }
 
 /*
@@ -1722,6 +1751,15 @@ int yaffs_RenameObject(yaffs_Object * oldDir, const YCHAR * oldName,
 #endif
 
 	obj = yaffs_FindObjectByName(oldDir, oldName);
+	/* Check new name to long. */
+	if (obj->variantType == YAFFS_OBJECT_TYPE_SYMLINK &&
+	    yaffs_strlen(newName) > YAFFS_MAX_ALIAS_LENGTH)
+	  /* ENAMETOOLONG */
+	  return YAFFS_FAIL;
+	else if (obj->variantType != YAFFS_OBJECT_TYPE_SYMLINK &&
+		 yaffs_strlen(newName) > YAFFS_MAX_NAME_LENGTH)
+	  /* ENAMETOOLONG */
+	  return YAFFS_FAIL;
 
 	if (obj && obj->renameAllowed) {
 
@@ -2336,6 +2374,8 @@ static int yaffs_CheckGarbageCollection(yaffs_Device * dev)
 	int aggressive;
 	int gcOk = YAFFS_OK;
 	int maxTries = 0;
+	
+	int checkpointBlockAdjust;
 
 	if (dev->isDoingGC) {
 		/* Bail out so we don't get recursive gc */
@@ -2348,7 +2388,12 @@ static int yaffs_CheckGarbageCollection(yaffs_Device * dev)
 
 	do {
 		maxTries++;
-		if (dev->nErasedBlocks < dev->nReservedBlocks) {
+		
+		checkpointBlockAdjust = (dev->nCheckpointReservedBlocks - dev->blocksInCheckpoint);
+		if(checkpointBlockAdjust < 0)
+			checkpointBlockAdjust = 0;
+
+		if (dev->nErasedBlocks < (dev->nReservedBlocks + checkpointBlockAdjust)) {
 			/* We need a block soon...*/
 			aggressive = 1;
 		} else {
@@ -3382,13 +3427,15 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object * in, yaffs_Tnode * tn,
 {
 	int i;
 	yaffs_Device *dev = in->myDev;
+	int ok = 1;
+	int nTnodeBytes = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
 
 	if (tn) {
 		if (level > 0) {
 
-			for (i = 0; i < YAFFS_NTNODES_INTERNAL; i++){
+			for (i = 0; i < YAFFS_NTNODES_INTERNAL && ok; i++){
 				if (tn->internal[i]) {
-					yaffs_CheckpointTnodeWorker(in,
+					ok = yaffs_CheckpointTnodeWorker(in,
 							tn->internal[i],
 							level - 1,
 							(chunkOffset<<YAFFS_TNODES_INTERNAL_BITS) + i);
@@ -3397,12 +3444,13 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object * in, yaffs_Tnode * tn,
 		} else if (level == 0) {
 			__u32 baseOffset = chunkOffset <<  YAFFS_TNODES_LEVEL0_BITS;
 			/* printf("write tnode at %d\n",baseOffset); */
-			yaffs_CheckpointWrite(dev,&baseOffset,sizeof(baseOffset));
-			yaffs_CheckpointWrite(dev,tn,(dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8);
+			ok = (yaffs_CheckpointWrite(dev,&baseOffset,sizeof(baseOffset)) == sizeof(baseOffset));
+			if(ok)
+				ok = (yaffs_CheckpointWrite(dev,tn,nTnodeBytes) == nTnodeBytes);
 		}
 	}
 
-	return 1;
+	return ok;
 
 }
 
@@ -3519,13 +3567,13 @@ static int yaffs_ReadCheckpointObjects(yaffs_Device *dev)
 			
 		if(ok && cp.objectId == ~0)
 			done = 1;
-		else {
+		else if(ok){
 			/* printf("Read object %d type %d\n",cp.objectId,cp.variantType); */
 			obj = yaffs_FindOrCreateObjectByNumber(dev,cp.objectId, cp.variantType);
 			if(obj) {
 				yaffs_CheckpointObjectToObject(obj,&cp);
 				if(obj->variantType == YAFFS_OBJECT_TYPE_FILE) {
-					yaffs_ReadCheckpointTnodes(obj);
+					ok = yaffs_ReadCheckpointTnodes(obj);
 				} else if(obj->variantType == YAFFS_OBJECT_TYPE_HARDLINK) {
 					obj->hardLinks.next =
 						    (struct list_head *)
@@ -3559,12 +3607,13 @@ static int yaffs_WriteCheckpointData(yaffs_Device *dev)
 	if(ok)
 		ok = yaffs_WriteCheckpointValidityMarker(dev,0);
 		
-	yaffs_CheckpointClose(dev);
-		
-//	if(dev->checkpointBytes)
+	if(!yaffs_CheckpointClose(dev))
+		 ok = 0;
+		 
+	if(ok)
 	    	dev->isCheckpointed = 1;
-//	 else 
-	 	//dev->isCheckpointed = 0;
+	 else 
+	 	dev->isCheckpointed = 0;
 
 	return dev->isCheckpointed;
 }
@@ -3586,12 +3635,13 @@ static int yaffs_ReadCheckpointData(yaffs_Device *dev)
 		
 
 
-	yaffs_CheckpointClose(dev);
+	if(!yaffs_CheckpointClose(dev))
+		ok = 0;
 
-//	if(ok)
+	if(ok)
 	    	dev->isCheckpointed = 1;
-//	 else 
-//	 	dev->isCheckpointed = 0;
+	 else 
+	 	dev->isCheckpointed = 0;
 
 	return ok ? 1 : 0;
 
@@ -3599,7 +3649,8 @@ static int yaffs_ReadCheckpointData(yaffs_Device *dev)
 
 static void yaffs_InvalidateCheckpoint(yaffs_Device *dev)
 {
-	if(dev->isCheckpointed){
+	if(dev->isCheckpointed || 
+	   dev->blocksInCheckpoint > 0){
 		dev->isCheckpointed = 0;
 		yaffs_CheckpointInvalidateStream(dev);
 		if(dev->superBlock && dev->markSuperBlockDirty)
@@ -3610,16 +3661,26 @@ static void yaffs_InvalidateCheckpoint(yaffs_Device *dev)
 
 int yaffs_CheckpointSave(yaffs_Device *dev)
 {
+	T(YAFFS_TRACE_CHECKPOINT,(TSTR("save entry: isCheckpointed %d"TENDSTR),dev->isCheckpointed));
+
 	if(!dev->isCheckpointed)
 		yaffs_WriteCheckpointData(dev);
 	
+	T(YAFFS_TRACE_CHECKPOINT,(TSTR("save exit: isCheckpointed %d"TENDSTR),dev->isCheckpointed));
+
 	return dev->isCheckpointed;
 }
 
 int yaffs_CheckpointRestore(yaffs_Device *dev)
 {
+	int retval;
+	T(YAFFS_TRACE_CHECKPOINT,(TSTR("restore entry: isCheckpointed %d"TENDSTR),dev->isCheckpointed));
 	
-	return yaffs_ReadCheckpointData(dev);
+	retval = yaffs_ReadCheckpointData(dev);
+
+	T(YAFFS_TRACE_CHECKPOINT,(TSTR("restore exit: isCheckpointed %d"TENDSTR),dev->isCheckpointed));
+	
+	return retval;
 }
 
 /*--------------------- File read/write ------------------------
@@ -4378,6 +4439,18 @@ static void yaffs_HardlinkFixup(yaffs_Device *dev, yaffs_Object *hardList)
 
 
 
+static int ybicmp(const void *a, const void *b){
+    register int aseq = ((yaffs_BlockIndex *)a)->seq;
+    register int bseq = ((yaffs_BlockIndex *)b)->seq;
+    register int ablock = ((yaffs_BlockIndex *)a)->block;
+    register int bblock = ((yaffs_BlockIndex *)b)->block;
+    if( aseq == bseq )
+        return ablock - bblock;
+    else
+        return aseq - bseq;
+
+}
+
 static int yaffs_Scan(yaffs_Device * dev)
 {
 	yaffs_ExtendedTags tags;
@@ -5004,11 +5077,23 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 		}
 	}
 
-	/*
-	 * Sort the blocks
-	 * Dungy old bubble sort for now...
-	 */
+	T(YAFFS_TRACE_SCAN,
+	(TSTR("%d blocks to be sorted..." TENDSTR), nBlocksToScan));
+
+
+
+	YYIELD();
+
+	/* Sort the blocks */
+#ifndef CONFIG_YAFFS_USE_OWN_SORT
 	{
+		/* Use qsort now. */
+		qsort(blockIndex, nBlocksToScan, sizeof(yaffs_BlockIndex), ybicmp);
+	}
+#else
+	{
+	 	/* Dungy old bubble sort... */
+	 	
 		yaffs_BlockIndex temp;
 		int i;
 		int j;
@@ -5021,6 +5106,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					blockIndex[i] = temp;
 				}
 	}
+#endif
+
+	YYIELD();
+
+    	T(YAFFS_TRACE_SCAN, (TSTR("...done" TENDSTR)));
 
 	/* Now scan the blocks looking at the data. */
 	startIterator = 0;
@@ -5031,6 +5121,9 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 	/* For each block.... backwards */
 	for (blockIterator = endIterator; blockIterator >= startIterator;
 	     blockIterator--) {
+	        /* Cooperative multitasking! This loop can run for so
+		   long that watchdog timers expire. */
+	        YYIELD();
 
 		/* get the block to scan in the correct order */
 		blk = blockIndex[blockIterator].block;
@@ -6074,7 +6167,7 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 		for (i = 0; i < YAFFS_N_TEMP_BUFFERS; i++) {
 			dev->tempBuffer[i].line = 0;	/* not in use */
 			dev->tempBuffer[i].buffer =
-			    YMALLOC(dev->nBytesPerChunk);
+			    YMALLOC_DMA(dev->nBytesPerChunk);
 		}
 	}
 	
@@ -6092,7 +6185,7 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 			dev->srCache[i].object = NULL;
 			dev->srCache[i].lastUse = 0;
 			dev->srCache[i].dirty = 0;
-			dev->srCache[i].data = YMALLOC(dev->nBytesPerChunk);
+			dev->srCache[i].data = YMALLOC_DMA(dev->nBytesPerChunk);
 		}
 		dev->srLastUse = 0;
 	}

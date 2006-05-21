@@ -10,7 +10,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.9 2006-05-08 10:13:34 charles Exp $
+# $Id: Makefile,v 1.10 2006-05-21 09:39:12 charles Exp $
 
 EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -22,7 +22,7 @@ CFLAGS =    -Wall -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONF
 DIRECTTESTOBJS = dtest.o yaffscfg2k.o yaffs_ecc.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
-		 yaffs_checkptrw.o \
+		 yaffs_checkptrw.o  yaffs_qsort.o \
 #		 yaffs_checkptrwtest.o\
 		 
 
@@ -35,7 +35,8 @@ ALLOBJS = $(DIRECTTESTOBJS) $(BOOTTESTOBJS)
 SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
           yaffs_nand.c yaffs_nand.h \
-          yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c
+          yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
+          yaffs_qsort.c yaffs_qsort.h
 
 #all: directtest2k boottest
 

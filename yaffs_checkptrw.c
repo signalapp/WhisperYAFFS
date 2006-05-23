@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.3 2006-05-21 09:39:12 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.4 2006-05-23 19:08:41 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -80,7 +80,6 @@ static void yaffs_CheckpointFindNextErasedBlock(yaffs_Device *dev)
 			yaffs_BlockInfo *bi = &dev->blockInfo[i];
 			if(bi->blockState == YAFFS_BLOCK_STATE_EMPTY){
 				dev->checkpointNextBlock = i + 1;
-				dev->nErasedBlocks--;
 				dev->checkpointCurrentBlock = i;
 				T(YAFFS_TRACE_CHECKPOINT,(TSTR("allocating checkpt block %d"TENDSTR),i));
 				return;
@@ -136,7 +135,7 @@ int yaffs_CheckpointOpen(yaffs_Device *dev, int forWriting)
 		return 0;
 			
 	if(!dev->checkpointBuffer)
-		dev->checkpointBuffer = YMALLOC(dev->nBytesPerChunk);
+		dev->checkpointBuffer = YMALLOC_DMA(dev->nBytesPerChunk);
 	if(!dev->checkpointBuffer)
 		return 0;
 
@@ -193,6 +192,13 @@ static int yaffs_CheckpointFlushBuffer(yaffs_Device *dev)
 	tags.chunkId = dev->checkpointPageSequence + 1;
 	tags.sequenceNumber =  YAFFS_SEQUENCE_CHECKPOINT_DATA;
 	tags.byteCount = dev->nBytesPerChunk;
+	if(dev->checkpointCurrentChunk == 0){
+		/* First chunk we write for the block? Set block state to
+		   checkpoint */
+		yaffs_BlockInfo *bi = &dev->blockInfo[dev->checkpointCurrentBlock];
+		bi->blockState = YAFFS_BLOCK_STATE_CHECKPOINT;
+		dev->blocksInCheckpoint++;
+	}
 	
 	chunk = dev->checkpointCurrentBlock * dev->nChunksPerBlock + dev->checkpointCurrentChunk;
 		

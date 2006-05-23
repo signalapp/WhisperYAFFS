@@ -1769,7 +1769,7 @@ void checkpoint_fill_test(const char *mountpt,int nmounts)
 		
 		yaffs_close(h);
 		
-		for(j = 0; j < 100; j++){
+		for(j = 0; j < 2; j++){
 			printf("touch %d\n",j);
 			yaffs_touch(b);
 			yaffs_unmount(mountpt);
@@ -1781,6 +1781,95 @@ void checkpoint_fill_test(const char *mountpt,int nmounts)
 	}
 }
 
+
+int make_file2(const char *name1, const char *name2,int syz)
+{
+
+	char xx[2500];
+	int i;
+	int h1=-1,h2=-1;
+	int n = 1;
+
+
+	if(name1)
+		h1 = yaffs_open(name1,O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	if(name2)
+		h2 = yaffs_open(name2,O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	
+	while(syz > 0 && n > 0){
+		i = (syz > 2500) ? 2500 : syz;
+		n = yaffs_write(h1,xx,i);
+		n = yaffs_write(h2,xx,i);
+		syz -= 500;
+	}
+	yaffs_close(h1);
+	yaffs_close(h2);
+	
+}
+
+
+extern void SetCheckpointReservedBlocks(int n);
+
+void checkpoint_upgrade_test(const char *mountpt,int nmounts)
+{
+
+	char a[50];
+	char b[50];
+	char c[50];
+	char d[50];
+	
+	int i;
+	int j;
+	int h;
+	
+	sprintf(a,"%s/a",mountpt);
+	
+
+	
+	
+	printf("Create start condition\n");
+	yaffs_StartUp();
+	SetCheckpointReservedBlocks(0);
+	yaffs_mount(mountpt);
+	yaffs_mkdir(a,0);
+	sprintf(b,"%s/zz",a);
+	sprintf(c,"%s/xx",a);
+	make_file2(b,c,2000000);
+	sprintf(d,"%s/aa",a);
+	make_file2(d,NULL,500000000);
+	dump_directory_tree(mountpt);
+	
+	printf("Umount/mount attempt full\n");
+	yaffs_unmount(mountpt);
+	
+	SetCheckpointReservedBlocks(10);
+	yaffs_mount(mountpt);
+	
+	printf("unlink small file\n");
+	yaffs_unlink(c);
+	dump_directory_tree(mountpt);
+		
+	printf("Umount/mount attempt\n");
+	yaffs_unmount(mountpt);
+	yaffs_mount(mountpt);
+	
+	for(j = 0; j < 500; j++){
+		printf("***** touch %d\n",j);
+		dump_directory_tree(mountpt);
+		yaffs_touch(b);
+		yaffs_unmount(mountpt);
+		yaffs_mount(mountpt);
+	}
+
+	for(j = 0; j < 500; j++){
+		printf("***** touch %d\n",j);
+		dump_directory_tree(mountpt);
+		yaffs_touch(b);
+		yaffs_unmount(mountpt);
+		yaffs_mount(mountpt);
+	}
+}
+	
 
 
 int main(int argc, char *argv[])
@@ -1800,7 +1889,8 @@ int main(int argc, char *argv[])
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
 	 //multi_mount_test("/flash/flash",20);
-	 checkpoint_fill_test("/flash/flash",20);
+	 //checkpoint_fill_test("/flash/flash",20);
+	 checkpoint_upgrade_test("/flash/flash",20);
 
 
 	

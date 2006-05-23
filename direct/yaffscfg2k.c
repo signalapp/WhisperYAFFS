@@ -13,7 +13,7 @@
 
 #include <errno.h>
 
-unsigned yaffs_traceMask = YAFFS_TRACE_SCAN |  YAFFS_TRACE_GC | YAFFS_TRACE_GC_DETAIL | YAFFS_TRACE_WRITE | YAFFS_TRACE_ERASE | YAFFS_TRACE_TRACING | YAFFS_TRACE_ALLOCATE | YAFFS_TRACE_CHECKPOINT;
+unsigned yaffs_traceMask = YAFFS_TRACE_SCAN |  YAFFS_TRACE_GC /*| YAFFS_TRACE_GC_DETAIL | YAFFS_TRACE_WRITE */ | YAFFS_TRACE_ERASE | YAFFS_TRACE_TRACING | YAFFS_TRACE_ALLOCATE | YAFFS_TRACE_CHECKPOINT;
 
 
 void yaffsfs_SetError(int err)
@@ -171,4 +171,8 @@ int yaffs_StartUp(void)
 
 
 
+void SetCheckpointReservedBlocks(int n)
+{
+	flashDev.nCheckpointReservedBlocks = n;
+}
 

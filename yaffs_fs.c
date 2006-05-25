@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.48 2006-05-21 09:39:12 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.49 2006-05-25 01:26:57 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -910,6 +910,9 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 	int error = -ENOSPC;
 	uid_t uid = current->fsuid;
 	gid_t gid = (dir->i_mode & S_ISGID) ? dir->i_gid : current->fsgid;
+	
+	if((dir->i_mode & S_ISGID) && S_ISDIR(mode))
+		mode |= S_ISGID;
 
 	if (parent) {
 		T(YAFFS_TRACE_OS,

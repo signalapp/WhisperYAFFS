@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.49 2006-05-25 01:26:57 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.50 2006-06-05 04:12:44 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -65,6 +65,11 @@ extern const char *yaffs_guts_c_version;
 #include <linux/locks.h>
 #define	BDEVNAME_SIZE		0
 #define	yaffs_devname(sb, buf)	kdevname(sb->s_dev)
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0))
+/* added NCB 26/5/2006 for 2.4.25-vrs2-tcl1 kernel */
+#define __user
+#endif
 
 #endif
 
@@ -1459,6 +1464,14 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	    T(YAFFS_TRACE_ALWAYS,("yaffs: auto selecting yaffs2\n"));
 	    yaffsVersion = 2;
 	}	
+	
+	/* Added NCB 26/5/2006 for completeness */
+	if (yaffsVersion == 2 && 
+	    mtd->oobblock == 512) {
+	    T(YAFFS_TRACE_ALWAYS,("yaffs: auto selecting yaffs1\n"));
+	    yaffsVersion = 1;
+	}	
+
 #endif
 
 	if (yaffsVersion == 2) {

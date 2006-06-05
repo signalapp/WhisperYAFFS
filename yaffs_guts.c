@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.34 2006-05-21 09:39:12 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.35 2006-06-05 04:10:49 charles Exp $";
 
 #include "yportenv.h"
 
@@ -3568,7 +3568,8 @@ static int yaffs_ReadCheckpointObjects(yaffs_Device *dev)
 		if(ok && cp.objectId == ~0)
 			done = 1;
 		else if(ok){
-			/* printf("Read object %d type %d\n",cp.objectId,cp.variantType); */
+			T(YAFFS_TRACE_CHECKPOINT,(TSTR("Read object %d parent %d type %d" TENDSTR),
+				cp.objectId,cp.parentId,cp.variantType));
 			obj = yaffs_FindOrCreateObjectByNumber(dev,cp.objectId, cp.variantType);
 			if(obj) {
 				yaffs_CheckpointObjectToObject(obj,&cp);
@@ -4477,6 +4478,14 @@ static int yaffs_Scan(yaffs_Device * dev)
 
 	yaffs_BlockIndex *blockIndex = NULL;
 
+	if (dev->isYaffs2) {
+		T(YAFFS_TRACE_SCAN,
+		  (TSTR("yaffs_Scan is not for YAFFS2!" TENDSTR)));
+		return YAFFS_FAIL;
+	}
+	
+	//TODO  Throw all the yaffs2 stuuf out of yaffs_Scan since it is only for yaffs1 format.
+	
 	T(YAFFS_TRACE_SCAN,
 	  (TSTR("yaffs_Scan starts  intstartblk %d intendblk %d..." TENDSTR),
 	   dev->internalStartBlock, dev->internalEndBlock));
@@ -5002,6 +5011,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 	
 
 	yaffs_BlockIndex *blockIndex = NULL;
+	int altBlockIndex = 0;
 
 	if (!dev->isYaffs2) {
 		T(YAFFS_TRACE_SCAN,
@@ -5014,11 +5024,23 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 	   ("yaffs_ScanBackwards starts  intstartblk %d intendblk %d..."
 	    TENDSTR), dev->internalStartBlock, dev->internalEndBlock));
 
-	chunkData = yaffs_GetTempBuffer(dev, __LINE__);
 
 	dev->sequenceNumber = YAFFS_LOWEST_SEQUENCE_NUMBER;
 
 	blockIndex = YMALLOC(nBlocks * sizeof(yaffs_BlockIndex));
+	
+	if(!blockIndex) {
+		blockIndex = YMALLOC_ALT(nBlocks * sizeof(yaffs_BlockIndex));
+		altBlockIndex = 1;
+	}
+	
+	if(!blockIndex) {
+		T(YAFFS_TRACE_SCAN,
+		  (TSTR("yaffs_Scan() could not allocate block index!" TENDSTR)));
+		return YAFFS_FAIL;
+	}
+	
+	chunkData = yaffs_GetTempBuffer(dev, __LINE__);
 
 	/* Scan all the blocks to determine their state */
 	for (blk = dev->internalStartBlock; blk <= dev->internalEndBlock; blk++) {
@@ -5543,9 +5565,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 	}
 
-	if (blockIndex) {
+	if (altBlockIndex) 
+		YFREE_ALT(blockIndex);
+	else
 		YFREE(blockIndex);
-	}
+	
 	/* Ok, we've done all the scanning.
 	 * Fix up the hard link chains.
 	 * We should now have scanned all the objects, now it's time to add these 

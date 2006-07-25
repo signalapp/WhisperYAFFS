@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.50 2006-06-05 04:12:44 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.51 2006-07-25 21:03:22 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -651,6 +651,40 @@ static int yaffs_commit_write(struct file *f, struct page *pg, unsigned offset,
 static void yaffs_FillInodeFromObject(struct inode *inode, yaffs_Object * obj)
 {
 	if (inode && obj) {
+
+
+		/* Check mode against the variant type and attempt to repair if broken. */
+ 		__u32 mode = obj->yst_mode;
+ 		switch( obj->variantType ){
+ 		case YAFFS_OBJECT_TYPE_FILE :
+ 		        if( ! S_ISREG(mode) ){
+ 			        obj->yst_mode &= ~S_IFMT;
+ 			        obj->yst_mode |= S_IFREG;
+ 			}
+ 
+ 			break;
+ 		case YAFFS_OBJECT_TYPE_SYMLINK :
+ 		        if( ! S_ISLNK(mode) ){
+ 			        obj->yst_mode &= ~S_IFMT;
+ 				obj->yst_mode |= S_IFLNK;
+ 			}
+ 
+ 			break;
+ 		case YAFFS_OBJECT_TYPE_DIRECTORY :
+ 		        if( ! S_ISDIR(mode) ){
+ 			        obj->yst_mode &= ~S_IFMT;
+ 			        obj->yst_mode |= S_IFDIR;
+ 			}
+ 
+ 			break;
+ 		case YAFFS_OBJECT_TYPE_UNKNOWN :
+ 		case YAFFS_OBJECT_TYPE_HARDLINK :
+ 		case YAFFS_OBJECT_TYPE_SPECIAL :
+ 		default:
+ 		        /* TODO? */
+ 		        break;
+ 		}
+
 		inode->i_ino = obj->objectId;
 		inode->i_mode = obj->yst_mode;
 		inode->i_uid = obj->yst_uid;

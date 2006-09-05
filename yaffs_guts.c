@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.35 2006-06-05 04:10:49 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.36 2006-09-05 23:23:34 charles Exp $";
 
 #include "yportenv.h"
 
@@ -53,6 +53,7 @@ static void yaffs_HandleUpdateChunk(yaffs_Device * dev, int chunkInNAND,
 
 /* Other local prototypes */
 static int yaffs_UnlinkObject( yaffs_Object *obj);
+static int yaffs_ObjectHasCachedWriteData(yaffs_Object *obj);
 
 static void yaffs_HardlinkFixup(yaffs_Device *dev, yaffs_Object *hardList);
 
@@ -2954,7 +2955,8 @@ int yaffs_UpdateObjectHeader(yaffs_Object * in, const YCHAR * name, int force,
 						  __LINE__);
 			}
 
-			in->dirty = 0;
+			if(!yaffs_ObjectHasCachedWriteData(in))
+				in->dirty = 0;
 
 			/* If this was a shrink, then mark the block that the chunk lives on */
 			if (isShrink) {
@@ -2987,6 +2989,25 @@ int yaffs_UpdateObjectHeader(yaffs_Object * in, const YCHAR * name, int force,
  *   There are a limited number (~10) of cache chunks per device so that we don't
  *   need a very intelligent search.
  */
+
+static int yaffs_ObjectHasCachedWriteData(yaffs_Object *obj)
+{
+	yaffs_Device *dev = obj->myDev;
+	int i;
+	yaffs_ChunkCache *cache;
+	int nCaches = obj->myDev->nShortOpCaches;
+	
+	if(nCaches > 0){
+		for(i = 0; i < nCaches; i++){
+			if (dev->srCache[i].object == obj &&
+				    dev->srCache[i].dirty)
+				    	return 1;
+		}
+	}
+	
+	return 0;
+}
+
 
 static void yaffs_FlushFilesChunkCache(yaffs_Object * obj)
 {

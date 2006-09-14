@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_ecc_c_version =
-    "$Id: yaffs_ecc.c,v 1.6 2005-08-11 02:51:49 charles Exp $";
+    "$Id: yaffs_ecc.c,v 1.7 2006-09-14 22:02:46 charles Exp $";
 
 #include "yportenv.h"
 
@@ -295,7 +295,8 @@ int yaffs_ECCCorrectOther(unsigned char *data, unsigned nBytes,
 	if ((cDelta | lDelta | lDeltaPrime) == 0)
 		return 0; /* no error */
 
-	if (lDelta == ~lDeltaPrime && (((cDelta ^ (cDelta >> 1)) & 0x15) == 0x15))
+	if (lDelta == ~lDeltaPrime && 
+	    (((cDelta ^ (cDelta >> 1)) & 0x15) == 0x15))
 	{
 		/* Single bit (recoverable) error in data */
 
@@ -308,6 +309,9 @@ int yaffs_ECCCorrectOther(unsigned char *data, unsigned nBytes,
 		if (cDelta & 0x02)
 			bit |= 0x01;
 
+		if(lDelta >= nBytes)
+			return -1;
+			
 		data[lDelta] ^= (1 << bit);
 
 		return 1; /* corrected */

@@ -15,7 +15,7 @@
 // This provides a YAFFS nand emulation on a file for emulating 2kB pages.
 // THis is only intended as test code to test persistence etc.
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.4 2005-07-18 23:12:00 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.5 2006-09-21 08:13:59 charles Exp $";
 
 
 #include "yportenv.h"
@@ -54,6 +54,8 @@ typedef struct
 } yflash_Device;
 
 static yflash_Device filedisk;
+
+int yaffs_testPartialWrite = 0;
 
 static int  CheckInit(void)
 {
@@ -137,6 +139,11 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 		pos = chunkInNAND * PAGE_SIZE;
 		lseek(filedisk.handle,pos,SEEK_SET);
 		written = write(filedisk.handle,data,dev->nBytesPerChunk);
+		
+		if(yaffs_testPartialWrite){
+			close(filedisk.handle);
+			exit(1);
+		}
 		
 		if(written != dev->nBytesPerChunk) return YAFFS_FAIL;
 	}

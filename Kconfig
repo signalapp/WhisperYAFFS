@@ -105,15 +105,21 @@ config YAFFS_DISABLE_WIDE_TNODES
 
 	  If unsure, say N.
 
-config YAFFS_DISABLE_CHUNK_ERASED_CHECK
-	bool "Turn off debug chunk erase check"
+config YAFFS_ALWAYS_CHECK_CHUNK_ERASED
+	bool "Force chunk erase check"
 	depends on YAFFS_FS
-	default y
+	default n
 	help
-	  Enabling this turns off the test that chunks are erased in flash
-	  before writing to them.  This is safe, since the write verification
-	  will fail.  Suggest enabling the test (ie. say N)
-	  during development to help debug things.
+          Normally YAFFS only checks chunks before writing until an erased
+	  chunk is found. This helps to detect any partially written chunks
+	  that might have happened due to power loss.
+
+	  Enabling this forces on the test that chunks are erased in flash
+	  before writing to them. This takes more time but is potentially a 
+	  bit more secure.
+ 
+	  Suggest setting Y during development and ironing out driver issues
+	  etc. Suggest setting to N if you want faster writing.                  
 
 	  If unsure, say Y.
 

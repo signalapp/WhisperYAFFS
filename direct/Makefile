@@ -10,9 +10,9 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.10 2006-05-21 09:39:12 charles Exp $
+# $Id: Makefile,v 1.11 2006-09-21 08:13:59 charles Exp $
 
-EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
+#EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
 CFLAGS =    -Wall -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONFIG_YAFFS_YAFFS2 -g $(EXTRA_COMPILE_FLAGS)
 #CFLAGS+=   -Wshadow -Wpointer-arith -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations

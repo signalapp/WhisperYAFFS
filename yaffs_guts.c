@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.36 2006-09-05 23:23:34 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.37 2006-09-21 08:13:59 charles Exp $";
 
 #include "yportenv.h"
 
@@ -44,7 +44,7 @@ void yfsd_UnlockYAFFS(BOOL fsLockOnly);
 
 /* Robustification (if it ever comes about...) */
 static void yaffs_RetireBlock(yaffs_Device * dev, int blockInNAND);
-static void yaffs_HandleWriteChunkError(yaffs_Device * dev, int chunkInNAND);
+static void yaffs_HandleWriteChunkError(yaffs_Device * dev, int chunkInNAND, int erasedOk);
 static void yaffs_HandleWriteChunkOk(yaffs_Device * dev, int chunkInNAND,
 				     const __u8 * data,
 				     const yaffs_ExtendedTags * tags);
@@ -93,7 +93,7 @@ static int yaffs_TagsMatch(const yaffs_ExtendedTags * tags, int objectId,
 
 loff_t yaffs_GetFileSize(yaffs_Object * obj);
 
-static int yaffs_AllocateChunk(yaffs_Device * dev, int useReserve);
+static int yaffs_AllocateChunk(yaffs_Device * dev, int useReserve, yaffs_BlockInfo **blockUsedPtr);
 
 static void yaffs_VerifyFreeChunks(yaffs_Device * dev);
 
@@ -299,6 +299,10 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,
 	yaffs_ExtendedTags tags;
 
 	yaffs_ReadChunkWithTagsFromNAND(dev, chunkInNAND, data, &tags);
+	
+	if(tags.eccResult > YAFFS_ECC_RESULT_NO_ERROR)
+		retval = YAFFS_FAIL;
+		
 
 	if (!yaffs_CheckFF(data, dev->nBytesPerChunk) || tags.chunkUsed) {
 		T(YAFFS_TRACE_NANDACCESS,
@@ -319,21 +323,46 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 {
 	int chunk;
 
-	int writeOk = 1;
+	int writeOk = 0;
+	int erasedOk = 1;
 	int attempts = 0;
+	yaffs_BlockInfo *bi;
 	
 	yaffs_InvalidateCheckpoint(dev);
 
 	do {
-		chunk = yaffs_AllocateChunk(dev, useReserve);
+		chunk = yaffs_AllocateChunk(dev, useReserve,&bi);
 
 		if (chunk >= 0) {
-
-			/* First check this chunk is erased... */
-#ifndef CONFIG_YAFFS_DISABLE_CHUNK_ERASED_CHECK
-			writeOk = yaffs_CheckChunkErased(dev, chunk);
+			/* First check this chunk is erased, if it needs checking.
+			 * The checking policy (unless forced always on) is as follows:
+			 * Check the first page we try to write in a block.
+			 * - If the check passes then we don't need to check any more.
+			 * - If the check fails, we check again...
+			 * If the block has been erased, we don't need to check.
+			 *
+			 * However, if the block has been prioritised for gc, then
+			 * we think there might be something odd about this block
+			 * and should continue doing erased checks.
+			 *
+			 * Rationale:
+			 * We should only ever see chunks that have not been erased
+			 * if there was a partially written chunk due to power loss
+			 * This checking policy should catch that case with very
+			 * few checks and thus save a lot of checks that are most likely not
+			 * needed.
+			 */
+			 
+#ifdef CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED
+			bi->skipErasedCheck = 1;
 #endif
-			if (!writeOk) {
+			if(!bi->skipErasedCheck){
+				erasedOk = yaffs_CheckChunkErased(dev, chunk);
+				if(erasedOk && !bi->gcPrioritise)
+					bi->skipErasedCheck = 1;
+			}
+
+			if (!erasedOk) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
 				   ("**>> yaffs chunk %d was not erased"
@@ -343,6 +372,7 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 				    yaffs_WriteChunkWithTagsToNAND(dev, chunk,
 								   data, tags);
 			}
+			
 			attempts++;
 
 			if (writeOk) {
@@ -351,10 +381,11 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 				 *  NB We do this at the end to prevent duplicates in the case of a write error.
 				 *  Todo
 				 */
-				yaffs_HandleWriteChunkOk(dev, chunk, data,
-							 tags);
+				yaffs_HandleWriteChunkOk(dev, chunk, data, tags);
+				
 			} else {
-				yaffs_HandleWriteChunkError(dev, chunk);
+				/* The erased check or write failed */
+				yaffs_HandleWriteChunkError(dev, chunk, erasedOk);
 			}
 		}
 
@@ -403,12 +434,19 @@ static void yaffs_HandleUpdateChunk(yaffs_Device * dev, int chunkInNAND,
 {
 }
 
-static void yaffs_HandleWriteChunkError(yaffs_Device * dev, int chunkInNAND)
+static void yaffs_HandleWriteChunkError(yaffs_Device * dev, int chunkInNAND, int erasedOk)
 {
-	int blockInNAND = chunkInNAND / dev->nChunksPerBlock;
 
-	/* Mark the block for retirement */
-	yaffs_GetBlockInfo(dev, blockInNAND)->needsRetiring = 1;
+	int blockInNAND = chunkInNAND / dev->nChunksPerBlock;
+	yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, blockInNAND);
+	bi->gcPrioritise = 1;
+	
+	if(erasedOk) {
+		/* Was an actual write failure, so mark the block for retirement  */
+
+		bi->needsRetiring = 1;
+	}
+	
 	/* Delete the chunk */
 	yaffs_DeleteChunk(dev, chunkInNAND, 1, __LINE__);
 }
@@ -1895,6 +1933,7 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 	int iterations;
 	int dirtiest = -1;
 	int pagesInUse;
+	int prioritised;
 	yaffs_BlockInfo *bi;
 	static int nonAggressiveSkip = 0;
 
@@ -1925,7 +1964,7 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 		}
 	}
 
-	for (i = 0; i <= iterations && pagesInUse > 0; i++) {
+	for (i = 0, prioritised = 0; i <= iterations && pagesInUse > 0 && !prioritised; i++) {
 		b++;
 		if (b < dev->internalStartBlock || b > dev->internalEndBlock) {
 			b = dev->internalStartBlock;
@@ -1948,10 +1987,12 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 #endif
 
 		if (bi->blockState == YAFFS_BLOCK_STATE_FULL &&
-		      (bi->pagesInUse - bi->softDeletions) < pagesInUse &&
+		      (bi->gcPrioritise || (bi->pagesInUse - bi->softDeletions)) < pagesInUse &&
 		        yaffs_BlockNotDisqualifiedFromGC(dev, bi)) {
 			dirtiest = b;
 			pagesInUse = (bi->pagesInUse - bi->softDeletions);
+			if(bi->gcPrioritise)
+				prioritised = 1; /* Trick it into selecting this one */
 		}
 	}
 
@@ -1959,8 +2000,8 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 
 	if (dirtiest > 0) {
 		T(YAFFS_TRACE_GC,
-		  (TSTR("GC Selected block %d with %d free" TENDSTR), dirtiest,
-		   dev->nChunksPerBlock - pagesInUse));
+		  (TSTR("GC Selected block %d with %d free, prioritised:%d" TENDSTR), dirtiest,
+		   dev->nChunksPerBlock - pagesInUse,prioritised));
 	}
 
 	dev->oldestDirtySequence = 0;
@@ -2013,6 +2054,8 @@ static void yaffs_BlockBecameDirty(yaffs_Device * dev, int blockNo)
 		bi->pagesInUse = 0;
 		bi->softDeletions = 0;
 		bi->hasShrinkHeader = 0;
+		bi->skipErasedCheck = 1;  /* This is clean, so no need to check */
+		bi->gcPrioritise = 0;
 		yaffs_ClearChunkBits(dev, blockNo);
 
 		T(YAFFS_TRACE_ERASE,
@@ -2092,7 +2135,7 @@ static int yaffs_CheckSpaceForAllocation(yaffs_Device * dev)
 	return (dev->nFreeChunks > reservedChunks);
 }
 
-static int yaffs_AllocateChunk(yaffs_Device * dev, int useReserve)
+static int yaffs_AllocateChunk(yaffs_Device * dev, int useReserve, yaffs_BlockInfo **blockUsedPtr)
 {
 	int retVal;
 	yaffs_BlockInfo *bi;
@@ -2133,6 +2176,9 @@ static int yaffs_AllocateChunk(yaffs_Device * dev, int useReserve)
 			dev->allocationBlock = -1;
 		}
 
+		if(blockUsedPtr)
+			*blockUsedPtr = bi;
+			
 		return retVal;
 	}
 	
@@ -5028,6 +5074,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 	
 	int fileSize;
 	int isShrink;
+	int foundChunksInBlock;
 	int equivalentObjectId;
 	
 
@@ -5177,6 +5224,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 		deleted = 0;
 
 		/* For each chunk in each block that needs scanning.... */
+		foundChunksInBlock = 0;
 		for (c = dev->nChunksPerBlock - 1; c >= 0 &&
 		     (state == YAFFS_BLOCK_STATE_NEEDS_SCANNING ||
 		      state == YAFFS_BLOCK_STATE_ALLOCATING); c--) {
@@ -5191,11 +5239,20 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 			/* Let's have a good look at this chunk... */
 
 			if (!tags.chunkUsed) {
-				// An unassigned chunk in the block
-				// This means that either the block is empty or 
-				// this is the one being allocated from
+				/* An unassigned chunk in the block.
+				 * If there are used chunks after this one, then
+				 * it is a chunk that was skipped due to failing the erased
+				 * check. Just skip it so that it can be deleted.
+				 * But, more typically, We get here when this is an unallocated
+				 * chunk and his means that either the block is empty or 
+				 * this is the one being allocated from
+				 */
 
-				if (c == 0) {
+				if(foundChunksInBlock)
+				{
+					/* This is a chunk that was skipped due to failing the erased check */
+					
+				} else if (c == 0) {
 					/* We're looking at the first chunk in the block so the block is unused */
 					state = YAFFS_BLOCK_STATE_EMPTY;
 					dev->nErasedBlocks++;
@@ -5236,9 +5293,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 			} else if (tags.chunkId > 0) {
 				/* chunkId > 0 so it is a data chunk... */
 				unsigned int endpos;
-
 				__u32 chunkBase =
 				    (tags.chunkId - 1) * dev->nBytesPerChunk;
+								
+				foundChunksInBlock = 1;
+
 
 				yaffs_SetChunkBit(dev, blk, c);
 				bi->pagesInUse++;
@@ -5282,6 +5341,8 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 				/* chunkId == 0, so it is an ObjectHeader.
 				 * Thus, we read in the object header and make the object
 				 */
+				foundChunksInBlock = 1;
+
 				yaffs_SetChunkBit(dev, blk, c);
 				bi->pagesInUse++;
 

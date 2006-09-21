@@ -13,7 +13,7 @@
  */
  
 const char *yaffs_nand_c_version =
-    "$Id: yaffs_nand.c,v 1.1 2006-05-08 10:13:34 charles Exp $";
+    "$Id: yaffs_nand.c,v 1.2 2006-09-21 08:13:59 charles Exp $";
 
 #include "yaffs_nand.h"
 #include "yaffs_tagscompat.h"
@@ -24,16 +24,26 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 					   __u8 * buffer,
 					   yaffs_ExtendedTags * tags)
 {
-	chunkInNAND -= dev->chunkOffset;
+	int result;
+	
+	int realignedChunkInNAND = chunkInNAND - dev->chunkOffset;
 
 	if (dev->readChunkWithTagsFromNAND)
-		return dev->readChunkWithTagsFromNAND(dev, chunkInNAND, buffer,
+		result = dev->readChunkWithTagsFromNAND(dev, realignedChunkInNAND, buffer,
 						      tags);
 	else
-		return yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(dev,
-									chunkInNAND,
+		result = yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(dev,
+									realignedChunkInNAND,
 									buffer,
-									tags);
+									tags);	
+	if(tags && 
+	   tags->eccResult > YAFFS_ECC_RESULT_NO_ERROR){
+	
+		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, chunkInNAND/dev->nChunksPerBlock);
+		bi->gcPrioritise = 1;
+	}
+								
+	return result;
 }
 
 int yaffs_WriteChunkWithTagsToNAND(yaffs_Device * dev,

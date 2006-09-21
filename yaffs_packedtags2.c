@@ -114,20 +114,34 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags * t, yaffs_PackedTags2 * pt)
 		/* Page is in use */
 #ifdef YAFFS_IGNORE_TAGS_ECC
 		{
-			t->eccResult = 0;
+			t->eccResult = YAFFS_ECC_RESULT_NO_ERROR;
 		}
 #else
 		{
 			yaffs_ECCOther ecc;
+			int result;
 			yaffs_ECCCalculateOther((unsigned char *)&pt->t,
 						sizeof
 						(yaffs_PackedTags2TagsPart),
 						&ecc);
-			t->eccResult =
+			result =
 			    yaffs_ECCCorrectOther((unsigned char *)&pt->t,
 						  sizeof
 						  (yaffs_PackedTags2TagsPart),
 						  &pt->ecc, &ecc);
+			switch(result){
+				case 0: 
+					t->eccResult = YAFFS_ECC_RESULT_NO_ERROR; 
+					break;
+				case 1: 
+					t->eccResult = YAFFS_ECC_RESULT_FIXED;
+					break;
+				case -1:
+					t->eccResult = YAFFS_ECC_RESULT_UNFIXED;
+					break;
+				default:
+					t->eccResult = YAFFS_ECC_RESULT_UNKNOWN;
+			}
 		}
 #endif
 		t->blockBad = 0;

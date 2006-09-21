@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.22 2006-05-17 09:31:06 charles Exp $
+ * $Id: yaffs_guts.h,v 1.23 2006-09-21 08:13:59 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -273,6 +273,10 @@ typedef struct {
 	yaffs_BlockState blockState:4;	/* One of the above block states */
 	__u32 needsRetiring:1;	/* Data has failed on this block, need to get valid data off */
                         	/* and retire the block. */
+	__u32 skipErasedCheck: 1; /* If this is set we can skip the erased check on this block */
+	__u32 gcPrioritise: 1; 	/* An ECC check or bank check has failed on this block. 
+				   It should be prioritised for GC */
+
 #ifdef CONFIG_YAFFS_YAFFS2
 	__u32 hasShrinkHeader:1; /* This block has at least one shrink object header */
 	__u32 sequenceNumber;	 /* block sequence number for yaffs2 */

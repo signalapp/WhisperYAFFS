@@ -14,7 +14,7 @@
  */
 
 const char *yaffs_mtdif_c_version =
-    "$Id: yaffs_mtdif.c,v 1.13 2005-11-07 07:13:33 charles Exp $";
+    "$Id: yaffs_mtdif.c,v 1.14 2006-09-26 13:28:13 vwool Exp $";
 
 #include "yportenv.h"
 
@@ -26,6 +26,7 @@ const char *yaffs_mtdif_c_version =
 #include "linux/time.h"
 #include "linux/mtd/nand.h"
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18))
 static struct nand_oobinfo yaffs_oobinfo = {
 	.useecc = 1,
 	.eccbytes = 6,
@@ -35,16 +36,74 @@ static struct nand_oobinfo yaffs_oobinfo = {
 static struct nand_oobinfo yaffs_noeccinfo = {
 	.useecc = 0,
 };
+#endif
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static inline void translate_spare2oob(const yaffs_Spare *spare, __u8 *oob)
+{
+	oob[0] = spare->tagByte0;
+	oob[1] = spare->tagByte1;
+	oob[2] = spare->tagByte2;
+	oob[3] = spare->tagByte3;
+	oob[4] = spare->tagByte4;
+	oob[5] = spare->tagByte5 & 0x3f;
+	oob[5] |= spare->blockStatus == 'Y' ? 0: 0x80;
+	oob[5] |= spare->pageStatus == 0 ? 0: 0x40;
+	oob[6] = spare->tagByte6;
+	oob[7] = spare->tagByte7;
+}
+
+static inline void translate_oob2spare(yaffs_Spare *spare, __u8 *oob)
+{
+	struct yaffs_NANDSpare *nspare = (struct yaffs_NANDSpare *)spare;
+	spare->tagByte0 = oob[0];
+	spare->tagByte1 = oob[1];
+	spare->tagByte2 = oob[2];
+	spare->tagByte3 = oob[3];
+	spare->tagByte4 = oob[4];
+	spare->tagByte5 = oob[5] == 0xff ? 0xff : oob[5] & 0x3f;
+	spare->blockStatus = oob[5] & 0x80 ? 0xff : 'Y';
+	spare->pageStatus = oob[5] & 0x40 ? 0xff : 0;
+	spare->tagByte6 = oob[6];
+	spare->tagByte7 = oob[7];
+
+	nspare->eccres1 = nspare->eccres2 = 0; /* FIXME */
+}
+#endif
 
 int nandmtd_WriteChunkToNAND(yaffs_Device * dev, int chunkInNAND,
 			     const __u8 * data, const yaffs_Spare * spare)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	struct mtd_oob_ops ops;
+#endif
 	size_t dummy;
 	int retval = 0;
 
 	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	__u8 spareAsBytes[8]; /* OOB */
 
+	if (data && !spare)
+		retval = mtd->write(mtd, addr, dev->nBytesPerChunk,
+				&dummy, data);
+	else if (spare) {
+		if (dev->useNANDECC) {
+			translate_spare2oob(spare, spareAsBytes);
+			ops.mode = MTD_OOB_AUTO;
+			ops.ooblen = 8; /* temp hack */
+		} else {
+			ops.mode = MTD_OOB_RAW;
+			ops.ooblen = YAFFS_BYTES_PER_SPARE;
+		}
+		ops.len = data ? dev->nBytesPerChunk : ops.ooblen;
+		ops.datbuf = (u8 *)data;
+		ops.ooboffs = 0;
+		ops.oobbuf = spareAsBytes;
+		retval = mtd->write_oob(mtd, addr, &ops);
+	}
+#else
 	__u8 *spareAsBytes = (__u8 *) spare;
 
 	if (data && spare) {
@@ -68,6 +127,7 @@ int nandmtd_WriteChunkToNAND(yaffs_Device * dev, int chunkInNAND,
 			    mtd->write_oob(mtd, addr, YAFFS_BYTES_PER_SPARE,
 					   &dummy, spareAsBytes);
 	}
+#endif
 
 	if (retval == 0)
 		return YAFFS_OK;
@@ -79,11 +139,36 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device * dev, int chunkInNAND, __u8 * data,
 			      yaffs_Spare * spare)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	struct mtd_oob_ops ops;
+#endif
 	size_t dummy;
 	int retval = 0;
 
 	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	__u8 spareAsBytes[8]; /* OOB */
 
+	if (data && !spare)
+		retval = mtd->read(mtd, addr, dev->nBytesPerChunk,
+				&dummy, data);
+	else if (spare) {
+		if (dev->useNANDECC) {
+			ops.mode = MTD_OOB_AUTO;
+			ops.ooblen = 8; /* temp hack */
+		} else {
+			ops.mode = MTD_OOB_RAW;
+			ops.ooblen = YAFFS_BYTES_PER_SPARE;
+		}
+		ops.len = data ? dev->nBytesPerChunk : ops.ooblen;
+		ops.datbuf = data;
+		ops.ooboffs = 0;
+		ops.oobbuf = spareAsBytes;
+		retval = mtd->read_oob(mtd, addr, &ops);
+		if (dev->useNANDECC)
+			translate_oob2spare(spare, spareAsBytes);
+	}
+#else
 	__u8 *spareAsBytes = (__u8 *) spare;
 
 	if (data && spare) {
@@ -112,6 +197,7 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device * dev, int chunkInNAND, __u8 * data,
 			    mtd->read_oob(mtd, addr, YAFFS_BYTES_PER_SPARE,
 					  &dummy, spareAsBytes);
 	}
+#endif
 
 	if (retval == 0)
 		return YAFFS_OK;

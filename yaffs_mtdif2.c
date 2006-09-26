@@ -16,7 +16,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.12 2006-09-21 08:13:59 charles Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.13 2006-09-26 13:28:13 vwool Exp $";
 
 #include "yportenv.h"
 
@@ -34,7 +34,11 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 				      const yaffs_ExtendedTags * tags)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	struct mtd_oob_ops ops;
+#else
 	size_t dummy;
+#endif
 	int retval = 0;
 
 	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
@@ -46,6 +50,23 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 	   ("nandmtd2_WriteChunkWithTagsToNAND chunk %d data %p tags %p"
 	    TENDSTR), chunkInNAND, data, tags));
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	if (tags)
+		yaffs_PackTags2(&pt, tags);
+	else
+		BUG(); /* both tags and data should always be present */
+
+	if (data) {
+		ops.mode = MTD_OOB_AUTO;
+		ops.ooblen = sizeof(pt);
+		ops.len = dev->nBytesPerChunk;
+		ops.ooboffs = 0;
+		ops.datbuf = (__u8 *)data;
+		ops.oobbuf = (void *)&pt;
+		retval = mtd->write_oob(mtd, addr, &ops);
+	} else
+		BUG(); /* both tags and data should always be present */
+#else
 	if (tags) {
 		yaffs_PackTags2(&pt, tags);
 	}
@@ -70,6 +91,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 					   (__u8 *) & pt);
 
 	}
+#endif
 
 	if (retval == 0)
 		return YAFFS_OK;
@@ -81,6 +103,9 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 				       __u8 * data, yaffs_ExtendedTags * tags)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	struct mtd_oob_ops ops;
+#endif
 	size_t dummy;
 	int retval = 0;
 
@@ -93,6 +118,20 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	   ("nandmtd2_ReadChunkWithTagsFromNAND chunk %d data %p tags %p"
 	    TENDSTR), chunkInNAND, data, tags));
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	if (data && !tags)
+		retval = mtd->read(mtd, addr, dev->nBytesPerChunk,
+				&dummy, data);
+	else if (tags) {
+		ops.mode = MTD_OOB_AUTO;
+		ops.ooblen = sizeof(pt);
+		ops.len = data ? dev->nBytesPerChunk : sizeof(pt);
+		ops.ooboffs = 0;
+		ops.datbuf = data;
+		ops.oobbuf = dev->spareBuffer;
+		retval = mtd->read_oob(mtd, addr, &ops);
+	}
+#else
 	if (data && tags) {
 		if (dev->useNANDECC) {
 			retval =
@@ -115,6 +154,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 			    mtd->read_oob(mtd, addr, mtd->oobsize, &dummy,
 					  dev->spareBuffer);
 	}
+#endif
 
 	memcpy(&pt, dev->spareBuffer, sizeof(pt));
 

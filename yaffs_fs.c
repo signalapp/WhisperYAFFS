@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.51 2006-07-25 21:03:22 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.52 2006-09-26 13:28:13 vwool Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -103,7 +103,11 @@ static void yaffs_put_super(struct super_block *sb);
 static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
 				loff_t * pos);
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static int yaffs_file_flush(struct file *file, fl_owner_t id);
+#else
 static int yaffs_file_flush(struct file *file);
+#endif
 
 static int yaffs_sync_object(struct file *file, struct dentry *dentry,
 			     int datasync);
@@ -137,10 +141,17 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 			struct inode *new_dir, struct dentry *new_dentry);
 static int yaffs_setattr(struct dentry *dentry, struct iattr *attr);
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static int yaffs_sync_fs(struct super_block *sb, int wait);
+static void yaffs_write_super(struct super_block *sb);
+#else
 static int yaffs_sync_fs(struct super_block *sb);
 static int yaffs_write_super(struct super_block *sb);
+#endif
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static int yaffs_statfs(struct dentry *dentry, struct kstatfs *buf);
+#elif (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_statfs(struct super_block *sb, struct kstatfs *buf);
 #else
 static int yaffs_statfs(struct super_block *sb, struct statfs *buf);
@@ -438,7 +449,11 @@ static void yaffs_delete_inode(struct inode *inode)
 	clear_inode(inode);
 }
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static int yaffs_file_flush(struct file *file, fl_owner_t id)
+#else
 static int yaffs_file_flush(struct file *file)
+#endif
 {
 	yaffs_Object *obj = yaffs_DentryToObject(file->f_dentry);
 
@@ -1257,14 +1272,21 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 	return error;
 }
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static int yaffs_statfs(struct dentry *dentry, struct kstatfs *buf)
+{
+	yaffs_Device *dev = yaffs_DentryToObject(dentry)->myDev;
+	struct super_block *sb = dentry->d_sb;
+#elif (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_statfs(struct super_block *sb, struct kstatfs *buf)
+{
+	yaffs_Device *dev = yaffs_SuperToDevice(sb);
 #else
 static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
-#endif
 {
-
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
+#endif
+
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_statfs\n"));
 
 	yaffs_GrossLock(dev);
@@ -1321,16 +1343,25 @@ static int yaffs_do_sync_fs(struct super_block *sb)
 }
 
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static void yaffs_write_super(struct super_block *sb)
+#else
 static int yaffs_write_super(struct super_block *sb)
+#endif
 {
 
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_write_super\n"));
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18))
 	return 0; /* yaffs_do_sync_fs(sb);*/
-	
+#endif
 }
 
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static int yaffs_sync_fs(struct super_block *sb, int wait)
+#else
 static int yaffs_sync_fs(struct super_block *sb)
+#endif
 {
 
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_sync_fs\n"));
@@ -1486,7 +1517,11 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	T(YAFFS_TRACE_OS, (" writeoob %p\n", mtd->write_oob));
 	T(YAFFS_TRACE_OS, (" block_isbad %p\n", mtd->block_isbad));
 	T(YAFFS_TRACE_OS, (" block_markbad %p\n", mtd->block_markbad));
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	T(YAFFS_TRACE_OS, (" writesize %d\n", mtd->writesize));
+#else
 	T(YAFFS_TRACE_OS, (" oobblock %d\n", mtd->oobblock));
+#endif
 	T(YAFFS_TRACE_OS, (" oobsize %d\n", mtd->oobsize));
 	T(YAFFS_TRACE_OS, (" erasesize %d\n", mtd->erasesize));
 	T(YAFFS_TRACE_OS, (" size %d\n", mtd->size));
@@ -1494,14 +1529,22 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 #ifdef CONFIG_YAFFS_AUTO_YAFFS2
 
 	if (yaffsVersion == 1 && 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	    mtd->writesize >= 2048) {
+#else
 	    mtd->oobblock >= 2048) {
+#endif
 	    T(YAFFS_TRACE_ALWAYS,("yaffs: auto selecting yaffs2\n"));
 	    yaffsVersion = 2;
 	}	
 	
 	/* Added NCB 26/5/2006 for completeness */
 	if (yaffsVersion == 2 && 
-	    mtd->oobblock == 512) {
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+	    mtd->writesize == 512) {
+#else
+	    mtd->oobblock >= 512) {
+#endif
 	    T(YAFFS_TRACE_ALWAYS,("yaffs: auto selecting yaffs1\n"));
 	    yaffsVersion = 1;
 	}	
@@ -1515,15 +1558,23 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		    !mtd->block_markbad ||
 		    !mtd->read ||
 		    !mtd->write ||
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+		    !mtd->read_oob || !mtd->write_oob) {
+#else
 		    !mtd->write_ecc ||
 		    !mtd->read_ecc || !mtd->read_oob || !mtd->write_oob) {
+#endif
 			T(YAFFS_TRACE_ALWAYS,
 			  ("yaffs: MTD device does not support required "
 			   "functions\n"));;
 			return NULL;
 		}
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+		if (mtd->writesize < YAFFS_MIN_YAFFS2_CHUNK_SIZE ||
+#else
 		if (mtd->oobblock < YAFFS_MIN_YAFFS2_CHUNK_SIZE ||
+#endif
 		    mtd->oobsize < YAFFS_MIN_YAFFS2_SPARE_SIZE) {
 			T(YAFFS_TRACE_ALWAYS,
 			  ("yaffs: MTD device does not have the "
@@ -1535,15 +1586,23 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		if (!mtd->erase ||
 		    !mtd->read ||
 		    !mtd->write ||
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+		    !mtd->read_oob || !mtd->write_oob) {
+#else
 		    !mtd->write_ecc ||
 		    !mtd->read_ecc || !mtd->read_oob || !mtd->write_oob) {
+#endif
 			T(YAFFS_TRACE_ALWAYS,
 			  ("yaffs: MTD device does not support required "
 			   "functions\n"));;
 			return NULL;
 		}
 
-		if (mtd->oobblock != YAFFS_BYTES_PER_CHUNK ||
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+		if (mtd->writesize < YAFFS_BYTES_PER_CHUNK ||
+#else
+		if (mtd->oobblock < YAFFS_BYTES_PER_CHUNK ||
+#endif
 		    mtd->oobsize != YAFFS_BYTES_PER_SPARE) {
 			T(YAFFS_TRACE_ALWAYS,
 			  ("yaffs: MTD device does not support have the "
@@ -1594,8 +1653,13 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		dev->queryNANDBlock = nandmtd2_QueryNANDBlock;
 		dev->spareBuffer = YMALLOC(mtd->oobsize);
 		dev->isYaffs2 = 1;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+		dev->nBytesPerChunk = mtd->writesize;
+		dev->nChunksPerBlock = mtd->erasesize / mtd->writesize;
+#else
 		dev->nBytesPerChunk = mtd->oobblock;
 		dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
+#endif
 		nBlocks = mtd->size / mtd->erasesize;
 
 		dev->nCheckpointReservedBlocks = 10;
@@ -1675,6 +1739,16 @@ static int yaffs_internal_read_super_mtd(struct super_block *sb, void *data,
 	return yaffs_internal_read_super(1, sb, data, silent) ? 0 : -EINVAL;
 }
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static int yaffs_read_super(struct file_system_type *fs,
+			    int flags, const char *dev_name,
+			    void *data, struct vfsmount *mnt)
+{
+
+	return get_sb_bdev(fs, flags, dev_name, data,
+			   yaffs_internal_read_super_mtd, mnt);
+}
+#else
 static struct super_block *yaffs_read_super(struct file_system_type *fs,
 					    int flags, const char *dev_name,
 					    void *data)
@@ -1683,6 +1757,7 @@ static struct super_block *yaffs_read_super(struct file_system_type *fs,
 	return get_sb_bdev(fs, flags, dev_name, data,
 			   yaffs_internal_read_super_mtd);
 }
+#endif
 
 static struct file_system_type yaffs_fs_type = {
 	.owner = THIS_MODULE,
@@ -1712,6 +1787,15 @@ static int yaffs2_internal_read_super_mtd(struct super_block *sb, void *data,
 	return yaffs_internal_read_super(2, sb, data, silent) ? 0 : -EINVAL;
 }
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+static int yaffs2_read_super(struct file_system_type *fs,
+			int flags, const char *dev_name, void *data,
+			struct vfsmount *mnt)
+{
+	return get_sb_bdev(fs, flags, dev_name, data,
+			yaffs2_internal_read_super_mtd, mnt);
+}
+#else
 static struct super_block *yaffs2_read_super(struct file_system_type *fs,
 					     int flags, const char *dev_name,
 					     void *data)
@@ -1720,6 +1804,7 @@ static struct super_block *yaffs2_read_super(struct file_system_type *fs,
 	return get_sb_bdev(fs, flags, dev_name, data,
 			   yaffs2_internal_read_super_mtd);
 }
+#endif
 
 static struct file_system_type yaffs2_fs_type = {
 	.owner = THIS_MODULE,

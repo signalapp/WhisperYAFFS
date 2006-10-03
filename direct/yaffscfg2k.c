@@ -84,7 +84,7 @@ int yaffs_StartUp(void)
 	// Set up devices
 	// /ram
 	memset(&ramDev,0,sizeof(ramDev));
-	ramDev.nBytesPerChunk = 512;
+	ramDev.nDataBytesPerChunk = 512;
 	ramDev.nChunksPerBlock = 32;
 	ramDev.nReservedBlocks = 2; // Set this smaller for RAM
 	ramDev.startBlock = 0; // Can use block 0
@@ -99,7 +99,7 @@ int yaffs_StartUp(void)
 
 	// /boot
 	memset(&bootDev,0,sizeof(bootDev));
-	bootDev.nBytesPerChunk = 512;
+	bootDev.nDataBytesPerChunk = 512;
 	bootDev.nChunksPerBlock = 32;
 	bootDev.nReservedBlocks = 5;
 	bootDev.startBlock = 0; // Can use block 0
@@ -122,15 +122,15 @@ int yaffs_StartUp(void)
 	// 2kpage/64chunk per block/128MB device
 	memset(&flashDev,0,sizeof(flashDev));
 
-	flashDev.nBytesPerChunk = 2048;
+	flashDev.nDataBytesPerChunk = 2048;
 	flashDev.nChunksPerBlock = 64;
 	flashDev.nReservedBlocks = 5;
 	flashDev.nCheckpointReservedBlocks = 5;
 	//flashDev.checkpointStartBlock = 1;
 	//flashDev.checkpointEndBlock = 20;
 	flashDev.startBlock = 20; 
-	flashDev.endBlock = 127; // Make it smaller
-	//flashDev.endBlock = yflash_GetNumberOfBlocks()-1;
+	//flashDev.endBlock = 127; // Make it smaller
+	flashDev.endBlock = yflash_GetNumberOfBlocks()-1;
 	flashDev.isYaffs2 = 1;
 	flashDev.wideTnodesDisabled=0;
 	flashDev.nShortOpCaches = 10; // Use caches
@@ -148,7 +148,7 @@ int yaffs_StartUp(void)
 	// 2kpage/64chunk per block/128MB device
 	memset(&ram2kDev,0,sizeof(ram2kDev));
 
-	ram2kDev.nBytesPerChunk = nandemul2k_GetBytesPerChunk();
+	ram2kDev.nDataBytesPerChunk = nandemul2k_GetBytesPerChunk();
 	ram2kDev.nChunksPerBlock = nandemul2k_GetChunksPerBlock();
 	ram2kDev.nReservedBlocks = 5;
 	ram2kDev.startBlock = 0; // First block after /boot

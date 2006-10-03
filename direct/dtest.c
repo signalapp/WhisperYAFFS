@@ -166,6 +166,7 @@ void create_file_of_size(const char *fn,int syze)
 	int h;
 	int n;
 	
+	char xx[200];
 	
 	int iterations = (syze + strlen(fn) -1)/ strlen(fn);
 	
@@ -173,7 +174,37 @@ void create_file_of_size(const char *fn,int syze)
 		
 	while (iterations > 0)
 	{
-		yaffs_write(h,fn,strlen(fn));
+		sprintf(xx,"%s %8d",fn,iterations);
+		yaffs_write(h,xx,strlen(xx));
+		iterations--;
+	}
+	yaffs_close (h);
+}
+
+void verify_file_of_size(const char *fn,int syze)
+{
+	int h;
+	int n;
+	
+	char xx[200];
+	char yy[200];
+	int l;
+	
+	int iterations = (syze + strlen(fn) -1)/ strlen(fn);
+	
+	h = yaffs_open(fn, O_RDONLY, S_IREAD | S_IWRITE);
+		
+	while (iterations > 0)
+	{
+		sprintf(xx,"%s %8d",fn,iterations);
+		l = strlen(xx);
+		
+		yaffs_read(h,yy,l);
+		yy[l] = 0;
+		
+		if(strcmp(xx,yy)){
+			printf("=====>>>>> verification of file %s failed near position %d\n",fn,yaffs_lseek(h,0,SEEK_CUR));
+		}
 		iterations--;
 	}
 	yaffs_close (h);
@@ -1870,6 +1901,54 @@ void checkpoint_upgrade_test(const char *mountpt,int nmounts)
 	}
 }
 	
+void huge_array_test(const char *mountpt,int n)
+{
+
+	char a[50];
+
+	
+	int i;
+	int j;
+	int h;
+	
+	int fnum;
+	
+	sprintf(a,"mount point %s",mountpt);
+	
+
+	
+	yaffs_StartUp();
+
+	yaffs_mount(mountpt);
+	
+	while(n>0){
+		n--;
+		fnum = 0;
+		printf("\n\n START run\n\n");
+		while(yaffs_freespace(mountpt) > 25000000){
+			sprintf(a,"%s/file%d",mountpt,fnum);
+			fnum++;
+			printf("create file %s\n",a);
+			create_file_of_size(a,10000000);
+			printf("verifying file %s\n",a);
+			verify_file_of_size(a,10000000);
+		}
+		
+		printf("\n\n\ verification/deletion\n\n");
+		
+		for(i = 0; i < fnum; i++){
+			sprintf(a,"%s/file%d",mountpt,i);
+			printf("verifying file %s\n",a);
+			verify_file_of_size(a,10000000);
+			printf("deleting file %s\n",a);
+			yaffs_unlink(a);
+		}
+		printf("\n\n\ done \n\n");
+			
+		   
+	}
+}
+	
 
 
 int main(int argc, char *argv[])
@@ -1890,7 +1969,9 @@ int main(int argc, char *argv[])
 	//short_scan_test("/flash/flash",40000,200);
 	 //multi_mount_test("/flash/flash",20);
 	 //checkpoint_fill_test("/flash/flash",20);
-	 checkpoint_upgrade_test("/flash/flash",20);
+	 //checkpoint_upgrade_test("/flash/flash",20);
+	  huge_array_test("/flash/flash",2);
+
 
 
 	

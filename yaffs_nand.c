@@ -13,7 +13,7 @@
  */
  
 const char *yaffs_nand_c_version =
-    "$Id: yaffs_nand.c,v 1.2 2006-09-21 08:13:59 charles Exp $";
+    "$Id: yaffs_nand.c,v 1.3 2006-10-03 10:13:03 charles Exp $";
 
 #include "yaffs_nand.h"
 #include "yaffs_tagscompat.h"
@@ -25,8 +25,13 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 					   yaffs_ExtendedTags * tags)
 {
 	int result;
+	yaffs_ExtendedTags localTags;
 	
 	int realignedChunkInNAND = chunkInNAND - dev->chunkOffset;
+	
+	/* If there are no tags provided, use local tags to get prioritised gc working */
+	if(!tags)
+		tags = &localTags;
 
 	if (dev->readChunkWithTagsFromNAND)
 		result = dev->readChunkWithTagsFromNAND(dev, realignedChunkInNAND, buffer,
@@ -41,6 +46,7 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	
 		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, chunkInNAND/dev->nChunksPerBlock);
 		bi->gcPrioritise = 1;
+		dev->hasPendingPrioritisedGCs = 1;
 	}
 								
 	return result;

@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.4 2006-05-23 19:08:41 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.5 2006-10-03 10:13:03 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -135,7 +135,7 @@ int yaffs_CheckpointOpen(yaffs_Device *dev, int forWriting)
 		return 0;
 			
 	if(!dev->checkpointBuffer)
-		dev->checkpointBuffer = YMALLOC_DMA(dev->nBytesPerChunk);
+		dev->checkpointBuffer = YMALLOC_DMA(dev->nDataBytesPerChunk);
 	if(!dev->checkpointBuffer)
 		return 0;
 
@@ -151,7 +151,7 @@ int yaffs_CheckpointOpen(yaffs_Device *dev, int forWriting)
 	
 	/* Erase all the blocks in the checkpoint area */
 	if(forWriting){
-		memset(dev->checkpointBuffer,0,dev->nBytesPerChunk);
+		memset(dev->checkpointBuffer,0,dev->nDataBytesPerChunk);
 		dev->checkpointByteOffset = 0;
 		return yaffs_CheckpointErase(dev);
 		
@@ -159,7 +159,7 @@ int yaffs_CheckpointOpen(yaffs_Device *dev, int forWriting)
 	} else {
 		int i;
 		/* Set to a value that will kick off a read */
-		dev->checkpointByteOffset = dev->nBytesPerChunk;
+		dev->checkpointByteOffset = dev->nDataBytesPerChunk;
 		/* A checkpoint block list of 1 checkpoint block per 16 block is (hopefully)
 		 * going to be way more than we need */
 		dev->blocksInCheckpoint = 0;
@@ -191,7 +191,7 @@ static int yaffs_CheckpointFlushBuffer(yaffs_Device *dev)
 	tags.objectId = dev->checkpointNextBlock; /* Hint to next place to look */
 	tags.chunkId = dev->checkpointPageSequence + 1;
 	tags.sequenceNumber =  YAFFS_SEQUENCE_CHECKPOINT_DATA;
-	tags.byteCount = dev->nBytesPerChunk;
+	tags.byteCount = dev->nDataBytesPerChunk;
 	if(dev->checkpointCurrentChunk == 0){
 		/* First chunk we write for the block? Set block state to
 		   checkpoint */
@@ -210,7 +210,7 @@ static int yaffs_CheckpointFlushBuffer(yaffs_Device *dev)
 		dev->checkpointCurrentChunk = 0;
 		dev->checkpointCurrentBlock = -1;
 	}
-	memset(dev->checkpointBuffer,0,dev->nBytesPerChunk);
+	memset(dev->checkpointBuffer,0,dev->nDataBytesPerChunk);
 	
 	return 1;
 }
@@ -241,7 +241,7 @@ int yaffs_CheckpointWrite(yaffs_Device *dev,const void *data, int nBytes)
 		
 		
 		if(dev->checkpointByteOffset < 0 ||
-		   dev->checkpointByteOffset >= dev->nBytesPerChunk) 
+		   dev->checkpointByteOffset >= dev->nDataBytesPerChunk) 
 			ok = yaffs_CheckpointFlushBuffer(dev);
 
 	}
@@ -267,7 +267,7 @@ int yaffs_CheckpointRead(yaffs_Device *dev, void *data, int nBytes)
 	
 	
 		if(dev->checkpointByteOffset < 0 ||
-		   dev->checkpointByteOffset >= dev->nBytesPerChunk) {
+		   dev->checkpointByteOffset >= dev->nDataBytesPerChunk) {
 		   
 		   	if(dev->checkpointCurrentBlock < 0){
 				yaffs_CheckpointFindNextCheckpointBlock(dev);

@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: ydirectenv.h,v 1.3 2006-05-21 09:39:12 charles Exp $
+ * $Id: ydirectenv.h,v 1.4 2006-10-03 10:13:03 charles Exp $
  *
  */
  
@@ -38,8 +38,11 @@
 #define yaffs_sprintf	     sprintf
 #define yaffs_toupper(a)     toupper(a)
 
+#ifdef NO_Y_INLINE
+#define Y_INLINE
+#else
 #define Y_INLINE inline
-
+#endif
 
 #define YMALLOC(x) malloc(x)
 #define YFREE(x)   free(x)

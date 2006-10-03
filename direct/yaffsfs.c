@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.12 2006-05-08 10:13:35 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.13 2006-10-03 10:13:03 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -620,7 +620,7 @@ int yaffs_write(int fd, const void *buf, unsigned int nbyte)
 
 }
 
-int yaffs_truncate(int fd, unsigned int newSize)
+int yaffs_truncate(int fd, off_t newSize)
 {
 	yaffsfs_Handle *h = NULL;
 	yaffs_Object *obj = NULL;
@@ -851,7 +851,7 @@ static int yaffsfs_DoStat(yaffs_Object *obj,struct yaffs_stat *buf)
     	buf->st_gid = 0;;     
     	buf->st_rdev = obj->yst_rdev;
     	buf->st_size = yaffs_GetObjectFileLength(obj);
-		buf->st_blksize = obj->myDev->nBytesPerChunk;
+		buf->st_blksize = obj->myDev->nDataBytesPerChunk;
     	buf->st_blocks = (buf->st_size + buf->st_blksize -1)/buf->st_blksize;
     	buf->yst_atime = obj->yst_atime; 
     	buf->yst_ctime = obj->yst_ctime; 
@@ -1118,9 +1118,9 @@ int yaffs_unmount(const char *path)
 	
 }
 
-off_t yaffs_freespace(const char *path)
+loff_t yaffs_freespace(const char *path)
 {
-	off_t retVal=-1;
+	loff_t retVal=-1;
 	yaffs_Device *dev=NULL;
 	char *dummy;
 	
@@ -1129,7 +1129,7 @@ off_t yaffs_freespace(const char *path)
 	if(dev  && dev->isMounted)
 	{
 		retVal = yaffs_GetNumberOfFreeChunks(dev);
-		retVal *= dev->nBytesPerChunk;
+		retVal *= dev->nDataBytesPerChunk;
 		
 	}
 	else

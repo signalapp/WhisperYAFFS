@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.52 2006-09-26 13:28:13 vwool Exp $";
+    "$Id: yaffs_fs.c,v 1.53 2006-10-03 10:13:03 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1294,23 +1294,23 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 	buf->f_type = YAFFS_MAGIC;
 	buf->f_bsize = sb->s_blocksize;
 	buf->f_namelen = 255;
-	if (sb->s_blocksize > dev->nBytesPerChunk) {
+	if (sb->s_blocksize > dev->nDataBytesPerChunk) {
 
 		buf->f_blocks =
 		    (dev->endBlock - dev->startBlock +
 		     1) * dev->nChunksPerBlock / (sb->s_blocksize /
-						  dev->nBytesPerChunk);
+						  dev->nDataBytesPerChunk);
 		buf->f_bfree =
 		    yaffs_GetNumberOfFreeChunks(dev) / (sb->s_blocksize /
-							dev->nBytesPerChunk);
+							dev->nDataBytesPerChunk);
 	} else {
 
 		buf->f_blocks =
 		    (dev->endBlock - dev->startBlock +
-		     1) * dev->nChunksPerBlock * (dev->nBytesPerChunk /
+		     1) * dev->nChunksPerBlock * (dev->nDataBytesPerChunk /
 						  sb->s_blocksize);
 		buf->f_bfree =
-		    yaffs_GetNumberOfFreeChunks(dev) * (dev->nBytesPerChunk /
+		    yaffs_GetNumberOfFreeChunks(dev) * (dev->nDataBytesPerChunk /
 							sb->s_blocksize);
 	}
 	buf->f_files = 0;
@@ -1639,7 +1639,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	dev->startBlock = 0;
 	dev->endBlock = nBlocks - 1;
 	dev->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
-	dev->nBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
+	dev->nDataBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
 	dev->nReservedBlocks = 5;
 	dev->nShortOpCaches = 10;	/* Enable short op caching */
 
@@ -1654,10 +1654,10 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		dev->spareBuffer = YMALLOC(mtd->oobsize);
 		dev->isYaffs2 = 1;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
-		dev->nBytesPerChunk = mtd->writesize;
+		dev->nDataBytesPerChunk = mtd->writesize;
 		dev->nChunksPerBlock = mtd->erasesize / mtd->writesize;
 #else
-		dev->nBytesPerChunk = mtd->oobblock;
+		dev->nDataBytesPerChunk = mtd->oobblock;
 		dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
 #endif
 		nBlocks = mtd->size / mtd->erasesize;

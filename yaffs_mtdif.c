@@ -14,7 +14,7 @@
  */
 
 const char *yaffs_mtdif_c_version =
-    "$Id: yaffs_mtdif.c,v 1.14 2006-09-26 13:28:13 vwool Exp $";
+    "$Id: yaffs_mtdif.c,v 1.15 2006-10-03 10:13:03 charles Exp $";
 
 #include "yportenv.h"
 
@@ -81,7 +81,7 @@ int nandmtd_WriteChunkToNAND(yaffs_Device * dev, int chunkInNAND,
 	size_t dummy;
 	int retval = 0;
 
-	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
+	loff_t addr = ((loff_t) chunkInNAND) * dev->nDataBytesPerChunk;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
 	__u8 spareAsBytes[8]; /* OOB */
 
@@ -109,18 +109,18 @@ int nandmtd_WriteChunkToNAND(yaffs_Device * dev, int chunkInNAND,
 	if (data && spare) {
 		if (dev->useNANDECC)
 			retval =
-			    mtd->write_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->write_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					   &dummy, data, spareAsBytes,
 					   &yaffs_oobinfo);
 		else
 			retval =
-			    mtd->write_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->write_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					   &dummy, data, spareAsBytes,
 					   &yaffs_noeccinfo);
 	} else {
 		if (data)
 			retval =
-			    mtd->write(mtd, addr, dev->nBytesPerChunk, &dummy,
+			    mtd->write(mtd, addr, dev->nDataBytesPerChunk, &dummy,
 				       data);
 		if (spare)
 			retval =
@@ -145,7 +145,7 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device * dev, int chunkInNAND, __u8 * data,
 	size_t dummy;
 	int retval = 0;
 
-	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
+	loff_t addr = ((loff_t) chunkInNAND) * dev->nDataBytesPerChunk;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
 	__u8 spareAsBytes[8]; /* OOB */
 
@@ -178,19 +178,19 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device * dev, int chunkInNAND, __u8 * data,
 			/* should allocate enough memory for spare, */
 			/* i.e. [YAFFS_BYTES_PER_SPARE+2*sizeof(int)]. */
 			retval =
-			    mtd->read_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->read_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					  &dummy, data, spareAsBytes,
 					  &yaffs_oobinfo);
 		} else {
 			retval =
-			    mtd->read_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->read_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					  &dummy, data, spareAsBytes,
 					  &yaffs_noeccinfo);
 		}
 	} else {
 		if (data)
 			retval =
-			    mtd->read(mtd, addr, dev->nBytesPerChunk, &dummy,
+			    mtd->read(mtd, addr, dev->nDataBytesPerChunk, &dummy,
 				      data);
 		if (spare)
 			retval =
@@ -209,14 +209,14 @@ int nandmtd_EraseBlockInNAND(yaffs_Device * dev, int blockNumber)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	__u32 addr =
-	    ((loff_t) blockNumber) * dev->nBytesPerChunk
+	    ((loff_t) blockNumber) * dev->nDataBytesPerChunk
 		* dev->nChunksPerBlock;
 	struct erase_info ei;
 	int retval = 0;
 
 	ei.mtd = mtd;
 	ei.addr = addr;
-	ei.len = dev->nBytesPerChunk * dev->nChunksPerBlock;
+	ei.len = dev->nDataBytesPerChunk * dev->nChunksPerBlock;
 	ei.time = 1000;
 	ei.retries = 2;
 	ei.callback = NULL;

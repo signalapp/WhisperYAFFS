@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.23 2006-09-21 08:13:59 charles Exp $
+ * $Id: yaffs_guts.h,v 1.24 2006-10-03 10:13:03 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -524,7 +524,7 @@ struct yaffs_DeviceStruct {
 	const char *name;
 
 	/* Entry parameters set up way early. Yaffs sets up the rest.*/
-	int nBytesPerChunk;	/* Should be a power of 2 >= 512 */
+	int nDataBytesPerChunk;	/* Should be a power of 2 >= 512 */
 	int nChunksPerBlock;	/* does not need to be a power of 2 */
 	int nBytesPerSpare;	/* spare area size */
 	int startBlock;		/* Start block we're allowed to use */
@@ -606,6 +606,16 @@ struct yaffs_DeviceStruct {
 	__u32 tnodeWidth;
 	__u32 tnodeMask;
 	
+	/* Stuff to support various file offses to chunk/offset translations */
+	/* "Crumbs" for nDataBytesPerChunk not being a power of 2 */
+	__u32 crumbMask;
+	__u32 crumbShift;
+	__u32 crumbsPerChunk;
+	
+	/* Straight shifting for nDataBytesPerChunk being a power of 2 */
+	__u32 chunkShift;
+	__u32 chunkMask;
+	
 
 #ifdef __KERNEL__
 
@@ -620,6 +630,7 @@ struct yaffs_DeviceStruct {
 	int isMounted;
 	
 	int isCheckpointed;
+
 
 	/* Stuff to support block offsetting to support start block zero */
 	int internalStartBlock;
@@ -693,6 +704,8 @@ struct yaffs_DeviceStruct {
 	int tagsEccUnfixed;
 	int nDeletions;
 	int nUnmarkedDeletions;
+	
+	int hasPendingPrioritisedGCs; /* We think this device might have pending prioritised gcs */
 
 	/* Special directories */
 	yaffs_Object *rootDir;
@@ -808,11 +821,11 @@ int yaffs_SetAttributes(yaffs_Object * obj, struct iattr *attr);
 int yaffs_GetAttributes(yaffs_Object * obj, struct iattr *attr);
 
 /* File operations */
-int yaffs_ReadDataFromFile(yaffs_Object * obj, __u8 * buffer, __u32 offset,
+int yaffs_ReadDataFromFile(yaffs_Object * obj, __u8 * buffer, loff_t offset,
 			   int nBytes);
-int yaffs_WriteDataToFile(yaffs_Object * obj, const __u8 * buffer, __u32 offset,
+int yaffs_WriteDataToFile(yaffs_Object * obj, const __u8 * buffer, loff_t offset,
 			  int nBytes, int writeThrough);
-int yaffs_ResizeFile(yaffs_Object * obj, int newSize);
+int yaffs_ResizeFile(yaffs_Object * obj, loff_t newSize);
 
 yaffs_Object *yaffs_MknodFile(yaffs_Object * parent, const YCHAR * name,
 			      __u32 mode, __u32 uid, __u32 gid);

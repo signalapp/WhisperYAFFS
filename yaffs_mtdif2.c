@@ -16,7 +16,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.13 2006-09-26 13:28:13 vwool Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.14 2006-10-03 10:13:03 charles Exp $";
 
 #include "yportenv.h"
 
@@ -41,7 +41,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 #endif
 	int retval = 0;
 
-	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
+	loff_t addr = ((loff_t) chunkInNAND) * dev->nDataBytesPerChunk;
 
 	yaffs_PackedTags2 pt;
 
@@ -74,16 +74,16 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 	if (data && tags) {
 		if (dev->useNANDECC)
 			retval =
-			    mtd->write_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->write_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					   &dummy, data, (__u8 *) & pt, NULL);
 		else
 			retval =
-			    mtd->write_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->write_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					   &dummy, data, (__u8 *) & pt, NULL);
 	} else {
 		if (data)
 			retval =
-			    mtd->write(mtd, addr, dev->nBytesPerChunk, &dummy,
+			    mtd->write(mtd, addr, dev->nDataBytesPerChunk, &dummy,
 				       data);
 		if (tags)
 			retval =
@@ -109,7 +109,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	size_t dummy;
 	int retval = 0;
 
-	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
+	loff_t addr = ((loff_t) chunkInNAND) * dev->nDataBytesPerChunk;
 
 	yaffs_PackedTags2 pt;
 
@@ -135,19 +135,19 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	if (data && tags) {
 		if (dev->useNANDECC) {
 			retval =
-			    mtd->read_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->read_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					  &dummy, data, dev->spareBuffer,
 					  NULL);
 		} else {
 			retval =
-			    mtd->read_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->read_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					  &dummy, data, dev->spareBuffer,
 					  NULL);
 		}
 	} else {
 		if (data)
 			retval =
-			    mtd->read(mtd, addr, dev->nBytesPerChunk, &dummy,
+			    mtd->read(mtd, addr, dev->nDataBytesPerChunk, &dummy,
 				      data);
 		if (tags)
 			retval =
@@ -180,7 +180,7 @@ int nandmtd2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	retval =
 	    mtd->block_markbad(mtd,
 			       blockNo * dev->nChunksPerBlock *
-			       dev->nBytesPerChunk);
+			       dev->nDataBytesPerChunk);
 
 	if (retval == 0)
 		return YAFFS_OK;
@@ -200,7 +200,7 @@ int nandmtd2_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
 	retval =
 	    mtd->block_isbad(mtd,
 			     blockNo * dev->nChunksPerBlock *
-			     dev->nBytesPerChunk);
+			     dev->nDataBytesPerChunk);
 
 	if (retval) {
 		T(YAFFS_TRACE_MTD, (TSTR("block is bad" TENDSTR)));

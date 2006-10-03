@@ -177,7 +177,7 @@ int yaffs_read(int fd, void *buf, unsigned int nbyte) ;
 int yaffs_write(int fd, const void *buf, unsigned int nbyte) ;
 int yaffs_close(int fd) ;
 off_t yaffs_lseek(int fd, off_t offset, int whence) ;
-int yaffs_truncate(int fd, unsigned int newSize);
+int yaffs_truncate(int fd, off_t newSize);
 
 int yaffs_unlink(const char *path) ;
 int yaffs_rename(const char *oldPath, const char *newPath) ;
@@ -206,7 +206,7 @@ int yaffs_readlink(const char *path, char *buf, int bufsiz);
 int yaffs_link(const char *oldpath, const char *newpath); 
 int yaffs_mknod(const char *pathname, mode_t mode, dev_t dev);
 
-off_t yaffs_freespace(const char *path);
+loff_t yaffs_freespace(const char *path);
 
 void yaffs_initialise(yaffsfs_DeviceConfiguration *configList);
 

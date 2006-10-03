@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.37 2006-09-21 08:13:59 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.38 2006-10-03 02:25:57 charles Exp $";
 
 #include "yportenv.h"
 
@@ -354,7 +354,7 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 			 */
 			 
 #ifdef CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED
-			bi->skipErasedCheck = 1;
+			bi->skipErasedCheck = 0;
 #endif
 			if(!bi->skipErasedCheck){
 				erasedOk = yaffs_CheckChunkErased(dev, chunk);

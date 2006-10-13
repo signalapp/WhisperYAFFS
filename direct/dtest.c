@@ -1970,7 +1970,7 @@ int main(int argc, char *argv[])
 	 //multi_mount_test("/flash/flash",20);
 	 //checkpoint_fill_test("/flash/flash",20);
 	 //checkpoint_upgrade_test("/flash/flash",20);
-	  huge_array_test("/flash/flash",2);
+	  huge_array_test("/flash/flash",10);
 
 
 

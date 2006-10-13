@@ -15,7 +15,7 @@
 // This provides a YAFFS nand emulation on a file for emulating 2kB pages.
 // THis is only intended as test code to test persistence etc.
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.6 2006-10-03 10:13:03 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.7 2006-10-13 08:52:49 charles Exp $";
 
 
 #include "yportenv.h"
@@ -204,6 +204,9 @@ int yaffs_CheckAllFF(const __u8 *ptr, int n)
 }
 
 
+static int fail300 = 1;
+static int fail320 = 1;
+
 int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
 {
 	int nread;
@@ -249,6 +252,19 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 			yaffs_PackedTags2 pt;
 			nread= read(h,&pt,sizeof(pt));
 			yaffs_UnpackTags2(tags,&pt);
+			if((chunkInNAND >> 6) == 300) {
+			    if(fail300 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){
+			       tags->eccResult = YAFFS_ECC_RESULT_FIXED;
+			       fail300 = 0;
+			    }
+			    
+			}
+			if((chunkInNAND >> 6) == 320) {
+			    if(fail320 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){
+			       tags->eccResult = YAFFS_ECC_RESULT_FIXED;
+			       fail320 = 0;
+			    }
+			}
 			if(nread != sizeof(pt)) return YAFFS_FAIL;
 		}
 	}
@@ -287,6 +303,9 @@ int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	int h;
 		
 	CheckInit();
+	
+	if(blockNumber == 320)
+		fail320 = 1;
 	
 	if(blockNumber < 0 || blockNumber >= filedisk.nBlocks)
 	{

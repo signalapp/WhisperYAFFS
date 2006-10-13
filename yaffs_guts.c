@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.39 2006-10-03 10:13:03 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.40 2006-10-13 08:52:49 charles Exp $";
 
 #include "yportenv.h"
 
@@ -511,19 +511,35 @@ static void yaffs_HandleUpdateChunk(yaffs_Device * dev, int chunkInNAND,
 {
 }
 
+void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi)
+{
+	if(!bi->gcPrioritise){
+		bi->gcPrioritise = 1;
+		dev->hasPendingPrioritisedGCs = 1;
+		bi->chunkErrorStrikes ++;
+		
+		if(bi->chunkErrorStrikes > 3){
+			bi->needsRetiring = 1; /* Too many stikes, so retire this */
+			T(YAFFS_TRACE_ALWAYS, (TSTR("yaffs: Block struck out" TENDSTR)));
+
+		}
+		
+	}
+}
+
 static void yaffs_HandleWriteChunkError(yaffs_Device * dev, int chunkInNAND, int erasedOk)
 {
 
 	int blockInNAND = chunkInNAND / dev->nChunksPerBlock;
 	yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, blockInNAND);
-		
-	bi->gcPrioritise = 1;
-	dev->hasPendingPrioritisedGCs = 1;
-	
-	if(erasedOk) {
-		/* Was an actual write failure, so mark the block for retirement  */
 
+	yaffs_HandleChunkError(dev,bi);
+		
+	
+	if(erasedOk ) {
+		/* Was an actual write failure, so mark the block for retirement  */
 		bi->needsRetiring = 1;
+		
 	}
 	
 	/* Delete the chunk */
@@ -2015,22 +2031,26 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 	int prioritised=0;
 	yaffs_BlockInfo *bi;
 	static int nonAggressiveSkip = 0;
+	int pendingPrioritisedExist = 0;
 	
 	/* First let's see if we need to grab a prioritised block */
 	if(dev->hasPendingPrioritisedGCs){
 		for(i = dev->internalStartBlock; i < dev->internalEndBlock && !prioritised; i++){
 
 			bi = yaffs_GetBlockInfo(dev, i);
+			if(bi->gcPrioritise)
+				pendingPrioritisedExist = 1;
 			if(bi->blockState == YAFFS_BLOCK_STATE_FULL &&
 			   bi->gcPrioritise &&
 			   yaffs_BlockNotDisqualifiedFromGC(dev, bi)){
 				pagesInUse = (bi->pagesInUse - bi->softDeletions);
-				dirtiest = b;
+				dirtiest = i;
 				prioritised = 1;
 				aggressive = 1; /* Fool the non-aggressive skip logiv below */
 			}
 		}
-		if(dirtiest < 0) /* None found, so we can clear this */
+		
+		if(!pendingPrioritisedExist) /* None found, so we can clear this */
 			dev->hasPendingPrioritisedGCs = 0;
 	}
 
@@ -3408,7 +3428,7 @@ static int yaffs_WriteCheckpointValidityMarker(yaffs_Device *dev,int head)
 	yaffs_CheckpointValidity cp;
 	cp.structType = sizeof(cp);
 	cp.magic = YAFFS_MAGIC;
-	cp.version = 1;
+	cp.version = YAFFS_CHECKPOINT_VERSION;
 	cp.head = (head) ? 1 : 0;
 	
 	return (yaffs_CheckpointWrite(dev,&cp,sizeof(cp)) == sizeof(cp))?
@@ -3425,7 +3445,7 @@ static int yaffs_ReadCheckpointValidityMarker(yaffs_Device *dev, int head)
 	if(ok)
 		ok = (cp.structType == sizeof(cp)) &&
 		     (cp.magic == YAFFS_MAGIC) &&
-		     (cp.version == 1) &&
+		     (cp.version == YAFFS_CHECKPOINT_VERSION) &&
 		     (cp.head == ((head) ? 1 : 0));
 	return ok ? 1 : 0;
 }

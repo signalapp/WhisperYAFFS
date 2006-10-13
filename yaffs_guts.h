@@ -14,7 +14,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yaffs_guts.h,v 1.24 2006-10-03 10:13:03 charles Exp $
+ * $Id: yaffs_guts.h,v 1.25 2006-10-13 08:52:49 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__
@@ -68,6 +68,8 @@
 #define YAFFS_OBJECT_SPACE		0x40000
 
 #define YAFFS_NCHECKPOINT_OBJECTS	5000
+
+#define YAFFS_CHECKPOINT_VERSION 	2
 
 #ifdef CONFIG_YAFFS_UNICODE
 #define YAFFS_MAX_NAME_LENGTH		127
@@ -268,14 +270,15 @@ typedef enum {
 
 typedef struct {
 
-	int softDeletions:12;	/* number of soft deleted pages */
-	int pagesInUse:12;	/* number of pages in use */
+	int softDeletions:10;	/* number of soft deleted pages */
+	int pagesInUse:10;	/* number of pages in use */
 	yaffs_BlockState blockState:4;	/* One of the above block states */
 	__u32 needsRetiring:1;	/* Data has failed on this block, need to get valid data off */
                         	/* and retire the block. */
 	__u32 skipErasedCheck: 1; /* If this is set we can skip the erased check on this block */
 	__u32 gcPrioritise: 1; 	/* An ECC check or bank check has failed on this block. 
 				   It should be prioritised for GC */
+        __u32 chunkErrorStrikes:3; /* How many times we've had ecc etc failures on this block and tried to reuse it */
 
 #ifdef CONFIG_YAFFS_YAFFS2
 	__u32 hasShrinkHeader:1; /* This block has at least one shrink object header */
@@ -885,5 +888,6 @@ void yaffs_GutsTest(yaffs_Device * dev);
 void yaffs_InitialiseTags(yaffs_ExtendedTags * tags);
 void yaffs_DeleteChunk(yaffs_Device * dev, int chunkId, int markNAND, int lyn);
 int yaffs_CheckFF(__u8 * buffer, int nBytes);
+void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi);
 
 #endif

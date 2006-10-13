@@ -13,7 +13,7 @@
  */
  
 const char *yaffs_nand_c_version =
-    "$Id: yaffs_nand.c,v 1.3 2006-10-03 10:13:03 charles Exp $";
+    "$Id: yaffs_nand.c,v 1.4 2006-10-13 08:52:49 charles Exp $";
 
 #include "yaffs_nand.h"
 #include "yaffs_tagscompat.h"
@@ -45,8 +45,7 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	   tags->eccResult > YAFFS_ECC_RESULT_NO_ERROR){
 	
 		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, chunkInNAND/dev->nChunksPerBlock);
-		bi->gcPrioritise = 1;
-		dev->hasPendingPrioritisedGCs = 1;
+                yaffs_HandleChunkError(dev,bi);
 	}
 								
 	return result;

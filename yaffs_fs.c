@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.53 2006-10-03 10:13:03 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.54 2006-10-24 18:09:15 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1543,7 +1543,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
 	    mtd->writesize == 512) {
 #else
-	    mtd->oobblock >= 512) {
+	    mtd->oobblock == 512) {
 #endif
 	    T(YAFFS_TRACE_ALWAYS,("yaffs: auto selecting yaffs1\n"));
 	    yaffsVersion = 1;

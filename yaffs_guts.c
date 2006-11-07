@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.40 2006-10-13 08:52:49 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.41 2006-11-07 23:26:52 charles Exp $";
 
 #include "yportenv.h"
 
@@ -527,6 +527,20 @@ void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi)
 	}
 }
 
+static void yaffs_ReportOddballBlocks(yaffs_Device *dev)
+{
+	int i;
+	for(i = dev->startBlock; i <= dev->endBlock; i++){
+		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,i);
+		if(bi->needsRetiring || bi->gcPrioritise)
+			T(YAFFS_TRACE_BAD_BLOCKS,(TSTR("yaffs block %d%s%s" TENDSTR),
+				i,
+				bi->needsRetiring ? " needs retiring" : "",
+				bi->gcPrioritise ?  " gc prioritised" : ""));
+		
+	}
+}
+
 static void yaffs_HandleWriteChunkError(yaffs_Device * dev, int chunkInNAND, int erasedOk)
 {
 
@@ -539,6 +553,9 @@ static void yaffs_HandleWriteChunkError(yaffs_Device * dev, int chunkInNAND, int
 	if(erasedOk ) {
 		/* Was an actual write failure, so mark the block for retirement  */
 		bi->needsRetiring = 1;
+		T(YAFFS_TRACE_ERROR | YAFFS_TRACE_BAD_BLOCKS,
+		  (TSTR("**>> Block %d needs retiring" TENDSTR), blockInNAND));
+
 		
 	}
 	
@@ -2009,8 +2026,6 @@ static int yaffs_BlockNotDisqualifiedFromGC(yaffs_Device * dev,
 	 * discarded pages.
 	 */
 	return (bi->sequenceNumber <= dev->oldestDirtySequence);
-
-	return 1;
 
 }
 
@@ -3712,7 +3727,11 @@ static int yaffs_WriteCheckpointObjects(yaffs_Device *dev)
 				if (!obj->deferedFree) {
 					yaffs_ObjectToCheckpointObject(&cp,obj);
 					cp.structType = sizeof(cp);
-					/* printf("Write out object %d type %d\n",obj->objectId,obj->variantType); */
+
+					T(YAFFS_TRACE_CHECKPOINT,(
+						TSTR("Checkpoint write object %d parent %d type %d chunk %d obj addr %x" TENDSTR),
+						cp.objectId,cp.parentId,cp.variantType,cp.chunkId,(unsigned) obj));
+						
 					ok = (yaffs_CheckpointWrite(dev,&cp,sizeof(cp)) == sizeof(cp));
 					
 					if(ok && obj->variantType == YAFFS_OBJECT_TYPE_FILE){
@@ -3751,9 +3770,9 @@ static int yaffs_ReadCheckpointObjects(yaffs_Device *dev)
 		if(ok && cp.objectId == ~0)
 			done = 1;
 		else if(ok){
-			T(YAFFS_TRACE_CHECKPOINT,(TSTR("Read object %d parent %d type %d" TENDSTR),
-				cp.objectId,cp.parentId,cp.variantType));
 			obj = yaffs_FindOrCreateObjectByNumber(dev,cp.objectId, cp.variantType);
+			T(YAFFS_TRACE_CHECKPOINT,(TSTR("Checkpoint read object %d parent %d type %d chunk %d obj addr %x" TENDSTR),
+				cp.objectId,cp.parentId,cp.variantType,cp.chunkId,(unsigned) obj));
 			if(obj) {
 				yaffs_CheckpointObjectToObject(obj,&cp);
 				if(obj->variantType == YAFFS_OBJECT_TYPE_FILE) {
@@ -3845,6 +3864,7 @@ static void yaffs_InvalidateCheckpoint(yaffs_Device *dev)
 
 int yaffs_CheckpointSave(yaffs_Device *dev)
 {
+	yaffs_ReportOddballBlocks(dev);
 	T(YAFFS_TRACE_CHECKPOINT,(TSTR("save entry: isCheckpointed %d"TENDSTR),dev->isCheckpointed));
 
 	if(!dev->isCheckpointed)
@@ -3863,6 +3883,8 @@ int yaffs_CheckpointRestore(yaffs_Device *dev)
 	retval = yaffs_ReadCheckpointData(dev);
 
 	T(YAFFS_TRACE_CHECKPOINT,(TSTR("restore exit: isCheckpointed %d"TENDSTR),dev->isCheckpointed));
+	
+	yaffs_ReportOddballBlocks(dev);
 	
 	return retval;
 }
@@ -5141,6 +5163,12 @@ static void yaffs_CheckObjectDetailsLoaded(yaffs_Object *in)
 	yaffs_ExtendedTags tags;
 	int result;
 	
+#if 0
+	T(YAFFS_TRACE_SCAN,(TSTR("details for object %d %s loaded" TENDSTR),
+		in->objectId,
+		in->lazyLoaded ? "not yet" : "already"));
+#endif
+		
 	if(in->lazyLoaded){
 		in->lazyLoaded = 0;
 		chunkData = yaffs_GetTempBuffer(dev, __LINE__);

@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.5 2006-10-03 10:13:03 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.6 2006-11-07 23:26:52 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -46,7 +46,7 @@ static int yaffs_CheckpointErase(yaffs_Device *dev)
 		dev->startBlock,dev->endBlock));
 		
 	for(i = dev->startBlock; i <= dev->endBlock; i++) {
-		yaffs_BlockInfo *bi = &dev->blockInfo[i];
+		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,i);
 		if(bi->blockState == YAFFS_BLOCK_STATE_CHECKPOINT){
 			T(YAFFS_TRACE_CHECKPOINT,(TSTR("erasing checkpt block %d"TENDSTR),i));
 			if(dev->eraseBlockInNAND(dev,i)){
@@ -77,7 +77,7 @@ static void yaffs_CheckpointFindNextErasedBlock(yaffs_Device *dev)
 	   blocksAvailable > 0){
 	
 		for(i = dev->checkpointNextBlock; i <= dev->endBlock; i++){
-			yaffs_BlockInfo *bi = &dev->blockInfo[i];
+			yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,i);
 			if(bi->blockState == YAFFS_BLOCK_STATE_EMPTY){
 				dev->checkpointNextBlock = i + 1;
 				dev->checkpointCurrentBlock = i;
@@ -195,7 +195,7 @@ static int yaffs_CheckpointFlushBuffer(yaffs_Device *dev)
 	if(dev->checkpointCurrentChunk == 0){
 		/* First chunk we write for the block? Set block state to
 		   checkpoint */
-		yaffs_BlockInfo *bi = &dev->blockInfo[dev->checkpointCurrentBlock];
+		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,dev->checkpointCurrentBlock);
 		bi->blockState = YAFFS_BLOCK_STATE_CHECKPOINT;
 		dev->blocksInCheckpoint++;
 	}
@@ -321,7 +321,7 @@ int yaffs_CheckpointClose(yaffs_Device *dev)
 	} else {
 		int i;
 		for(i = 0; i < dev->blocksInCheckpoint && dev->checkpointBlockList[i] >= 0; i++){
-			yaffs_BlockInfo *bi = &dev->blockInfo[dev->checkpointBlockList[i]];
+			yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,dev->checkpointBlockList[i]);
 			if(bi->blockState == YAFFS_BLOCK_STATE_EMPTY)
 				bi->blockState = YAFFS_BLOCK_STATE_CHECKPOINT;
 			else {

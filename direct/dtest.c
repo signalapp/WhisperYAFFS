@@ -532,7 +532,7 @@ void dump_directory_tree_worker(const char *dname,int recursive)
 	yaffs_DIR *d;
 	yaffs_dirent *de;
 	struct yaffs_stat s;
-	char str[100];
+	char str[1000];
 			
 	d = yaffs_opendir(dname);
 	
@@ -548,7 +548,7 @@ void dump_directory_tree_worker(const char *dname,int recursive)
 			
 			yaffs_lstat(str,&s);
 			
-			printf("%s length %d mode %X ",str,(int)s.st_size,s.st_mode);
+			printf("%s inode %d obj %x length %d mode %X ",str,s.st_ino,de->d_dont_use,(int)s.st_size,s.st_mode);
 			switch(s.st_mode & S_IFMT)
 			{
 				case S_IFREG: printf("data file"); break;
@@ -1735,29 +1735,42 @@ void multi_mount_test(const char *mountpt,int nmounts)
 	int j;
 	
 	sprintf(a,"%s/a",mountpt);
-	
 
-	
-	
 	yaffs_StartUp();
 	
 	for(i = 0; i < nmounts; i++){
+		int h0;
+		int h1;
+		static char xx[1000];
+		
 		printf("############### Iteration %d   Start\n",i);
-		yaffs_mount(mountpt);
-		dump_directory_tree(mountpt);
-		yaffs_mkdir(a,0);
-		for(j = 0; j < i; j++){
-			sprintf(b,"%s/%d",a,j);
-			verify_200k_file(b);
-		}
-		sprintf(b,"%s/%d",a,i);
+		if(1 || i == 0 || i == 5) 
+			yaffs_mount(mountpt);
 
-		write_200k_file(b,"","");
-		
-		printf("######## Iteration %d   End\n",i);
 		dump_directory_tree(mountpt);
 		
-		yaffs_unmount(mountpt);
+		
+		yaffs_mkdir(a,0);
+		
+		sprintf(xx,"%s/0",a);
+		h0 = yaffs_open(xx, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+		
+		sprintf(xx,"%s/1",a);
+		h1 = yaffs_open(xx, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+		
+		for(j = 0; j < 200; j++){
+		   yaffs_write(h0,xx,1000);
+		   yaffs_write(h1,xx,1000);
+		}
+		yaffs_truncate(h0,0);
+		yaffs_close(h0);
+		yaffs_close(h1);
+		
+		printf("########### %d\n",i);
+		dump_directory_tree(mountpt);
+
+		if(1 || i == 4 || i == nmounts -1)
+			yaffs_unmount(mountpt);
 	}
 }
 
@@ -1934,7 +1947,7 @@ void huge_array_test(const char *mountpt,int n)
 			verify_file_of_size(a,10000000);
 		}
 		
-		printf("\n\n\ verification/deletion\n\n");
+		printf("\n\n verification/deletion\n\n");
 		
 		for(i = 0; i < fnum; i++){
 			sprintf(a,"%s/file%d",mountpt,i);
@@ -1943,7 +1956,7 @@ void huge_array_test(const char *mountpt,int n)
 			printf("deleting file %s\n",a);
 			yaffs_unlink(a);
 		}
-		printf("\n\n\ done \n\n");
+		printf("\n\n done \n\n");
 			
 		   
 	}
@@ -1967,10 +1980,10 @@ int main(int argc, char *argv[])
 	 
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
-	 //multi_mount_test("/flash/flash",20);
+	  multi_mount_test("/flash/flash",20);
 	 //checkpoint_fill_test("/flash/flash",20);
 	 //checkpoint_upgrade_test("/flash/flash",20);
-	  huge_array_test("/flash/flash",10);
+	 // huge_array_test("/flash/flash",10);
 
 
 

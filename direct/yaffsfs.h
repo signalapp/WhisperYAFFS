@@ -147,6 +147,7 @@ struct yaffs_dirent{
     off_t d_off;                /* offset to this dirent */
     unsigned short d_reclen;    /* length of this d_name */
     char d_name [NAME_MAX+1];   /* file name (null-terminated) */
+    unsigned d_dont_use;	/* debug pointer, not for public consumption */
 };
 
 typedef struct yaffs_dirent yaffs_dirent;

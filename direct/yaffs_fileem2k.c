@@ -15,7 +15,7 @@
 // This provides a YAFFS nand emulation on a file for emulating 2kB pages.
 // THis is only intended as test code to test persistence etc.
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.7 2006-10-13 08:52:49 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.8 2006-11-07 23:37:43 charles Exp $";
 
 
 #include "yportenv.h"
@@ -32,7 +32,7 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.7 2006-10-13 08
 #include "yaffs_fileem2k.h"
 #include "yaffs_packedtags2.h"
 
-
+//#define SIMULATE_FAILURES
 
 typedef struct 
 {
@@ -145,6 +145,8 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 	int pos;
 	int h;
 	
+	T(YAFFS_TRACE_MTD,(TSTR("write chunk %d data %x tags %x" TENDSTR),chunkInNAND,(unsigned)data, (unsigned)tags));
+
 	CheckInit();
 	
 	
@@ -213,6 +215,8 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 	int pos;
 	int h;
 	
+	T(YAFFS_TRACE_MTD,(TSTR("read chunk %d data %x tags %x" TENDSTR),chunkInNAND,(unsigned)data, (unsigned)tags));
+	
 	CheckInit();
 	
 	
@@ -252,6 +256,7 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 			yaffs_PackedTags2 pt;
 			nread= read(h,&pt,sizeof(pt));
 			yaffs_UnpackTags2(tags,&pt);
+#ifdef SIMULATE_FAILURES
 			if((chunkInNAND >> 6) == 300) {
 			    if(fail300 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){
 			       tags->eccResult = YAFFS_ECC_RESULT_FIXED;
@@ -265,6 +270,7 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 			       fail320 = 0;
 			    }
 			}
+#endif
 			if(nread != sizeof(pt)) return YAFFS_FAIL;
 		}
 	}

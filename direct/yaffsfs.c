@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.13 2006-10-03 10:13:03 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.14 2006-11-07 23:37:43 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1302,8 +1302,14 @@ struct yaffs_dirent *yaffs_readdir(yaffs_DIR *dirp)
 		yaffsfs_SetError(0);
 		if(dsc->nextReturn){
 			dsc->de.d_ino = yaffs_GetEquivalentObject(dsc->nextReturn)->objectId;
+			dsc->de.d_dont_use = (unsigned)dsc->nextReturn;
 			dsc->de.d_off = dsc->offset++;
-			yaffs_GetObjectName(dsc->nextReturn,dsc->de.d_name,NAME_MAX+1);
+			yaffs_GetObjectName(dsc->nextReturn,dsc->de.d_name,NAME_MAX);
+			if(strlen(dsc->de.d_name) == 0)
+			{
+				// this should not happen!
+				strcpy(dsc->de.d_name,"zz");
+			}
 			dsc->de.d_reclen = sizeof(struct yaffs_dirent);
 			retVal = &dsc->de;
 			yaffsfs_DirAdvance(dsc);

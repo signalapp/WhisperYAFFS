@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.41 2006-11-07 23:26:52 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.42 2006-11-08 00:33:29 charles Exp $";
 
 #include "yportenv.h"
 
@@ -530,7 +530,8 @@ void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi)
 static void yaffs_ReportOddballBlocks(yaffs_Device *dev)
 {
 	int i;
-	for(i = dev->startBlock; i <= dev->endBlock; i++){
+		
+	for(i = dev->internalStartBlock; i <= dev->internalEndBlock && (yaffs_traceMask & YAFFS_TRACE_BAD_BLOCKS); i++){
 		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,i);
 		if(bi->needsRetiring || bi->gcPrioritise)
 			T(YAFFS_TRACE_BAD_BLOCKS,(TSTR("yaffs block %d%s%s" TENDSTR),
@@ -1954,7 +1955,7 @@ static int yaffs_InitialiseBlocks(yaffs_Device * dev)
 		dev->blockInfoAlt = 0;
 	
 	/* Set up dynamic blockinfo stuff. */
-	dev->chunkBitmapStride = (dev->nChunksPerBlock + 7) / 8; // round up bytes
+	dev->chunkBitmapStride = (dev->nChunksPerBlock + 7) / 8; /* round up bytes */
 	dev->chunkBits = YMALLOC(dev->chunkBitmapStride * nBlocks);
 	if(!dev->chunkBits){
 		dev->chunkBits = YMALLOC_ALT(dev->chunkBitmapStride * nBlocks);

@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.6 2006-11-07 23:26:52 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.7 2006-11-08 00:33:29 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -43,9 +43,9 @@ static int yaffs_CheckpointErase(yaffs_Device *dev)
 	if(!dev->eraseBlockInNAND)	
 		return 0;
 	T(YAFFS_TRACE_CHECKPOINT,(TSTR("checking blocks %d to %d"TENDSTR),
-		dev->startBlock,dev->endBlock));
+		dev->internalStartBlock,dev->internalEndBlock));
 		
-	for(i = dev->startBlock; i <= dev->endBlock; i++) {
+	for(i = dev->internalStartBlock; i <= dev->internalEndBlock; i++) {
 		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,i);
 		if(bi->blockState == YAFFS_BLOCK_STATE_CHECKPOINT){
 			T(YAFFS_TRACE_CHECKPOINT,(TSTR("erasing checkpt block %d"TENDSTR),i));
@@ -73,10 +73,10 @@ static void yaffs_CheckpointFindNextErasedBlock(yaffs_Device *dev)
 	int blocksAvailable = dev->nErasedBlocks - dev->nReservedBlocks;
 		
 	if(dev->checkpointNextBlock >= 0 &&
-	   dev->checkpointNextBlock <= dev->endBlock &&
+	   dev->checkpointNextBlock <= dev->internalEndBlock &&
 	   blocksAvailable > 0){
 	
-		for(i = dev->checkpointNextBlock; i <= dev->endBlock; i++){
+		for(i = dev->checkpointNextBlock; i <= dev->internalEndBlock; i++){
 			yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,i);
 			if(bi->blockState == YAFFS_BLOCK_STATE_EMPTY){
 				dev->checkpointNextBlock = i + 1;
@@ -98,7 +98,7 @@ static void yaffs_CheckpointFindNextCheckpointBlock(yaffs_Device *dev)
 	yaffs_ExtendedTags tags;
 	
 	if(dev->blocksInCheckpoint < dev->checkpointMaxBlocks) 
-		for(i = dev->checkpointNextBlock; i <= dev->endBlock; i++){
+		for(i = dev->checkpointNextBlock; i <= dev->internalEndBlock; i++){
 			int chunk = i * dev->nChunksPerBlock;
 
 			dev->readChunkWithTagsFromNAND(dev,chunk,NULL,&tags);
@@ -147,7 +147,7 @@ int yaffs_CheckpointOpen(yaffs_Device *dev, int forWriting)
 	dev->checkpointByteCount = 0;
 	dev->checkpointCurrentBlock = -1;
 	dev->checkpointCurrentChunk = -1;
-	dev->checkpointNextBlock = dev->startBlock;
+	dev->checkpointNextBlock = dev->internalStartBlock;
 	
 	/* Erase all the blocks in the checkpoint area */
 	if(forWriting){
@@ -163,7 +163,7 @@ int yaffs_CheckpointOpen(yaffs_Device *dev, int forWriting)
 		/* A checkpoint block list of 1 checkpoint block per 16 block is (hopefully)
 		 * going to be way more than we need */
 		dev->blocksInCheckpoint = 0;
-		dev->checkpointMaxBlocks = (dev->endBlock - dev->startBlock)/16 + 2;
+		dev->checkpointMaxBlocks = (dev->internalEndBlock - dev->internalStartBlock)/16 + 2;
 		dev->checkpointBlockList = YMALLOC(sizeof(int) * dev->checkpointMaxBlocks);
 		for(i = 0; i < dev->checkpointMaxBlocks; i++)
 			dev->checkpointBlockList[i] = -1;

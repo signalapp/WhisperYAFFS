@@ -15,7 +15,7 @@
 // This provides a YAFFS nand emulation on a file for emulating 2kB pages.
 // THis is only intended as test code to test persistence etc.
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.8 2006-11-07 23:37:43 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.9 2006-11-08 09:49:47 charles Exp $";
 
 
 #include "yportenv.h"
@@ -32,7 +32,7 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.8 2006-11-07 23
 #include "yaffs_fileem2k.h"
 #include "yaffs_packedtags2.h"
 
-//#define SIMULATE_FAILURES
+#define SIMULATE_FAILURES
 
 typedef struct 
 {
@@ -164,6 +164,15 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 			exit(1);
 		}
 		
+#ifdef SIMULATE_FAILURES
+			if((chunkInNAND >> 6) == 100) 
+			  written = 0;
+
+			if((chunkInNAND >> 6) == 110) 
+			  written = 0;
+#endif
+
+
 		if(written != dev->nDataBytesPerChunk) return YAFFS_FAIL;
 	}
 	
@@ -257,14 +266,14 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 			nread= read(h,&pt,sizeof(pt));
 			yaffs_UnpackTags2(tags,&pt);
 #ifdef SIMULATE_FAILURES
-			if((chunkInNAND >> 6) == 300) {
+			if((chunkInNAND >> 6) == 100) {
 			    if(fail300 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){
 			       tags->eccResult = YAFFS_ECC_RESULT_FIXED;
 			       fail300 = 0;
 			    }
 			    
 			}
-			if((chunkInNAND >> 6) == 320) {
+			if((chunkInNAND >> 6) == 110) {
 			    if(fail320 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){
 			       tags->eccResult = YAFFS_ECC_RESULT_FIXED;
 			       fail320 = 0;

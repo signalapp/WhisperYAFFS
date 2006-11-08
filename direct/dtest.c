@@ -1741,6 +1741,9 @@ void multi_mount_test(const char *mountpt,int nmounts)
 	for(i = 0; i < nmounts; i++){
 		int h0;
 		int h1;
+		int len0;
+		int len1;
+		
 		static char xx[1000];
 		
 		printf("############### Iteration %d   Start\n",i);
@@ -1762,6 +1765,19 @@ void multi_mount_test(const char *mountpt,int nmounts)
 		   yaffs_write(h0,xx,1000);
 		   yaffs_write(h1,xx,1000);
 		}
+		
+		len0 = yaffs_lseek(h0,0,SEEK_END);
+		len1 = yaffs_lseek(h1,0,SEEK_END);
+		
+		yaffs_lseek(h0,0,SEEK_SET);
+		yaffs_lseek(h1,0,SEEK_SET);
+
+		for(j = 0; j < 200; j++){
+		   yaffs_read(h0,xx,1000);
+		   yaffs_read(h1,xx,1000);
+		}
+		
+		
 		yaffs_truncate(h0,0);
 		yaffs_close(h0);
 		yaffs_close(h1);
@@ -1980,7 +1996,7 @@ int main(int argc, char *argv[])
 	 
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
-	  multi_mount_test("/flash/flash",20);
+	  multi_mount_test("/flash/flash",1000);
 	 //checkpoint_fill_test("/flash/flash",20);
 	 //checkpoint_upgrade_test("/flash/flash",20);
 	 // huge_array_test("/flash/flash",10);

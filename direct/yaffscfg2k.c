@@ -13,8 +13,19 @@
 
 #include <errno.h>
 
-unsigned yaffs_traceMask = YAFFS_TRACE_SCAN |  YAFFS_TRACE_GC /*| YAFFS_TRACE_GC_DETAIL | YAFFS_TRACE_WRITE */ | YAFFS_TRACE_ERASE | YAFFS_TRACE_TRACING | YAFFS_TRACE_ALLOCATE | YAFFS_TRACE_CHECKPOINT;
-//unsigned yaffs_traceMask = ~0;
+unsigned yaffs_traceMask = 
+
+	YAFFS_TRACE_SCAN |  
+	YAFFS_TRACE_GC | YAFFS_TRACE_GC_DETAIL | 
+	YAFFS_TRACE_WRITE  | YAFFS_TRACE_ERASE | 
+	YAFFS_TRACE_TRACING | 
+	YAFFS_TRACE_ALLOCATE | 
+	YAFFS_TRACE_CHECKPOINT |
+	YAFFS_TRACE_BAD_BLOCKS |
+//	(~0) |
+	
+	0;
+        
 
 
 void yaffsfs_SetError(int err)
@@ -129,9 +140,9 @@ int yaffs_StartUp(void)
 	flashDev.nCheckpointReservedBlocks = 5;
 	//flashDev.checkpointStartBlock = 1;
 	//flashDev.checkpointEndBlock = 20;
-	flashDev.startBlock = 20; 
-	//flashDev.endBlock = 127; // Make it smaller
-	flashDev.endBlock = yflash_GetNumberOfBlocks()-1;
+	flashDev.startBlock = 0;
+	flashDev.endBlock = 200; // Make it smaller
+	//flashDev.endBlock = yflash_GetNumberOfBlocks()-1;
 	flashDev.isYaffs2 = 1;
 	flashDev.wideTnodesDisabled=0;
 	flashDev.nShortOpCaches = 10; // Use caches

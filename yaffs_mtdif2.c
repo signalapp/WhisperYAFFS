@@ -16,7 +16,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.14 2006-10-03 10:13:03 charles Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.15 2006-11-08 06:24:34 charles Exp $";
 
 #include "yportenv.h"
 
@@ -59,7 +59,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 	if (data) {
 		ops.mode = MTD_OOB_AUTO;
 		ops.ooblen = sizeof(pt);
-		ops.len = dev->nBytesPerChunk;
+		ops.len = dev->nDataBytesPerChunk;
 		ops.ooboffs = 0;
 		ops.datbuf = (__u8 *)data;
 		ops.oobbuf = (void *)&pt;
@@ -120,12 +120,12 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
 	if (data && !tags)
-		retval = mtd->read(mtd, addr, dev->nBytesPerChunk,
+		retval = mtd->read(mtd, addr, dev->nDataBytesPerChunk,
 				&dummy, data);
 	else if (tags) {
 		ops.mode = MTD_OOB_AUTO;
 		ops.ooblen = sizeof(pt);
-		ops.len = data ? dev->nBytesPerChunk : sizeof(pt);
+		ops.len = data ? dev->nDataBytesPerChunk : sizeof(pt);
 		ops.ooboffs = 0;
 		ops.datbuf = data;
 		ops.oobbuf = dev->spareBuffer;

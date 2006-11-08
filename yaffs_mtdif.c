@@ -14,7 +14,7 @@
  */
 
 const char *yaffs_mtdif_c_version =
-    "$Id: yaffs_mtdif.c,v 1.15 2006-10-03 10:13:03 charles Exp $";
+    "$Id: yaffs_mtdif.c,v 1.16 2006-11-08 06:24:34 charles Exp $";
 
 #include "yportenv.h"
 
@@ -86,7 +86,7 @@ int nandmtd_WriteChunkToNAND(yaffs_Device * dev, int chunkInNAND,
 	__u8 spareAsBytes[8]; /* OOB */
 
 	if (data && !spare)
-		retval = mtd->write(mtd, addr, dev->nBytesPerChunk,
+		retval = mtd->write(mtd, addr, dev->nDataBytesPerChunk,
 				&dummy, data);
 	else if (spare) {
 		if (dev->useNANDECC) {
@@ -97,7 +97,7 @@ int nandmtd_WriteChunkToNAND(yaffs_Device * dev, int chunkInNAND,
 			ops.mode = MTD_OOB_RAW;
 			ops.ooblen = YAFFS_BYTES_PER_SPARE;
 		}
-		ops.len = data ? dev->nBytesPerChunk : ops.ooblen;
+		ops.len = data ? dev->nDataBytesPerChunk : ops.ooblen;
 		ops.datbuf = (u8 *)data;
 		ops.ooboffs = 0;
 		ops.oobbuf = spareAsBytes;
@@ -150,7 +150,7 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device * dev, int chunkInNAND, __u8 * data,
 	__u8 spareAsBytes[8]; /* OOB */
 
 	if (data && !spare)
-		retval = mtd->read(mtd, addr, dev->nBytesPerChunk,
+		retval = mtd->read(mtd, addr, dev->nDataBytesPerChunk,
 				&dummy, data);
 	else if (spare) {
 		if (dev->useNANDECC) {
@@ -160,7 +160,7 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device * dev, int chunkInNAND, __u8 * data,
 			ops.mode = MTD_OOB_RAW;
 			ops.ooblen = YAFFS_BYTES_PER_SPARE;
 		}
-		ops.len = data ? dev->nBytesPerChunk : ops.ooblen;
+		ops.len = data ? dev->nDataBytesPerChunk : ops.ooblen;
 		ops.datbuf = data;
 		ops.ooboffs = 0;
 		ops.oobbuf = spareAsBytes;

@@ -13,7 +13,7 @@
  */
  
 const char *yaffs_nand_c_version =
-    "$Id: yaffs_nand.c,v 1.4 2006-10-13 08:52:49 charles Exp $";
+    "$Id: yaffs_nand.c,v 1.5 2006-11-08 09:52:12 charles Exp $";
 
 #include "yaffs_nand.h"
 #include "yaffs_tagscompat.h"
@@ -123,9 +123,6 @@ int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,
 	dev->nBlockErasures++;
 	result = dev->eraseBlockInNAND(dev, blockInNAND);
 
-	/* If at first we don't succeed, try again *once*.*/
-	if (!result)
-		result = dev->eraseBlockInNAND(dev, blockInNAND);	
 	return result;
 }
 

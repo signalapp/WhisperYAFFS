@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.42 2006-11-08 00:33:29 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.43 2006-11-08 09:52:12 charles Exp $";
 
 #include "yportenv.h"
 
@@ -484,13 +484,15 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
  
 static void yaffs_RetireBlock(yaffs_Device * dev, int blockInNAND)
 {
+	yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, blockInNAND);
 
 	yaffs_InvalidateCheckpoint(dev);
 	
 	yaffs_MarkBlockBad(dev, blockInNAND);
 
-	yaffs_GetBlockInfo(dev, blockInNAND)->blockState =
-	    YAFFS_BLOCK_STATE_DEAD;
+	bi->blockState = YAFFS_BLOCK_STATE_DEAD;
+	bi->gcPrioritise = 0;
+	bi->needsRetiring = 0;
 
 	dev->nRetiredBlocks++;
 }
@@ -2054,15 +2056,15 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 		for(i = dev->internalStartBlock; i < dev->internalEndBlock && !prioritised; i++){
 
 			bi = yaffs_GetBlockInfo(dev, i);
-			if(bi->gcPrioritise)
+			if(bi->gcPrioritise) {
 				pendingPrioritisedExist = 1;
-			if(bi->blockState == YAFFS_BLOCK_STATE_FULL &&
-			   bi->gcPrioritise &&
-			   yaffs_BlockNotDisqualifiedFromGC(dev, bi)){
-				pagesInUse = (bi->pagesInUse - bi->softDeletions);
-				dirtiest = i;
-				prioritised = 1;
-				aggressive = 1; /* Fool the non-aggressive skip logiv below */
+				if(bi->blockState == YAFFS_BLOCK_STATE_FULL &&
+				   yaffs_BlockNotDisqualifiedFromGC(dev, bi)){
+					pagesInUse = (bi->pagesInUse - bi->softDeletions);
+					dirtiest = i;
+					prioritised = 1;
+					aggressive = 1; /* Fool the non-aggressive skip logiv below */
+				}
 			}
 		}
 		

@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.8 2006-11-09 19:55:24 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.9 2006-11-09 23:57:07 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -204,7 +204,10 @@ static int yaffs_CheckpointFlushBuffer(yaffs_Device *dev)
 	}
 	
 	chunk = dev->checkpointCurrentBlock * dev->nChunksPerBlock + dev->checkpointCurrentChunk;
-		
+	
+	T(YAFFS_TRACE_CHECKPOINT,(TSTR("checkpoint wite buffer nand %d(%d:%d) objid %d chId %d" TENDSTR),
+		chunk, dev->checkpointCurrentBlock, dev->checkpointCurrentChunk,tags.objectId,tags.chunkId)); 
+
 	dev->writeChunkWithTagsToNAND(dev,chunk,dev->checkpointBuffer,&tags);
 	dev->checkpointByteOffset = 0;
 	dev->checkpointPageSequence++;	   

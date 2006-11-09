@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.7 2006-11-08 00:33:29 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.8 2006-11-09 19:55:24 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -71,6 +71,9 @@ static void yaffs_CheckpointFindNextErasedBlock(yaffs_Device *dev)
 {
 	int  i;
 	int blocksAvailable = dev->nErasedBlocks - dev->nReservedBlocks;
+	T(YAFFS_TRACE_CHECKPOINT,
+		(TSTR("allocating checkpt block: erased %d reserved %d avail %d next %d "TENDSTR),
+		dev->nErasedBlocks,dev->nReservedBlocks,blocksAvailable,dev->checkpointNextBlock));
 		
 	if(dev->checkpointNextBlock >= 0 &&
 	   dev->checkpointNextBlock <= dev->internalEndBlock &&

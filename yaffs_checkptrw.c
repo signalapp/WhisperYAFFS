@@ -1,5 +1,4 @@
-/*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
+/* YAFFS: Yet another FFS. A NAND-flash specific file system. 
  *
  * Copyright (C) 2002 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
@@ -13,7 +12,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.9 2006-11-09 23:57:07 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.10 2006-11-10 02:51:10 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -100,11 +99,16 @@ static void yaffs_CheckpointFindNextCheckpointBlock(yaffs_Device *dev)
 	int  i;
 	yaffs_ExtendedTags tags;
 	
+	T(YAFFS_TRACE_CHECKPOINT,(TSTR("find next checkpt block: start:  blocks %d next %d" TENDSTR),
+		dev->blocksInCheckpoint, dev->checkpointNextBlock));
+		
 	if(dev->blocksInCheckpoint < dev->checkpointMaxBlocks) 
 		for(i = dev->checkpointNextBlock; i <= dev->internalEndBlock; i++){
 			int chunk = i * dev->nChunksPerBlock;
 
 			dev->readChunkWithTagsFromNAND(dev,chunk,NULL,&tags);
+			T(YAFFS_TRACE_CHECKPOINT,(TSTR("find next checkpt block: search: block %d oid %d seq %d eccr %d" TENDSTR), 
+				i, tags.objectId,tags.sequenceNumber,tags.eccResult));
 						      
 			if(tags.sequenceNumber == YAFFS_SEQUENCE_CHECKPOINT_DATA){
 				/* Right kind of block */

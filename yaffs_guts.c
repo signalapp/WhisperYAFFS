@@ -13,7 +13,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.43 2006-11-08 09:52:12 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.44 2006-11-11 23:27:44 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2156,6 +2156,11 @@ static void yaffs_BlockBecameDirty(yaffs_Device * dev, int blockNo)
 	/* If the block is still healthy erase it and mark as clean.
 	 * If the block has had a data failure, then retire it.
 	 */
+	 
+	T(YAFFS_TRACE_GC | YAFFS_TRACE_ERASE,
+		(TSTR("yaffs_BlockBecameDirty block %d state %d %s"TENDSTR),
+		blockNo, bi->blockState, (bi->needsRetiring) ? "needs retiring" : ""));
+		
 	bi->blockState = YAFFS_BLOCK_STATE_DIRTY;
 
 	if (!bi->needsRetiring) {

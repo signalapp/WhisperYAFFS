@@ -1791,6 +1791,81 @@ void multi_mount_test(const char *mountpt,int nmounts)
 }
 
 
+void small_mount_test(const char *mountpt,int nmounts)
+{
+
+	char a[30];
+	char b[30];
+	char c[30];
+	
+	int i;
+	int j;
+
+	int h0;
+	int h1;
+	int len0;
+	int len1;
+	int nread;
+	
+	sprintf(a,"%s/a",mountpt);
+
+	yaffs_StartUp();
+	
+	
+	
+	for(i = 0; i < nmounts; i++){
+		
+		static char xx[1000];
+		
+		printf("############### Iteration %d   Start\n",i);
+		if(1 || i == 0 || i == 5) 
+			yaffs_mount(mountpt);
+
+		dump_directory_tree(mountpt);
+		
+		yaffs_mkdir(a,0);
+		
+		sprintf(xx,"%s/0",a);
+		if(i ==0){
+		
+			h0 = yaffs_open(xx, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+			for(j = 0; j < 130; j++)
+				yaffs_write(h0,xx,1000);
+			yaffs_close(h0);
+		}
+		
+		h0 = yaffs_open(xx,O_RDONLY,0);
+		
+		sprintf(xx,"%s/1",a);
+		h1 = yaffs_open(xx, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+		
+		while((nread = yaffs_read(h0,xx,1000)) > 0)
+			yaffs_write(h1,xx,nread);
+		
+		
+		len0 = yaffs_lseek(h0,0,SEEK_END);
+		len1 = yaffs_lseek(h1,0,SEEK_END);
+		
+		yaffs_lseek(h0,0,SEEK_SET);
+		yaffs_lseek(h1,0,SEEK_SET);
+
+		for(j = 0; j < 200; j++){
+		   yaffs_read(h0,xx,1000);
+		   yaffs_read(h1,xx,1000);
+		}
+		
+		yaffs_close(h0);
+		yaffs_close(h1);
+		
+		printf("########### %d\n",i);
+		dump_directory_tree(mountpt);
+
+		if(1 || i == 4 || i == nmounts -1)
+			yaffs_unmount(mountpt);
+	}
+}
+
+
 void yaffs_touch(const char *fn)
 {
 	yaffs_chmod(fn, S_IREAD | S_IWRITE);
@@ -1996,7 +2071,7 @@ int main(int argc, char *argv[])
 	 
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
-	  multi_mount_test("/flash/flash",1000);
+	  small_mount_test("/flash/flash",1000);
 	 //checkpoint_fill_test("/flash/flash",20);
 	 //checkpoint_upgrade_test("/flash/flash",20);
 	 // huge_array_test("/flash/flash",10);

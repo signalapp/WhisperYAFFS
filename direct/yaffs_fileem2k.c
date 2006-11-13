@@ -15,7 +15,7 @@
 // This provides a YAFFS nand emulation on a file for emulating 2kB pages.
 // THis is only intended as test code to test persistence etc.
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.9 2006-11-08 09:49:47 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.10 2006-11-13 07:16:37 charles Exp $";
 
 
 #include "yportenv.h"
@@ -32,7 +32,7 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.9 2006-11-08 09
 #include "yaffs_fileem2k.h"
 #include "yaffs_packedtags2.h"
 
-#define SIMULATE_FAILURES
+//#define SIMULATE_FAILURES
 
 typedef struct 
 {
@@ -60,6 +60,10 @@ static yflash_Device filedisk;
 
 int yaffs_testPartialWrite = 0;
 
+
+
+
+static __u8 localBuffer[PAGE_SIZE];
 
 static char *NToName(char *buf,int n)
 {
@@ -144,6 +148,9 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 	int written;
 	int pos;
 	int h;
+	int i;
+	int nRead;
+	int error;
 	
 	T(YAFFS_TRACE_MTD,(TSTR("write chunk %d data %x tags %x" TENDSTR),chunkInNAND,(unsigned)data, (unsigned)tags));
 
@@ -157,7 +164,23 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 		h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 		
 		lseek(h,pos,SEEK_SET);
-		written = write(h,data,dev->nDataBytesPerChunk);
+		nRead =  read(h, localBuffer,dev->nDataBytesPerChunk);
+		for(i = error = 0; i < dev->nDataBytesPerChunk && !error; i++){
+			if(localBuffer[i] != 0xFF){
+				printf("nand simulation: chunk %d data byte %d was %0x2\n",
+					chunkInNAND,i,localBuffer[i]);
+				error = 1;
+			}
+		}
+		
+		for(i = 0; i < dev->nDataBytesPerChunk; i++)
+		  localBuffer[i] &= data[i];
+		  
+		if(memcmp(localBuffer,data,dev->nDataBytesPerChunk))
+			printf("nand simulator: data does not match\n");
+			
+		lseek(h,pos,SEEK_SET);
+		written = write(h,localBuffer,dev->nDataBytesPerChunk);
 		
 		if(yaffs_testPartialWrite){
 			close(h);
@@ -182,6 +205,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 		h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 		
 		lseek(h,pos,SEEK_SET);
+
 		if( 0 && dev->isYaffs2)
 		{
 			
@@ -192,8 +216,26 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 		{
 			yaffs_PackedTags2 pt;
 			yaffs_PackTags2(&pt,tags);
+			__u8 * ptab = (__u8 *)&pt;
 
-			written = write(h,&pt,sizeof(pt));
+			nRead = read(h,localBuffer,sizeof(pt));
+			for(i = error = 0; i < sizeof(pt) && !error; i++){
+				if(localBuffer[i] != 0xFF){
+					printf("nand simulation: chunk %d oob byte %d was %0x2\n",
+						chunkInNAND,i,localBuffer[i]);
+						error = 1;
+				}
+			}
+		
+			for(i = 0; i < sizeof(pt); i++)
+			  localBuffer[i] &= ptab[i];
+			 
+			if(memcmp(localBuffer,&pt,sizeof(pt)))
+				printf("nand sim: tags corruption\n");
+				
+			lseek(h,pos,SEEK_SET);
+			
+			written = write(h,localBuffer,sizeof(pt));
 			if(written != sizeof(pt)) return YAFFS_FAIL;
 		}
 	}
@@ -218,6 +260,8 @@ int yaffs_CheckAllFF(const __u8 *ptr, int n)
 static int fail300 = 1;
 static int fail320 = 1;
 
+static int failRead10 = 2;
+
 int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
 {
 	int nread;
@@ -237,6 +281,7 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 		h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];		
 		lseek(h,pos,SEEK_SET);
 		nread = read(h,data,dev->nDataBytesPerChunk);
+		
 		
 		if(nread != dev->nDataBytesPerChunk) return YAFFS_FAIL;
 	}
@@ -280,6 +325,11 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 			    }
 			}
 #endif
+			if(failRead10>0 && chunkInNAND == 10){
+				failRead10--;
+				nread = 0;
+			}
+			
 			if(nread != sizeof(pt)) return YAFFS_FAIL;
 		}
 	}
@@ -318,6 +368,8 @@ int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	int h;
 		
 	CheckInit();
+	
+	printf("erase block %d\n",blockNumber);
 	
 	if(blockNumber == 320)
 		fail320 = 1;

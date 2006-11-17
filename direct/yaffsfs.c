@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.14 2006-11-07 23:37:43 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.15 2006-11-17 01:43:48 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -724,10 +724,6 @@ int yaffsfs_DoUnlink(const char *path,int isDirectory)
 	else if(!isDirectory && obj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY)
 	{
 		yaffsfs_SetError(-EISDIR);
-	}
-	else if(isDirectory && obj->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
-	{
-		yaffsfs_SetError(-ENOTDIR);
 	}
 	else if(isDirectory && obj->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
 	{

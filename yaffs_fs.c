@@ -31,7 +31,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.54 2006-10-24 18:09:15 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.55 2006-12-19 21:33:41 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/config.h>
@@ -1662,7 +1662,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 #endif
 		nBlocks = mtd->size / mtd->erasesize;
 
-		dev->nCheckpointReservedBlocks = 10;
+		dev->nCheckpointReservedBlocks = CONFIG_YAFFS_CHECKPOINT_RESERVED_BLOCKS;
 		dev->startBlock = 0;
 		dev->endBlock = nBlocks - 1;
 	} else {
@@ -2009,7 +2009,8 @@ static int yaffs_proc_write(struct file *file, const char *buf,
 		}
 	}
 
-	yaffs_traceMask = rg;
+	yaffs_traceMask = rg | YAFFS_TRACE_ALWAYS;
+	
 	if (rg & YAFFS_TRACE_ALWAYS) {
 		for (i = 0; mask_flags[i].mask_name != NULL; i++) {
 			char flag;

@@ -27,6 +27,10 @@
 /* Meaning: Cache short names, taking more RAM, but faster look-ups */
 #define CONFIG_YAFFS_SHORT_NAMES_IN_RAM
 
+/* Default: 10 */
+/* Meaning: set the count of blocks to reserve for checkpointing */
+#define YAFFS_CHECKPOINT_RESERVED_BLOCKS 10
+
 #endif /* YAFFS_OUT_OF_TREE */
 
 #endif /* __YAFFS_CONFIG_H__ */

@@ -15,7 +15,7 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  *
- * $Id: yportenv.h,v 1.11 2006-05-21 09:39:12 charles Exp $
+ * $Id: yportenv.h,v 1.12 2007-01-19 04:07:48 charles Exp $
  *
  */
 
@@ -31,9 +31,11 @@
 #include "moduleconfig.h"
 
 /* Linux kernel */
-#include <linux/config.h>
-#include <linux/kernel.h>
 #include <linux/version.h>
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19))
+#include <linux/config.h>
+#endif
+#include <linux/kernel.h>
 #include <linux/mm.h>
 #include <linux/string.h>
 #include <linux/slab.h>

@@ -1,8 +1,7 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
- * yaffs_ramem.c  NAND emulation on top of a chunk of RAM
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -12,10 +11,13 @@
  * published by the Free Software Foundation.
  *
  */
- //yaffs_ramem2k.c: RAM emulation in-kernel for 2K pages (YAFFS2)
+
+/*
+ * yaffs_ramem2k.c: RAM emulation in-kernel for 2K pages (YAFFS2)
+ */
 
 
-const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.1 2005-08-09 01:00:37 charles Exp $";
+const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.2 2007-02-12 16:49:50 wookey Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED

@@ -1,8 +1,7 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
- * ydirectenv.h: Environment wrappers for direct.
+ * YAFFS: Yet another Flash File System . A NAND-flash specific file system. 
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -11,13 +10,13 @@
  * it under the terms of the GNU Lesser General Public License version 2.1 as
  * published by the Free Software Foundation.
  *
- *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
- *
- * $Id: ydirectenv.h,v 1.4 2006-10-03 10:13:03 charles Exp $
- *
  */
- 
+
+/*
+ * ydirectenv.h: Environment wrappers for YAFFS direct.
+ */
+
 #ifndef __YDIRECTENV_H__
 #define __YDIRECTENV_H__
 

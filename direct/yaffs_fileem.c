@@ -1,8 +1,8 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
- * yaffs_ramdisk.c: yaffs ram disk component
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
+ *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -12,10 +12,12 @@
  *
  */
 
-// This provides a YAFFS nand emulation on a file.
-// THis is only intended as test code to test persistence etc.
+/*
+ * This provides a YAFFS nand emulation on a file.
+ * This is only intended as test code to test persistence etc.
+ */
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.1 2004-11-03 08:29:28 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.2 2007-02-12 16:49:50 wookey Exp $";
 
 
 #include "yportenv.h"

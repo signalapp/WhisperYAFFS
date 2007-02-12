@@ -1,8 +1,8 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system.
- * yaffsfs.c  The interface functions for using YAFFS via a "direct" interface.
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
+ *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -25,7 +25,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.15 2006-11-17 01:43:48 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.16 2007-02-12 16:49:50 wookey Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;

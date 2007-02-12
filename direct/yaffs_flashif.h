@@ -1,21 +1,17 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
- * yaffs_ramdisk.h: yaffs ram disk component
+ * YAFFS: Yet another Flash File System . A NAND-flash specific file system. 
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
+ *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
+ * it under the terms of the GNU Lesser General Public License version 2.1 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_flashif.h,v 1.1 2004-11-03 08:29:28 charles Exp $
+ * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
-
-// This provides a rma disk under yaffs.
-// NB this is not intended for NAND emulation.
-// Use this with dev->useNANDECC enabled, then ECC overheads are not required.
 
 #ifndef __YAFFS_FLASH_H__
 #define __YAFFS_FLASH_H__

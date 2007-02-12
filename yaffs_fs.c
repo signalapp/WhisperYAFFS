@@ -1,15 +1,25 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system.
- * yaffs_fs.c
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
+ * Acknowledgements:
+ * Luc van OostenRyck for numerous patches.
+ * Nick Bane for numerous patches.
+ * Nick Bane for 2.5/2.6 integration.
+ * Andras Toth for mknod rdev issue.
+ * Michael Fischer for finding the problem with inode inconsistency.
+ * Some code bodily lifted from JFFS
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
+ *
+ */
+
+/*
  *
  * This is the file system front-end to YAFFS that hooks it up to
  * the VFS.
@@ -20,18 +30,10 @@
  * >> 2.6: sb->s_fs_info  points to the yaffs_Device associated with this
  *         superblock
  * >> inode->u.generic_ip points to the associated yaffs_Object.
- *
- * Acknowledgements:
- * * Luc van OostenRyck for numerous patches.
- * * Nick Bane for numerous patches.
- * * Nick Bane for 2.5/2.6 integration.
- * * Andras Toth for mknod rdev issue.
- * * Michael Fischer for finding the problem with inode inconsistency.
- * * Some code bodily lifted from JFFS2.
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.56 2007-01-19 04:07:48 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.57 2007-02-12 16:55:25 wookey Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>

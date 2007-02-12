@@ -1,8 +1,7 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system.
- * yaffs_guts.h: Configuration etc for yaffs_guts
+ * YAFFS: Yet another Flash File System . A NAND-flash specific file system. 
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -11,10 +10,7 @@
  * it under the terms of the GNU Lesser General Public License version 2.1 as
  * published by the Free Software Foundation.
  *
- *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
- *
- * $Id: yaffs_guts.h,v 1.25 2006-10-13 08:52:49 charles Exp $
  */
 
 #ifndef __YAFFS_GUTS_H__

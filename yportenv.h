@@ -1,9 +1,7 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
- * yportenv.h: Portable services used by yaffs. This is done to allow
- * simple migration from kernel space into app space for testing.
+ * YAFFS: Yet another Flash File System . A NAND-flash specific file system. 
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -12,12 +10,9 @@
  * it under the terms of the GNU Lesser General Public License version 2.1 as
  * published by the Free Software Foundation.
  *
- *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
- *
- * $Id: yportenv.h,v 1.12 2007-01-19 04:07:48 charles Exp $
- *
  */
+
 
 #ifndef __YPORTENV_H__
 #define __YPORTENV_H__

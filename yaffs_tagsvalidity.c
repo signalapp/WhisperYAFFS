@@ -1,8 +1,7 @@
-
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -11,7 +10,6 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_tagsvalidity.c,v 1.2 2005-08-11 02:33:03 marty Exp $
  */
 
 #include "yaffs_tagsvalidity.h"

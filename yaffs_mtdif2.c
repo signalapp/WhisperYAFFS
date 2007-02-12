@@ -1,8 +1,7 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
- * yaffs_mtdif.c  NAND mtd wrapper functions.
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -16,7 +15,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.15 2006-11-08 06:24:34 charles Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.16 2007-02-12 16:55:26 wookey Exp $";
 
 #include "yportenv.h"
 

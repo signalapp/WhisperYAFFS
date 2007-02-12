@@ -1,8 +1,8 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
- * yaffs_tagscompat.h: Tags compatability layer to use YAFFS1 formatted NAND.
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
+ *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -10,7 +10,6 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
- * $Id: yaffs_tagscompat.c,v 1.8 2005-11-29 20:54:32 marty Exp $
  */
 
 #include "yaffs_guts.h"

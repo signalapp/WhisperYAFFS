@@ -1,16 +1,15 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * yaffs_ecc.c: ECC generation/correction algorithms.
- *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
+ *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2.1 as published by the Free Software Foundation.
  */
 
  /*
@@ -31,7 +30,7 @@
  */
 
 const char *yaffs_ecc_c_version =
-    "$Id: yaffs_ecc.c,v 1.7 2006-09-14 22:02:46 charles Exp $";
+    "$Id: yaffs_ecc.c,v 1.8 2007-02-12 16:55:25 wookey Exp $";
 
 #include "yportenv.h"
 

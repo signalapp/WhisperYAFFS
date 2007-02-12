@@ -1,25 +1,23 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system.
+ * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * makeyaffsimage.c 
- *
- * Makes a YAFFS file system image that can be used to load up a file system.
- *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
+ * Nick Bane modifications flagged NCB
+ * Endian handling patches by James Ng
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
+ */
+
+/*
+ * makeyaffsimage.c 
  *
- * Nick Bane modifications flagged NCB
- *
- * Endian handling patches by James Ng.
- * 
- *
+ * Makes a YAFFS file system image that can be used to load up a file system.
  */
  
 #include <stdlib.h>

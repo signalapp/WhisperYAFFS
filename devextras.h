@@ -1,8 +1,7 @@
 /*
- * YAFFS: Yet another FFS. A NAND-flash specific file system. 
- * devextras.h
+ * YAFFS: Yet another Flash File System . A NAND-flash specific file system. 
  *
- * Copyright (C) 2002 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -12,12 +11,12 @@
  * published by the Free Software Foundation.
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
- *
+ */
+
+/*
  * This file is just holds extra declarations used during development.
  * Most of these are from kernel includes placed here so we can use them in 
  * applications.
- *
- * $Id: devextras.h,v 1.2 2005-08-11 02:37:49 marty Exp $
  *
  */
 

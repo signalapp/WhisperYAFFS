@@ -9,11 +9,10 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
- *
  */
  
 const char *yaffs_nand_c_version =
-    "$Id: yaffs_nand.c,v 1.6 2007-02-12 16:55:26 wookey Exp $";
+    "$Id: yaffs_nand.c,v 1.7 2007-02-14 01:09:06 wookey Exp $";
 
 #include "yaffs_nand.h"
 #include "yaffs_tagscompat.h"

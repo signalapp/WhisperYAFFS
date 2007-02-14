@@ -16,7 +16,6 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
- *
  */
 
 /*
@@ -33,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.57 2007-02-12 16:55:25 wookey Exp $";
+    "$Id: yaffs_fs.c,v 1.58 2007-02-14 01:09:06 wookey Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>

@@ -9,11 +9,10 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
- *
  */
 
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_flashif.c,v 1.2 2007-02-12 16:49:50 wookey Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_flashif.c,v 1.3 2007-02-14 01:09:06 wookey Exp $";
 
 
 #include "yportenv.h"

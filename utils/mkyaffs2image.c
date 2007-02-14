@@ -12,7 +12,6 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
- *
  */
 
 /*
@@ -43,7 +42,7 @@ unsigned yaffs_traceMask=0;
 #define chunkSize 2048
 #define spareSize 64
 
-const char * mkyaffsimage_c_version = "$Id: mkyaffs2image.c,v 1.3 2007-02-12 16:55:27 wookey Exp $";
+const char * mkyaffsimage_c_version = "$Id: mkyaffs2image.c,v 1.4 2007-02-14 01:09:06 wookey Exp $";
 
 
 typedef struct

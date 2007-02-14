@@ -9,11 +9,10 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
- *
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.12 2007-02-12 16:55:25 wookey Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.13 2007-02-14 01:09:06 wookey Exp $";
 
 
 #include "yaffs_checkptrw.h"

@@ -9,7 +9,6 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
- *
  */
  
 #include "yaffsfs.h"
@@ -25,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.16 2007-02-12 16:49:50 wookey Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.17 2007-02-14 01:09:06 wookey Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;

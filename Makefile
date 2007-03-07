@@ -1,4 +1,6 @@
-
+# Main Makefile for YAFFS
+#
+#
 # YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
 # 
 # Copyright (C) 2002-2007 Aleph One Ltd.

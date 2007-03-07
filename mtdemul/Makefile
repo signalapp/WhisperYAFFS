@@ -1,7 +1,7 @@
 #Makefile for NANDemul MTD
 #
 # NB this is not yet suitable for putting into the kernel tree.
-# YAFFS: Yet another FFS. A NAND-flash specific file system. 
+# YAFFS: Yet another Flash File System. A NAND-flash specific file system. 
 #
 # Copyright (C) 2002 Aleph One Ltd.
 #   for Toby Churchill Ltd and Brightstar Engineering

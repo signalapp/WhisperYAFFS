@@ -1,6 +1,10 @@
 # Makefile for YAFFS direct test
 #
+#
+# YAFFS: Yet another Flash File System. A NAND-flash specific file system.
+#
 # Copyright (C) 2003 Aleph One Ltd.
+#
 #
 # Created by Charles Manning <charles@aleph1.co.uk>
 #
@@ -10,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.13 2006-11-07 23:37:43 charles Exp $
+# $Id: Makefile,v 1.14 2007-03-07 08:30:40 colin Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 

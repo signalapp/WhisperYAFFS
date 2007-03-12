@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.47 2007-02-14 01:09:06 wookey Exp $";
+    "$Id: yaffs_guts.c,v 1.48 2007-03-12 20:55:39 charles Exp $";
 
 #include "yportenv.h"
 
@@ -4310,7 +4310,13 @@ int yaffs_ResizeFile(yaffs_Object * in, loff_t newSize)
 		in->variant.fileVariant.fileSize = newSize;
 
 		yaffs_PruneFileStructure(dev, &in->variant.fileVariant);
+	} else {
+		/* newsSize > oldFileSize */
+		in->variant.fileVariant.fileSize = newSize;
 	}
+
+		
+	
 	/* Write a new object header.
 	 * show we've shrunk the file, if need be
 	 * Do this only if the file is not in the deleted directories.

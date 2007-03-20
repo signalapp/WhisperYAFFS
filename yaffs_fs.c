@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.58 2007-02-14 01:09:06 wookey Exp $";
+    "$Id: yaffs_fs.c,v 1.59 2007-03-20 20:59:40 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -158,6 +158,8 @@ static int yaffs_sync_fs(struct super_block *sb);
 static int yaffs_write_super(struct super_block *sb);
 #endif
 
+static int yaffs_remount_fs(struct super_block *, int *, char *);
+
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
 static int yaffs_statfs(struct dentry *dentry, struct kstatfs *buf);
 #elif (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
@@ -250,6 +252,7 @@ static struct super_operations yaffs_super_ops = {
 	.read_inode = yaffs_read_inode,
 	.put_inode = yaffs_put_inode,
 	.put_super = yaffs_put_super,
+	.remount_fs = yaffs_remount_fs,
 	.delete_inode = yaffs_delete_inode,
 	.clear_inode = yaffs_clear_inode,
 	.sync_fs = yaffs_sync_fs,
@@ -1414,6 +1417,35 @@ static void yaffs_read_inode(struct inode *inode)
 
 static LIST_HEAD(yaffs_dev_list);
 
+static int yaffs_remount_fs(struct super_block *sb, int *flags, char *data)
+{
+	yaffs_Device    *dev = yaffs_SuperToDevice(sb);
+
+	if( *flags & MS_RDONLY ) {
+		struct mtd_info *mtd = yaffs_SuperToDevice(sb)->genericDevice;
+	    
+		T(YAFFS_TRACE_OS,
+			(KERN_DEBUG "yaffs_remount_fs: %s: RO\n", dev->name ));
+
+		yaffs_GrossLock(dev);
+     	 
+		yaffs_FlushEntireDeviceCache(dev);
+    	
+		yaffs_CheckpointSave(dev);
+ 
+		if (mtd->sync)
+			mtd->sync(mtd);
+
+		yaffs_GrossUnlock(dev);
+	}
+	else {
+		T(YAFFS_TRACE_OS, 
+			(KERN_DEBUG "yaffs_remount_fs: %s: RW\n", dev->name ));
+	}
+ 
+	return 0;
+}
+
 static void yaffs_put_super(struct super_block *sb)
 {
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
@@ -1423,12 +1455,13 @@ static void yaffs_put_super(struct super_block *sb)
 	yaffs_GrossLock(dev);
 	
 	yaffs_FlushEntireDeviceCache(dev);
-	
+
+	yaffs_CheckpointSave(dev);
+
 	if (dev->putSuperFunc) {
 		dev->putSuperFunc(sb);
 	}
-	
-	yaffs_CheckpointSave(dev);
+
 	yaffs_Deinitialise(dev);
 	
 	yaffs_GrossUnlock(dev);

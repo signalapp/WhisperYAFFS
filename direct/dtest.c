@@ -2127,6 +2127,107 @@ void huge_array_test(const char *mountpt,int n)
 		   
 	}
 }
+
+
+void random_write(int h)
+{
+	static char buffer[12000];
+	int n;
+	
+	n = random() & 0x1FFF;
+	yaffs_write(h,buffer,n);
+}
+
+void random_seek(int h)
+{
+	int n;
+	n = random() & 0xFFFFF;
+	yaffs_lseek(h,n,SEEK_SET);
+}
+
+void random_truncate(int h, char * name)
+{
+	int n;
+	int flen;
+	n = random() & 0xFFFFF;
+	flen = yaffs_lseek(h,0,SEEK_END);
+	if(n > flen)
+		n = flen / 2;
+	yaffs_truncate(name,n);
+	yaffs_lseek(h,n,SEEK_SET);
+}
+
+
+#define NSMALLFILES 10	
+void random_small_file_test(const char *mountpt,int iterations)
+{
+
+	char a[NSMALLFILES][50];
+
+	
+	int i;
+	int n;
+	int j;
+	int h[NSMALLFILES];
+	int r;
+	int fnum;
+	
+	
+	yaffs_StartUp();
+
+	yaffs_mount(mountpt);
+	
+	for(i = 0; i < NSMALLFILES; i++){
+		h[i]=-1;
+		strcpy(a[i],"");
+	}
+	
+	for(n = 0; n < iterations; n++){
+				
+		for(i = 0; i < NSMALLFILES; i++) {
+			r = random();
+			
+			if(strlen(a[i]) == 0){
+				sprintf(a[i],"%s/%dx%d",mountpt,n,i);
+				h[i] = yaffs_open(a,O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+			}
+			
+			if(h[i] < -1)
+				printf("Could not open yaffs file %d %d error %d\n",n,i,h[i]);
+			else {
+				r = r & 7;
+				switch(r){
+					case 0:
+					case 1:
+					case 2:
+						random_write(h[i]);
+						break;
+					case 3:
+						random_truncate(h[i],a[i]);
+						break;
+					case 4:
+					case 5:	random_seek(h[i]);
+						break;
+					case 6:
+						yaffs_close(h[i]);
+						h[i] = -1;
+						break;
+					case 7:
+						yaffs_close(h[i]);
+						yaffs_unlink(a[i]);
+						strcpy(a[i],"");
+						h[i] = -1;
+				}
+			}
+		}
+		   
+	}
+	
+	for(i = 0; i < NSMALLFILES; i++)
+		yaffs_close(h[i]);
+		
+	yaffs_unmount(mountpt);
+}
 	
 
 
@@ -2147,9 +2248,9 @@ int main(int argc, char *argv[])
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
 	  //small_mount_test("/flash/flash",1000);
-	  small_overwrite_test("/flash/flash",1000);
-	 //checkpoint_fill_test("/flash/flash",20);
-	 //checkpoint_upgrade_test("/flash/flash",20);
+	  //small_overwrite_test("/flash/flash",1000);
+	  //checkpoint_fill_test("/flash/flash",20);
+	 random_small_file_test("/flash/flash",10000);
 	 // huge_array_test("/flash/flash",10);
 
 

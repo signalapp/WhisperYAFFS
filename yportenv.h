@@ -41,6 +41,7 @@
 #define _Y(x)     x
 #define yaffs_strcpy(a,b)    strcpy(a,b)
 #define yaffs_strncpy(a,b,c) strncpy(a,b,c)
+#define yaffs_strncmp(a,b,c) strncmp(a,b,c)
 #define yaffs_strlen(s)	     strlen(s)
 #define yaffs_sprintf	     sprintf
 #define yaffs_toupper(a)     toupper(a)
@@ -60,7 +61,7 @@
 // KR - added for use in scan so processes aren't blocked indefinitely.
 #define YYIELD() schedule()
 
-#define YAFFS_ROOT_MODE				0666
+#define YAFFS_ROOT_MODE			0666
 #define YAFFS_LOSTNFOUND_MODE		0666
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
@@ -134,7 +135,11 @@
 
 extern unsigned yaffs_traceMask;
 
-#define YAFFS_TRACE_ERROR		0x00000001
+/*
+ * Tracing flags.
+ * The flags masked in YAFFS_TRACE_ALWAYS are always traced.
+ */
+ 
 #define YAFFS_TRACE_OS			0x00000002
 #define YAFFS_TRACE_ALLOCATE		0x00000004
 #define YAFFS_TRACE_SCAN		0x00000008
@@ -150,10 +155,19 @@ extern unsigned yaffs_traceMask;
 #define YAFFS_TRACE_SCAN_DEBUG		0x00002000
 #define YAFFS_TRACE_MTD			0x00004000
 #define YAFFS_TRACE_CHECKPOINT		0x00008000
-#define YAFFS_TRACE_ALWAYS		0x40000000
-#define YAFFS_TRACE_BUG			0x80000000
 
-#define T(mask,p) do{ if((mask) & (yaffs_traceMask | YAFFS_TRACE_ERROR)) TOUT(p);} while(0)
+#define YAFFS_TRACE_VERIFY		0x00010000
+#define YAFFS_TRACE_VERIFY_NAND		0x00020000
+#define YAFFS_TRACE_VERIFY_FULL		0x00040000
+#define YAFFS_TRACE_VERIFY_ALL		0x000F0000
+
+
+#define YAFFS_TRACE_ERROR		0x40000000
+#define YAFFS_TRACE_BUG			0x80000000
+#define YAFFS_TRACE_ALWAYS		0xF0000000
+
+
+#define T(mask,p) do{ if((mask) & (yaffs_traceMask | YAFFS_TRACE_ALWAYS)) TOUT(p);} while(0)
 
 #ifndef CONFIG_YAFFS_WINCE
 #define YBUG() T(YAFFS_TRACE_BUG,(TSTR("==>> yaffs bug: " __FILE__ " %d" TENDSTR),__LINE__))

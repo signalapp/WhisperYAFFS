@@ -29,11 +29,14 @@ unsigned yaffs_traceMask =
 
 	YAFFS_TRACE_SCAN |  
 	YAFFS_TRACE_GC | YAFFS_TRACE_GC_DETAIL | 
-	YAFFS_TRACE_WRITE  | YAFFS_TRACE_ERASE | 
+	YAFFS_TRACE_ERASE | 
 	YAFFS_TRACE_TRACING | 
 	YAFFS_TRACE_ALLOCATE | 
 	YAFFS_TRACE_CHECKPOINT |
 	YAFFS_TRACE_BAD_BLOCKS |
+	YAFFS_TRACE_VERIFY |
+	YAFFS_TRACE_VERIFY_NAND |
+	YAFFS_TRACE_VERIFY_FULL |
 //	(~0) |
 	
 	0;
@@ -57,6 +60,30 @@ void yaffsfs_Unlock(void)
 __u32 yaffsfs_CurrentTime(void)
 {
 	return 0;
+}
+
+
+static int yaffs_kill_alloc = 0;
+static size_t total_malloced = 0;
+static size_t malloc_limit = 0 & 6000000;
+
+void *yaffs_malloc(size_t size)
+{
+	size_t this;
+	if(yaffs_kill_alloc)
+		return NULL;
+	if(malloc_limit && malloc_limit <(total_malloced + size) )
+		return NULL;
+
+	this = malloc(size);
+	if(this)
+		total_malloced += size;
+	return this;
+}
+
+void yaffs_free(void *ptr)
+{
+	free(ptr);
 }
 
 void yaffsfs_LocalInitialisation(void)

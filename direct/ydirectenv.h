@@ -27,12 +27,17 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
+#include "yaffs_malloc.h"
+
+#include "assert.h"
+#define YBUG() assert(1)
 
 #define YCHAR char
 #define YUCHAR unsigned char
 #define _Y(x) x
 #define yaffs_strcpy(a,b)    strcpy(a,b)
 #define yaffs_strncpy(a,b,c) strncpy(a,b,c)
+#define yaffs_strncmp(a,b,c) strncmp(a,b,c)
 #define yaffs_strlen(s)	     strlen(s)
 #define yaffs_sprintf	     sprintf
 #define yaffs_toupper(a)     toupper(a)
@@ -43,12 +48,12 @@
 #define Y_INLINE inline
 #endif
 
-#define YMALLOC(x) malloc(x)
+#define YMALLOC(x) yaffs_malloc(x)
 #define YFREE(x)   free(x)
-#define YMALLOC_ALT(x) malloc(x)
+#define YMALLOC_ALT(x) yaffs_malloc(x)
 #define YFREE_ALT(x)   free(x)
 
-#define YMALLOC_DMA(x) malloc(x)
+#define YMALLOC_DMA(x) yaffs_malloc(x)
 
 #define YYIELD()  do {} while(0)
 

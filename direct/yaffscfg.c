@@ -44,6 +44,16 @@ __u32 yaffsfs_CurrentTime(void)
 	return 0;
 }
 
+void *yaffs_malloc(size_t size)
+{
+	return malloc(size);
+}
+
+void yaffs_free(void *ptr)
+{
+	free(ptr);
+}
+
 void yaffsfs_LocalInitialisation(void)
 {
 	// Define locking semaphore.

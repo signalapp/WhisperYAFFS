@@ -63,9 +63,7 @@
 
 #define YAFFS_OBJECT_SPACE		0x40000
 
-#define YAFFS_NCHECKPOINT_OBJECTS	5000
-
-#define YAFFS_CHECKPOINT_VERSION 	2
+#define YAFFS_CHECKPOINT_VERSION 	3
 
 #ifdef CONFIG_YAFFS_UNICODE
 #define YAFFS_MAX_NAME_LENGTH		127
@@ -161,6 +159,8 @@ typedef enum {
 	YAFFS_OBJECT_TYPE_HARDLINK,
 	YAFFS_OBJECT_TYPE_SPECIAL
 } yaffs_ObjectType;
+
+#define YAFFS_OBJECT_TYPE_MAX YAFFS_OBJECT_TYPE_SPECIAL
 
 typedef struct {
 
@@ -264,6 +264,9 @@ typedef enum {
 	/* This block has failed and is not in use */
 } yaffs_BlockState;
 
+#define	YAFFS_NUMBER_OF_BLOCK_STATES (YAFFS_BLOCK_STATE_DEAD + 1)
+
+
 typedef struct {
 
 	int softDeletions:10;	/* number of soft deleted pages */
@@ -272,7 +275,7 @@ typedef struct {
 	__u32 needsRetiring:1;	/* Data has failed on this block, need to get valid data off */
                         	/* and retire the block. */
 	__u32 skipErasedCheck: 1; /* If this is set we can skip the erased check on this block */
-	__u32 gcPrioritise: 1; 	/* An ECC check or bank check has failed on this block. 
+	__u32 gcPrioritise: 1; 	/* An ECC check or blank check has failed on this block. 
 				   It should be prioritised for GC */
         __u32 chunkErrorStrikes:3; /* How many times we've had ecc etc failures on this block and tried to reuse it */
 
@@ -531,9 +534,6 @@ struct yaffs_DeviceStruct {
 	int nReservedBlocks;	/* We want this tuneable so that we can reduce */
 				/* reserved blocks on NOR and RAM. */
 	
-	/* Stuff used by the partitioned checkpointing mechanism */
-	int checkpointStartBlock;
-	int checkpointEndBlock;
 	
 	/* Stuff used by the shared space checkpointing mechanism */
 	/* If this value is zero, then this mechanism is disabled */
@@ -595,6 +595,10 @@ struct yaffs_DeviceStruct {
 	
 
 	/* End of stuff that must be set before initialisation. */
+	
+	/* Checkpoint control. Can be set before or after initialisation */
+	__u8 skipCheckpointRead;
+	__u8 skipCheckpointWrite;
 
 	/* Runtime parameters. Set up by YAFFS. */
 
@@ -650,6 +654,8 @@ struct yaffs_DeviceStruct {
 	int checkpointNextBlock;
 	int *checkpointBlockList;
 	int checkpointMaxBlocks;
+	__u32 checkpointSum;
+	__u32 checkpointXor;
 	
 	/* Block Info */
 	yaffs_BlockInfo *blockInfo;

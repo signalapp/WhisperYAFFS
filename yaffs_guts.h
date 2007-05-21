@@ -271,7 +271,7 @@ typedef struct {
 
 	int softDeletions:10;	/* number of soft deleted pages */
 	int pagesInUse:10;	/* number of pages in use */
-	yaffs_BlockState blockState:4;	/* One of the above block states */
+	__u32 blockState:4;	/* One of the above block states. NB use unsigned because enum is sometimes an int */
 	__u32 needsRetiring:1;	/* Data has failed on this block, need to get valid data off */
                         	/* and retire the block. */
 	__u32 skipErasedCheck: 1; /* If this is set we can skip the erased check on this block */

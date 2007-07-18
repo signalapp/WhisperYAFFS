@@ -44,7 +44,21 @@
 
 /* Default: 10 */
 /* Meaning: set the count of blocks to reserve for checkpointing */
-#define YAFFS_CHECKPOINT_RESERVED_BLOCKS 10
+#define CONFIG_YAFFS_CHECKPOINT_RESERVED_BLOCKS 10
+
+/*
+Older-style on-NAND data format has a "pageStatus" byte to record
+chunk/page state.  This byte is zeroed when the page is discarded.
+Choose this option if you have existing on-NAND data in this format
+that you need to continue to support.  New data written also uses the
+older-style format.
+Note: Use of this option generally requires that MTD's oob layout be
+adjusted to use the older-style format.  See notes on tags formats and
+MTD versions.
+*/
+/* Default: Not selected */
+/* Meaning: Use older-style on-NAND data format with pageStatus byte */
+#define CONFIG_YAFFS_9BYTE_TAGS
 
 #endif /* YAFFS_OUT_OF_TREE */
 

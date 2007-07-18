@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.49 2007-05-15 20:07:40 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.50 2007-07-18 19:40:38 charles Exp $";
 
 #include "yportenv.h"
 
@@ -920,86 +920,88 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 					     yaffs_ExtendedTags * tags,
 					     int useReserve)
 {
+	int attempts = 0;
+	int writeOk = 0;
 	int chunk;
 
-	int writeOk = 0;
-	int erasedOk = 1;
-	int attempts = 0;
-	yaffs_BlockInfo *bi;
-	
 	yaffs_InvalidateCheckpoint(dev);
 
 	do {
-		chunk = yaffs_AllocateChunk(dev, useReserve,&bi);
+		yaffs_BlockInfo *bi = 0;
+		int erasedOk = 0;
 
-		if (chunk >= 0) {
-			/* First check this chunk is erased, if it needs checking.
-			 * The checking policy (unless forced always on) is as follows:
-			 * Check the first page we try to write in a block.
-			 * - If the check passes then we don't need to check any more.
-			 * - If the check fails, we check again...
-			 * If the block has been erased, we don't need to check.
-			 *
-			 * However, if the block has been prioritised for gc, then
-			 * we think there might be something odd about this block
-			 * and stop using it.
-			 *
-			 * Rationale:
-			 * We should only ever see chunks that have not been erased
-			 * if there was a partially written chunk due to power loss
-			 * This checking policy should catch that case with very
-			 * few checks and thus save a lot of checks that are most likely not
-			 * needed.
-			 */
-			 
-			 if(bi->gcPrioritise){
-			 		yaffs_DeleteChunk(dev, chunk, 1, __LINE__);
-			} else {
-#ifdef CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED
-
-				bi->skipErasedCheck = 0;
-
-#endif
-				if(!bi->skipErasedCheck){
-					erasedOk = yaffs_CheckChunkErased(dev, chunk);
-					if(erasedOk && !bi->gcPrioritise)
-						bi->skipErasedCheck = 1;
-				}
-
-				if (!erasedOk) {
-					T(YAFFS_TRACE_ERROR,
-					  (TSTR
-					   ("**>> yaffs chunk %d was not erased"
-					    TENDSTR), chunk));
-				} else {
-					writeOk =
-					    yaffs_WriteChunkWithTagsToNAND(dev, chunk,
-									   data, tags);
-				}
-			
-				attempts++;
-
-				if (writeOk) {
-					/*
-					 *  Copy the data into the robustification buffer.
-					 *  NB We do this at the end to prevent duplicates in the case of a write error.
-					 *  Todo
-					 */
-					yaffs_HandleWriteChunkOk(dev, chunk, data, tags);
-				
-				} else {
-					/* The erased check or write failed */
-					yaffs_HandleWriteChunkError(dev, chunk, erasedOk);
-				}
-			}
+		chunk = yaffs_AllocateChunk(dev, useReserve, &bi);
+		if (chunk < 0) {
+			/* no space */
+			break;
 		}
 
-	} while (chunk >= 0 && !writeOk);
+		/* First check this chunk is erased, if it needs
+		 * checking.  The checking policy (unless forced
+		 * always on) is as follows:
+		 *
+		 * Check the first page we try to write in a block.
+		 * If the check passes then we don't need to check any
+		 * more.	If the check fails, we check again...
+		 * If the block has been erased, we don't need to check.
+		 *
+		 * However, if the block has been prioritised for gc,
+		 * then we think there might be something odd about
+		 * this block and stop using it.
+		 *
+		 * Rationale: We should only ever see chunks that have
+		 * not been erased if there was a partially written
+		 * chunk due to power loss.  This checking policy should
+		 * catch that case with very few checks and thus save a
+		 * lot of checks that are most likely not needed.
+		 */
+		if (bi->gcPrioritise) {
+			yaffs_DeleteChunk(dev, chunk, 1, __LINE__);
+			/* try another chunk */
+			continue;
+		}
+
+		/* let's give it a try */
+		attempts++;
+
+#ifdef CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED
+		bi->skipErasedCheck = 0;
+#endif
+		if (!bi->skipErasedCheck) {
+			erasedOk = yaffs_CheckChunkErased(dev, chunk);
+			if (erasedOk != YAFFS_OK) {
+				T(YAFFS_TRACE_ERROR,
+				(TSTR ("**>> yaffs chunk %d was not erased"
+				TENDSTR), chunk));
+
+				/* try another chunk */
+				continue;
+			}
+			bi->skipErasedCheck = 1;
+		}
+
+		writeOk = yaffs_WriteChunkWithTagsToNAND(dev, chunk,
+				data, tags);
+		if (writeOk != YAFFS_OK) {
+			yaffs_HandleWriteChunkError(dev, chunk, erasedOk);
+			/* try another chunk */
+			continue;
+		}
+
+		/* Copy the data into the robustification buffer */
+		yaffs_HandleWriteChunkOk(dev, chunk, data, tags);
+
+	} while (writeOk != YAFFS_OK && 
+	        (yaffs_wr_attempts <= 0 || attempts <= yaffs_wr_attempts));
+	
+	if(!writeOk)
+		chunk = -1;
 
 	if (attempts > 1) {
 		T(YAFFS_TRACE_ERROR,
-		  (TSTR("**>> yaffs write required %d attempts" TENDSTR),
-		   attempts));
+			(TSTR("**>> yaffs write required %d attempts" TENDSTR),
+			attempts));
+
 		dev->nRetriedWrites += (attempts - 1);
 	}
 
@@ -2591,7 +2593,6 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 	int pagesInUse = 0;
 	int prioritised=0;
 	yaffs_BlockInfo *bi;
-	static int nonAggressiveSkip = 0;
 	int pendingPrioritisedExist = 0;
 	
 	/* First let's see if we need to grab a prioritised block */
@@ -2623,9 +2624,9 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 	 * block has only a few pages in use.
 	 */
 
-	nonAggressiveSkip--;
+	dev->nonAggressiveSkip--;
 
-	if (!aggressive && (nonAggressiveSkip > 0)) {
+	if (!aggressive && (dev->nonAggressiveSkip > 0)) {
 		return -1;
 	}
 
@@ -2686,7 +2687,7 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device * dev,
 	dev->oldestDirtySequence = 0;
 
 	if (dirtiest > 0) {
-		nonAggressiveSkip = 4;
+		dev->nonAggressiveSkip = 4;
 	}
 
 	return dirtiest;

@@ -45,7 +45,7 @@ static const char yaffs_countBitsTable[256] = {
 	4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
 };
 
-static int yaffs_CountBits(__u8 x)
+int yaffs_CountBits(__u8 x)
 {
 	int retVal;
 	retVal = yaffs_countBitsTable[x];

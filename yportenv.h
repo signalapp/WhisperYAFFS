@@ -79,6 +79,14 @@
 #define TSTR(x) KERN_WARNING x
 #define TOUT(p) printk p
 
+#define yaffs_trace(mask, fmt, args...) \
+	do { if ((mask) & (yaffs_traceMask|YAFFS_TRACE_ERROR)) \
+		printk(KERN_WARNING "yaffs: " fmt, ## args); \
+	} while (0)
+
+#define compile_time_assertion(assertion) \
+	({ int x = __builtin_choose_expr(assertion, 0, (void)0); (void) x; })
+
 #elif defined CONFIG_YAFFS_DIRECT
 
 /* Direct interface */
@@ -133,7 +141,9 @@
 
 #endif
 
-extern unsigned yaffs_traceMask;
+/* see yaffs_fs.c */
+extern unsigned int yaffs_traceMask;
+extern unsigned int yaffs_wr_attempts;
 
 /*
  * Tracing flags.

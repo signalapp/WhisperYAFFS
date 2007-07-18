@@ -19,6 +19,7 @@ ifneq ($(KERNELRELEASE),)
 	obj-m := yaffs2.o
 
 	yaffs2-objs := yaffs_mtdif.o yaffs_mtdif2.o
+	yaffs2-objs += yaffs_mtdif1.o yaffs_packedtags1.o
 	yaffs2-objs += yaffs_ecc.o yaffs_fs.o yaffs_guts.o
 	yaffs2-objs += yaffs_packedtags2.o yaffs_qsort.o
 	yaffs2-objs += yaffs_tagscompat.o yaffs_tagsvalidity.o

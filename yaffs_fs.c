@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.60 2007-05-15 20:07:40 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.61 2007-07-18 19:40:38 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -89,12 +89,22 @@ extern const char *yaffs_guts_c_version;
 #include "yportenv.h"
 #include "yaffs_guts.h"
 
-unsigned yaffs_traceMask = YAFFS_TRACE_BAD_BLOCKS
-			   /* | 0xFFFFFFFF */; 
-
 #include <linux/mtd/mtd.h>
 #include "yaffs_mtdif.h"
+#include "yaffs_mtdif1.h"
 #include "yaffs_mtdif2.h"
+
+unsigned int yaffs_traceMask = YAFFS_TRACE_BAD_BLOCKS;
+unsigned int yaffs_wr_attempts = YAFFS_WR_ATTEMPTS;
+
+/* Module Parameters */
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
+module_param(yaffs_traceMask,uint,0644);
+module_param(yaffs_wr_attempts,uint,0644);
+#else
+MODULE_PARM(yaffs_traceMask,"i");
+MODULE_PARM(yaffs_wr_attempts,"i");
+#endif
 
 /*#define T(x) printk x */
 
@@ -1778,8 +1788,18 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		dev->startBlock = 0;
 		dev->endBlock = nBlocks - 1;
 	} else {
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+		/* use the MTD interface in yaffs_mtdif1.c */
+		dev->writeChunkWithTagsToNAND =
+			nandmtd1_WriteChunkWithTagsToNAND;
+		dev->readChunkWithTagsFromNAND =
+			nandmtd1_ReadChunkWithTagsFromNAND;
+		dev->markNANDBlockBad = nandmtd1_MarkNANDBlockBad;
+		dev->queryNANDBlock = nandmtd1_QueryNANDBlock;
+#else
 		dev->writeChunkToNAND = nandmtd_WriteChunkToNAND;
 		dev->readChunkFromNAND = nandmtd_ReadChunkFromNAND;
+#endif
 		dev->isYaffs2 = 0;
 	}
 	/* ... and common functions */

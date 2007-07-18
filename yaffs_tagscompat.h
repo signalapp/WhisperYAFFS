@@ -33,4 +33,8 @@ int yaffs_TagsCompatabilityQueryNANDBlock(struct yaffs_DeviceStruct *dev,
 					  int blockNo, yaffs_BlockState *
 					  state, int *sequenceNumber);
 
+void yaffs_CalcTagsECC(yaffs_Tags * tags);
+int yaffs_CheckECCOnTags(yaffs_Tags * tags);
+int yaffs_CountBits(__u8 byte);
+
 #endif

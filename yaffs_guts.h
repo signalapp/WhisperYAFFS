@@ -92,6 +92,12 @@
 
 #define YAFFS_N_TEMP_BUFFERS		4
 
+/* We limit the number attempts at sucessfully saving a chunk of data.
+ * Small-page devices have 32 pages per block; large-page devices have 64.
+ * Default to something in the order of 5 to 10 blocks worth of chunks.
+ */
+#define YAFFS_WR_ATTEMPTS		(5*64)
+
 /* Sequence numbers are used in YAFFS2 to determine block allocation order.
  * The range is limited slightly to help distinguish bad numbers from good.
  * This also allows us to perhaps in the future use special numbers for
@@ -271,7 +277,7 @@ typedef struct {
 
 	int softDeletions:10;	/* number of soft deleted pages */
 	int pagesInUse:10;	/* number of pages in use */
-	__u32 blockState:4;	/* One of the above block states. NB use unsigned because enum is sometimes an int */
+	unsigned blockState:4;	/* One of the above block states. NB use unsigned because enum is sometimes an int */
 	__u32 needsRetiring:1;	/* Data has failed on this block, need to get valid data off */
                         	/* and retire the block. */
 	__u32 skipErasedCheck: 1; /* If this is set we can skip the erased check on this block */
@@ -692,6 +698,7 @@ struct yaffs_DeviceStruct {
 	int currentDirtyChecker;	/* Used to find current dirtiest block */
 
 	__u32 *gcCleanupList;	/* objects to delete at the end of a GC. */
+	int nonAggressiveSkip;	/* GC state/mode */
 
 	/* Statistcs */
 	int nPageWrites;

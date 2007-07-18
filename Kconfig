@@ -31,9 +31,25 @@ config YAFFS_YAFFS1
 
 	  If unsure, say Y.
 
+config YAFFS_9BYTE_TAGS
+	bool "Use older-style on-NAND data format with pageStatus byte"
+	depends on YAFFS_YAFFS1
+	default n
+	help
+
+	  Older-style on-NAND data format has a "pageStatus" byte to record
+	  chunk/page state.  This byte is zero when the page is discarded.
+	  Choose this option if you have existing on-NAND data using this
+	  format that you need to continue to support.  New data written
+	  also uses the older-style format.  Note: Use of this option
+	  generally requires that MTD's oob layout be adjusted to use the
+	  older-style format.  See notes on tags formats and MTD versions.
+
+	  If unsure, say N.
+
 config YAFFS_DOES_ECC
 	bool "Lets Yaffs do its own ECC"
-	depends on YAFFS_FS && YAFFS_YAFFS1
+	depends on YAFFS_FS && YAFFS_YAFFS1 && !YAFFS_9BYTE_TAGS
 	default n
 	help
 	  This enables Yaffs to use its own ECC functions instead of using
@@ -43,7 +59,7 @@ config YAFFS_DOES_ECC
 
 config YAFFS_ECC_WRONG_ORDER
 	bool "Use the same ecc byte order as Steven Hill's nand_ecc.c"
-	depends on YAFFS_FS && YAFFS_DOES_ECC
+	depends on YAFFS_FS && YAFFS_DOES_ECC && !YAFFS_9BYTE_TAGS
 	default n
 	help
 	  This makes yaffs_ecc.c use the same ecc byte order as Steven

@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.17 2007-02-14 01:09:06 wookey Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.18 2007-07-18 19:40:38 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -37,6 +37,9 @@ static void yaffsfs_RemoveObjectCallback(yaffs_Object *obj);
 
 // Handle management.
 // 
+
+
+unsigned int yaffs_wr_attempts;
 
 typedef struct
 {

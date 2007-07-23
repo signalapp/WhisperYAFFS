@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.50 2007-07-18 19:40:38 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.51 2007-07-23 05:14:08 charles Exp $";
 
 #include "yportenv.h"
 
@@ -6058,7 +6058,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 #ifndef CONFIG_YAFFS_USE_OWN_SORT
 	{
 		/* Use qsort now. */
-		qsort(blockIndex, nBlocksToScan, sizeof(yaffs_BlockIndex), ybicmp);
+		yaffs_qsort(blockIndex, nBlocksToScan, sizeof(yaffs_BlockIndex), ybicmp);
 	}
 #else
 	{

@@ -36,7 +36,7 @@
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.1 2007-07-18 19:40:38 charles Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.2 2007-07-23 19:14:04 imcd Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
@@ -101,6 +101,8 @@ int nandmtd1_WriteChunkWithTagsToNAND(yaffs_Device *dev,
 	/* we assume that PackedTags1 and yaffs_Tags are compatible */
 	compile_time_assertion(sizeof(yaffs_PackedTags1) == 12);
 	compile_time_assertion(sizeof(yaffs_Tags) == 8);
+
+	dev->nPageWrites++;
 
 	yaffs_PackTags1(&pt1, etags);
 	yaffs_CalcTagsECC((yaffs_Tags *)&pt1);
@@ -178,6 +180,8 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	int retval;
 	int deleted;
 
+	dev->nPageReads++;
+
 	memset(&ops, 0, sizeof(ops));
 	ops.mode = MTD_OOB_AUTO;
 	ops.len = (data) ? chunkBytes : 0;
@@ -237,7 +241,7 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	deleted = !pt1.deleted;
 	pt1.deleted = 1;
 #else
-	(void) deleted; /* not used */
+	deleted = (yaffs_CountBits(((__u8 *)&pt1)[8]) < 7);
 #endif
 
 	/* Check the packed tags mini-ECC and correct if necessary/possible.
@@ -250,7 +254,8 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	case 1:
 		/* recovered tags-ECC error */
 		dev->tagsEccFixed++;
-		eccres = YAFFS_ECC_RESULT_FIXED;
+		if (eccres == YAFFS_ECC_RESULT_NO_ERROR)
+			eccres = YAFFS_ECC_RESULT_FIXED;
 		break;
 	default:
 		/* unrecovered tags-ECC error */
@@ -265,13 +270,8 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	yaffs_UnpackTags1(etags, &pt1);
 	etags->eccResult = eccres;
 
-	/* Set deleted state.
-	 */
-#ifndef CONFIG_YAFFS_9BYTE_TAGS
+	/* Set deleted state */
 	etags->chunkDeleted = deleted;
-#else
-	etags->chunkDeleted = (yaffs_CountBits(((__u8 *)&pt1)[8]) < 7);
-#endif
 	return YAFFS_OK;
 }
 
@@ -306,7 +306,7 @@ static int nandmtd1_TestPrerequists(struct mtd_info * mtd)
 
 	if (oobavail < YTAG1_SIZE) {
 		yaffs_trace(YAFFS_TRACE_ERROR,
-			"mtd device has only %d bytes for tags, need %d",
+			"mtd device has only %d bytes for tags, need %d\n",
 			oobavail, YTAG1_SIZE);
 		return YAFFS_FAIL;
 	}

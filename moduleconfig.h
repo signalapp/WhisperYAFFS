@@ -58,7 +58,7 @@ MTD versions.
 */
 /* Default: Not selected */
 /* Meaning: Use older-style on-NAND data format with pageStatus byte */
-#define CONFIG_YAFFS_9BYTE_TAGS
+//#define CONFIG_YAFFS_9BYTE_TAGS
 
 #endif /* YAFFS_OUT_OF_TREE */
 

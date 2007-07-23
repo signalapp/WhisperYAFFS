@@ -43,7 +43,8 @@ config YAFFS_9BYTE_TAGS
 	  format that you need to continue to support.  New data written
 	  also uses the older-style format.  Note: Use of this option
 	  generally requires that MTD's oob layout be adjusted to use the
-	  older-style format.  See notes on tags formats and MTD versions.
+	  older-style format.  See notes on tags formats and MTD versions
+	  in yaffs_mtdif1.c.
 
 	  If unsure, say N.
 

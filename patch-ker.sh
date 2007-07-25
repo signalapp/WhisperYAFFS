@@ -16,19 +16,21 @@
 #
 #  Somewhat "inspired by" the mtd patchin script
 #
-#  $Id: patch-ker.sh,v 1.2 2007-02-12 16:55:25 wookey Exp $
+#  $Id: patch-ker.sh,v 1.3 2007-07-25 01:04:38 charles Exp $
 
 VERSION=0
 PATCHLEVEL=0
 SUBLEVEL=0
-LINUXDIR=$1
+COPYORLINK=$1
+LINUXDIR=$2
 
 # To be a Linux directory, it must have a Makefile
 
 
 # Display usage of this script
 usage () {
-	echo "usage:  $0  kernelpath"
+	echo "usage:  $0  c/l kernelpath"
+	echo " if c/l is c, then copy. If l then link"
 	exit 1
 }
 
@@ -38,6 +40,16 @@ if [ -z $LINUXDIR ]
 then
     usage;
 fi
+
+if [ $COPYORLINK = l ]; then
+   CPY="ln -s"
+elif [ $COPYORLINK = c ]; then
+   CPY="cp"
+else
+   echo "unknown copy or link type"
+   usage;
+fi
+
 
 # Check if kerneldir contains a Makefile
 if [ ! -f $LINUXDIR/Makefile ] 
@@ -103,7 +115,7 @@ then
    echo "$YAFFSDIR exists, not patching"
 else
    mkdir $LINUXDIR/fs/yaffs2
-   cp Makefile.kernel $LINUXDIR/fs/yaffs2/Makefile
-   cp Kconfig $LINUXDIR/fs/yaffs2
-   cp *.c *.h  $LINUXDIR/fs/yaffs2
+   $CPY  $PWD/Makefile.kernel $LINUXDIR/fs/yaffs2/Makefile
+   $CPY $PWD/Kconfig $LINUXDIR/fs/yaffs2
+   $CPY $PWD/*.c $PWD/*.h  $LINUXDIR/fs/yaffs2
 fi

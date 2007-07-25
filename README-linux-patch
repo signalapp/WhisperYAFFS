@@ -1,10 +1,15 @@
 To build YAFFS in the Linux kernel tree you need to run the patch-ker.sh
-script, giving the path to your kernel sources, e.g:
+script from the yaffs soiurce directory, giving your chouce as to whether
+you wish to copy or link the code and the path to your kernel sources, e.g:
 
-./patch-ker.sh /usr/src/linux
+./patch-ker.sh c /usr/src/linux
 
 This will copy the yaffs files into fs/yaffs2 and modify the Kconfig
 and Makefiles in the fs directory.
+
+./patch-ker.sh l /usr/src/linux
+
+This does the same as the above but makes symbolic links instead.
 
 After you've run the script, go back to your normal kernel making procedure
 and configure the yaffs settings you want.

@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.61 2007-07-18 19:40:38 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.62 2007-08-16 20:42:11 imcd Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -2128,6 +2128,7 @@ static int yaffs_proc_write(struct file *file, const char *buf,
 		if (end > buf + pos) {
 			mask_name = "numeral";
 			len = end - (buf + pos);
+			pos += len;
 			done = 0;
 		} else {
 			for(x = buf + pos, i = 0; 
@@ -2137,8 +2138,6 @@ static int yaffs_proc_write(struct file *file, const char *buf,
 			substring[i] = '\0';
 			
 			for (i = 0; mask_flags[i].mask_name != NULL; i++) {
-				//len = strlen(mask_flags[i].mask_name);
-				//if (strncmp(buf + pos, mask_flags[i].mask_name, len) == 0) {
 				if(strcmp(substring,mask_flags[i].mask_name) == 0){
 					mask_name = mask_flags[i].mask_name;
 					mask_bitfield = mask_flags[i].mask_bitfield;
@@ -2149,7 +2148,6 @@ static int yaffs_proc_write(struct file *file, const char *buf,
 		}
 
 		if (mask_name != NULL) {
-			// pos += len;
 			done = 0;
 			switch(add) {
 			case '-':

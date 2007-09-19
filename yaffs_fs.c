@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.62 2007-08-16 20:42:11 imcd Exp $";
+    "$Id: yaffs_fs.c,v 1.63 2007-09-19 20:35:40 imcd Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -213,24 +213,45 @@ static struct address_space_operations yaffs_file_address_operations = {
 	.commit_write = yaffs_commit_write,
 };
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,22))
 static struct file_operations yaffs_file_operations = {
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,18))
 	.read = do_sync_read,
 	.write = do_sync_write,
 	.aio_read = generic_file_aio_read,
 	.aio_write = generic_file_aio_write,
+	.mmap = generic_file_mmap,
+	.flush = yaffs_file_flush,
+	.fsync = yaffs_sync_object,
+	.splice_read = generic_file_splice_read,
+	.splice_write = generic_file_splice_write,
+};
+
+#elif (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,18))
+
+static struct file_operations yaffs_file_operations = {
+	.read = do_sync_read,
+	.write = do_sync_write,
+	.aio_read = generic_file_aio_read,
+	.aio_write = generic_file_aio_write,
+	.mmap = generic_file_mmap,
+	.flush = yaffs_file_flush,
+	.fsync = yaffs_sync_object,
+	.sendfile = generic_file_sendfile,
+};
+
 #else
+
+static struct file_operations yaffs_file_operations = {
 	.read = generic_file_read,
 	.write = generic_file_write,
-#endif
 	.mmap = generic_file_mmap,
 	.flush = yaffs_file_flush,
 	.fsync = yaffs_sync_object,
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 	.sendfile = generic_file_sendfile,
 #endif
-
 };
+#endif
 
 static struct inode_operations yaffs_file_inode_operations = {
 	.setattr = yaffs_setattr,
@@ -1430,6 +1451,7 @@ static void yaffs_read_inode(struct inode *inode)
 
 static LIST_HEAD(yaffs_dev_list);
 
+#if 0 // not used
 static int yaffs_remount_fs(struct super_block *sb, int *flags, char *data)
 {
 	yaffs_Device    *dev = yaffs_SuperToDevice(sb);
@@ -1458,6 +1480,7 @@ static int yaffs_remount_fs(struct super_block *sb, int *flags, char *data)
  
 	return 0;
 }
+#endif
 
 static void yaffs_put_super(struct super_block *sb)
 {
@@ -2095,7 +2118,7 @@ static int yaffs_proc_write(struct file *file, const char *buf,
 	unsigned rg = 0, mask_bitfield;
 	char *end;
 	char *mask_name;
-	char *x; 
+	const char *x; 
 	char substring[MAX_MASK_NAME_LENGTH+1];
 	int i;
 	int done = 0;

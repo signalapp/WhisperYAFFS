@@ -2237,7 +2237,7 @@ int main(int argc, char *argv[])
 	
 	//return cache_read_test();
 	
-	//resize_stress_test_no_grow("/flash",20);
+	resize_stress_test_no_grow("/flash/flash",20);
 	
 	//huge_directory_test_on_path("/ram2k");
 	
@@ -2250,7 +2250,7 @@ int main(int argc, char *argv[])
 	  //small_mount_test("/flash/flash",1000);
 	  //small_overwrite_test("/flash/flash",1000);
 	  //checkpoint_fill_test("/flash/flash",20);
-	 random_small_file_test("/flash/flash",10000);
+	// random_small_file_test("/flash/flash",10000);
 	 // huge_array_test("/flash/flash",10);
 
 

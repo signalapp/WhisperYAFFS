@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.51 2007-07-23 05:14:08 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.52 2007-10-16 00:45:05 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5008,7 +5008,7 @@ int yaffs_ResizeFile(yaffs_Object * in, loff_t newSize)
 					 (newSize < oldFileSize) ? 1 : 0, 0);
 	}
 
-	return newSize;
+	return YAFFS_OK;
 }
 
 loff_t yaffs_GetFileSize(yaffs_Object * obj)

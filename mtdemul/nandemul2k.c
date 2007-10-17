@@ -568,7 +568,9 @@ static int nand_erase (struct mtd_info *mtd, struct erase_info *instr)
 		block++;
 	}
 
+	instr->state = MTD_ERASE_DONE;  * change state to ERASE_DONE */
 
+	instr->callback(instr);  * wake up */
 
 	return 0;
 

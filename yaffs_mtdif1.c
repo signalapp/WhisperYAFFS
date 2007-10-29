@@ -36,7 +36,7 @@
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.4 2007-10-01 19:43:12 imcd Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.5 2007-10-29 14:59:57 imcd Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
@@ -288,7 +288,7 @@ int nandmtd1_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	int blocksize = dev->nChunksPerBlock * dev->nDataBytesPerChunk;
 	int retval;
 
-	yaffs_trace(YAFFS_TRACE_BAD_BLOCKS, "marking block %d bad", blockNo);
+	yaffs_trace(YAFFS_TRACE_BAD_BLOCKS, "marking block %d bad\n", blockNo);
 
 	retval = mtd->block_markbad(mtd, (loff_t)blocksize * blockNo);
 	return (retval) ? YAFFS_FAIL : YAFFS_OK;
@@ -344,7 +344,7 @@ int nandmtd1_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
 	etags.blockBad = (mtd->block_isbad)(mtd, addr);
 	if (etags.blockBad) {
 		yaffs_trace(YAFFS_TRACE_BAD_BLOCKS,
-			"block %d is marked bad", blockNo);
+			"block %d is marked bad\n", blockNo);
 		state = YAFFS_BLOCK_STATE_DEAD;
 	}
 	else if (etags.eccResult != YAFFS_ECC_RESULT_NO_ERROR) {

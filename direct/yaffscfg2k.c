@@ -176,7 +176,6 @@ int yaffs_StartUp(void)
 	flashDev.nDataBytesPerChunk = 2048;
 	flashDev.nChunksPerBlock = 64;
 	flashDev.nReservedBlocks = 5;
-	flashDev.nCheckpointReservedBlocks = 5;
 	//flashDev.checkpointStartBlock = 1;
 	//flashDev.checkpointEndBlock = 20;
 	flashDev.startBlock = 0;
@@ -224,6 +223,6 @@ int yaffs_StartUp(void)
 
 void SetCheckpointReservedBlocks(int n)
 {
-	flashDev.nCheckpointReservedBlocks = n;
+//	flashDev.nCheckpointReservedBlocks = n;
 }
 

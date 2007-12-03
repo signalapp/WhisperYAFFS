@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.52 2007-10-16 00:45:05 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.53 2007-12-03 03:21:48 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1146,6 +1146,10 @@ static int yaffs_CreateTnodes(yaffs_Device * dev, int nTnodes)
 	 * Must be a multiple of 32-bits  */
 	tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
 
+	if(tnodeSize < sizeof(yaffs_Tnode))
+		tnodeSize = sizeof(yaffs_Tnode);
+		
+
 	/* make these things */
 
 	newTnodes = YMALLOC(nTnodes * tnodeSize);
@@ -1236,15 +1240,21 @@ static yaffs_Tnode *yaffs_GetTnodeRaw(yaffs_Device * dev)
 		dev->nFreeTnodes--;
 	}
 
+	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
+
 	return tn;
 }
 
 static yaffs_Tnode *yaffs_GetTnode(yaffs_Device * dev)
 {
 	yaffs_Tnode *tn = yaffs_GetTnodeRaw(dev);
+	int tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+
+	if(tnodeSize < sizeof(yaffs_Tnode))
+		tnodeSize = sizeof(yaffs_Tnode);
 	
 	if(tn)
-		memset(tn, 0, (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8);
+		memset(tn, 0, tnodeSize);
 
 	return tn;	
 }
@@ -1265,6 +1275,8 @@ static void yaffs_FreeTnode(yaffs_Device * dev, yaffs_Tnode * tn)
 		dev->freeTnodes = tn;
 		dev->nFreeTnodes++;
 	}
+	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
+	
 }
 
 static void yaffs_DeinitialiseTnodes(yaffs_Device * dev)
@@ -1909,6 +1921,8 @@ static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device * dev)
 			yaffs_AddObjectToDirectory(dev->lostNFoundDir, tn);
 		}
 	}
+	
+	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
 
 	return tn;
 }
@@ -1970,6 +1984,9 @@ static void yaffs_FreeObject(yaffs_Object * tn)
 	tn->siblings.next = (struct list_head *)(dev->freeObjects);
 	dev->freeObjects = tn;
 	dev->nFreeObjects++;
+
+	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
+
 }
 
 #ifdef __KERNEL__
@@ -2804,6 +2821,40 @@ static int yaffs_FindBlockForAllocation(yaffs_Device * dev)
 }
 
 
+
+static int yaffs_CalcCheckpointBlocksRequired(yaffs_Device *dev)
+{
+	if(!dev->nCheckpointBlocksRequired){
+		/* Not a valid value so recalculate */
+		int nBytes = 0;
+		int nBlocks;
+		int devBlocks = (dev->endBlock - dev->startBlock + 1);
+		int tnodeSize;
+
+		tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+
+		if(tnodeSize < sizeof(yaffs_Tnode))
+			tnodeSize = sizeof(yaffs_Tnode);
+		
+		nBytes += sizeof(yaffs_CheckpointValidity);
+		nBytes += sizeof(yaffs_CheckpointDevice);
+		nBytes += devBlocks * sizeof(yaffs_BlockInfo);
+		nBytes += devBlocks * dev->chunkBitmapStride;
+		nBytes += (sizeof(yaffs_CheckpointObject) + sizeof(__u32)) * (dev->nObjectsCreated - dev->nFreeObjects);
+		nBytes += (tnodeSize + sizeof(__u32)) * (dev->nTnodesCreated - dev->nFreeTnodes);
+		nBytes += sizeof(yaffs_CheckpointValidity);
+		nBytes += sizeof(__u32); /* checksum*/
+	
+		/* Round up and add 2 blocks to allow for some bad blocks, so add 3 */
+	
+		nBlocks = (nBytes/(dev->nDataBytesPerChunk * dev->nChunksPerBlock)) + 3;
+	
+		dev->nCheckpointBlocksRequired = nBlocks;
+	}
+
+	return dev->nCheckpointBlocksRequired;
+}
+
 // Check if there's space to allocate...
 // Thinks.... do we need top make this ths same as yaffs_GetFreeChunks()?
 static int yaffs_CheckSpaceForAllocation(yaffs_Device * dev)
@@ -2812,7 +2863,7 @@ static int yaffs_CheckSpaceForAllocation(yaffs_Device * dev)
 	int reservedBlocks = dev->nReservedBlocks;
 	int checkpointBlocks;
 	
-	checkpointBlocks =  dev->nCheckpointReservedBlocks - dev->blocksInCheckpoint;
+	checkpointBlocks =  yaffs_CalcCheckpointBlocksRequired(dev) - dev->blocksInCheckpoint;
 	if(checkpointBlocks < 0)
 		checkpointBlocks = 0;
 	
@@ -3145,7 +3196,7 @@ static int yaffs_CheckGarbageCollection(yaffs_Device * dev)
 	do {
 		maxTries++;
 		
-		checkpointBlockAdjust = (dev->nCheckpointReservedBlocks - dev->blocksInCheckpoint);
+		checkpointBlockAdjust = yaffs_CalcCheckpointBlocksRequired(dev) - dev->blocksInCheckpoint;
 		if(checkpointBlockAdjust < 0)
 			checkpointBlockAdjust = 0;
 
@@ -4223,7 +4274,11 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object * in, yaffs_Tnode * tn,
 	int i;
 	yaffs_Device *dev = in->myDev;
 	int ok = 1;
-	int nTnodeBytes = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+	int tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+
+	if(tnodeSize < sizeof(yaffs_Tnode))
+		tnodeSize = sizeof(yaffs_Tnode);
+	
 
 	if (tn) {
 		if (level > 0) {
@@ -4241,7 +4296,7 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object * in, yaffs_Tnode * tn,
 			/* printf("write tnode at %d\n",baseOffset); */
 			ok = (yaffs_CheckpointWrite(dev,&baseOffset,sizeof(baseOffset)) == sizeof(baseOffset));
 			if(ok)
-				ok = (yaffs_CheckpointWrite(dev,tn,nTnodeBytes) == nTnodeBytes);
+				ok = (yaffs_CheckpointWrite(dev,tn,tnodeSize) == tnodeSize);
 		}
 	}
 
@@ -4275,7 +4330,11 @@ static int yaffs_ReadCheckpointTnodes(yaffs_Object *obj)
 	yaffs_FileStructure *fileStructPtr = &obj->variant.fileVariant;
 	yaffs_Tnode *tn;
 	int nread = 0;
-	
+	int tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+
+	if(tnodeSize < sizeof(yaffs_Tnode))
+		tnodeSize = sizeof(yaffs_Tnode);
+
 	ok = (yaffs_CheckpointRead(dev,&baseChunk,sizeof(baseChunk)) == sizeof(baseChunk));
 	
 	while(ok && (~baseChunk)){
@@ -4286,8 +4345,7 @@ static int yaffs_ReadCheckpointTnodes(yaffs_Object *obj)
 		/* printf("read  tnode at %d\n",baseChunk); */
 		tn = yaffs_GetTnodeRaw(dev);
 		if(tn)
-			ok = (yaffs_CheckpointRead(dev,tn,(dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8) ==
-			      (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8);
+			ok = (yaffs_CheckpointRead(dev,tn,tnodeSize) == tnodeSize);
 		else
 			ok = 0;
 			
@@ -7415,7 +7473,7 @@ int yaffs_GetNumberOfFreeChunks(yaffs_Device * dev)
 	nFree -= ((dev->nReservedBlocks + 1) * dev->nChunksPerBlock);
 	
 	/* Now we figure out how much to reserve for the checkpoint and report that... */
-	blocksForCheckpoint = dev->nCheckpointReservedBlocks - dev->blocksInCheckpoint;
+	blocksForCheckpoint = yaffs_CalcCheckpointBlocksRequired(dev) - dev->blocksInCheckpoint;
 	if(blocksForCheckpoint < 0)
 		blocksForCheckpoint = 0;
 		

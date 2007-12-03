@@ -93,7 +93,7 @@ int yaffs_StartUp(void)
 	// Set up devices
 
 	// /ram
-	ramDev.nBytesPerChunk = 512;
+	ramDev.nDataBytesPerChunk = 512;
 	ramDev.nChunksPerBlock = 32;
 	ramDev.nReservedBlocks = 2; // Set this smaller for RAM
 	ramDev.startBlock = 1; // Can't use block 0
@@ -107,7 +107,7 @@ int yaffs_StartUp(void)
 	ramDev.initialiseNAND = yramdisk_InitialiseNAND;
 
 	// /boot
-	bootDev.nBytesPerChunk = 612;
+	bootDev.nDataBytesPerChunk = 512;
 	bootDev.nChunksPerBlock = 32;
 	bootDev.nReservedBlocks = 5;
 	bootDev.startBlock = 1; // Can't use block 0
@@ -121,7 +121,7 @@ int yaffs_StartUp(void)
 	bootDev.initialiseNAND = yflash_InitialiseNAND;
 
 		// /flash
-	flashDev.nBytesPerChunk =  512;
+	flashDev.nDataBytesPerChunk =  512;
 	flashDev.nChunksPerBlock = 32;
 	flashDev.nReservedBlocks = 5;
 	flashDev.startBlock = 128; // First block after 2MB

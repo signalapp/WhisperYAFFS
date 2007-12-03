@@ -544,7 +544,7 @@ struct yaffs_DeviceStruct {
 	/* Stuff used by the shared space checkpointing mechanism */
 	/* If this value is zero, then this mechanism is disabled */
 	
-	int nCheckpointReservedBlocks; /* Blocks to reserve for checkpoint data */
+//	int nCheckpointReservedBlocks; /* Blocks to reserve for checkpoint data */
 
 	
 
@@ -662,6 +662,8 @@ struct yaffs_DeviceStruct {
 	int checkpointMaxBlocks;
 	__u32 checkpointSum;
 	__u32 checkpointXor;
+	
+	int nCheckpointBlocksRequired; /* Number of blocks needed to store current checkpoint set */
 	
 	/* Block Info */
 	yaffs_BlockInfo *blockInfo;

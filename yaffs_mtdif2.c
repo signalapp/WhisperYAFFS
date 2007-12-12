@@ -14,7 +14,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.17 2007-02-14 01:09:06 wookey Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.18 2007-12-12 18:08:15 colin Exp $";
 
 #include "yportenv.h"
 
@@ -32,7 +32,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 				      const yaffs_ExtendedTags * tags)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+#if (MTD_VERSION_CODE > MTD_VERSION(2,6,17))
 	struct mtd_oob_ops ops;
 #else
 	size_t dummy;
@@ -48,7 +48,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 	   ("nandmtd2_WriteChunkWithTagsToNAND chunk %d data %p tags %p"
 	    TENDSTR), chunkInNAND, data, tags));
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+#if (MTD_VERSION_CODE > MTD_VERSION(2,6,17))
 	if (tags)
 		yaffs_PackTags2(&pt, tags);
 	else
@@ -101,7 +101,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 				       __u8 * data, yaffs_ExtendedTags * tags)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+#if (MTD_VERSION_CODE > MTD_VERSION(2,6,17))
 	struct mtd_oob_ops ops;
 #endif
 	size_t dummy;
@@ -116,7 +116,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	   ("nandmtd2_ReadChunkWithTagsFromNAND chunk %d data %p tags %p"
 	    TENDSTR), chunkInNAND, data, tags));
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+#if (MTD_VERSION_CODE > MTD_VERSION(2,6,17))
 	if (data && !tags)
 		retval = mtd->read(mtd, addr, dev->nDataBytesPerChunk,
 				&dummy, data);

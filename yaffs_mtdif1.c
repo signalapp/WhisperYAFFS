@@ -34,9 +34,9 @@
 #include "linux/mtd/mtd.h"
 
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+#if (MTD_VERSION_CODE > MTD_VERSION(2,6,17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.5 2007-10-29 14:59:57 imcd Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.6 2007-12-12 18:08:15 colin Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
@@ -189,7 +189,7 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	ops.datbuf = data;
 	ops.oobbuf = (__u8 *)&pt1;
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20))
+#if (MTD_VERSION_CODE < MTD_VERSION(2,6,20))
 	/* In MTD 2.6.18 to 2.6.19 nand_base.c:nand_do_read_oob() has a bug;
 	 * help it out with ops.len = ops.ooblen when ops.datbuf == NULL.
 	 */
@@ -366,4 +366,4 @@ int nandmtd1_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
 	return YAFFS_OK;
 }
 
-#endif /*KERNEL_VERSION*/
+#endif /*MTD_VERSION*/

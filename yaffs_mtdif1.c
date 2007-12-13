@@ -36,7 +36,7 @@
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
 #if (MTD_VERSION_CODE > MTD_VERSION(2,6,17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.6 2007-12-12 18:08:15 colin Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.7 2007-12-13 15:35:18 wookey Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
@@ -295,7 +295,7 @@ int nandmtd1_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 }
 
 /* Check any MTD prerequists.
- * 
+ *
  * Returns YAFFS_OK or YAFFS_FAIL.
  */
 static int nandmtd1_TestPrerequists(struct mtd_info * mtd)

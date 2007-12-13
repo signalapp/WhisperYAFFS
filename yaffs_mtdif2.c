@@ -14,7 +14,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.18 2007-12-12 18:08:15 colin Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.19 2007-12-13 15:35:18 wookey Exp $";
 
 #include "yportenv.h"
 
@@ -158,7 +158,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 
 	if (tags)
 		yaffs_UnpackTags2(tags, &pt);
-	
+
 	if(tags && retval == -EBADMSG && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR)
 		tags->eccResult = YAFFS_ECC_RESULT_UNFIXED;
 

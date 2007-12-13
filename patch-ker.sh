@@ -3,9 +3,9 @@
 # YAFFS: Yet another FFS. A NAND-flash specific file system.
 #
 # Copyright (C) 2002-2006 Aleph One Ltd.
-# 
+#
 # Created by Charles Manning <charles@aleph1.co.uk>
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
@@ -16,7 +16,7 @@
 #
 #  Somewhat "inspired by" the mtd patchin script
 #
-#  $Id: patch-ker.sh,v 1.3 2007-07-25 01:04:38 charles Exp $
+#  $Id: patch-ker.sh,v 1.4 2007-12-13 15:35:17 wookey Exp $
 
 VERSION=0
 PATCHLEVEL=0
@@ -52,8 +52,8 @@ fi
 
 
 # Check if kerneldir contains a Makefile
-if [ ! -f $LINUXDIR/Makefile ] 
-then 
+if [ ! -f $LINUXDIR/Makefile ]
+then
 	echo "Directory $LINUXDIR does not exist or is not a kernel source directory";
 	exit 1;
 fi
@@ -65,7 +65,7 @@ SUBLEVEL=`grep -s SUBLEVEL <$LINUXDIR/Makefile | head -n 1 | sed s/'SUBLEVEL = '
 
 # Can we handle this version?
 if [ $VERSION -ne 2  -o $PATCHLEVEL -lt 6  ]
-then 
+then
 	echo "Cannot patch kernel version $VERSION.$PATCHLEVEL.$SUBLEVEL, must be 2.6.x or higher"
 	exit 1;
 fi

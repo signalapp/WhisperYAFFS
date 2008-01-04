@@ -1,7 +1,7 @@
 Welcome to YAFFS, the first file system developed specifically for NAND flash.
 
 It is now YAFFS2 - original YAFFS (AYFFS1) only supports 512-byte page
-NAND and is now deprectated. YAFFS2 supports 512b page in 'YAFFS1
+NAND and is now deprecated. YAFFS2 supports 512b page in 'YAFFS1
 compatibility' mode (CONFIG_YAFFS_YAFFS1) and 2K or larger page NAND
 in YAFFS2 mode (CONFIG_YAFFS_YAFFS2).
 

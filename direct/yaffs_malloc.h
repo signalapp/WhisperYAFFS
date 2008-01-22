@@ -1,4 +1,3 @@
-#ifndef __YAFFS_MALLOC_H__
 /*
  * YAFFS: Yet another Flash File System . A NAND-flash specific file system. 
  *
@@ -14,6 +13,9 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
  
+#ifndef __YAFFS_MALLOC_H__
+#define __YAFFS_MALLOC_H__
+
 #include <stdlib.h>
  
 void *yaffs_malloc(size_t size); 

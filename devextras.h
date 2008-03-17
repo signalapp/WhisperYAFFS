@@ -50,7 +50,7 @@ struct list_head {
 #define INIT_LIST_HEAD(p) \
 do { \
  (p)->next = (p);\
- (p)->next = (p); \
+ (p)->prev = (p); \
 } while(0)
 
 

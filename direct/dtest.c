@@ -1,7 +1,7 @@
 /*
- * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
+ * YAFFS: Yet another FFS. A NAND-flash specific file system. 
  *
- * Copyright (C) 2002-2007 Aleph One Ltd.
+ * Copyright (C) 2002 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -9,11 +9,10 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
+ *
  */
 
-/*
-* Test code for the "direct" interface. 
-*/
+
 
 
 #include <stdio.h>
@@ -125,9 +124,7 @@ int check_pattern_file(char *fn)
 int dump_file_data(char *fn)
 {
 	int h;
-	int marker;
 	int i = 0;
-	int size;
 	int ok = 1;
 	unsigned char b;
 	
@@ -178,6 +175,7 @@ void create_file_of_size(const char *fn,int syze)
 {
 	int h;
 	int n;
+	int result;
 	
 	char xx[200];
 	
@@ -188,7 +186,10 @@ void create_file_of_size(const char *fn,int syze)
 	while (iterations > 0)
 	{
 		sprintf(xx,"%s %8d",fn,iterations);
-		yaffs_write(h,xx,strlen(xx));
+		n = strlen(xx);
+		result = yaffs_write(h,xx,n);
+		if(result != n)
+			printf("Wrote %d, should have been %d\n",result,n);
 		iterations--;
 	}
 	yaffs_close (h);
@@ -197,7 +198,7 @@ void create_file_of_size(const char *fn,int syze)
 void verify_file_of_size(const char *fn,int syze)
 {
 	int h;
-	int n;
+	int result;
 	
 	char xx[200];
 	char yy[200];
@@ -212,11 +213,11 @@ void verify_file_of_size(const char *fn,int syze)
 		sprintf(xx,"%s %8d",fn,iterations);
 		l = strlen(xx);
 		
-		yaffs_read(h,yy,l);
+		result = yaffs_read(h,yy,l);
 		yy[l] = 0;
 		
 		if(strcmp(xx,yy)){
-			printf("=====>>>>> verification of file %s failed near position %d\n",fn,yaffs_lseek(h,0,SEEK_CUR));
+			printf("=====>>>>> verification of file %s failed near position %lld\n",fn,(long long)yaffs_lseek(h,0,SEEK_CUR));
 		}
 		iterations--;
 	}
@@ -226,8 +227,6 @@ void verify_file_of_size(const char *fn,int syze)
 void create_resized_file_of_size(const char *fn,int syze1,int reSyze, int syze2)
 {
 	int h;
-	int n;
-	
 	
 	int iterations;
 	
@@ -240,7 +239,7 @@ void create_resized_file_of_size(const char *fn,int syze1,int reSyze, int syze2)
 		iterations--;
 	}
 	
-	yaffs_truncate(h,reSyze);
+	yaffs_ftruncate(h,reSyze);
 	
 	yaffs_lseek(h,0,SEEK_SET);
 	iterations = (syze2 + strlen(fn) -1)/ strlen(fn);
@@ -375,7 +374,7 @@ void scan_pattern_test(const char *path, int fsize, int niterations)
 	}
 }
 
-void fill_disk(char *path,int nfiles)
+void fill_disk(const char *path,int nfiles)
 {
 	int h;
 	int n;
@@ -401,7 +400,7 @@ void fill_disk(char *path,int nfiles)
 	}
 }
 
-void fill_disk_and_delete(char *path, int nfiles, int ncycles)
+void fill_disk_and_delete(const char *path, int nfiles, int ncycles)
 {
 	int i,j;
 	char str[50];
@@ -883,18 +882,12 @@ int huge_directory_test_on_path(char *path)
 
 	int f;
 	int i;
-	int r;
+
 	int total = 0;
 	int lastTotal = 0;
-	char buffer[20];
 	
 	char str[100];
-	char name[100];
-	char name2[100];
-	
-	int h;
-	mode_t temp_mode;
-	struct yaffs_stat ystat;
+
 	
 	yaffs_StartUp();
 	
@@ -939,6 +932,7 @@ int huge_directory_test_on_path(char *path)
 
 int yaffs_scan_test(const char *path)
 {
+	return 0;
 }
 
 
@@ -1012,7 +1006,7 @@ int resize_stress_test(const char *path)
 				
 				syz -= 500;
 				if(syz < 0) syz = 0;
-				yaffs_truncate(a,syz);
+				yaffs_ftruncate(a,syz);
 				
 			}
 			else
@@ -1041,6 +1035,7 @@ int resize_stress_test_no_grow_complex(const char *path,int iters)
    
    char abuffer[1000];
    char bbuffer[1000];
+
    
    yaffs_StartUp();
    
@@ -1079,7 +1074,7 @@ int resize_stress_test_no_grow_complex(const char *path,int iters)
 				
 					syz -= 2050;
 					if(syz < 0) syz = 0;
-					yaffs_truncate(a,syz);
+					yaffs_ftruncate(a,syz);
 					syz = yaffs_lseek(a,0,SEEK_END);
 					printf("shrink to %d\n",syz);
 				}
@@ -1096,7 +1091,8 @@ int resize_stress_test_no_grow_complex(const char *path,int iters)
 			
 					
 		}
-		printf("file size is %d\n",yaffs_lseek(a,0,SEEK_END));
+		
+		printf("file size is %lld\n",(long long)yaffs_lseek(a,0,SEEK_END));
 
    }
    
@@ -1152,7 +1148,7 @@ int resize_stress_test_no_grow(const char *path,int iters)
 				
 					syz -= 2050;
 					if(syz < 0) syz = 0;
-					yaffs_truncate(a,syz);
+					yaffs_ftruncate(a,syz);
 					syz = yaffs_lseek(a,0,SEEK_END);
 					printf("shrink to %d\n",syz);
 				}
@@ -1169,7 +1165,7 @@ int resize_stress_test_no_grow(const char *path,int iters)
 			
 					
 		}
-		printf("file size is %d\n",yaffs_lseek(a,0,SEEK_END));
+		printf("file size is %lld\n",(long long)yaffs_lseek(a,0,SEEK_END));
 
    }
    
@@ -1253,7 +1249,6 @@ int cache_bypass_bug_test(void)
 	// This bug has been fixed.
 	
 	int a;
-	int i;
 	char buffer1[1000];
 	char buffer2[1000];
 	
@@ -1327,7 +1322,7 @@ int truncate_test(void)
 	
 	yaffs_write(a,"abcdefghijklmnopqrstuvwzyz",26);
 	
-	yaffs_truncate(a,3);
+	yaffs_ftruncate(a,3);
 	l= yaffs_lseek(a,0,SEEK_END);
 	
 	printf("truncated length is %d\n",l);
@@ -1374,13 +1369,10 @@ void lookup_test(const char *mountpt)
 	int i;
 	int h;
 	char a[100];
-	char b[100];
 	
 
 	yaffs_DIR *d;
 	yaffs_dirent *de;
-	struct yaffs_stat s;
-	char str[100];
 
 	yaffs_StartUp();
 	
@@ -1441,11 +1433,7 @@ void link_test(const char *mountpt)
 	char a[100];
 	char b[100];
 	char c[100];
-	
-	int  f0;
-	int f1;
-	int f2;
-	int f3;
+
 	sprintf(a,"%s/aaa",mountpt);
 	sprintf(b,"%s/bbb",mountpt);
 	sprintf(c,"%s/ccc",mountpt);
@@ -1482,7 +1470,6 @@ void freespace_test(const char *mountpt)
 	int i;
 	int h;
 	char a[100];
-	char b[100];
 	
 	int  f0;
 	int f1;
@@ -1741,8 +1728,6 @@ void multi_mount_test(const char *mountpt,int nmounts)
 {
 
 	char a[30];
-	char b[30];
-	char c[30];
 	
 	int i;
 	int j;
@@ -1773,12 +1758,18 @@ void multi_mount_test(const char *mountpt,int nmounts)
 		
 		sprintf(xx,"%s/1",a);
 		h1 = yaffs_open(xx, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
-		
+
+#if 0		
 		for(j = 0; j < 200; j++){
 		   yaffs_write(h0,xx,1000);
 		   yaffs_write(h1,xx,1000);
 		}
-		
+#else
+		while(yaffs_write(h0,xx,1000) > 0){
+		   
+		   yaffs_write(h1,xx,1000);
+		}
+#endif
 		len0 = yaffs_lseek(h0,0,SEEK_END);
 		len1 = yaffs_lseek(h1,0,SEEK_END);
 		
@@ -1791,7 +1782,7 @@ void multi_mount_test(const char *mountpt,int nmounts)
 		}
 		
 		
-		yaffs_truncate(h0,0);
+	//	yaffs_truncate(h0,0);
 		yaffs_close(h0);
 		yaffs_close(h1);
 		
@@ -1808,8 +1799,6 @@ void small_mount_test(const char *mountpt,int nmounts)
 {
 
 	char a[30];
-	char b[30];
-	char c[30];
 	
 	int i;
 	int j;
@@ -1885,17 +1874,12 @@ void small_overwrite_test(const char *mountpt,int nmounts)
 {
 
 	char a[30];
-	char b[30];
-	char c[30];
-	
 	int i;
 	int j;
 
 	int h0;
 	int h1;
-	int len0;
-	int len1;
-	int nread;
+
 	
 	sprintf(a,"%s/a",mountpt);
 
@@ -1921,7 +1905,7 @@ void small_overwrite_test(const char *mountpt,int nmounts)
 		h1 = yaffs_open(xx, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
 		
 		for(j = 0; j < 1000000; j+=1000){
-			yaffs_truncate(h0,j);
+			yaffs_ftruncate(h0,j);
 			yaffs_lseek(h0,j,SEEK_SET);
 			yaffs_write(h0,xx,7000);
 			yaffs_write(h1,xx,7000);
@@ -1937,6 +1921,44 @@ void small_overwrite_test(const char *mountpt,int nmounts)
 
 		if(1)
 			yaffs_unmount(mountpt);
+	}
+}
+
+
+void seek_overwrite_test(const char *mountpt,int nmounts)
+{
+
+	char a[30];
+	
+	int i;
+	int j;
+
+	int h0;
+
+	
+	sprintf(a,"%s/f",mountpt);
+
+	yaffs_StartUp();
+	
+	yaffs_mount(mountpt);
+	
+	
+	for(i = 0; i < nmounts; i++){
+		
+		h0 = yaffs_open(a, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+			
+		for(j = 0; j < 100000; j++){
+			yaffs_lseek(h0,0,SEEK_SET);
+			yaffs_write(h0,xx,5000);
+			yaffs_lseek(h0,0x100000,SEEK_SET);
+			yaffs_write(h0,xx,5000);
+			
+			if(early_exit)
+				exit(0);
+		}
+		
+		yaffs_close(h0);
+		
 	}
 }
 
@@ -2014,7 +2036,7 @@ int make_file2(const char *name1, const char *name2,int syz)
 	}
 	yaffs_close(h1);
 	yaffs_close(h2);
-	
+	return 0;
 }
 
 
@@ -2027,10 +2049,8 @@ void checkpoint_upgrade_test(const char *mountpt,int nmounts)
 	char b[50];
 	char c[50];
 	char d[50];
-	
-	int i;
+
 	int j;
-	int h;
 	
 	sprintf(a,"%s/a",mountpt);
 	
@@ -2087,8 +2107,7 @@ void huge_array_test(const char *mountpt,int n)
 
 	
 	int i;
-	int j;
-	int h;
+	int space;
 	
 	int fnum;
 	
@@ -2104,10 +2123,10 @@ void huge_array_test(const char *mountpt,int n)
 		n--;
 		fnum = 0;
 		printf("\n\n START run\n\n");
-		while(yaffs_freespace(mountpt) > 25000000){
+		while((space = yaffs_freespace(mountpt)) > 25000000){
 			sprintf(a,"%s/file%d",mountpt,fnum);
 			fnum++;
-			printf("create file %s\n",a);
+			printf("create file %s, free space %d\n",a,space);
 			create_file_of_size(a,10000000);
 			printf("verifying file %s\n",a);
 			verify_file_of_size(a,10000000);
@@ -2153,7 +2172,7 @@ void random_truncate(int h, char * name)
 	flen = yaffs_lseek(h,0,SEEK_END);
 	if(n > flen)
 		n = flen / 2;
-	yaffs_truncate(name,n);
+	yaffs_ftruncate(h,n);
 	yaffs_lseek(h,n,SEEK_SET);
 }
 
@@ -2167,10 +2186,8 @@ void random_small_file_test(const char *mountpt,int iterations)
 	
 	int i;
 	int n;
-	int j;
 	int h[NSMALLFILES];
 	int r;
-	int fnum;
 	
 	
 	yaffs_StartUp();
@@ -2189,7 +2206,7 @@ void random_small_file_test(const char *mountpt,int iterations)
 			
 			if(strlen(a[i]) == 0){
 				sprintf(a[i],"%s/%dx%d",mountpt,n,i);
-				h[i] = yaffs_open(a,O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+				h[i] = yaffs_open(a[i],O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
 			}
 			
 			if(h[i] < -1)
@@ -2248,6 +2265,10 @@ int main(int argc, char *argv[])
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
 	  //small_mount_test("/flash/flash",1000);
+	  //small_overwrite_test("/flash/flash",1000);
+	  //seek_overwrite_test("/flash/flash",1000);
+	 //checkpoint_fill_test("/flash/flash",20);
+	 //checkpoint_upgrade_test("/flash/flash",20);
 	  //small_overwrite_test("/flash/flash",1000);
 	  //checkpoint_fill_test("/flash/flash",20);
 	// random_small_file_test("/flash/flash",10000);

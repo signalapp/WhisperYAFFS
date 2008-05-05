@@ -193,8 +193,8 @@ extern unsigned int yaffs_wr_attempts;
 
 #define T(mask,p) do{ if((mask) & (yaffs_traceMask | YAFFS_TRACE_ALWAYS)) TOUT(p);} while(0)
 
-#ifndef CONFIG_YAFFS_WINCE
-#define YBUG() T(YAFFS_TRACE_BUG,(TSTR("==>> yaffs bug: " __FILE__ " %d" TENDSTR),__LINE__))
+#ifndef YBUG
+#define YBUG() do {T(YAFFS_TRACE_BUG,(TSTR("==>> yaffs bug: " __FILE__ " %d" TENDSTR),__LINE__));} while(0)
 #endif
 
 #endif

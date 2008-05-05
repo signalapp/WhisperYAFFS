@@ -34,19 +34,22 @@ unsigned yaffs_traceMask =
 	YAFFS_TRACE_ALLOCATE | 
 	YAFFS_TRACE_CHECKPOINT |
 	YAFFS_TRACE_BAD_BLOCKS |
-	YAFFS_TRACE_VERIFY |
-	YAFFS_TRACE_VERIFY_NAND |
-	YAFFS_TRACE_VERIFY_FULL |
-//	(~0) |
 	
 	0;
         
 
+static int yaffsfs_lastError;
 
 void yaffsfs_SetError(int err)
 {
 	//Do whatever to set error
-	errno = err;
+	yaffsfs_lastError = err;
+}
+
+
+int yaffsfs_GetLastError(void)
+{
+	return yaffsfs_lastError;
 }
 
 void yaffsfs_Lock(void)
@@ -69,7 +72,7 @@ static size_t malloc_limit = 0 & 6000000;
 
 void *yaffs_malloc(size_t size)
 {
-	size_t this;
+	void * this;
 	if(yaffs_kill_alloc)
 		return NULL;
 	if(malloc_limit && malloc_limit <(total_malloced + size) )
@@ -121,6 +124,7 @@ static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 	{ "/flash/boot", &bootDev},
 	{ "/flash/flash", &flashDev},
 	{ "/ram2k", &ram2kDev},
+	{ "/flash/bigblock", &flashDev},
 	{(void *)0,(void *)0} /* Null entry to terminate list */
 #endif
 };
@@ -135,7 +139,7 @@ int yaffs_StartUp(void)
 	// Set up devices
 	// /ram
 	memset(&ramDev,0,sizeof(ramDev));
-	ramDev.nDataBytesPerChunk = 512;
+	ramDev.totalBytesPerChunk = 512;
 	ramDev.nChunksPerBlock = 32;
 	ramDev.nReservedBlocks = 2; // Set this smaller for RAM
 	ramDev.startBlock = 0; // Can use block 0
@@ -150,7 +154,7 @@ int yaffs_StartUp(void)
 
 	// /boot
 	memset(&bootDev,0,sizeof(bootDev));
-	bootDev.nDataBytesPerChunk = 512;
+	bootDev.totalBytesPerChunk = 512;
 	bootDev.nChunksPerBlock = 32;
 	bootDev.nReservedBlocks = 5;
 	bootDev.startBlock = 0; // Can use block 0
@@ -173,9 +177,10 @@ int yaffs_StartUp(void)
 	// 2kpage/64chunk per block/128MB device
 	memset(&flashDev,0,sizeof(flashDev));
 
-	flashDev.nDataBytesPerChunk = 2048;
+	flashDev.totalBytesPerChunk = 512;
 	flashDev.nChunksPerBlock = 64;
 	flashDev.nReservedBlocks = 5;
+	flashDev.inbandTags = 1;
 	//flashDev.checkpointStartBlock = 1;
 	//flashDev.checkpointEndBlock = 20;
 	flashDev.startBlock = 0;
@@ -198,7 +203,7 @@ int yaffs_StartUp(void)
 	// 2kpage/64chunk per block/128MB device
 	memset(&ram2kDev,0,sizeof(ram2kDev));
 
-	ram2kDev.nDataBytesPerChunk = nandemul2k_GetBytesPerChunk();
+	ram2kDev.totalBytesPerChunk = nandemul2k_GetBytesPerChunk();
 	ram2kDev.nChunksPerBlock = nandemul2k_GetChunksPerBlock();
 	ram2kDev.nReservedBlocks = 5;
 	ram2kDev.startBlock = 0; // First block after /boot

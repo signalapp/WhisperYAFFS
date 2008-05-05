@@ -23,31 +23,29 @@
 #ifndef __EXTRAS_H__
 #define __EXTRAS_H__
 
-#if defined WIN32
-#define __inline__ __inline
-#define new newHack
-#endif
 
-#if !(defined __KERNEL__) || (defined WIN32)
+#if !(defined __KERNEL__)
 
 /* Definition of types */
 typedef unsigned char __u8;
 typedef unsigned short __u16;
 typedef unsigned __u32;
 
+#endif
+
 /*
  * This is a simple doubly linked list implementation that matches the 
  * way the Linux kernel doubly linked list implementation works.
  */
 
-struct list_head {
-	struct list_head *next; /* next in chain */
-	struct list_head *prev; /* previous in chain */
+struct ylist_head {
+	struct ylist_head *next; /* next in chain */
+	struct ylist_head *prev; /* previous in chain */
 };
 
 
 /* Initialise a list head to an empty list */
-#define INIT_LIST_HEAD(p) \
+#define YINIT_LIST_HEAD(p) \
 do { \
  (p)->next = (p);\
  (p)->prev = (p); \
@@ -55,10 +53,10 @@ do { \
 
 
 /* Add an element to a list */
-static __inline__ void list_add(struct list_head *newEntry, 
-				struct list_head *list)
+static __inline__ void ylist_add(struct ylist_head *newEntry, 
+				 struct ylist_head *list)
 {
-	struct list_head *listNext = list->next;
+	struct ylist_head *listNext = list->next;
 	
 	list->next = newEntry;
 	newEntry->prev = list;
@@ -70,51 +68,62 @@ static __inline__ void list_add(struct list_head *newEntry,
 
 /* Take an element out of its current list, with or without
  * reinitialising the links.of the entry*/
-static __inline__ void list_del(struct list_head *entry)
+static __inline__ void ylist_del(struct ylist_head *entry)
 {
-	struct list_head *listNext = entry->next;
-	struct list_head *listPrev = entry->prev;
+	struct ylist_head *listNext = entry->next;
+	struct ylist_head *listPrev = entry->prev;
 	
 	listNext->prev = listPrev;
 	listPrev->next = listNext;
 	
 }
 
-static __inline__ void list_del_init(struct list_head *entry)
+static __inline__ void ylist_del_init(struct ylist_head *entry)
 {
-	list_del(entry);
+	ylist_del(entry);
 	entry->next = entry->prev = entry;
 }
 
 
 /* Test if the list is empty */
-static __inline__ int list_empty(struct list_head *entry)
+static __inline__ int ylist_empty(struct ylist_head *entry)
 {
 	return (entry->next == entry);
 }
 
 
-/* list_entry takes a pointer to a list entry and offsets it to that
+/* ylist_entry takes a pointer to a list entry and offsets it to that
  * we can find a pointer to the object it is embedded in.
  */
  
  
-#define list_entry(entry, type, member) \
+#define ylist_entry(entry, type, member) \
 	((type *)((char *)(entry)-(unsigned long)(&((type *)NULL)->member)))
 
 
-/* list_for_each and list_for_each_safe  iterate over lists.
- * list_for_each_safe uses temporary storage to make the list delete safe
+/* ylist_for_each and list_for_each_safe  iterate over lists.
+ * ylist_for_each_safe uses temporary storage to make the list delete safe
  */
 
-#define list_for_each(itervar, list) \
+#define ylist_for_each(itervar, list) \
 	for (itervar = (list)->next; itervar != (list); itervar = itervar->next )
 
-#define list_for_each_safe(itervar,saveVar, list) \
+#define ylist_for_each_safe(itervar,saveVar, list) \
 	for (itervar = (list)->next, saveVar = (list)->next->next; itervar != (list); \
 	 itervar = saveVar, saveVar = saveVar->next)
 
+
+#if !(defined __KERNEL__)
+
+
+#ifndef WIN32
+#include <sys/stat.h>
+#endif
+
+
+#ifdef CONFIG_YAFFS_PROVIDE_DEFS
 /* File types */
+
 
 #define DT_UNKNOWN	0
 #define DT_FIFO		1
@@ -124,7 +133,7 @@ static __inline__ int list_empty(struct list_head *entry)
 #define DT_REG		8
 #define DT_LNK		10
 #define DT_SOCK		12
-#define DR_WHT		14
+#define DT_WHT		14
 
 
 #ifndef WIN32
@@ -155,21 +164,18 @@ struct iattr {
 	unsigned int ia_attr_flags;
 };
 
+#endif
+
+
 #define KERN_DEBUG
 
 #else
 
-#ifndef WIN32
 #include <linux/types.h>
-#include <linux/list.h>
 #include <linux/fs.h>
 #include <linux/stat.h>
-#endif
 
 #endif
 
-#if defined WIN32
-#undef new
-#endif
 
 #endif

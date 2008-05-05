@@ -30,7 +30,8 @@
 #include "yaffs_malloc.h"
 
 #include "assert.h"
-#define YBUG() assert(1)
+#define YBUG() assert(0)
+
 
 #define YCHAR char
 #define YUCHAR unsigned char
@@ -41,6 +42,8 @@
 #define yaffs_strlen(s)	     strlen(s)
 #define yaffs_sprintf	     sprintf
 #define yaffs_toupper(a)     toupper(a)
+
+#define YAFFS_PATH_DIVIDERS  "/"
 
 #ifdef NO_Y_INLINE
 #define Y_INLINE

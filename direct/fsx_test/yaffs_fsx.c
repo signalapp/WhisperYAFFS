@@ -67,6 +67,7 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <time.h>
 
 #include "yaffsfs.h"
 
@@ -421,14 +422,14 @@ check_trunc_hack(void)
 {
 	struct yaffs_stat statbuf;
 
-	yaffs_truncate(fd, (off_t)0);
-	yaffs_truncate(fd, (off_t)100000);
+	yaffs_ftruncate(fd, (off_t)0);
+	yaffs_ftruncate(fd, (off_t)100000);
 	yaffs_fstat(fd, &statbuf);
 	if (statbuf.st_size != (off_t)100000) {
 		prt("no extend on truncate! not posix!\n");
 		exit(130);
 	}
-	yaffs_truncate(fd, (off_t)0);
+	yaffs_ftruncate(fd, (off_t)0);
 }
 
 
@@ -579,7 +580,7 @@ dotruncate(unsigned size)
 	    (debug && (monitorstart == -1 || monitorend == -1 ||
 		       size <= monitorend)))
 		prt("%lu trunc\tfrom 0x%x to 0x%x\n", testcalls, oldsize, size);
-	if (yaffs_truncate(fd, (off_t)size) == -1) {
+	if (yaffs_ftruncate(fd, (off_t)size) == -1) {
 		prt("ftruncate1: %x\n", size);
 		prterr("dotruncate: ftruncate");
 		report_failure(160);
@@ -605,7 +606,7 @@ writefileimage()
 			    iret, (unsigned long long)file_size);
 		report_failure(172);
 	}
-	if (lite ? 0 : yaffs_truncate(fd, file_size) == -1) {
+	if (lite ? 0 : yaffs_ftruncate(fd, file_size) == -1) {
 		prt("ftruncate2: %llx\n", (unsigned long long)file_size);
 		prterr("writefileimage: ftruncate");
 		report_failure(173);

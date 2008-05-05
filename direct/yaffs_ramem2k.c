@@ -16,7 +16,7 @@
  */
 
 
-const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.3 2007-02-14 01:09:06 wookey Exp $";
+const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.4 2008-05-05 07:58:58 charles Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
@@ -190,7 +190,7 @@ static int  CheckInit(void)
 	return 1;
 }
 
-int nandemul2k_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, yaffs_ExtendedTags *tags)
+int nandemul2k_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
 {
 	int blk;
 	int pg;
@@ -327,7 +327,7 @@ int nandemul2k_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	
 }
 
-int nandemul2k_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, int *sequenceNumber)
+int nandemul2k_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, __u32  *sequenceNumber)
 {
 	yaffs_ExtendedTags tags;
 	int chunkNo;

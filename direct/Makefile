@@ -14,12 +14,14 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.15 2007-07-18 19:40:38 charles Exp $
+# $Id: Makefile,v 1.16 2008-05-05 07:58:58 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
-CFLAGS =    -Wall -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONFIG_YAFFS_YAFFS2 -g $(EXTRA_COMPILE_FLAGS) -DNO_Y_INLINE
-CFLAGS+=    -fstack-check -O0
+CFLAGS =      -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONFIG_YAFFS_YAFFS2  
+CFLAGS +=     -DCONFIG_YAFFS_PROVIDE_DEFS -DCONFIG_YAFFSFS_PROVIDE_VALUES -DNO_Y_INLINE
+CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS)
+#CFLAGS+=    -fstack-check -O0
 
 #CFLAGS+=   -Wshadow -Wpointer-arith -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
@@ -40,7 +42,7 @@ ALLOBJS = $(DIRECTTESTOBJS) $(BOOTTESTOBJS)
 
 SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
-          yaffs_nand.c yaffs_nand.h \
+          yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
           yaffs_qsort.c yaffs_qsort.h
 
@@ -49,7 +51,7 @@ SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsin
 all: directtest2k
 
 $(ALLOBJS): %.o: %.c
-	gcc -c $(CFLAGS) $< -o $@
+	gcc -c $(CFLAGS) -o $@ $<
 
 $(SYMLINKS):
 	ln -s ../$@ $@

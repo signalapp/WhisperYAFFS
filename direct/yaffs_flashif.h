@@ -20,12 +20,12 @@
 #include "yaffs_guts.h"
 int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber);
 int yflash_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_Spare *spare);
-int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, yaffs_ExtendedTags *tags);
+int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags);
 int yflash_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_Spare *spare);
 int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags);
 int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber);
 int yflash_InitialiseNAND(yaffs_Device *dev);
 int yflash_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo);
-int yflash_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, int *sequenceNumber);
+int yflash_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, __u32 *sequenceNumber);
 
 #endif

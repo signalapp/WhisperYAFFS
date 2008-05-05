@@ -18,7 +18,7 @@
  * Use this with dev->useNANDECC enabled, then ECC overheads are not required.
  */
 
-const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.4 2007-02-14 01:09:06 wookey Exp $";
+const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.5 2008-05-05 07:58:58 charles Exp $";
 
 
 #include "yportenv.h"
@@ -118,7 +118,7 @@ static int  CheckInit(yaffs_Device *dev)
 	return 1;
 }
 
-int yramdisk_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, yaffs_ExtendedTags *tags)
+int yramdisk_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
 {
 	int blk;
 	int pg;

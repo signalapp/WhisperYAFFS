@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.55 2008-05-05 07:58:58 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.56 2008-05-08 23:23:26 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5568,6 +5568,8 @@ static int yaffs_Scan(yaffs_Device * dev)
 	for (blockIterator = startIterator; !alloc_failed && blockIterator <= endIterator;
 	     blockIterator++) {
 
+	     	YYIELD();
+	     	
 		if (dev->isYaffs2) {
 			/* get the block to scan in the correct order */
 			blk = blockIndex[blockIterator].block;

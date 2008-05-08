@@ -23,13 +23,13 @@
 #define __YAFFSCFG_H__
 
 
-#include "devextras.h"
+#include "yportenv.h"
 
 #define YAFFSFS_N_HANDLES 200
 
 
 typedef struct {
-	const char *prefix;
+	const YCHAR *prefix;
 	struct yaffs_DeviceStruct *dev;
 } yaffsfs_DeviceConfiguration;
 

@@ -105,6 +105,7 @@ void yaffsfs_LocalInitialisation(void)
 
 #include "yaffs_ramdisk.h"
 #include "yaffs_flashif.h"
+#include "yaffs_flashif2.h"
 #include "yaffs_nandemul2k.h"
 
 static yaffs_Device ramDev;
@@ -121,8 +122,8 @@ static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 	{(void *)0,(void *)0}
 #else
 	{ "/", &ramDev},
-	{ "/flash/boot", &bootDev},
-	{ "/flash/flash", &flashDev},
+	{ "/flash/yaffs1", &bootDev},
+	{ "/flash/yaffs2", &flashDev},
 	{ "/ram2k", &ram2kDev},
 	{ "/flash/bigblock", &flashDev},
 	{(void *)0,(void *)0} /* Null entry to terminate list */
@@ -152,7 +153,7 @@ int yaffs_StartUp(void)
 	ramDev.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
 	ramDev.initialiseNAND = yramdisk_InitialiseNAND;
 
-	// /boot
+	// /boot (yaffs1)
 	memset(&bootDev,0,sizeof(bootDev));
 	bootDev.totalBytesPerChunk = 512;
 	bootDev.nChunksPerBlock = 32;
@@ -162,16 +163,14 @@ int yaffs_StartUp(void)
 	//bootDev.useNANDECC = 0; // use YAFFS's ECC
 	bootDev.nShortOpCaches = 10; // Use caches
 	bootDev.genericDevice = (void *) 1;	// Used to identify the device in fstat.
-	bootDev.writeChunkWithTagsToNAND = yflash_WriteChunkWithTagsToNAND;
-	bootDev.readChunkWithTagsFromNAND = yflash_ReadChunkWithTagsFromNAND;
+	bootDev.writeChunkToNAND = yflash_WriteChunkToNAND;
+	bootDev.readChunkFromNAND = yflash_ReadChunkFromNAND;
 	bootDev.eraseBlockInNAND = yflash_EraseBlockInNAND;
 	bootDev.initialiseNAND = yflash_InitialiseNAND;
-	bootDev.markNANDBlockBad = yflash_MarkNANDBlockBad;
-	bootDev.queryNANDBlock = yflash_QueryNANDBlock;
 
 
 
-	// /flash
+	// /flash (yaffs2)
 	// Set this puppy up to use
 	// the file emulation space as
 	// 2kpage/64chunk per block/128MB device
@@ -190,12 +189,12 @@ int yaffs_StartUp(void)
 	flashDev.wideTnodesDisabled=0;
 	flashDev.nShortOpCaches = 10; // Use caches
 	flashDev.genericDevice = (void *) 2;	// Used to identify the device in fstat.
-	flashDev.writeChunkWithTagsToNAND = yflash_WriteChunkWithTagsToNAND;
-	flashDev.readChunkWithTagsFromNAND = yflash_ReadChunkWithTagsFromNAND;
-	flashDev.eraseBlockInNAND = yflash_EraseBlockInNAND;
-	flashDev.initialiseNAND = yflash_InitialiseNAND;
-	flashDev.markNANDBlockBad = yflash_MarkNANDBlockBad;
-	flashDev.queryNANDBlock = yflash_QueryNANDBlock;
+	flashDev.writeChunkWithTagsToNAND = yflash2_WriteChunkWithTagsToNAND;
+	flashDev.readChunkWithTagsFromNAND = yflash2_ReadChunkWithTagsFromNAND;
+	flashDev.eraseBlockInNAND = yflash2_EraseBlockInNAND;
+	flashDev.initialiseNAND = yflash2_InitialiseNAND;
+	flashDev.markNANDBlockBad = yflash2_MarkNANDBlockBad;
+	flashDev.queryNANDBlock = yflash2_QueryNANDBlock;
 
 	// /ram2k
 	// Set this puppy up to use

@@ -16,12 +16,12 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.13 2008-05-05 07:58:58 charles Exp $";
+const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.14 2008-07-02 20:17:41 charles Exp $";
 
 
 #include "yportenv.h"
 
-#include "yaffs_flashif.h"
+#include "yaffs_flashif2.h"
 #include "yaffs_guts.h"
 #include "devextras.h"
 
@@ -34,6 +34,9 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_fileem2k.c,v 1.13 2008-05-05 0
 #include "yaffs_packedtags2.h"
 
 //#define SIMULATE_FAILURES
+
+
+#define REPORT_ERROR 0
 
 typedef struct 
 {
@@ -68,7 +71,7 @@ static __u8 localBuffer[PAGE_SIZE];
 
 static char *NToName(char *buf,int n)
 {
-	sprintf(buf,"emfile%d",n);
+	sprintf(buf,"emfile2k%d",n);
 	return buf;
 }
 
@@ -131,14 +134,14 @@ static int  CheckInit(void)
 }
 
 
-int yflash_GetNumberOfBlocks(void)
+int yflash2_GetNumberOfBlocks(void)
 {
 	CheckInit();
 	
 	return filedisk.nBlocks;
 }
 
-int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
+int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
 {
 	int written;
 	int pos;
@@ -185,7 +188,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 			lseek(h,pos,SEEK_SET);
 			nRead =  read(h, localBuffer,dev->nDataBytesPerChunk);
 			for(i = error = 0; i < dev->nDataBytesPerChunk && !error; i++){
-				if(localBuffer[i] != 0xFF){
+				if(REPORT_ERROR && localBuffer[i] != 0xFF){
 					printf("nand simulation: chunk %d data byte %d was %0x2\n",
 						chunkInNAND,i,localBuffer[i]);
 					error = 1;
@@ -195,7 +198,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 			for(i = 0; i < dev->nDataBytesPerChunk; i++)
 			localBuffer[i] &= data[i];
 		  
-			if(memcmp(localBuffer,data,dev->nDataBytesPerChunk))
+			if(REPORT_ERROR && memcmp(localBuffer,data,dev->nDataBytesPerChunk))
 				printf("nand simulator: data does not match\n");
 			
 			lseek(h,pos,SEEK_SET);
@@ -238,7 +241,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 				__u8 * ptab = (__u8 *)&pt;
 
 				nRead = read(h,localBuffer,sizeof(pt));
-				for(i = error = 0; i < sizeof(pt) && !error; i++){
+				for(i = error = 0; REPORT_ERROR && i < sizeof(pt) && !error; i++){
 					if(localBuffer[i] != 0xFF){
 						printf("nand simulation: chunk %d oob byte %d was %0x2\n",
 							chunkInNAND,i,localBuffer[i]);
@@ -249,7 +252,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 				for(i = 0; i < sizeof(pt); i++)
 				localBuffer[i] &= ptab[i];
 			 
-				if(memcmp(localBuffer,&pt,sizeof(pt)))
+				if(REPORT_ERROR && memcmp(localBuffer,&pt,sizeof(pt)))
 					printf("nand sim: tags corruption\n");
 				
 				lseek(h,pos,SEEK_SET);
@@ -281,7 +284,7 @@ static int fail320 = 1;
 
 static int failRead10 = 2;
 
-int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
+int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
 {
 	int nread;
 	int pos;
@@ -401,7 +404,7 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 }
 
 
-int yflash_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
+int yflash2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 {
 	int written;
 	int h;
@@ -422,7 +425,7 @@ int yflash_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	
 }
 
-int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
+int yflash2_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 {
 
 	int i;
@@ -463,7 +466,7 @@ int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	
 }
 
-int yflash_InitialiseNAND(yaffs_Device *dev)
+int yflash2_InitialiseNAND(yaffs_Device *dev)
 {
 	CheckInit();
 	
@@ -473,7 +476,7 @@ int yflash_InitialiseNAND(yaffs_Device *dev)
 
 
 
-int yflash_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, __u32 *sequenceNumber)
+int yflash2_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, __u32 *sequenceNumber)
 {
 	yaffs_ExtendedTags tags;
 	int chunkNo;
@@ -482,7 +485,7 @@ int yflash_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_Blo
 	
 	chunkNo = blockNo * dev->nChunksPerBlock;
 	
-	yflash_ReadChunkWithTagsFromNAND(dev,chunkNo,NULL,&tags);
+	yflash2_ReadChunkWithTagsFromNAND(dev,chunkNo,NULL,&tags);
 	if(tags.blockBad)
 	{
 		*state = YAFFS_BLOCK_STATE_DEAD;

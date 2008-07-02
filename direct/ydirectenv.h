@@ -31,6 +31,7 @@
 
 #include "assert.h"
 #define YBUG() assert(0)
+//#define YBUG() do { *((int *)0) =1;} while(0)
 
 
 #define YCHAR char

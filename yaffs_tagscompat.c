@@ -253,6 +253,9 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 		/* Must allocate enough memory for spare+2*sizeof(int) */
 		/* for ecc results from device. */
 		struct yaffs_NANDSpare nspare;
+		
+		memset(&nspare,0,sizeof(nspare));
+		
 		retVal =
 		    dev->readChunkFromNAND(dev, chunkInNAND, data,
 					   (yaffs_Spare *) & nspare);
@@ -337,7 +340,7 @@ static void yaffs_HandleReadDataError(yaffs_Device * dev, int chunkInNAND)
 	int blockInNAND = chunkInNAND / dev->nChunksPerBlock;
 
 	/* Mark the block for retirement */
-	yaffs_GetBlockInfo(dev, blockInNAND)->needsRetiring = 1;
+	yaffs_GetBlockInfo(dev, blockInNAND + dev->blockOffset)->needsRetiring = 1;
 	T(YAFFS_TRACE_ERROR | YAFFS_TRACE_BAD_BLOCKS,
 	  (TSTR("**>>Block %d marked for retirement" TENDSTR), blockInNAND));
 

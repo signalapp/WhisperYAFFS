@@ -39,7 +39,7 @@
 #ifdef CONFIG_YAFFSFS_PROVIDE_VALUES
 
 #ifndef O_RDONLY
-#define O_RDONLY	00
+#define O_RDONLY        00
 #endif
 
 #ifndef O_WRONLY
@@ -239,6 +239,13 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath) ;
 int yaffs_stat(const YCHAR *path, struct yaffs_stat *buf) ;
 int yaffs_lstat(const YCHAR *path, struct yaffs_stat *buf) ;
 int yaffs_fstat(int fd, struct yaffs_stat *buf) ;
+
+#ifdef CONFIG_YAFFS_WINCE
+
+int yaffs_set_wince_times(int fd, const unsigned *wctime, const unsigned *watime, const unsigned *wmtime);
+int yaffs_get_wince_times(int fd, unsigned *wctime, unsigned *watime, unsigned *wmtime);
+
+#endif
 
 int yaffs_chmod(const YCHAR *path, mode_t mode); 
 int yaffs_fchmod(int fd, mode_t mode); 

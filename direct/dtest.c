@@ -513,7 +513,7 @@ void dumpDirFollow(const char *dname)
 			
 			yaffs_stat(str,&s);
 			
-			printf("%s length %d mode %X ",de->d_name,(int)s.st_size,s.st_mode);
+			printf("%s ino %d length %d mode %X ",de->d_name,(int)s.st_ino,(int)s.st_size,s.st_mode);
 			switch(s.st_mode & S_IFMT)
 			{
 				case S_IFREG: printf("data file"); break;
@@ -948,6 +948,11 @@ void rename_over_test(const char *mountpt)
 	yaffs_StartUp();
 	
 	yaffs_mount(mountpt);
+	
+	printf("Existing files\n");
+	dumpDirFollow(mountpt);
+	
+	
 	i = yaffs_open(a,O_CREAT | O_TRUNC | O_RDWR, 0); 
 	yaffs_close(i);
 	i = yaffs_open(b,O_CREAT | O_TRUNC | O_RDWR, 0);
@@ -2254,14 +2259,15 @@ int main(int argc, char *argv[])
 	
 	//return cache_read_test();
 	
-	resize_stress_test_no_grow("/flash/flash",20);
+	//resize_stress_test_no_grow("/flash/flash",20);
 	
 	//huge_directory_test_on_path("/ram2k");
 	
 	 //yaffs_backward_scan_test("/flash/flash");
 	// yaffs_device_flush_test("/flash/flash");
 
-	 
+	rename_over_test("/flash/yaffs1");
+	
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
 	  //small_mount_test("/flash/flash",1000);

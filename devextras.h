@@ -39,9 +39,15 @@ typedef unsigned __u32;
  */
 
 struct ylist_head {
-        struct ylist_head *next; /* next in chain */
-        struct ylist_head *prev; /* previous in chain */
+	struct ylist_head *next; /* next in chain */
+	struct ylist_head *prev; /* previous in chain */
 };
+
+
+/* Initialise a static list */
+#define YLIST_HEAD(name) \
+struct ylist_head name = { &(name),&(name)}
+
 
 
 /* Initialise a list head to an empty list */
@@ -62,6 +68,18 @@ static __inline__ void ylist_add(struct ylist_head *newEntry,
         newEntry->prev = list;
 	newEntry->next = listNext;
 	listNext->prev = newEntry;
+	
+}
+
+static __inline__ void ylist_add_tail(struct ylist_head *newEntry, 
+				 struct ylist_head *list)
+{
+	struct ylist_head *listPrev = list->prev;
+	
+	list->prev = newEntry;
+	newEntry->next = list;
+	newEntry->prev = listPrev;
+	listPrev->next = newEntry;
 	
 }
 

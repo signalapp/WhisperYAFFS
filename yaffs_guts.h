@@ -436,8 +436,8 @@ struct yaffs_ObjectStruct {
         struct yaffs_ObjectStruct *parent; 
         struct ylist_head siblings;
 
-        /* Where's my object header in NAND? */
-        int chunkId;            
+	/* Where's my object header in NAND? */
+	int hdrChunk;
 
 	int nDataChunks;	/* Number of data chunks attached to the file. */
 
@@ -501,8 +501,7 @@ typedef struct {
         int structType;
 	__u32 objectId;		
 	__u32 parentId;
-	int chunkId;
-			
+	int hdrChunk;
 	yaffs_ObjectType variantType:3;
 	__u8 deleted:1;		
 	__u8 softDeleted:1;	
@@ -693,6 +692,8 @@ struct yaffs_DeviceStruct {
 	int nObjectsCreated;
 	yaffs_Object *freeObjects;
 	int nFreeObjects;
+	
+	int nHardLinks;
 
 	yaffs_ObjectList *allocatedObjectList;
 

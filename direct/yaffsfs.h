@@ -272,6 +272,9 @@ int yaffs_mknod(const YCHAR *pathname, mode_t mode, dev_t dev);
 loff_t yaffs_freespace(const YCHAR *path);
 loff_t yaffs_totalspace(const YCHAR *path);
 
+int yaffs_inodecount(const YCHAR *path);
+
+
 void yaffs_initialise(yaffsfs_DeviceConfiguration *configList);
 
 int yaffs_StartUp(void);

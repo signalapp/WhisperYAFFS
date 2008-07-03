@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.20 2008-07-02 20:17:41 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.21 2008-07-03 20:06:05 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1600,6 +1600,28 @@ loff_t yaffs_totalspace(const YCHAR *path)
 
 	yaffsfs_Unlock();
 	return retVal;
+}
+
+int yaffs_inodecount(const YCHAR *path)
+{
+	loff_t retVal= -1;
+	yaffs_Device *dev=NULL;
+	YCHAR *dummy;
+
+	yaffsfs_Lock();
+	dev = yaffsfs_FindDevice(path,&dummy);
+	if(dev  && dev->isMounted) {
+	   int nObjects = dev->nObjectsCreated - dev->nFreeObjects;
+	   if(nObjects > dev->nHardLinks)
+		retVal = nObjects - dev->nHardLinks;
+	}
+	
+	if(retVal < 0){
+		yaffsfs_SetError(-EINVAL);
+	}
+	
+	yaffsfs_Unlock();
+	return retVal;	
 }
 
 

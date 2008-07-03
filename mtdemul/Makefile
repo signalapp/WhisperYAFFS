@@ -15,8 +15,9 @@
 ## Change or override  KERNELDIR to your kernel
 ## comment out USE_xxxx if you don't want these features.
 
-KERNELDIR = /usr/src/kernel-headers-2.4.27
+KERNELDIR = /opt/linux-source-2.6.24
 
+#CFLAGS = -D__KERNEL__ -DMODULE   -I$(KERNELDIR)/include -O2 -Wall -g
 CFLAGS = -D__KERNEL__ -DMODULE   -I$(KERNELDIR)/include -O2 -Wall -g
 
 

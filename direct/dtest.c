@@ -966,6 +966,7 @@ void rename_over_test(const char *mountpt)
 	
 }
 
+
 int resize_stress_test(const char *path)
 {
    int a,b,i,j;
@@ -1025,6 +1026,28 @@ int resize_stress_test(const char *path)
 		}
    }
    
+   return 0;
+   
+}
+
+int root_perm_remount(const char *path)
+{
+   struct yaffs_stat s;
+   
+   yaffs_StartUp();
+   
+   yaffs_mount(path);
+   
+   yaffs_stat(path,&s);
+   printf("root perms after mount %x\n",s.st_mode);
+   
+   yaffs_chmod(path, 0777);
+
+   yaffs_stat(path,&s);
+   printf("root perms after setting to 0777 is  %x\n",s.st_mode);
+   
+   yaffs_unmount(path);
+      
    return 0;
    
 }
@@ -2259,7 +2282,8 @@ int main(int argc, char *argv[])
 	
 	//return cache_read_test();
 	
-	//resize_stress_test_no_grow("/flash/flash",20);
+	// resize_stress_test_no_grow("/flash/flash",20);
+	//root_perm_remount("/flash/flash");
 	
 	//huge_directory_test_on_path("/ram2k");
 	

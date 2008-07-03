@@ -15,7 +15,7 @@
  *  This version hacked for emulating 2kpage NAND for YAFFS2 testing.
  */
 
-#include <linux/config.h>
+//#include <linux/config.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/version.h>
@@ -280,15 +280,10 @@ static int nandemul2k_ReadStatus(__u8 *status)
  */
 static int nand_read (struct mtd_info *mtd, loff_t from, size_t len,
 			size_t *retlen, u_char *buf);
-static int nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
-				size_t *retlen, u_char *buf, u_char *oob_buf, struct nand_oobinfo *dummy);
 static int nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len,
 				size_t *retlen, u_char *buf);
 static int nand_write (struct mtd_info *mtd, loff_t to, size_t len,
 			size_t *retlen, const u_char *buf);
-static int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
-				size_t *retlen, const u_char *buf,
-				u_char *oob_buf, struct nand_oobinfo *dummy);
 static int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len,
 				size_t *retlen, const u_char *buf);
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,7))
@@ -343,17 +338,17 @@ static int nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
 
 		/* Get raw starting column */
 
-		start = from & (mtd->oobblock-1);
+		start = from & (PAGE_DATA_SIZE - 1);
 
 		// OK now check for the curveball where the start and end are in
 		// the same page
-		if((start + n) < mtd->oobblock)
+		if((start + n) < PAGE_DATA_SIZE)
 		{
 			nToCopy = n;
 		}
 		else
 		{
-			nToCopy =  mtd->oobblock - start;
+			nToCopy =  PAGE_DATA_SIZE - start;
 		}
 
 		nandemul2k_Read(buf, page, start, nToCopy);
@@ -386,7 +381,7 @@ static int nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len,
 	page = ((int) from) >> NAND_SHIFT;
 
 	/* Mask to get column */
-	col = from & 0x0f;
+	col = from & (PAGE_SPARE_SIZE-1)
 
 	/* Initialize return length value */
 	*retlen = 0;
@@ -447,17 +442,17 @@ static int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 
 		/* Get raw starting column */
 
-		start = to & (mtd->oobblock - 1);
+		start = to & (PAGE_DATA_SIZE - 1);
 
 		// OK now check for the curveball where the start and end are in
 		// the same page
-		if((start + n) < mtd->oobblock)
+		if((start + n) < PAGE_DATA_SIZE)
 		{
 			nToCopy = n;
 		}
 		else
 		{
-			nToCopy =  mtd->oobblock - start;
+			nToCopy =  PAGE_DATA_SIZE - start;
 		}
 
 		nandemul2k_Program(buf, page, start, nToCopy);
@@ -492,7 +487,7 @@ static int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len,
 	page = ((int) to) >> NAND_SHIFT;
 
 	/* Mask to get column */
-	col = to & 0x0f;
+	col = to & PAGE_SPARE_SIZE;
 
 	/* Initialize return length value */
 	*retlen = 0;
@@ -567,10 +562,9 @@ static int nand_erase (struct mtd_info *mtd, struct erase_info *instr)
 		nandemul2k_DoErase(block);
 		block++;
 	}
-
-	instr->state = MTD_ERASE_DONE;  * change state to ERASE_DONE */
-
-	instr->callback(instr);  * wake up */
+	
+	instr->state = MTD_ERASE_DONE; /* Changed state to done */
+	instr->callback(instr);	       /* ... and wake up */
 
 	return 0;
 
@@ -603,8 +597,9 @@ static void nand_sync (struct mtd_info *mtd)
  */
 static int nandemul2k_scan (struct mtd_info *mtd,int nchips)
 {
-	mtd->oobblock = PAGE_DATA_SIZE;
-	mtd->oobsize =  PAGE_SPARE_SIZE;
+	mtd->writesize = PAGE_DATA_SIZE;
+	mtd->oobsize   = PAGE_SPARE_SIZE;
+	mtd->oobavail  = PAGE_SPARE_SIZE/2; /* Simulate using up some for other uses */
 	mtd->erasesize = PAGE_DATA_SIZE * PAGES_PER_BLOCK;
 	mtd->size = sizeInMB * 1024*1024;
 
@@ -614,14 +609,13 @@ static int nandemul2k_scan (struct mtd_info *mtd,int nchips)
 	mtd->type = MTD_NANDFLASH;
 	mtd->flags = MTD_CAP_NANDFLASH;
 	mtd->owner = THIS_MODULE;
-	mtd->ecctype = MTD_ECC_NONE;
 	mtd->erase = nand_erase;
 	mtd->point = NULL;
 	mtd->unpoint = NULL;
 	mtd->read = nand_read;
 	mtd->write = nand_write;
-	mtd->read_ecc = nand_read_ecc;
-	mtd->write_ecc = nand_write_ecc;
+	mtd->read_oob = nand_read_oob;
+	mtd->write_oob = nand_write_oob;
 	mtd->read_oob = nand_read_oob;
 	mtd->write_oob = nand_write_oob;
 	mtd->block_isbad = nand_block_isbad;

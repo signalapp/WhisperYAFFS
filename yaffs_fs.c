@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.66 2008-05-05 07:58:58 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.67 2008-07-03 20:06:05 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -43,7 +43,6 @@ extern const char *yaffs_guts_c_version;
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/init.h>
-#include <linux/list.h>
 #include <linux/fs.h>
 #include <linux/proc_fs.h>
 #include <linux/smp_lock.h>
@@ -106,6 +105,19 @@ module_param(yaffs_wr_attempts,uint,0644);
 #else
 MODULE_PARM(yaffs_traceMask,"i");
 MODULE_PARM(yaffs_wr_attempts,"i");
+#endif
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,25))
+/* use iget and read_inode */
+#define Y_IGET(sb,inum) iget((sb),(inum))
+static void yaffs_read_inode(struct inode *inode);
+
+#else
+/* Call local equivalent */
+#define YAFFS_USE_OWN_IGET
+#define Y_IGET(sb,inum) yaffs_iget((sb),(inum))
+
+static struct inode * yaffs_iget(struct super_block *sb, unsigned long ino);
 #endif
 
 /*#define T(x) printk x */
@@ -183,7 +195,6 @@ static int yaffs_statfs(struct super_block *sb, struct kstatfs *buf);
 #else
 static int yaffs_statfs(struct super_block *sb, struct statfs *buf);
 #endif
-static void yaffs_read_inode(struct inode *inode);
 
 static void yaffs_put_inode(struct inode *inode);
 static void yaffs_delete_inode(struct inode *);
@@ -286,7 +297,10 @@ static struct file_operations yaffs_dir_operations = {
 
 static struct super_operations yaffs_super_ops = {
 	.statfs = yaffs_statfs,
+
+#ifndef YAFFS_USE_OWN_IGET
 	.read_inode = yaffs_read_inode,
+#endif
 	.put_inode = yaffs_put_inode,
 	.put_super = yaffs_put_super,
 	.delete_inode = yaffs_delete_inode,
@@ -848,7 +862,9 @@ struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,
 	T(YAFFS_TRACE_OS,
 	  (KERN_DEBUG "yaffs_get_inode for object %d\n", obj->objectId));
 
-	inode = iget(sb, obj->objectId);
+	inode = Y_IGET(sb, obj->objectId);
+	if(IS_ERR(inode))
+	  return NULL;
 
 	/* NB Side effect: iget calls back to yaffs_read_inode(). */
 	/* iget also increments the inode's i_count */
@@ -920,7 +936,7 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 	yaffs_Device *dev;
 	struct inode *inode = f->f_dentry->d_inode;
 	unsigned long offset, curoffs;
-	struct list_head *i;
+	struct ylist_head *i;
 	yaffs_Object *l;
 
 	char name[YAFFS_MAX_NAME_LENGTH + 1];
@@ -969,10 +985,10 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 		f->f_version = inode->i_version;
 	}
 
-	list_for_each(i, &obj->variant.directoryVariant.children) {
+	ylist_for_each(i, &obj->variant.directoryVariant.children) {
 		curoffs++;
 		if (curoffs >= offset) {
-			l = list_entry(i, yaffs_Object, siblings);
+			l = ylist_entry(i, yaffs_Object, siblings);
 
 			yaffs_GetObjectName(l, name,
 					    YAFFS_MAX_NAME_LENGTH + 1);
@@ -1273,7 +1289,7 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 
 	if (target &&
 	    target->variantType == YAFFS_OBJECT_TYPE_DIRECTORY &&
-	    !list_empty(&target->variant.directoryVariant.children)) {
+	    !ylist_empty(&target->variant.directoryVariant.children)) {
 
 	        T(YAFFS_TRACE_OS, (KERN_DEBUG "target is non-empty dir\n"));
 
@@ -1404,7 +1420,6 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 }
 
 
-/**
 static int yaffs_do_sync_fs(struct super_block *sb)
 {
 
@@ -1414,8 +1429,10 @@ static int yaffs_do_sync_fs(struct super_block *sb)
 	if(sb->s_dirt) {
 		yaffs_GrossLock(dev);
 
-		if(dev)
+		if(dev){
+			yaffs_FlushEntireDeviceCache(dev);
 			yaffs_CheckpointSave(dev);
+		}
 
 		yaffs_GrossUnlock(dev);
 
@@ -1423,7 +1440,7 @@ static int yaffs_do_sync_fs(struct super_block *sb)
 	}
 	return 0;
 }
-**/
+
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
 static void yaffs_write_super(struct super_block *sb)
@@ -1433,8 +1450,9 @@ static int yaffs_write_super(struct super_block *sb)
 {
 
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_write_super\n"));
+	yaffs_do_sync_fs(sb);
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18))
-	return 0; /* yaffs_do_sync_fs(sb);*/
+	return 0; 
 #endif
 }
 
@@ -1448,10 +1466,47 @@ static int yaffs_sync_fs(struct super_block *sb)
 
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_sync_fs\n"));
 
-	return 0; /* yaffs_do_sync_fs(sb);*/
+	yaffs_do_sync_fs(sb);
+	
+	return 0; 
 
 }
 
+#ifdef YAFFS_USE_OWN_IGET
+
+static struct inode * yaffs_iget(struct super_block *sb, unsigned long ino)
+{
+	struct inode *inode;
+	yaffs_Object *obj;
+	yaffs_Device *dev = yaffs_SuperToDevice(sb);
+
+	T(YAFFS_TRACE_OS,
+	  (KERN_DEBUG "yaffs_iget for %lu\n", ino));
+
+	inode = iget_locked(sb, ino);
+	if (!inode)
+		return ERR_PTR(-ENOMEM);
+	if (!(inode->i_state & I_NEW))
+		return inode;
+
+       /* NB This is called as a side effect of other functions, but
+	* we had to release the lock to prevent deadlocks, so
+	* need to lock again.
+	*/
+    
+	yaffs_GrossLock(dev);
+
+	obj = yaffs_FindObjectByNumber(dev, inode->i_ino);
+
+	yaffs_FillInodeFromObject(inode, obj);
+
+	yaffs_GrossUnlock(dev);
+	
+	unlock_new_inode(inode);
+	return inode;
+}
+
+#else
 
 static void yaffs_read_inode(struct inode *inode)
 {
@@ -1475,7 +1530,9 @@ static void yaffs_read_inode(struct inode *inode)
 	yaffs_GrossUnlock(dev);
 }
 
-static LIST_HEAD(yaffs_dev_list);
+#endif
+
+static YLIST_HEAD(yaffs_dev_list);
 
 #if 0 // not used
 static int yaffs_remount_fs(struct super_block *sb, int *flags, char *data)
@@ -1529,7 +1586,7 @@ static void yaffs_put_super(struct super_block *sb)
 	yaffs_GrossUnlock(dev);
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
-	list_del(&dev->devList);
+	ylist_del(&dev->devList);
 
 	if(dev->spareBuffer){
 		YFREE(dev->spareBuffer);
@@ -1864,7 +1921,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	dev->skipCheckpointWrite = options.skip_checkpoint_write;
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
-	list_add_tail(&dev->devList, &yaffs_dev_list);
+	ylist_add_tail(&dev->devList, &yaffs_dev_list);
 
 	init_MUTEX(&dev->grossLock);
 
@@ -2049,7 +2106,7 @@ static int yaffs_proc_read(char *page,
 			   char **start,
 			   off_t offset, int count, int *eof, void *data)
 {
-	struct list_head *item;
+	struct ylist_head *item;
 	char *buf = page;
 	int step = offset;
 	int n = 0;
@@ -2073,8 +2130,8 @@ static int yaffs_proc_read(char *page,
 	lock_kernel();
 
 	/* Locate and print the Nth entry.  Order N-squared but N is small. */
-	list_for_each(item, &yaffs_dev_list) {
-		yaffs_Device *dev = list_entry(item, yaffs_Device, devList);
+	ylist_for_each(item, &yaffs_dev_list) {
+		yaffs_Device *dev = ylist_entry(item, yaffs_Device, devList);
 		if (n < step) {
 			n++;
 			continue;

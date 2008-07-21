@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.17 2008-07-02 20:17:41 charles Exp $
+# $Id: Makefile,v 1.18 2008-07-21 01:03:19 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -30,7 +30,7 @@ CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS)
 DIRECTTESTOBJS = dtest.o yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
-		 yaffs_checkptrw.o  yaffs_qsort.o \
+		 yaffs_checkptrw.o  yaffs_qsort.o
 #		 yaffs_checkptrwtest.o\
 		 
 

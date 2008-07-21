@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.58 2008-07-03 20:06:05 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.59 2008-07-21 01:03:19 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5474,7 +5474,6 @@ static int yaffs_Scan(yaffs_Device * dev)
 	__u8 *chunkData;
 
 	
-	//TODO  Throw all the yaffs2 stuuf out of yaffs_Scan since it is only for yaffs1 format.
 	
 	T(YAFFS_TRACE_SCAN,
 	  (TSTR("yaffs_Scan starts  intstartblk %d intendblk %d..." TENDSTR),
@@ -5540,7 +5539,7 @@ static int yaffs_Scan(yaffs_Device * dev)
 
 			/* Let's have a good look at this chunk... */
 
-			if (!dev->isYaffs2 && tags.chunkDeleted) {
+			if (tags.eccResult == YAFFS_ECC_RESULT_UNFIXED || tags.chunkDeleted) {
 				/* YAFFS1 only...
 				 * A deleted chunk
 				 */
@@ -5569,17 +5568,6 @@ static int yaffs_Scan(yaffs_Device * dev)
 					dev->allocationBlockFinder = blk;	
 					/* Set it to here to encourage the allocator to go forth from here. */
 					
-					/* Yaffs2 sanity check:
-					 * This should be the one with the highest sequence number
-					 */
-					if (dev->isYaffs2
-					    && (dev->sequenceNumber !=
-						bi->sequenceNumber)) {
-						T(YAFFS_TRACE_ALWAYS,
-						  (TSTR
-						   ("yaffs: Allocation block %d was not highest sequence id: block seq = %d, dev seq = %d"
-						    TENDSTR), blk,bi->sequenceNumber,dev->sequenceNumber));
-					}
 				}
 
 				dev->nFreeChunks += (dev->nChunksPerBlock - c);
@@ -5677,9 +5665,7 @@ static int yaffs_Scan(yaffs_Device * dev)
 					unsigned existingSerial = in->serial;
 					unsigned newSerial = tags.serialNumber;
 
-					if (dev->isYaffs2 ||
-					    ((existingSerial + 1) & 3) ==
-					    newSerial) {
+					if (((existingSerial + 1) & 3) == newSerial) {
 						/* Use new one - destroy the exisiting one */
 						yaffs_DeleteChunk(dev,
 								  in->hdrChunk,
@@ -5793,15 +5779,6 @@ static int yaffs_Scan(yaffs_Device * dev)
 						/* Todo got a problem */
 						break;
 					case YAFFS_OBJECT_TYPE_FILE:
-						if (dev->isYaffs2
-						    && oh->isShrink) {
-							/* Prune back the shrunken chunks */
-							yaffs_PruneResizedChunks
-							    (in, oh->fileSize);
-							/* Mark the block as having a shrinkHeader */
-							bi->hasShrinkHeader = 1;
-						}
-
 						if (dev->useHeaderFileSize)
 
 							in->variant.fileVariant.
@@ -6074,8 +6051,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 		} else if (state == YAFFS_BLOCK_STATE_NEEDS_SCANNING) {
 
 			/* Determine the highest sequence number */
-			if (dev->isYaffs2 &&
-			    sequenceNumber >= YAFFS_LOWEST_SEQUENCE_NUMBER &&
+			if (sequenceNumber >= YAFFS_LOWEST_SEQUENCE_NUMBER &&
 			    sequenceNumber < YAFFS_HIGHEST_SEQUENCE_NUMBER) {
 
 				blockIndex[nBlocksToScan].seq = sequenceNumber;
@@ -6086,7 +6062,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 				if (sequenceNumber >= dev->sequenceNumber) {
 					dev->sequenceNumber = sequenceNumber;
 				}
-			} else if (dev->isYaffs2) {
+			} else {
 				/* TODO: Nasty sequence number! */
 				T(YAFFS_TRACE_SCAN,
 				  (TSTR
@@ -6212,11 +6188,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 							 * had a write failure, so set up for retirement.
 							 */
 						  
-							 bi->needsRetiring = 1;
+							 /* bi->needsRetiring = 1; ??? TODO */
 							 bi->gcPrioritise = 1;
 							 						 
 							 T(YAFFS_TRACE_ALWAYS,
-							 (TSTR("Partially written block %d being set for retirement" TENDSTR),
+							 (TSTR("Partially written block %d detected" TENDSTR),
 							 blk));
 						}
 

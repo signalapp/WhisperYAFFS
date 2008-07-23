@@ -36,7 +36,7 @@
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
 #if (MTD_VERSION_CODE > MTD_VERSION(2,6,17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.7 2007-12-13 15:35:18 wookey Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.8 2008-07-23 03:35:12 charles Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
@@ -323,7 +323,7 @@ static int nandmtd1_TestPrerequists(struct mtd_info * mtd)
  * Always returns YAFFS_OK.
  */
 int nandmtd1_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
-	yaffs_BlockState * pState, int *pSequenceNumber)
+	yaffs_BlockState * pState, __u32 *pSequenceNumber)
 {
 	struct mtd_info * mtd = dev->genericDevice;
 	int chunkNo = blockNo * dev->nChunksPerBlock;

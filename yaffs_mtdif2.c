@@ -14,7 +14,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.20 2008-05-05 07:58:58 charles Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.21 2008-07-23 03:35:12 charles Exp $";
 
 #include "yportenv.h"
 
@@ -204,7 +204,7 @@ int nandmtd2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 }
 
 int nandmtd2_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
-			    yaffs_BlockState * state, int *sequenceNumber)
+			    yaffs_BlockState * state, __u32 *sequenceNumber)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	int retval;

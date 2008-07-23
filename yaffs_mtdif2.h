@@ -24,6 +24,6 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 				       __u8 * data, yaffs_ExtendedTags * tags);
 int nandmtd2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo);
 int nandmtd2_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
-			    yaffs_BlockState * state, int *sequenceNumber);
+			    yaffs_BlockState * state, __u32 *sequenceNumber);
 
 #endif

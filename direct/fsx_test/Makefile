@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.2 2008-05-05 07:58:58 charles Exp $
+# $Id: Makefile,v 1.3 2008-08-07 22:45:44 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -27,14 +27,14 @@ CFLAGS+=    -fstack-check -O0
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
 
 
-FSXTESTOBJS = yaffs_fsx.o yaffscfg2k.o yaffs_ecc.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
+FSXTESTOBJS = yaffs_fsx.o yaffscfg2k.o yaffs_ecc.o yaffs_fileem2k.o yaffs_fileem.o yaffsfs.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
 		 yaffs_checkptrw.o  yaffs_qsort.o \
 #		 yaffs_checkptrwtest.o\
 		 
 
-BOOTTESTOBJS = bootldtst.o yboot.o yaffs_fileem.o nand_ecc.o
+#BOOTTESTOBJS = bootldtst.o yboot.o yaffs_fileem.o nand_ecc.o
 
 #ALLOBJS =  dtest.o nand_ecc.o yaffscfg.o yaffs_fileem.o yaffsfs.o yaffs_ramdisk.o bootldtst.o yboot.o yaffs_ramem2k.o
 
@@ -46,7 +46,7 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
           yaffs_qsort.c yaffs_qsort.h yaffs_getblockinfo.h
 
-YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h \
+YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffs_fileem2k.h yaffsfs.h yaffs_malloc.h yaffs_ramdisk.h ydirectenv.h \
 		       yaffscfg.h yaffs_fileem.c yaffs_flashif.c yaffs_ramdisk.c yaffs_ramem2k.c
 

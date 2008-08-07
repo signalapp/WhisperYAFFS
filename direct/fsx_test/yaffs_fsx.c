@@ -130,7 +130,7 @@ int	writebdy = 1;			/* -w flag */
 long	monitorstart = -1;		/* -m flag */
 long	monitorend = -1;		/* -m flag */
 int	lite = 0;			/* -L flag */
-long	numops = -1;			/* -N flag */
+long	numops = /*-1 */ 100000;			/* -N flag */
 int	randomoplen = 1;		/* -O flag disables it */
 int	seed = 1;			/* -S flag */
 
@@ -774,6 +774,8 @@ getnum(char *s, char **e)
 }
 
 
+#define BASE_NAME "/flash/yaffs2"
+
 int
 main(int argc, char **argv)
 {
@@ -915,9 +917,9 @@ main(int argc, char **argv)
 	argv += optind;
 
 	yaffs_StartUp();
-	yaffs_mount("/flash/flash");
+	yaffs_mount(BASE_NAME);
 	
-	fname = "/flash/flash/fsxdata";
+	fname = BASE_NAME "/fsxdata";
 
 	signal(SIGHUP,	cleanup);
 	signal(SIGINT,	cleanup);
@@ -999,7 +1001,7 @@ main(int argc, char **argv)
 	
 	yaffs_close(fsxgoodfd);
 	
-	yaffs_unmount("flash/flash");
+	yaffs_unmount(BASE_NAME);
 	prt("All operations completed A-OK!\n");
 
 	exit(0);

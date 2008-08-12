@@ -439,7 +439,7 @@ int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device * dev,
 
 	yaffs_Spare spare;
 	yaffs_Tags tags;
-	yaffs_ECCResult eccResult;
+	yaffs_ECCResult eccResult = YAFFS_ECC_RESULT_UNKNOWN;
 
 	static yaffs_Spare spareFF;
 	static int init = 0;

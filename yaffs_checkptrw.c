@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-    "$Id: yaffs_checkptrw.c,v 1.16 2008-05-05 07:58:58 charles Exp $";
+    "$Id: yaffs_checkptrw.c,v 1.17 2008-08-12 22:51:57 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -324,6 +324,7 @@ int yaffs_CheckpointRead(yaffs_Device *dev, void *data, int nBytes)
 							      &tags);
 
 				if(tags.chunkId != (dev->checkpointPageSequence + 1) ||
+				   tags.eccResult > YAFFS_ECC_RESULT_FIXED ||
 				   tags.sequenceNumber != YAFFS_SEQUENCE_CHECKPOINT_DATA)
 				   ok = 0;
 

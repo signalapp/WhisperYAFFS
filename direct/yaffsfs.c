@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.21 2008-07-03 20:06:05 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.22 2008-08-19 23:14:22 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -169,6 +169,7 @@ static yaffs_Device *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 	yaffs_Device *retval = NULL;
 	int thisMatchLength;
 	int longestMatch = -1;
+	int matching;
 
 	// Check all configs, choose the one that:
 	// 1) Actually matches a prefix (ie /a amd /abc will not match
@@ -178,45 +179,45 @@ static yaffs_Device *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 		leftOver = path;
 		p = cfg->prefix;
 		thisMatchLength = 0;
+		matching = 1;
 
 
-		// Strip off any leading /'s
-
-		while(yaffsfs_IsPathDivider(*p))
-			p++;
-
-		while(yaffsfs_IsPathDivider(*leftOver))
-			leftOver++;
-
-		while(*p && *leftOver &&
-		      yaffsfs_Match(*p,*leftOver))
-		{
-			p++;
-			leftOver++;
-			thisMatchLength++;
-
-			// Skip over any multiple /'s to treat them as one or
-			// skip over a trailling / in the prefix, but not the matching string
-			while(yaffsfs_IsPathDivider(*p) &&
-			      (yaffsfs_IsPathDivider(*(p+1)) || !(*(p+1))))
+		while(matching && *p && *leftOver){
+			// Skip over any /s
+			while(yaffsfs_IsPathDivider(*p))
 			      p++;
 
-			// Only skip over multiple /'s
-			while(yaffsfs_IsPathDivider(*leftOver) &&
-			      yaffsfs_IsPathDivider(*(leftOver+1)))
-			      leftOver++;
+			// Skip over any /s
+			while(yaffsfs_IsPathDivider(*leftOver))
+		              leftOver++;
+
+			// Now match the text part
+		        while(matching &&
+		              *p && !yaffsfs_IsPathDivider(*p) &&
+		              *leftOver && !yaffsfs_IsPathDivider(*leftOver)){
+			      	if(yaffsfs_Match(*p,*leftOver)){
+			      		p++;
+			      		leftOver++;
+			      		thisMatchLength++;
+				} else {
+					matching = 0;
+				}
+			}
 		}
 
+		// Skip over any /s in leftOver
+		while(yaffsfs_IsPathDivider(*leftOver))
+	              leftOver++;
+		
 
-		if((!*p ) &&
-		   (!*leftOver || yaffsfs_IsPathDivider(*leftOver)) && // no more in this path name part
-		   (thisMatchLength > longestMatch))
+		if( matching && (thisMatchLength > longestMatch))
 		{
 			// Matched prefix
 			*restOfPath = (YCHAR *)leftOver;
 			retval = cfg->dev;
 			longestMatch = thisMatchLength;
 		}
+
 		cfg++;
 	}
 	return retval;

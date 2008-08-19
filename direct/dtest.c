@@ -941,9 +941,11 @@ void rename_over_test(const char *mountpt)
 	int i;
 	char a[100];
 	char b[100];
+	char c[100];
 	
 	sprintf(a,"%s/a",mountpt);
 	sprintf(b,"%s/b",mountpt);
+	sprintf(c,"%s/c",mountpt);
 	
 	yaffs_StartUp();
 	
@@ -953,9 +955,13 @@ void rename_over_test(const char *mountpt)
 	dumpDirFollow(mountpt);
 	
 	
-	i = yaffs_open(a,O_CREAT | O_TRUNC | O_RDWR, 0); 
+	
+	i = yaffs_open(c,O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	printf("File c handle is %d\n",i);
 	yaffs_close(i);
-	i = yaffs_open(b,O_CREAT | O_TRUNC | O_RDWR, 0);
+	i = yaffs_open(a,O_CREAT | O_TRUNC | O_RDWR,  S_IREAD | S_IWRITE); 
+	yaffs_close(i);
+	i = yaffs_open(b,O_CREAT | O_TRUNC | O_RDWR,  S_IREAD | S_IWRITE);
 	yaffs_close(i);
 	yaffs_rename(a,b); // rename over
 	yaffs_rename(b,a); // rename back again (not renaimng over)

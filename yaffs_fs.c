@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.68 2008-07-23 03:35:12 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.69 2008-08-28 02:42:11 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -714,13 +714,17 @@ static int yaffs_commit_write(struct file *f, struct page *pg, unsigned offset,
 			      unsigned to)
 {
 
-	void *addr = page_address(pg) + offset;
+	void *addr, *kva;
+	
 	loff_t pos = (((loff_t) pg->index) << PAGE_CACHE_SHIFT) + offset;
 	int nBytes = to - offset;
 	int nWritten;
 
 	unsigned spos = pos;
 	unsigned saddr = (unsigned)addr;
+	
+	kva=kmap(pg);
+	addr = kva + offset;
 
 	T(YAFFS_TRACE_OS,
 	  (KERN_DEBUG "yaffs_commit_write addr %x pos %x nBytes %d\n", saddr,
@@ -738,6 +742,8 @@ static int yaffs_commit_write(struct file *f, struct page *pg, unsigned offset,
 	} else {
 		SetPageUptodate(pg);
 	}
+
+	kunmap(pg);
 
 	T(YAFFS_TRACE_OS,
 	  (KERN_DEBUG "yaffs_commit_write returning %d\n",

@@ -2296,7 +2296,7 @@ int main(int argc, char *argv[])
 	 //yaffs_backward_scan_test("/flash/flash");
 	// yaffs_device_flush_test("/flash/flash");
 
-	rename_over_test("/flash/yaffs1");
+	rename_over_test("//////////////////flash///////////////////yaffs1///////////");
 	
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);

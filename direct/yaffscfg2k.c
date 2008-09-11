@@ -121,7 +121,7 @@ static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 	{ "/ram2k", &ram2kDev},
 	{(void *)0,(void *)0}
 #else
-	{ "/", &ramDev},
+	//{ "/", &ramDev},
 	{ "/flash/yaffs1", &bootDev},
 	{ "/flash/yaffs2", &flashDev},
 	{ "/ram2k", &ram2kDev},

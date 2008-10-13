@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.22 2008-08-19 23:14:22 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.23 2008-10-13 03:47:26 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -489,7 +489,7 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 			// Check if the object is already in use
 			alreadyOpen = alreadyExclusive = 0;
 
-			for(i = 0; i <= YAFFSFS_N_HANDLES; i++)
+			for(i = 0; i < YAFFSFS_N_HANDLES; i++)
 			{
 
 				if(i != handle &&

@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.59 2008-07-21 01:03:19 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.60 2008-10-30 17:58:44 charles Exp $";
 
 #include "yportenv.h"
 
@@ -440,7 +440,7 @@ static void yaffs_VerifyBlock(yaffs_Device *dev,yaffs_BlockInfo *bi,int n)
 		return;
 		
 	/* Report illegal runtime states */
-	if(bi->blockState <0 || bi->blockState >= YAFFS_NUMBER_OF_BLOCK_STATES)
+	if(bi->blockState >= YAFFS_NUMBER_OF_BLOCK_STATES)
 		T(YAFFS_TRACE_VERIFY,(TSTR("Block %d has undefined state %d"TENDSTR),n,bi->blockState));
 		
 	switch(bi->blockState){
@@ -509,7 +509,7 @@ static void yaffs_VerifyBlocks(yaffs_Device *dev)
 		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev,i);
 		yaffs_VerifyBlock(dev,bi,i);
 
-		if(bi->blockState >=0 && bi->blockState < YAFFS_NUMBER_OF_BLOCK_STATES)
+		if(bi->blockState < YAFFS_NUMBER_OF_BLOCK_STATES)
 			nBlocksPerState[bi->blockState]++;
 		else
 			nIllegalBlockStates++;
@@ -553,7 +553,7 @@ static void yaffs_VerifyBlocks(yaffs_Device *dev)
  */
 static void yaffs_VerifyObjectHeader(yaffs_Object *obj, yaffs_ObjectHeader *oh, yaffs_ExtendedTags *tags, int parentCheck)
 {
-	if(yaffs_SkipVerification(obj->myDev))
+	if(obj && yaffs_SkipVerification(obj->myDev))
 		return;
 		
 	if(!(tags && obj && oh)){
@@ -628,7 +628,6 @@ static int yaffs_VerifyTnodeWorker(yaffs_Object * obj, yaffs_Tnode * tn,
 				}
 			}
 		} else if (level == 0) {
-			int i;
 			yaffs_ExtendedTags tags;
 			__u32 objectId = obj->objectId;
 			
@@ -668,7 +667,10 @@ static void yaffs_VerifyFile(yaffs_Object *obj)
 	yaffs_Tnode *tn;
 	__u32 objectId;
 	
-	if(obj && yaffs_SkipVerification(obj->myDev))
+	if(!obj)
+		return;
+
+	if(yaffs_SkipVerification(obj->myDev))
 		return;
 	
 	dev = obj->myDev;
@@ -2285,6 +2287,9 @@ static yaffs_Object *yaffs_MknodObject(yaffs_ObjectType type,
 	}
 
 	in = yaffs_CreateNewObject(dev, -1, type);
+
+	if(!in)
+		return YAFFS_FAIL;
 	
 	if(type == YAFFS_OBJECT_TYPE_SYMLINK){
 		str = yaffs_CloneString(aliasString);
@@ -2415,7 +2420,7 @@ static int yaffs_ChangeObjectName(yaffs_Object * obj, yaffs_Object * newDir,
 	if (newDir->variantType != YAFFS_OBJECT_TYPE_DIRECTORY) {
 		T(YAFFS_TRACE_ALWAYS,
 		  (TSTR
-		   ("tragendy: yaffs_ChangeObjectName: newDir is not a directory"
+		   ("tragedy: yaffs_ChangeObjectName: newDir is not a directory"
 		    TENDSTR)));
 		YBUG();
 	}
@@ -2800,7 +2805,7 @@ static int yaffs_FindBlockForAllocation(yaffs_Device * dev)
 		 * Can't get space to gc
 		 */
 		T(YAFFS_TRACE_ERROR,
-		  (TSTR("yaffs tragedy: no more eraased blocks" TENDSTR)));
+		  (TSTR("yaffs tragedy: no more erased blocks" TENDSTR)));
 
 		return -1;
 	}
@@ -2831,7 +2836,7 @@ static int yaffs_FindBlockForAllocation(yaffs_Device * dev)
 
 	T(YAFFS_TRACE_ALWAYS,
 	  (TSTR
-	   ("yaffs tragedy: no more eraased blocks, but there should have been %d"
+	   ("yaffs tragedy: no more erased blocks, but there should have been %d"
 	    TENDSTR), dev->nErasedBlocks));
 
 	return -1;
@@ -3482,8 +3487,10 @@ static int yaffs_PutChunkIntoFile(yaffs_Object * in, int chunkInInode,
 			 * not be loaded during a scan
 			 */
 
-			newSerial = newTags.serialNumber;
-			existingSerial = existingTags.serialNumber;
+			if(inScan > 0) {
+				newSerial = newTags.serialNumber;
+				existingSerial = existingTags.serialNumber;
+			}
 
 			if ((inScan > 0) &&
 			    (in->myDev->isYaffs2 ||
@@ -5083,7 +5090,8 @@ int yaffs_ResizeFile(yaffs_Object * in, loff_t newSize)
 	 * show we've shrunk the file, if need be
 	 * Do this only if the file is not in the deleted directories.
 	 */
-	if (in->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
+	if (in->parent &&
+	    in->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
 	    in->parent->objectId != YAFFS_OBJECTID_DELETED) {
 		yaffs_UpdateObjectHeader(in, NULL, 0,
 					 (newSize < oldFileSize) ? 1 : 0, 0);
@@ -5901,13 +5909,15 @@ static void yaffs_CheckObjectDetailsLoaded(yaffs_Object *in)
 {
 	__u8 *chunkData;
 	yaffs_ObjectHeader *oh;
-	yaffs_Device *dev = in->myDev;
+	yaffs_Device *dev;
 	yaffs_ExtendedTags tags;
 	int result;
 	int alloc_failed = 0;
 
 	if(!in)
 		return;
+		
+	dev = in->myDev;
 		
 #if 0
 	T(YAFFS_TRACE_SCAN,(TSTR("details for object %d %s loaded" TENDSTR),
@@ -6336,7 +6346,9 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 						    (oh) ? oh->
 						    parentObjectId : tags.
 						    extraParentObjectId;
-						unsigned isShrink =
+						
+						
+						isShrink =
 						    (oh) ? oh->isShrink : tags.
 						    extraIsShrinkHeader;
 
@@ -7138,24 +7150,19 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 
 	dev->isMounted = 1;
 
-
-
 	/* OK now calculate a few things for the device */
 	
 	/*
 	 *  Calculate all the chunk size manipulation numbers: 	 
 	 */
- 	 {
-		__u32 x = dev->nDataBytesPerChunk;
-		 /* We always use dev->chunkShift and dev->chunkDiv */
-		 dev->chunkShift = Shifts(x);
-		 x >>= dev->chunkShift;
-		 dev->chunkDiv = x;
-		 /* We only use chunk mask if chunkDiv is 1 */
-		 dev->chunkMask = (1<<dev->chunkShift) - 1;
-	}
+	x = dev->nDataBytesPerChunk;
+	/* We always use dev->chunkShift and dev->chunkDiv */
+	dev->chunkShift = Shifts(x);
+	x >>= dev->chunkShift;
+	dev->chunkDiv = x;
+	/* We only use chunk mask if chunkDiv is 1 */
+	dev->chunkMask = (1<<dev->chunkShift) - 1;
 	 	
-
 	/*
 	 * Calculate chunkGroupBits.
 	 * We need to find the next power of 2 > than internalEndBlock
@@ -7243,7 +7250,9 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 			dev->nShortOpCaches = YAFFS_MAX_SHORT_OP_CACHES;
 		}
 
-		buf = dev->srCache =  YMALLOC(srCacheBytes);
+		dev->srCache =  YMALLOC(srCacheBytes);
+		
+		buf = (__u8 *) dev->srCache;
 		    
 		if(dev->srCache)
 			memset(dev->srCache,0,srCacheBytes);

@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.60 2008-10-30 17:58:44 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.61 2008-10-30 18:25:21 charles Exp $";
 
 #include "yportenv.h"
 
@@ -3015,6 +3015,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 		yaffs_VerifyBlock(dev,bi,block);
 
 		for (chunkInBlock = 0, oldChunk = block * dev->nChunksPerBlock;
+		     retVal == YAFFS_OK &&
 		     chunkInBlock < dev->nChunksPerBlock
 		     && yaffs_StillSomeChunkBits(dev, block);
 		     chunkInBlock++, oldChunk++) {
@@ -3143,7 +3144,8 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 					}
 				}
 
-				yaffs_DeleteChunk(dev, oldChunk, markNAND, __LINE__);
+				if(retVal == YAFFS_OK)
+					yaffs_DeleteChunk(dev, oldChunk, markNAND, __LINE__);
 
 			}
 		}
@@ -3185,7 +3187,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 
 	dev->isDoingGC = 0;
 
-	return YAFFS_OK;
+	return retVal;
 }
 
 /* New garbage collector
@@ -3947,35 +3949,15 @@ void yaffs_FlushEntireDeviceCache(yaffs_Device *dev)
 static yaffs_ChunkCache *yaffs_GrabChunkCacheWorker(yaffs_Device * dev)
 {
 	int i;
-	int usage;
-	int theOne;
 
 	if (dev->nShortOpCaches > 0) {
 		for (i = 0; i < dev->nShortOpCaches; i++) {
 			if (!dev->srCache[i].object) 
 				return &dev->srCache[i];
 		}
-
-		return NULL;
-
-		theOne = -1;
-		usage = 0;	/* just to stop the compiler grizzling */
-
-		for (i = 0; i < dev->nShortOpCaches; i++) {
-			if (!dev->srCache[i].dirty &&
-			    ((dev->srCache[i].lastUse < usage && theOne >= 0) ||
-			     theOne < 0)) {
-				usage = dev->srCache[i].lastUse;
-				theOne = i;
-			}
-		}
-
-
-		return theOne >= 0 ? &dev->srCache[theOne] : NULL;
-	} else {
-		return NULL;
 	}
 
+	return NULL;
 }
 
 static yaffs_ChunkCache *yaffs_GrabChunkCache(yaffs_Device * dev)

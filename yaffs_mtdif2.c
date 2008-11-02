@@ -14,7 +14,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-    "$Id: yaffs_mtdif2.c,v 1.21 2008-07-23 03:35:12 charles Exp $";
+    "$Id: yaffs_mtdif2.c,v 1.22 2008-11-02 22:47:13 charles Exp $";
 
 #include "yportenv.h"
 
@@ -107,7 +107,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	int retval = 0;
 	int localData = 0;
 
-	loff_t addr = ((loff_t) chunkInNAND) * dev->nDataBytesPerChunk;
+	loff_t addr = ((loff_t) chunkInNAND) * dev->totalBytesPerChunk;
 
 	yaffs_PackedTags2 pt;
 
@@ -194,7 +194,7 @@ int nandmtd2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	retval =
 	    mtd->block_markbad(mtd,
 			       blockNo * dev->nChunksPerBlock *
-			       dev->nDataBytesPerChunk);
+			       dev->totalBytesPerChunk);
 
 	if (retval == 0)
 		return YAFFS_OK;
@@ -214,7 +214,7 @@ int nandmtd2_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
 	retval =
 	    mtd->block_isbad(mtd,
 			     blockNo * dev->nChunksPerBlock *
-			     dev->nDataBytesPerChunk);
+			     dev->totalBytesPerChunk);
 
 	if (retval) {
 		T(YAFFS_TRACE_MTD, (TSTR("block is bad" TENDSTR)));

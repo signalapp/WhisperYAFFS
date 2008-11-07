@@ -130,11 +130,7 @@ int	writebdy = 1;			/* -w flag */
 long	monitorstart = -1;		/* -m flag */
 long	monitorend = -1;		/* -m flag */
 int	lite = 0;			/* -L flag */
-<<<<<<< yaffs_fsx.c
-long	numops = 5000;			/* -N flag */
-=======
-long	numops = /*-1 */ 100000;			/* -N flag */
->>>>>>> 1.3
+long	numops = /*-1 */ 10000000;			/* -N flag */
 int	randomoplen = 1;		/* -O flag disables it */
 int	seed = 1;			/* -S flag */
 
@@ -778,7 +774,7 @@ getnum(char *s, char **e)
 }
 
 
-#define BASE_NAME "/flash/yaffs2"
+#define BASE_NAME "/flash/yaffs1"
 
 int
 main(int argc, char **argv)

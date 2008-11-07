@@ -22,6 +22,8 @@
 
 #include "yaffsfs.h"
 
+#include "nor_stress.h"
+
 void dumpDir(const char *dname);
 
 char xx[600];
@@ -2284,6 +2286,7 @@ void random_small_file_test(const char *mountpt,int iterations)
 
 int main(int argc, char *argv[])
 {
+
 	//return long_test(argc,argv);
 	
 	//return cache_read_test();

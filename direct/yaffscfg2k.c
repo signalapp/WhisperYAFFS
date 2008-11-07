@@ -22,18 +22,22 @@
 #include "yaffsfs.h"
 #include "yaffs_fileem2k.h"
 #include "yaffs_nandemul2k.h"
+#include "yaffs_norif1.h"
 
 #include <errno.h>
 
 unsigned yaffs_traceMask = 
 
 	YAFFS_TRACE_SCAN |  
-	YAFFS_TRACE_GC | YAFFS_TRACE_GC_DETAIL | 
+	YAFFS_TRACE_GC |
 	YAFFS_TRACE_ERASE | 
+	YAFFS_TRACE_ERROR | 
 	YAFFS_TRACE_TRACING | 
 	YAFFS_TRACE_ALLOCATE | 
 	YAFFS_TRACE_CHECKPOINT |
 	YAFFS_TRACE_BAD_BLOCKS |
+
+/*	YAFFS_TRACE_VERIFY |  */
 	
 	0;
         
@@ -108,26 +112,20 @@ void yaffsfs_LocalInitialisation(void)
 #include "yaffs_flashif2.h"
 #include "yaffs_nandemul2k.h"
 
-static yaffs_Device ramDev;
-static yaffs_Device bootDev;
+static yaffs_Device ram1Dev;
+static yaffs_Device nand2;
 static yaffs_Device flashDev;
 static yaffs_Device ram2kDev;
+static yaffs_Device m18_1Dev;
 
 static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
-#if 0
-	{ "/ram", &ramDev},
-	{ "/boot", &bootDev},
-	{ "/flash/", &flashDev},
-	{ "/ram2k", &ram2kDev},
-	{(void *)0,(void *)0}
-#else
-	//{ "/", &ramDev},
-	{ "/flash/yaffs1", &bootDev},
-	{ "/flash/yaffs2", &flashDev},
+
+	{ "/ram1", &ram1Dev},
+	{ "/M18-1", &m18_1Dev},
+	{ "/yaffs2", &flashDev},
 	{ "/ram2k", &ram2kDev},
 	{ "/flash/bigblock", &flashDev},
 	{(void *)0,(void *)0} /* Null entry to terminate list */
-#endif
 };
 
 
@@ -138,36 +136,36 @@ int yaffs_StartUp(void)
 	yaffsfs_LocalInitialisation();
 	
 	// Set up devices
-	// /ram
-	memset(&ramDev,0,sizeof(ramDev));
-	ramDev.totalBytesPerChunk = 512;
-	ramDev.nChunksPerBlock = 32;
-	ramDev.nReservedBlocks = 2; // Set this smaller for RAM
-	ramDev.startBlock = 0; // Can use block 0
-	ramDev.endBlock = 127; // Last block in 2MB.	
-	//ramDev.useNANDECC = 1;
-	ramDev.nShortOpCaches = 0;	// Disable caching on this device.
-	ramDev.genericDevice = (void *) 0;	// Used to identify the device in fstat.
-	ramDev.writeChunkWithTagsToNAND = yramdisk_WriteChunkWithTagsToNAND;
-	ramDev.readChunkWithTagsFromNAND = yramdisk_ReadChunkWithTagsFromNAND;
-	ramDev.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
-	ramDev.initialiseNAND = yramdisk_InitialiseNAND;
+	// /ram1   ram, yaffs1
+	memset(&ram1Dev,0,sizeof(ram1Dev));
+	ram1Dev.totalBytesPerChunk = 512;
+	ram1Dev.nChunksPerBlock = 32;
+	ram1Dev.nReservedBlocks = 2; // Set this smaller for RAM
+	ram1Dev.startBlock = 0; // Can use block 0
+	ram1Dev.endBlock = 127; // Last block in 2MB.	
+	//ram1Dev.useNANDECC = 1;
+	ram1Dev.nShortOpCaches = 0;	// Disable caching on this device.
+	ram1Dev.genericDevice = (void *) 0;	// Used to identify the device in fstat.
+	ram1Dev.writeChunkWithTagsToNAND = yramdisk_WriteChunkWithTagsToNAND;
+	ram1Dev.readChunkWithTagsFromNAND = yramdisk_ReadChunkWithTagsFromNAND;
+	ram1Dev.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
+	ram1Dev.initialiseNAND = yramdisk_InitialiseNAND;
 
-	// /boot (yaffs1)
-	memset(&bootDev,0,sizeof(bootDev));
-	bootDev.totalBytesPerChunk = 512;
-	bootDev.nChunksPerBlock = 32;
-	bootDev.nReservedBlocks = 5;
-	bootDev.startBlock = 0; // Can use block 0
-	bootDev.endBlock = 63; // Last block
-	//bootDev.useNANDECC = 0; // use YAFFS's ECC
-	bootDev.nShortOpCaches = 10; // Use caches
-	bootDev.genericDevice = (void *) 1;	// Used to identify the device in fstat.
-	bootDev.writeChunkToNAND = yflash_WriteChunkToNAND;
-	bootDev.readChunkFromNAND = yflash_ReadChunkFromNAND;
-	bootDev.eraseBlockInNAND = yflash_EraseBlockInNAND;
-	bootDev.initialiseNAND = yflash_InitialiseNAND;
-
+	// /M18-1 yaffs1 on M18 nor sim
+	memset(&m18_1Dev,0,sizeof(m18_1Dev));
+	m18_1Dev.totalBytesPerChunk = 1024;
+	m18_1Dev.nChunksPerBlock =248;
+	m18_1Dev.nReservedBlocks = 2;
+	m18_1Dev.startBlock = 0; // Can use block 0
+	m18_1Dev.endBlock = 127; // Last block
+	m18_1Dev.useNANDECC = 0; // use YAFFS's ECC
+	m18_1Dev.nShortOpCaches = 10; // Use caches
+	m18_1Dev.genericDevice = (void *) 1;	// Used to identify the device in fstat.
+	m18_1Dev.writeChunkToNAND = ynorif1_WriteChunkToNAND;
+	m18_1Dev.readChunkFromNAND = ynorif1_ReadChunkFromNAND;
+	m18_1Dev.eraseBlockInNAND = ynorif1_EraseBlockInNAND;
+	m18_1Dev.initialiseNAND = ynorif1_InitialiseNAND;
+	m18_1Dev.deinitialiseNAND = ynorif1_DeinitialiseNAND;
 
 
 	// /flash (yaffs2)

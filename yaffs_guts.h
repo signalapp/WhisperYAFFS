@@ -132,12 +132,12 @@ typedef struct {
 
 #ifndef CONFIG_YAFFS_NO_YAFFS1
 typedef struct {
-	unsigned chunkId:20;
-	unsigned serialNumber:2;
-	unsigned byteCount:10;
-	unsigned objectId:18;
-	unsigned ecc:12;
-	unsigned unusedStuff:2;
+        unsigned chunkId:20;
+        unsigned serialNumber:2;
+        unsigned byteCountLSB:10;
+        unsigned objectId:18;
+        unsigned ecc:12;
+        unsigned byteCountMSB:2;
 
 } yaffs_Tags;
 
@@ -420,10 +420,12 @@ struct yaffs_ObjectStruct {
 	__u8 deferedFree:1;	/* For Linux kernel. Object is removed from NAND, but is
 				 * still in the inode cache. Free of object is defered.
 				 * until the inode is released.
-				 */
+                                 */
 
-	__u8 serial;		/* serial number of chunk in NAND. Cached here */
-	__u16 sum;		/* sum of the name to speed searching */
+        __u8 serial;            /* serial number of chunk in NAND. Cached here */
+/*        __u16 sum_prev; */
+        __u16 sum;              /* sum of the name to speed searching */
+/*        __u16 sum_trailer; */
 
         struct yaffs_DeviceStruct *myDev;       /* The device I'm on */
 
@@ -443,10 +445,10 @@ struct yaffs_ObjectStruct {
 
 	__u32 objectId;		/* the object id value */
 
-	__u32 yst_mode;
+        __u32 yst_mode;
 
 #ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
-	YCHAR shortName[YAFFS_SHORT_NAME_LENGTH + 1];
+        YCHAR shortName[YAFFS_SHORT_NAME_LENGTH + 1];
 #endif
 
 #ifndef __KERNEL__
@@ -572,12 +574,13 @@ struct yaffs_DeviceStruct {
 	int (*readChunkFromNAND) (struct yaffs_DeviceStruct * dev,
 				  int chunkInNAND, __u8 * data,
 				  yaffs_Spare * spare);
-	int (*eraseBlockInNAND) (struct yaffs_DeviceStruct * dev,
-				 int blockInNAND);
-	int (*initialiseNAND) (struct yaffs_DeviceStruct * dev);
+        int (*eraseBlockInNAND) (struct yaffs_DeviceStruct * dev,
+                                 int blockInNAND);
+        int (*initialiseNAND) (struct yaffs_DeviceStruct * dev);
+        int (*deinitialiseNAND) (struct yaffs_DeviceStruct * dev);
 
 #ifdef CONFIG_YAFFS_YAFFS2
-	int (*writeChunkWithTagsToNAND) (struct yaffs_DeviceStruct * dev,
+        int (*writeChunkWithTagsToNAND) (struct yaffs_DeviceStruct * dev,
 					 int chunkInNAND, const __u8 * data,
 					 const yaffs_ExtendedTags * tags);
 	int (*readChunkWithTagsFromNAND) (struct yaffs_DeviceStruct * dev,

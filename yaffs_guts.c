@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.61 2008-10-30 18:25:21 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.62 2008-11-07 00:32:20 charles Exp $";
 
 #include "yportenv.h"
 
@@ -97,6 +97,7 @@ static void yaffs_VerifyFreeChunks(yaffs_Device * dev);
 
 static void yaffs_CheckObjectDetailsLoaded(yaffs_Object *in);
 
+static void yaffs_VerifyDirectory(yaffs_Object *directory);
 #ifdef YAFFS_PARANOID
 static int yaffs_CheckFileSanity(yaffs_Object * in);
 #else
@@ -721,12 +722,6 @@ static void yaffs_VerifyFile(yaffs_Object *obj)
 
 }
 
-static void yaffs_VerifyDirectory(yaffs_Object *obj)
-{
-	if(obj && yaffs_SkipVerification(obj->myDev))
-		return;
-	
-}
 
 static void yaffs_VerifyHardLink(yaffs_Object *obj)
 {
@@ -1108,7 +1103,7 @@ static __u16 yaffs_CalcNameSum(const YCHAR * name)
 	__u16 sum = 0;
 	__u16 i = 1;
 
-	YUCHAR *bname = (YUCHAR *) name;
+	const YUCHAR *bname = (const YUCHAR *) name;
 	if (bname) {
 		while ((*bname) && (i < (YAFFS_MAX_NAME_LENGTH/2))) {
 
@@ -1121,12 +1116,14 @@ static __u16 yaffs_CalcNameSum(const YCHAR * name)
 			bname++;
 		}
 	}
+	
 	return sum;
 }
 
 static void yaffs_SetObjectName(yaffs_Object * obj, const YCHAR * name)
 {
 #ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
+	memset(obj->shortName,0,sizeof (YCHAR) * (YAFFS_SHORT_NAME_LENGTH+1)); 
 	if (name && yaffs_strlen(name) <= YAFFS_SHORT_NAME_LENGTH) {
 		yaffs_strcpy(obj->shortName, name);
 	} else {
@@ -1911,6 +1908,9 @@ static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device * dev)
 {
 	yaffs_Object *tn = NULL;
 
+#ifdef VALGRIND_TEST
+	tn = YMALLOC(sizeof(yaffs_Object));
+#else
 	/* If there are none left make more */
 	if (!dev->freeObjects) {
 		yaffs_CreateFreeObjects(dev, YAFFS_ALLOCATION_NOBJECTS);
@@ -1921,7 +1921,9 @@ static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device * dev)
 		dev->freeObjects =
 		    (yaffs_Object *) (dev->freeObjects->siblings.next);
 		dev->nFreeObjects--;
-
+	}
+#endif
+	if(tn){
 		/* Now sweeten it up... */
 
 		memset(tn, 0, sizeof(yaffs_Object));
@@ -1931,6 +1933,13 @@ static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device * dev)
 		YINIT_LIST_HEAD(&(tn->hardLinks));
 		YINIT_LIST_HEAD(&(tn->hashLink));
 		YINIT_LIST_HEAD(&tn->siblings);
+		
+
+		/* Now make the directory sane */
+		if(dev->rootDir){
+			tn->parent = dev->rootDir;
+			ylist_add(&(tn->siblings),&dev->rootDir->variant.directoryVariant.children);
+		}
 
                 /* Add it to the lost and found directory.
                  * NB Can't put root or lostNFound in lostNFound so
@@ -1987,6 +1996,13 @@ static void yaffs_FreeObject(yaffs_Object * tn)
 
 	yaffs_Device *dev = tn->myDev;
 
+	
+	if(tn->parent)
+		YBUG();
+	if(!ylist_empty(&tn->siblings))
+		YBUG();
+
+
 #ifdef  __KERNEL__
 	if (tn->myInode) {
 		/* We're still hooked up to a cached inode.
@@ -1999,11 +2015,14 @@ static void yaffs_FreeObject(yaffs_Object * tn)
 
         yaffs_UnhashObject(tn);
 
+#ifdef VALGRIND_TEST
+	YFREE(tn);
+#else
         /* Link into the free list. */
         tn->siblings.next = (struct ylist_head *)(dev->freeObjects);
         dev->freeObjects = tn;
         dev->nFreeObjects++;
-
+#endif
 	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
 
 }
@@ -2201,6 +2220,12 @@ yaffs_Object *yaffs_CreateNewObject(yaffs_Device * dev, int number,
 		theObject->yst_atime = theObject->yst_mtime =
 		    theObject->yst_ctime = Y_CURRENT_TIME;
 #endif
+
+#if 0
+		theObject->sum_prev = 12345;
+		theObject->sum_trailer = 6789;
+#endif
+
 		switch (type) {
 		case YAFFS_OBJECT_TYPE_FILE:
 			theObject->variant.fileVariant.fileSize = 0;
@@ -2467,9 +2492,15 @@ static int yaffs_ChangeObjectName(yaffs_Object * obj, yaffs_Object * newDir,
 int yaffs_RenameObject(yaffs_Object * oldDir, const YCHAR * oldName,
 		       yaffs_Object * newDir, const YCHAR * newName)
 {
-	yaffs_Object *obj;
-	yaffs_Object *existingTarget;
+	yaffs_Object *obj=NULL;
+	yaffs_Object *existingTarget=NULL;
 	int force = 0;
+	
+	
+	if(!oldDir || oldDir->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
+		YBUG();
+	if(!newDir || newDir->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
+		YBUG();
 
 #ifdef CONFIG_YAFFS_CASE_INSENSITIVE
 	/* Special case for case insemsitive systems (eg. WinCE).
@@ -2481,16 +2512,11 @@ int yaffs_RenameObject(yaffs_Object * oldDir, const YCHAR * oldName,
 	}
 #endif
 
+	else if (yaffs_strlen(newName) > YAFFS_MAX_NAME_LENGTH)
+	  /* ENAMETOOLONG */
+	  return YAFFS_FAIL;
+
 	obj = yaffs_FindObjectByName(oldDir, oldName);
-	/* Check new name to long. */
-	if (obj->variantType == YAFFS_OBJECT_TYPE_SYMLINK &&
-	    yaffs_strlen(newName) > YAFFS_MAX_ALIAS_LENGTH)
-	  /* ENAMETOOLONG */
-	  return YAFFS_FAIL;
-	else if (obj->variantType != YAFFS_OBJECT_TYPE_SYMLINK &&
-		 yaffs_strlen(newName) > YAFFS_MAX_NAME_LENGTH)
-	  /* ENAMETOOLONG */
-	  return YAFFS_FAIL;
 
 	if (obj && obj->renameAllowed) {
 
@@ -2846,7 +2872,8 @@ static int yaffs_FindBlockForAllocation(yaffs_Device * dev)
 
 static int yaffs_CalcCheckpointBlocksRequired(yaffs_Device *dev)
 {
-	if(!dev->nCheckpointBlocksRequired){
+	if(!dev->nCheckpointBlocksRequired &&
+	   dev->isYaffs2){
 		/* Not a valid value so recalculate */
 		int nBytes = 0;
 		int nBlocks;
@@ -2885,9 +2912,14 @@ static int yaffs_CheckSpaceForAllocation(yaffs_Device * dev)
 	int reservedBlocks = dev->nReservedBlocks;
 	int checkpointBlocks;
 	
-	checkpointBlocks =  yaffs_CalcCheckpointBlocksRequired(dev) - dev->blocksInCheckpoint;
-	if(checkpointBlocks < 0)
-		checkpointBlocks = 0;
+	if(dev->isYaffs2){
+		checkpointBlocks =  yaffs_CalcCheckpointBlocksRequired(dev) - 
+				    dev->blocksInCheckpoint;
+		if(checkpointBlocks < 0)
+			checkpointBlocks = 0;
+	} else {
+		checkpointBlocks =0;
+	}
 	
 	reservedChunks = ((reservedBlocks + checkpointBlocks) * dev->nChunksPerBlock);
 	
@@ -3063,9 +3095,11 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 					    tags.objectId, tags.chunkId, tags.byteCount));
 				}
 
-				if (object && object->deleted
-				    && tags.chunkId != 0) {
-					/* Data chunk in a deleted file, throw it away
+				if (object && 
+				    object->deleted &&
+				    object->softDeleted &&
+				    tags.chunkId != 0) {
+					/* Data chunk in a soft deleted file, throw it away
 					 * It's a soft deleted data chunk,
 					 * No need to copy this, just forget about it and 
 					 * fix up the object.
@@ -3640,6 +3674,14 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object * in, int chunkInInode,
 	newTags.serialNumber =
 	    (prevChunkId >= 0) ? prevTags.serialNumber + 1 : 1;
 	newTags.byteCount = nBytes;
+	
+	if(nBytes < 1 || nBytes > dev->totalBytesPerChunk){
+	  T(YAFFS_TRACE_ERROR,
+	  (TSTR("Writing %d bytes to chunk!!!!!!!!!" TENDSTR), nBytes));
+	  while(1){}
+        }
+	
+	
 
 	newChunkId =
 	    yaffs_WriteNewChunkWithTagsToNAND(dev, buffer, &newTags,
@@ -4796,6 +4838,12 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
 		//chunk = offset / dev->nDataBytesPerChunk + 1;
 		//start = offset % dev->nDataBytesPerChunk;
 		yaffs_AddrToChunk(dev,offset,&chunk,&start);
+		
+		if(chunk * dev->nDataBytesPerChunk + start != offset ||
+		   start >= dev->nDataBytesPerChunk){
+		   T(YAFFS_TRACE_ERROR,(TSTR("AddrToChunk of offset %d gives chunk %d start %d"TENDSTR),
+		   			(int)offset, chunk,start));
+		}
 		chunk++;
 
 		/* OK now check for the curveball where the start and end are in
@@ -5149,62 +5197,66 @@ static int yaffs_DoGenericObjectDeletion(yaffs_Object * in)
  * and the inode associated with the file.
  * It does not delete the links associated with the file.
  */
+ 
 static int yaffs_UnlinkFile(yaffs_Object * in)
 {
 
 	int retVal;
 	int immediateDeletion = 0;
 
-	if (1) {
 #ifdef __KERNEL__
-		if (!in->myInode) {
-			immediateDeletion = 1;
-
-		}
-#else
-		if (in->inUse <= 0) {
-			immediateDeletion = 1;
-
-		}
-#endif
-		if (immediateDeletion) {
-			retVal =
-			    yaffs_ChangeObjectName(in, in->myDev->deletedDir,
-						   _Y("deleted"), 0, 0);
-			T(YAFFS_TRACE_TRACING,
-			  (TSTR("yaffs: immediate deletion of file %d" TENDSTR),
-			   in->objectId));
-			in->deleted = 1;
-			in->myDev->nDeletedFiles++;
-			if (0 && in->myDev->isYaffs2) {
-				yaffs_ResizeFile(in, 0);
-			}
-			yaffs_SoftDeleteFile(in);
-		} else {
-			retVal =
-			    yaffs_ChangeObjectName(in, in->myDev->unlinkedDir,
-						   _Y("unlinked"), 0, 0);
-		}
-
+	if (!in->myInode) {
+		immediateDeletion = 1;
 	}
+#else
+	if (in->inUse <= 0) {
+		immediateDeletion = 1;
+	}
+#endif
+
+	if (immediateDeletion) {
+		retVal =
+		    yaffs_ChangeObjectName(in, in->myDev->deletedDir,
+					   _Y("deleted"), 0, 0);
+		T(YAFFS_TRACE_TRACING,
+		  (TSTR("yaffs: immediate deletion of file %d" TENDSTR),
+		   in->objectId));
+		in->deleted = 1;
+		in->myDev->nDeletedFiles++;
+		if (1 || in->myDev->isYaffs2) {
+			yaffs_ResizeFile(in, 0);
+		}
+		yaffs_SoftDeleteFile(in);
+	} else {
+		retVal =
+		    yaffs_ChangeObjectName(in, in->myDev->unlinkedDir,
+					   _Y("unlinked"), 0, 0);
+	}
+
+
 	return retVal;
 }
 
 int yaffs_DeleteFile(yaffs_Object * in)
 {
 	int retVal = YAFFS_OK;
+	int deleted = in->deleted;
+	
+	yaffs_ResizeFile(in,0);
 
 	if (in->nDataChunks > 0) {
-		/* Use soft deletion if there is data in the file */
+		/* Use soft deletion if there is data in the file.
+		 * That won't be the case if it has been resized to zero.
+		 */
 		if (!in->unlinked) {
 			retVal = yaffs_UnlinkFile(in);
 		}
 		if (retVal == YAFFS_OK && in->unlinked && !in->deleted) {
-			in->deleted = 1;
+			in->deleted = deleted = 1;
 			in->myDev->nDeletedFiles++;
 			yaffs_SoftDeleteFile(in);
 		}
-		return in->deleted ? YAFFS_OK : YAFFS_FAIL;
+		return deleted ? YAFFS_OK : YAFFS_FAIL;
 	} else {
 		/* The file has no data chunks so we toss it immediately */
 		yaffs_FreeTnode(in->myDev, in->variant.fileVariant.top);
@@ -5238,7 +5290,7 @@ static int yaffs_DeleteHardLink(yaffs_Object * in)
         /* remove this hardlink from the list assocaited with the equivalent
          * object
          */
-        ylist_del(&in->hardLinks);
+        ylist_del_init(&in->hardLinks);
         return yaffs_DoGenericObjectDeletion(in);
 }
 
@@ -5799,10 +5851,12 @@ static int yaffs_Scan(yaffs_Device * dev)
 						break;
 					}
 
-					if (parent == dev->deletedDir) {
+/*
+ 					if (parent == dev->deletedDir) {
 						yaffs_DestroyObject(in);
 						bi->hasShrinkHeader = 1;
 					}
+*/
 				}
 			}
 		}
@@ -6627,15 +6681,91 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 /*------------------------------  Directory Functions ----------------------------- */
 
+static void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
+{
+        struct ylist_head *lh;
+        yaffs_Object *listObj;
+        
+        int count = 0;
+
+	if(!obj)
+		YBUG();
+
+        if(yaffs_SkipVerification(obj->myDev))
+                return;
+
+	if(!obj->parent)
+		YBUG();
+		
+	if(obj->parent->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
+		YBUG();
+	
+        /* Iterate through the objects in each hash entry */
+         
+        ylist_for_each(lh, &obj->parent->variant.directoryVariant.children) {
+		if (lh) {
+                        listObj = ylist_entry(lh, yaffs_Object, siblings);
+			yaffs_VerifyObject(listObj);
+			if(obj == listObj)
+				count ++;
+                }
+	 }
+	 
+	 if(count != 1)
+	 	YBUG();
+	 
+
+}
+
+static void yaffs_VerifyDirectory(yaffs_Object *directory)
+{
+
+        struct ylist_head *lh;
+        yaffs_Object *listObj;
+        
+	if(!directory)
+		YBUG();
+
+        if(yaffs_SkipVerification(directory->myDev))
+                return;
+
+		
+	if(directory->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
+		YBUG();
+	
+        /* Iterate through the objects in each hash entry */
+         
+        ylist_for_each(lh, &directory->variant.directoryVariant.children) {
+		if (lh) {
+                        listObj = ylist_entry(lh, yaffs_Object, siblings);
+			if(listObj->parent != directory)
+				YBUG();
+			yaffs_VerifyObjectInDirectory(listObj);
+                }
+	 }
+	 
+}
+
+
 static void yaffs_RemoveObjectFromDirectory(yaffs_Object * obj)
 {
 	yaffs_Device *dev = obj->myDev;
+	yaffs_Object *parent;
 	
+        yaffs_VerifyObjectInDirectory(obj);
+	parent = obj->parent;
+	
+	yaffs_VerifyDirectory(parent);
+
         if(dev && dev->removeObjectCallback)
                 dev->removeObjectCallback(obj);
+
            
         ylist_del_init(&obj->siblings);
         obj->parent = NULL;
+
+	yaffs_VerifyDirectory(parent);
+
 }
 
 
@@ -6660,12 +6790,18 @@ static void yaffs_AddObjectToDirectory(yaffs_Object * directory,
 
         if (obj->siblings.prev == NULL) {
                 /* Not initialised */
-                YINIT_LIST_HEAD(&obj->siblings);
+                YBUG();
 
-        } else if (!ylist_empty(&obj->siblings)) {
-                /* If it is holed up somewhere else, un hook it */
-                yaffs_RemoveObjectFromDirectory(obj);
-        }
+        } else if (ylist_empty(&obj->siblings)) {
+        	YBUG();
+        } 
+
+
+	yaffs_VerifyDirectory(directory);
+
+	yaffs_RemoveObjectFromDirectory(obj);
+        
+        
         /* Now add it */
         ylist_add(&obj->siblings, &directory->variant.directoryVariant.children);
         obj->parent = directory;
@@ -6676,6 +6812,11 @@ static void yaffs_AddObjectToDirectory(yaffs_Object * directory,
 		obj->myDev->nUnlinkedFiles++;
 		obj->renameAllowed = 0;
 	}
+
+	yaffs_VerifyDirectory(directory);
+        yaffs_VerifyObjectInDirectory(obj);
+
+
 }
 
 yaffs_Object *yaffs_FindObjectByName(yaffs_Object * directory,
@@ -6711,6 +6852,9 @@ yaffs_Object *yaffs_FindObjectByName(yaffs_Object * directory,
         ylist_for_each(i, &directory->variant.directoryVariant.children) {
                 if (i) {
                         l = ylist_entry(i, yaffs_Object, siblings);
+                        
+                        if(l->parent != directory)
+                        	YBUG();
                         
                         yaffs_CheckObjectDetailsLoaded(l);
 
@@ -7078,7 +7222,7 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 	/* Check geometry parameters. */
 
 	if ((!dev->inbandTags && dev->isYaffs2 && dev->totalBytesPerChunk < 1024) || 
-	    (!dev->isYaffs2 && dev->totalBytesPerChunk != 512) || 
+	    (!dev->isYaffs2 && dev->totalBytesPerChunk < 512) || 
 	    (dev->inbandTags && !dev->isYaffs2 ) ||
 	     dev->nChunksPerBlock < 2 || 
 	     dev->nReservedBlocks < 2 || 
@@ -7372,6 +7516,9 @@ void yaffs_Deinitialise(yaffs_Device * dev)
 
 
 		dev->isMounted = 0;
+		
+		if(dev->deinitialiseNAND)
+			dev->deinitialiseNAND(dev);
 	}
 
 }

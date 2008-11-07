@@ -14,31 +14,35 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.18 2008-07-21 01:03:19 charles Exp $
+# $Id: Makefile,v 1.19 2008-11-07 00:32:21 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
 CFLAGS =      -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONFIG_YAFFS_YAFFS2  
 CFLAGS +=     -DCONFIG_YAFFS_PROVIDE_DEFS -DCONFIG_YAFFSFS_PROVIDE_VALUES -DNO_Y_INLINE
-CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS)
-#CFLAGS+=    -fstack-check -O0
+CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS) -Wstrict-aliasing -fno-strict-aliasing
+CFLAGS +=    -O0
+#CFLAGS +=    -DVALGRIND_TEST
 
 #CFLAGS+=   -Wshadow -Wpointer-arith -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
 
 
-DIRECTTESTOBJS = dtest.o yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
+COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
-		 yaffs_checkptrw.o  yaffs_qsort.o
+		 yaffs_checkptrw.o  yaffs_qsort.o\
+		 yaffs_norif1.o  ynorsim.o nor_stress.o
 #		 yaffs_checkptrwtest.o\
-		 
+
+DIRECTTESTOBJS = $(COMMONTESTOBJS) dtest.o
+YAFFSTESTOBJS  = $(COMMONTESTOBJS) yaffs_test.o
 
 BOOTTESTOBJS = bootldtst.o yboot.o yaffs_fileem.o nand_ecc.o
 
 #ALLOBJS =  dtest.o nand_ecc.o yaffscfg.o yaffs_fileem.o yaffsfs.o yaffs_ramdisk.o bootldtst.o yboot.o yaffs_ramem2k.o
 
-ALLOBJS = $(DIRECTTESTOBJS) $(BOOTTESTOBJS)
+ALLOBJS = $(sort $(DIRECTTESTOBJS) $(YAFFSTESTOBJS))
 
 SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
@@ -48,7 +52,7 @@ SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsin
 
 #all: directtest2k boottest
 
-all: directtest2k
+all: directtest2k yaffs_test
 
 $(ALLOBJS): %.o: %.c
 	gcc -c $(CFLAGS) -o $@ $<
@@ -58,6 +62,9 @@ $(SYMLINKS):
 
 directtest2k: $(SYMLINKS) $(DIRECTTESTOBJS)
 	gcc -o $@ $(DIRECTTESTOBJS)
+
+yaffs_test: $(SYMLINKS) $(YAFFSTESTOBJS)
+	gcc -o $@ $(YAFFSTESTOBJS)
 
 
 boottest: $(SYMLINKS) $(BOOTTESTOBJS)

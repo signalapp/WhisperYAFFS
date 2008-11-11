@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.23 2008-10-13 03:47:26 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.24 2008-11-11 01:47:46 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1284,7 +1284,7 @@ int yaffs_set_wince_times(int fd,
 
 static int yaffsfs_DoChMod(yaffs_Object *obj,mode_t mode)
 {
-	int result;
+	int result = -1;
 
 	if(obj)
 	{

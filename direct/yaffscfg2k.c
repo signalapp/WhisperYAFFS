@@ -157,7 +157,7 @@ int yaffs_StartUp(void)
 	m18_1Dev.nChunksPerBlock =248;
 	m18_1Dev.nReservedBlocks = 2;
 	m18_1Dev.startBlock = 0; // Can use block 0
-	m18_1Dev.endBlock = 127; // Last block
+	m18_1Dev.endBlock = 31; // Last block
 	m18_1Dev.useNANDECC = 0; // use YAFFS's ECC
 	m18_1Dev.nShortOpCaches = 10; // Use caches
 	m18_1Dev.genericDevice = (void *) 1;	// Used to identify the device in fstat.

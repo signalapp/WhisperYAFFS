@@ -21,12 +21,21 @@
 //#define YNORSIM_BIT_CHANGES 15
 #define YNORSIM_BIT_CHANGES 1
 
+#if 0
 /* Simulate 32MB of flash in 256k byte blocks.
  * This stuff is x32.
  */
 
 #define YNORSIM_BLOCK_SIZE_U32  (256*1024/4)
 #define YNORSIM_DEV_SIZE_U32	(32*1024 * 1024/4)
+#else
+/* Simulate 8MB of flash in 256k byte blocks.
+ * This stuff is x32.
+ */
+
+#define YNORSIM_BLOCK_SIZE_U32  (256*1024/4)
+#define YNORSIM_DEV_SIZE_U32	(8*1024 * 1024/4)
+#endif
 
 static __u32 word[YNORSIM_DEV_SIZE_U32];
 
@@ -82,7 +91,7 @@ static void ynorsim_Ready(void)
     return;
   srand(time(NULL));
   remaining_ops = 1000000000;
-  remaining_ops = (rand() % 10000) * 10000;
+  remaining_ops = (rand() % 10000) * 3000 * YNORSIM_BIT_CHANGES;
   ynorsim_RestoreImage();
 }
 

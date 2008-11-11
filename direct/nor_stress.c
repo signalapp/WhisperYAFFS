@@ -48,8 +48,8 @@ static void FatalError(void)
 
 static void UpdateCounter(const char *name, unsigned *val,  int initialise)
 {
-  int inh;
-  int outh;
+  int inh=-1;
+  int outh=-1;
   unsigned x[2];
   int nread = 0;
   int nwritten = 0;
@@ -139,6 +139,9 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 
 			if((s.st_mode & S_IFMT) == S_IFDIR && recursive)
 				dump_directory_tree_worker(str,1);
+				
+                        if(s.st_ino > 10000)
+                          FatalError();
 							
 		}
 		

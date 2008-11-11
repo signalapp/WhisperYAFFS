@@ -35,7 +35,7 @@
  *   
  */
 
-const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.1 2008-11-07 00:34:47 charles Exp $";
+const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.2 2008-11-11 01:48:47 charles Exp $";
 
 #include "yaffs_norif1.h"
 
@@ -58,7 +58,7 @@ const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.1 2008-11-07 00:34
 #define FORMAT_VALUE		0x1234
 
 #define DATA_BYTES_PER_CHUNK	1024
-#define BLOCKS_IN_DEVICE        (32*1024/256)
+#define BLOCKS_IN_DEVICE        (8*1024/256)
 
 
 #define YNOR_PREMARKER          (0xF6)

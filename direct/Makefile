@@ -14,14 +14,15 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.19 2008-11-07 00:32:21 charles Exp $
+# $Id: Makefile,v 1.20 2008-11-11 01:48:47 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
 CFLAGS =      -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONFIG_YAFFS_YAFFS2  
 CFLAGS +=     -DCONFIG_YAFFS_PROVIDE_DEFS -DCONFIG_YAFFSFS_PROVIDE_VALUES -DNO_Y_INLINE
-CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS) -Wstrict-aliasing -fno-strict-aliasing
-CFLAGS +=    -O0
+CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS) -Wstrict-aliasing 
+#CFLAGS +=    -fno-strict-aliasing
+CFLAGS +=    -O3
 #CFLAGS +=    -DVALGRIND_TEST
 
 #CFLAGS+=   -Wshadow -Wpointer-arith -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations

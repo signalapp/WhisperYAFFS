@@ -35,7 +35,7 @@
  *   
  */
 
-const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.2 2008-11-11 01:48:47 charles Exp $";
+const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.3 2008-11-13 01:50:16 charles Exp $";
 
 #include "yaffs_norif1.h"
 
@@ -219,11 +219,14 @@ int ynorif1_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaf
         {
                 ynorif1_FlashRead32(spareAddr,(__u32 *)spare,16/ 4);
                 
-                /* If the page status is 0xF then it was written properly
+                /* If the page status is YNOR_POSTMARKER then it was written properly
                  * so change that to 0xFF so that the rest of yaffs is happy.
                  */
                 if(spare->pageStatus == YNOR_POSTMARKER)
                         spare->pageStatus = 0xFF;
+		else if(spare->pageStatus != 0xff &&
+			(spare->pageStatus | YNOR_PREMARKER != 0xff))
+			spare->pageStatus = YNOR_PREMARKER;
         }
         
 

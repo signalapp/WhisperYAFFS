@@ -290,10 +290,11 @@ static int yVerifyFile(const char *fName)
 	return retval;
 }
 
-static unsigned long next = 1;
+extern int random_seed;
+
 int myrand(void) {
-  next = next * 1103515245 + 12345;
-  return((unsigned)(next/65536) % 32768);
+  random_seed = random_seed * 1103515245 + 12345;
+  return((unsigned)(random_seed/65536) % 32768);
 }
 
 static void DoUpdateMainFile(void)
@@ -344,13 +345,16 @@ void NorStressTestRun(const char *prefix)
   dump_directory_tree(fullPathName);
   
   UpdateCounter(fullPowerUpName,&powerUps,0);
+  dump_directory_tree(fullPathName);
   
   while(1){
     UpdateCounter(fullStartName, &cycleStarts,0);
+    dump_directory_tree(fullPathName);
     DoVerifyMainFile();
     DoUpdateMainFile();
     dump_directory_tree(fullPathName);
   
     UpdateCounter(fullEndName,&cycleEnds,0);
+    dump_directory_tree(fullPathName);
   }
 }

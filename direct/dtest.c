@@ -2283,10 +2283,11 @@ void random_small_file_test(const char *mountpt,int iterations)
 }
 	
 
+int random_seed;
 
 int main(int argc, char *argv[])
 {
-
+	random_seed = time(NULL);
 	//return long_test(argc,argv);
 	
 	//return cache_read_test();

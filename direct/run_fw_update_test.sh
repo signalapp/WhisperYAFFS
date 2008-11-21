@@ -3,10 +3,13 @@
 
 for ((i=0; i < 100000; i++))  
 do
-   echo $i > cycle.count
+
+   seed=$RANDOM   
    j=$(( $i % 10 ))
-   
+   rm seed*$j
+   echo $seed>seed$i
    rm data*$j
    cp ynorsimdata data$i
-   ./yaffs_test /M18-1 fw_update
+   echo "######### Run $i with seed $seed"
+   ./yaffs_test /M18-1 fw_update $seed
 done

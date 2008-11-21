@@ -39,6 +39,7 @@
 
 static __u32 word[YNORSIM_DEV_SIZE_U32];
 
+extern int random_seed;
 
 static void NorError(void)
 {
@@ -89,7 +90,7 @@ static void ynorsim_Ready(void)
 {
   if(initialised) 
     return;
-  srand(time(NULL));
+  srand(random_seed);
   remaining_ops = 1000000000;
   remaining_ops = (rand() % 10000) * 3000 * YNORSIM_BIT_CHANGES;
   ynorsim_RestoreImage();

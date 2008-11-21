@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.62 2008-11-07 00:32:20 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.63 2008-11-21 02:17:32 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5744,6 +5744,7 @@ static int yaffs_Scan(yaffs_Device * dev)
 					in->yst_rdev = oh->yst_rdev;
 #endif
 					in->hdrChunk = chunk;
+					in->serial = tags.serialNumber;
 
 				} else if (in && !in->valid) {
 					/* we need to load this info */
@@ -5768,6 +5769,7 @@ static int yaffs_Scan(yaffs_Device * dev)
 					in->yst_rdev = oh->yst_rdev;
 #endif
 					in->hdrChunk = chunk;
+					in->serial = tags.serialNumber;
 
 					yaffs_SetObjectName(in, oh->name);
 					in->dirty = 0;

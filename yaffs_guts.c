@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.63 2008-11-21 02:17:32 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.64 2008-11-25 00:29:32 charles Exp $";
 
 #include "yportenv.h"
 
@@ -4868,7 +4868,7 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
 
 			nToWriteBack =
 			    (nBytesRead >
-			     (start + n)) ? nBytesRead : (start + n);
+			     ((int)start + n)) ? nBytesRead : (start + n);
 
 		} else {
 			nToCopy = dev->nDataBytesPerChunk - start;

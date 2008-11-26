@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.64 2008-11-25 00:29:32 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.65 2008-11-26 20:42:04 charles Exp $";
 
 #include "yportenv.h"
 
@@ -3148,7 +3148,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 						yaffs_ObjectHeader *oh;
 						oh = (yaffs_ObjectHeader *)buffer;
 						oh->isShrink = 0;
-						oh->shadowsObject = oh->inbandShadowsObject = -1;
+/*						oh->shadowsObject = oh->inbandShadowsObject = -1; */
 						tags.extraShadows = 0;
 						tags.extraIsShrinkHeader = 0;
 						
@@ -6943,9 +6943,18 @@ int yaffs_GetObjectName(yaffs_Object * obj, YCHAR * name, int buffSize)
 		yaffs_strncpy(name, YAFFS_LOSTNFOUND_NAME, buffSize - 1);
 	} else if (obj->hdrChunk <= 0) {
 		YCHAR locName[20];
+		YCHAR numString[20];
+		YCHAR *x = &numString[19];
+		unsigned v = obj->objectId;
+		numString[19] = 0;
+		while(v>0){
+			x--;
+			*x = '0' + (v % 10);
+			v /= 10;
+		}
 		/* make up a name */
-		yaffs_sprintf(locName, _Y("%s%d"), YAFFS_LOSTNFOUND_PREFIX,
-			      obj->objectId);
+		yaffs_strcpy(locName, YAFFS_LOSTNFOUND_PREFIX);
+		yaffs_strcat(locName,x);
 		yaffs_strncpy(name, locName, buffSize - 1);
 
 	}

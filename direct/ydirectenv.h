@@ -37,6 +37,7 @@
 #define YCHAR char
 #define YUCHAR unsigned char
 #define _Y(x) x
+#define yaffs_strcat(a,b)    strcat(a,b)
 #define yaffs_strcpy(a,b)    strcpy(a,b)
 #define yaffs_strncpy(a,b,c) strncpy(a,b,c)
 #define yaffs_strncmp(a,b,c) strncmp(a,b,c)

@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.65 2008-11-26 20:42:04 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.66 2008-11-26 20:46:47 charles Exp $";
 
 #include "yportenv.h"
 
@@ -3148,7 +3148,6 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 						yaffs_ObjectHeader *oh;
 						oh = (yaffs_ObjectHeader *)buffer;
 						oh->isShrink = 0;
-/*						oh->shadowsObject = oh->inbandShadowsObject = -1; */
 						tags.extraShadows = 0;
 						tags.extraIsShrinkHeader = 0;
 						

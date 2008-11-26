@@ -27,6 +27,7 @@
 
 
 int random_seed;
+int simulate_power_failure = 0;
 
 void BadUsage(void)
 {
@@ -47,6 +48,7 @@ int main(int argc, const char *argv[])
 		}
 		else if(!strcmp(argv[2],"fw_update")){
 			printf("Running stress on %s with seed %d\n",argv[1],random_seed);
+			simulate_power_failure = 1;
 			NorStressTestRun(argv[1]);
 		}
 		else 

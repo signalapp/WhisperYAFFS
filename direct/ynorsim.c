@@ -40,6 +40,7 @@
 static __u32 word[YNORSIM_DEV_SIZE_U32];
 
 extern int random_seed;
+extern int simulate_power_failure;
 
 static void NorError(void)
 {
@@ -80,7 +81,8 @@ static void ynorsim_MaybePowerFail(void)
    
    
    remaining_ops--;
-   if(remaining_ops < 1){
+   if(simulate_power_failure &&
+      remaining_ops < 1){
        printf("Simulated power failure after %d operations\n",nops_so_far);
     	ynorsim_PowerFail();
   }
@@ -92,7 +94,7 @@ static void ynorsim_Ready(void)
     return;
   srand(random_seed);
   remaining_ops = 1000000000;
-  remaining_ops = (rand() % 10000) * 3000 * YNORSIM_BIT_CHANGES;
+  remaining_ops = (rand() % 10000) * 300 * YNORSIM_BIT_CHANGES;
   ynorsim_RestoreImage();
 }
 

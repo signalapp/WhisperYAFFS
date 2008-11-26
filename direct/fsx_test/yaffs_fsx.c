@@ -774,7 +774,10 @@ getnum(char *s, char **e)
 }
 
 
-#define BASE_NAME "/flash/yaffs1"
+#define BASE_NAME "/M18-1"
+
+int random_seed = 999;
+int simulate_power_failure = 0;
 
 int
 main(int argc, char **argv)

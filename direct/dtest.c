@@ -2281,9 +2281,25 @@ void random_small_file_test(const char *mountpt,int iterations)
 		
 	yaffs_unmount(mountpt);
 }
+
+void rmdir_test(const char *mountpt)
+{
+	char name[100];
+	yaffs_StartUp();
+	
+	yaffs_mount(mountpt);
+	
+	strcpy(name,mountpt);
+	strcat(name,"/");
+	strcat(name,"hello");
+	yaffs_mkdir(name,0666);
+	yaffs_rmdir(name);
+	yaffs_unmount(mountpt);
+}
 	
 
 int random_seed;
+int simulate_power_failure;
 
 int main(int argc, char *argv[])
 {
@@ -2300,7 +2316,9 @@ int main(int argc, char *argv[])
 	 //yaffs_backward_scan_test("/flash/flash");
 	// yaffs_device_flush_test("/flash/flash");
 
-	rename_over_test("//////////////////flash///////////////////yaffs1///////////");
+	//rename_over_test("//////////////////flash///////////////////yaffs1///////////");
+	
+	rmdir_test("M18-1");
 	
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);

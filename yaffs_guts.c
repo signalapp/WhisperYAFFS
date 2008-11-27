@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.66 2008-11-26 20:46:47 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.67 2008-11-27 02:46:45 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2993,17 +2993,17 @@ static int yaffs_GetErasedChunks(yaffs_Device * dev)
 
 }
 
-static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
+static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block, int wholeBlock)
 {
 	int oldChunk;
 	int newChunk;
-	int chunkInBlock;
 	int markNAND;
 	int retVal = YAFFS_OK;
 	int cleanups = 0;
 	int i;
 	int isCheckpointBlock;
 	int matchingChunk;
+	int maxCopies;
 
 	int chunksBefore = yaffs_GetErasedChunks(dev);
 	int chunksAfter;
@@ -3019,8 +3019,11 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 	bi->blockState = YAFFS_BLOCK_STATE_COLLECTING;
 
 	T(YAFFS_TRACE_TRACING,
-	  (TSTR("Collecting block %d, in use %d, shrink %d, " TENDSTR), block,
-	   bi->pagesInUse, bi->hasShrinkHeader));
+	  (TSTR("Collecting block %d, in use %d, shrink %d, wholeBlock %d" TENDSTR), 
+	  block,
+	  bi->pagesInUse,
+	  bi->hasShrinkHeader,
+	  wholeBlock));
 
 	/*yaffs_VerifyFreeChunks(dev); */
 
@@ -3046,14 +3049,20 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 		
 		yaffs_VerifyBlock(dev,bi,block);
 
-		for (chunkInBlock = 0, oldChunk = block * dev->nChunksPerBlock;
+		maxCopies = (wholeBlock) ? dev->nChunksPerBlock : 10;
+		oldChunk = block * dev->nChunksPerBlock + dev->gcChunk;
+		
+		for ( /* init already done */;
 		     retVal == YAFFS_OK &&
-		     chunkInBlock < dev->nChunksPerBlock
-		     && yaffs_StillSomeChunkBits(dev, block);
-		     chunkInBlock++, oldChunk++) {
-			if (yaffs_CheckChunkBit(dev, block, chunkInBlock)) {
+		     dev->gcChunk < dev->nChunksPerBlock &&
+		     (bi->blockState == YAFFS_BLOCK_STATE_COLLECTING)&&
+		     maxCopies > 0;
+		     dev->gcChunk++, oldChunk++) {
+			if (yaffs_CheckChunkBit(dev, block, dev->gcChunk)) {
 
 				/* This page is in use and might need to be copied off */
+				
+				maxCopies--;
 
 				markNAND = 1;
 
@@ -3068,8 +3077,8 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 
 				T(YAFFS_TRACE_GC_DETAIL,
 				  (TSTR
-				   ("Collecting page %d, %d %d %d " TENDSTR),
-				   chunkInBlock, tags.objectId, tags.chunkId,
+				   ("Collecting chunk in block %d, %d %d %d " TENDSTR),
+				   dev->gcChunk, tags.objectId, tags.chunkId,
 				   tags.byteCount));
 				   
 				if(object && !yaffs_SkipVerification(dev)){
@@ -3184,6 +3193,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 		}
 
 		yaffs_ReleaseTempBuffer(dev, buffer, __LINE__);
+		
 
 
 		/* Do any required cleanups */
@@ -3218,6 +3228,12 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block)
 		    TENDSTR), chunksBefore, chunksAfter));
 	}
 
+	/* If the gc completed then clear the current gcBlock so that we find another. */
+	if(bi->blockState != YAFFS_BLOCK_STATE_COLLECTING){
+		dev->gcBlock = -1;
+		dev->gcChunk = 0;
+	}
+	
 	dev->isDoingGC = 0;
 
 	return retVal;
@@ -3265,7 +3281,12 @@ static int yaffs_CheckGarbageCollection(yaffs_Device * dev)
 			aggressive = 0;
 		}
 
-		block = yaffs_FindBlockForGarbageCollection(dev, aggressive);
+		if(dev->gcBlock <= 0){
+			dev->gcBlock = yaffs_FindBlockForGarbageCollection(dev, aggressive);
+			dev->gcChunk = 0;
+		}
+		
+		block = dev->gcBlock;
 
 		if (block > 0) {
 			dev->garbageCollections++;
@@ -3278,7 +3299,7 @@ static int yaffs_CheckGarbageCollection(yaffs_Device * dev)
 			   ("yaffs: GC erasedBlocks %d aggressive %d" TENDSTR),
 			   dev->nErasedBlocks, aggressive));
 
-			gcOk = yaffs_GarbageCollectBlock(dev, block);
+			gcOk = yaffs_GarbageCollectBlock(dev,block,aggressive);
 		}
 
 		if (dev->nErasedBlocks < (dev->nReservedBlocks) && block > 0) {
@@ -3287,8 +3308,9 @@ static int yaffs_CheckGarbageCollection(yaffs_Device * dev)
 			   ("yaffs: GC !!!no reclaim!!! erasedBlocks %d after try %d block %d"
 			    TENDSTR), dev->nErasedBlocks, maxTries, block));
 		}
-	} while ((dev->nErasedBlocks < dev->nReservedBlocks) && (block > 0)
-		 && (maxTries < 2));
+	} while ((dev->nErasedBlocks < dev->nReservedBlocks) && 
+		 (block > 0) &&
+		 (maxTries < 2));
 
 	return aggressive ? gcOk : YAFFS_OK;
 }
@@ -7221,6 +7243,8 @@ int yaffs_GutsInitialise(yaffs_Device * dev)
 	dev->blockOffset = 0;
 	dev->chunkOffset = 0;
 	dev->nFreeChunks = 0;
+	
+	dev->gcBlock = -1;
 
 	if (dev->startBlock == 0) {
 		dev->internalStartBlock = dev->startBlock + 1;

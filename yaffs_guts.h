@@ -691,6 +691,8 @@ struct yaffs_DeviceStruct {
 	yaffs_TnodeList *allocatedTnodeList;
 
 	int isDoingGC;
+	int gcBlock;
+	int gcChunk;
 
 	int nObjectsCreated;
 	yaffs_Object *freeObjects;

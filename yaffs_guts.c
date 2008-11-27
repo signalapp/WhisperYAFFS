@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.67 2008-11-27 02:46:45 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.68 2008-11-27 20:32:52 charles Exp $";
 
 #include "yportenv.h"
 
@@ -406,13 +406,10 @@ static int yaffs_SkipVerification(yaffs_Device *dev)
 	return !(yaffs_traceMask & (YAFFS_TRACE_VERIFY | YAFFS_TRACE_VERIFY_FULL));
 }
 
-#if 0
 static int yaffs_SkipFullVerification(yaffs_Device *dev)
 {
 	return !(yaffs_traceMask & (YAFFS_TRACE_VERIFY_FULL));
 }
-
-#endif
 
 static int yaffs_SkipNANDVerification(yaffs_Device *dev)
 {
@@ -6711,17 +6708,23 @@ static void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
         
         int count = 0;
 
-	if(!obj)
+	if(!obj){
+		T(YAFFS_TRACE_ALWAYS, (TSTR("No object to verify" TENDSTR)));
 		YBUG();
+	}
 
         if(yaffs_SkipVerification(obj->myDev))
                 return;
 
-	if(!obj->parent)
+	if(!obj->parent){
+		T(YAFFS_TRACE_ALWAYS, (TSTR("Object does not have parent" TENDSTR)));
 		YBUG();
+	}
 		
-	if(obj->parent->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
+	if(obj->parent->variantType != YAFFS_OBJECT_TYPE_DIRECTORY){
+		T(YAFFS_TRACE_ALWAYS, (TSTR("Parent is not directory" TENDSTR)));
 		YBUG();
+	}
 	
         /* Iterate through the objects in each hash entry */
          
@@ -6734,9 +6737,10 @@ static void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
                 }
 	 }
 	 
-	 if(count != 1)
-	 	YBUG();
-	 
+	 if(count != 1){
+		T(YAFFS_TRACE_ALWAYS, (TSTR("Object in directory %d times" TENDSTR),count));
+		YBUG();
+	}
 
 }
 
@@ -6749,20 +6753,24 @@ static void yaffs_VerifyDirectory(yaffs_Object *directory)
 	if(!directory)
 		YBUG();
 
-        if(yaffs_SkipVerification(directory->myDev))
+        if(yaffs_SkipFullVerification(directory->myDev))
                 return;
 
 		
-	if(directory->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
+	if(directory->variantType != YAFFS_OBJECT_TYPE_DIRECTORY){
+		T(YAFFS_TRACE_ALWAYS, (TSTR("Directory has wrong type: %d" TENDSTR),directory->variantType));
 		YBUG();
+	}
 	
         /* Iterate through the objects in each hash entry */
          
         ylist_for_each(lh, &directory->variant.directoryVariant.children) {
 		if (lh) {
                         listObj = ylist_entry(lh, yaffs_Object, siblings);
-			if(listObj->parent != directory)
+			if(listObj->parent != directory){
+				T(YAFFS_TRACE_ALWAYS, (TSTR("Object in directory list has wrong parent" TENDSTR),listObj->parent));
 				YBUG();
+			}
 			yaffs_VerifyObjectInDirectory(listObj);
                 }
 	 }

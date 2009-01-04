@@ -37,7 +37,7 @@ unsigned yaffs_traceMask =
 	YAFFS_TRACE_CHECKPOINT |
 	YAFFS_TRACE_BAD_BLOCKS |
 
-/*	YAFFS_TRACE_VERIFY |  */
+	YAFFS_TRACE_VERIFY | 
 	
 	0;
         

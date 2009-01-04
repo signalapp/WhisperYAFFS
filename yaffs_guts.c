@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.68 2008-11-27 20:32:52 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.69 2009-01-04 21:44:23 charles Exp $";
 
 #include "yportenv.h"
 
@@ -482,9 +482,10 @@ static void yaffs_VerifyCollectedBlock(yaffs_Device *dev,yaffs_BlockInfo *bi,int
 	yaffs_VerifyBlock(dev,bi,n);
 	
 	/* After collection the block should be in the erased state */
-	/* TODO: This will need to change if we do partial gc */
+	/* This will need to change if we do partial gc */
 	
-	if(bi->blockState != YAFFS_BLOCK_STATE_EMPTY){
+	if(bi->blockState != YAFFS_BLOCK_STATE_COLLECTING &&
+	   bi->blockState != YAFFS_BLOCK_STATE_EMPTY){
 		T(YAFFS_TRACE_ERROR,(TSTR("Block %d is in state %d after gc, should be erased"TENDSTR),
 			n,bi->blockState));
 	}
@@ -6768,7 +6769,7 @@ static void yaffs_VerifyDirectory(yaffs_Object *directory)
 		if (lh) {
                         listObj = ylist_entry(lh, yaffs_Object, siblings);
 			if(listObj->parent != directory){
-				T(YAFFS_TRACE_ALWAYS, (TSTR("Object in directory list has wrong parent" TENDSTR),listObj->parent));
+				T(YAFFS_TRACE_ALWAYS, (TSTR("Object in directory list has wrong parent %p" TENDSTR),listObj->parent));
 				YBUG();
 			}
 			yaffs_VerifyObjectInDirectory(listObj);

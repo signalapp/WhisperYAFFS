@@ -11,5 +11,5 @@ do
    rm data*$j
    cp ynorsimdata data$i
    echo "######### Run $i with seed $seed"
-   ./yaffs_test /M18-1 fw_update $seed
+   ./yaffs_test -f -u -p -s$seed M18-1
 done

@@ -2,15 +2,36 @@
 
 
 #include "yaffsfs.h"
+#include "yaffs_fsx.h"
 
 #include <stdio.h>
 
+
+
+#if 1
+#define FSX_INIT(mount_pt) do{ if(interleave_fsx) yaffs_fsx_init(mount_pt); } while(0)
+#define FSX_COMPLETE() do { if(interleave_fsx) yaffs_fsx_complete(); } while (0)
+
+#define FSX() \
+do { \
+  if((myrand() & 0x1) == 0){\
+     if(interleave_fsx) \
+        yaffs_fsx_do_op(); \
+  } \
+} while(0)
+
+#else
+#define FSX_INIT(mount_point) do { } while(0)
+#define FSX_COMPLETE() do { } while(0)
+#define FSX() do { } while(0)
+#endif
 
 
 static unsigned powerUps;
 static unsigned cycleStarts;
 static unsigned cycleEnds;
 
+static int interleave_fsx;
 
 char fullPathName[100];
 char fullPowerUpName[100];
@@ -20,6 +41,13 @@ char fullMainName[100];
 char fullTempMainName[100];
 char fullTempCounterName[100];
 
+
+extern int random_seed;
+
+int myrand(void) {
+  random_seed = random_seed * 1103515245 + 12345;
+  return((unsigned)(random_seed/65536) % 32768);
+}
 
 void MakeName(char *fullName,const char *prefix, const char *name)
 {
@@ -77,11 +105,16 @@ static void UpdateCounter(const char *name, unsigned *val,  int initialise)
     x[1]++;
   }
   
+  FSX();
   outh = yaffs_open(fullTempCounterName, O_RDWR | O_TRUNC | O_CREAT, S_IREAD | S_IWRITE);
   if(outh >= 0){
+   FSX(); 
     nwritten = yaffs_write(outh,x,sizeof(x));
+    FSX();
     yaffs_close(outh);
+    FSX();
     yaffs_rename(fullTempCounterName,name);
+    FSX();
   }
   
   if(nwritten != sizeof(x)){
@@ -173,7 +206,9 @@ static int yWriteFile(const char *fname, unsigned sz32)
 	
 	printf("Writing file %s\n",fname);
 
+	FSX();
 	h = yaffs_open(fname,O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+	FSX();
 
 	if(h < 0){
 		printf("could not open file %s\n",fname);
@@ -186,13 +221,14 @@ static int yWriteFile(const char *fname, unsigned sz32)
 	if((r = yaffs_write(h,xx,sizeof(unsigned))) != sizeof(unsigned)){
 		goto WRITE_ERROR;
 	}
-		
+        FSX();
 	while(sz32> 0){
         	for(i = 0; i < XX_SIZE; i++){
         	  xx[i] = sz32 + i;
         	  checksum ^= xx[i];
                 }
-
+                
+                FSX();
 		if((r = yaffs_write(h,xx,sizeof(xx))) != sizeof(xx)){
 			goto WRITE_ERROR;
 		}
@@ -200,12 +236,12 @@ static int yWriteFile(const char *fname, unsigned sz32)
 	}
 
 	xx[0] = checksum;
-
+	FSX();
 	if((r = yaffs_write(h,xx,sizeof(unsigned))) != sizeof(unsigned)){
 		goto WRITE_ERROR;
 	}
 	
-	
+	FSX();
 	yaffs_close(h);
 	return 0;
 
@@ -290,12 +326,6 @@ static int yVerifyFile(const char *fName)
 	return retval;
 }
 
-extern int random_seed;
-
-int myrand(void) {
-  random_seed = random_seed * 1103515245 + 12345;
-  return((unsigned)(random_seed/65536) % 32768);
-}
 
 static void DoUpdateMainFile(void)
 {
@@ -304,9 +334,11 @@ static void DoUpdateMainFile(void)
         sz32 = (myrand() % 1000)   + 20;
         
 	result = yWriteFile(fullTempMainName,sz32);
+	FSX();
 	if(result)
 	    FatalError();
 	yaffs_rename(fullTempMainName,fullMainName);
+	FSX();
 }
 
 static void DoVerifyMainFile(void)
@@ -323,31 +355,29 @@ void NorStressTestInitialise(const char *prefix)
 {
   MakeFullNames(prefix);
   
-  yaffs_StartUp();
-  yaffs_mount(fullPathName);
   UpdateCounter(fullPowerUpName,&powerUps,1);
   UpdateCounter(fullStartName,&cycleStarts,1);
   UpdateCounter(fullEndName,&cycleEnds,1);
   UpdateCounter(fullPowerUpName,&powerUps,1);
   DoUpdateMainFile();
   DoVerifyMainFile();
-  yaffs_unmount(fullPathName);
 }
 
 
-void NorStressTestRun(const char *prefix)
+void NorStressTestRun(const char *prefix, int n_cycles, int do_fsx)
 {
+  interleave_fsx = do_fsx;
   MakeFullNames(prefix);
-
-  yaffs_StartUp();
-  yaffs_mount(fullPathName);
-  
+  FSX_INIT(prefix);
+    
   dump_directory_tree(fullPathName);
   
   UpdateCounter(fullPowerUpName,&powerUps,0);
   dump_directory_tree(fullPathName);
   
-  while(1){
+  while(n_cycles < 0 || n_cycles > 0){
+    if(n_cycles > 0)
+      n_cycles--;
     UpdateCounter(fullStartName, &cycleStarts,0);
     dump_directory_tree(fullPathName);
     DoVerifyMainFile();
@@ -357,4 +387,5 @@ void NorStressTestRun(const char *prefix)
     UpdateCounter(fullEndName,&cycleEnds,0);
     dump_directory_tree(fullPathName);
   }
+  FSX_COMPLETE();
 }

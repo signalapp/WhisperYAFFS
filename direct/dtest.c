@@ -2318,7 +2318,7 @@ int main(int argc, char *argv[])
 
 	//rename_over_test("//////////////////flash///////////////////yaffs1///////////");
 	
-	rmdir_test("M18-1");
+	rmdir_test("/M18-1");
 	
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);

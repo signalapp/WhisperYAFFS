@@ -19,7 +19,7 @@
  */
    
 //#define YNORSIM_BIT_CHANGES 15
-#define YNORSIM_BIT_CHANGES 1
+#define YNORSIM_BIT_CHANGES 2
 
 #if 0
 /* Simulate 32MB of flash in 256k byte blocks.
@@ -94,7 +94,7 @@ static void ynorsim_Ready(void)
     return;
   srand(random_seed);
   remaining_ops = 1000000000;
-  remaining_ops = (rand() % 10000) * 300 * YNORSIM_BIT_CHANGES;
+  remaining_ops = (rand() % 10000) * 4000 * YNORSIM_BIT_CHANGES;
   ynorsim_RestoreImage();
 }
 

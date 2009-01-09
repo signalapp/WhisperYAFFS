@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.69 2009-01-04 21:44:23 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.70 2009-01-09 02:52:28 charles Exp $";
 
 #include "yportenv.h"
 
@@ -4847,7 +4847,8 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
         int nToWriteBack;
         int startOfWrite = offset;
         int chunkWritten = 0;
-        int nBytesRead;
+        __u32 nBytesRead;
+        __u32 chunkStart;
 
 	yaffs_Device *dev;
 
@@ -4877,9 +4878,12 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
 			 * we need to write back as much as was there before.
 			 */
 
-			nBytesRead =
-			    in->variant.fileVariant.fileSize -
-			    ((chunk - 1) * dev->nDataBytesPerChunk);
+			chunkStart = ((chunk - 1) * dev->nDataBytesPerChunk);
+
+			if(chunkStart > in->variant.fileVariant.fileSize)
+				nBytesRead = 0; /* Past end of file */
+			else
+				nBytesRead = in->variant.fileVariant.fileSize - chunkStart;
 
 			if (nBytesRead > dev->nDataBytesPerChunk) {
 				nBytesRead = dev->nDataBytesPerChunk;
@@ -4887,7 +4891,10 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
 
 			nToWriteBack =
 			    (nBytesRead >
-			     ((int)start + n)) ? nBytesRead : (start + n);
+			     (start + n)) ? nBytesRead : (start + n);
+			
+			if(nToWriteBack < 0 || nToWriteBack > dev->nDataBytesPerChunk)
+				YBUG();
 
 		} else {
 			nToCopy = dev->nDataBytesPerChunk - start;

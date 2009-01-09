@@ -35,7 +35,7 @@
  *   
  */
 
-const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.3 2008-11-13 01:50:16 charles Exp $";
+const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.4 2009-01-09 02:54:14 charles Exp $";
 
 #include "yaffs_norif1.h"
 
@@ -225,7 +225,7 @@ int ynorif1_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaf
                 if(spare->pageStatus == YNOR_POSTMARKER)
                         spare->pageStatus = 0xFF;
 		else if(spare->pageStatus != 0xff &&
-			(spare->pageStatus | YNOR_PREMARKER != 0xff))
+			(spare->pageStatus | YNOR_PREMARKER) != 0xff)
 			spare->pageStatus = YNOR_PREMARKER;
         }
         

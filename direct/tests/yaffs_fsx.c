@@ -46,6 +46,8 @@
  *
  */
 
+#include "yaffs_fsx.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifdef _UWIN
@@ -133,7 +135,6 @@ int	writebdy = 1;			/* -w flag */
 long	monitorstart = -1;		/* -m flag */
 long	monitorend = -1;		/* -m flag */
 int	lite = 0;			/* -L flag */
-long	numops = /*-1 */ 10000000;			/* -N flag */
 int	randomoplen = 1;		/* -O flag disables it */
 int	seed = 1;			/* -S flag */
 
@@ -150,7 +151,7 @@ int closeopen = 0;
 void EXIT(int x)
 {
 	printf("fsx wanted to exit with %d\n",x);
-	while(1){}
+	while(x){}
 }
 
 char goodfile[1024];
@@ -798,8 +799,7 @@ int mounted_by_fsx = 0;
 int
 yaffs_fsx_init(const char *mount_pt)
 {
-	int	i, style, ch;
-	char	*endp;
+	int	i;
 
 	goodfile[0] = 0;
 	logfile[0] = 0;
@@ -905,10 +905,12 @@ int yaffs_fsx_complete(void)
 }
 
 int
-yaffs_fsx_main(const char *mount_pt)
+yaffs_fsx_main(const char *mount_pt, int numops)
 {
 	yaffs_fsx_init(mount_pt);
 	while (numops == -1 || numops--)
 		yaffs_fsx_do_op();
 	yaffs_fsx_complete();
+	
+	return 0;
 }

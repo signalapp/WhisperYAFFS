@@ -124,7 +124,6 @@ static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 	{ "/M18-1", &m18_1Dev},
 	{ "/yaffs2", &flashDev},
 	{ "/ram2k", &ram2kDev},
-	{ "/flash/bigblock", &flashDev},
 	{(void *)0,(void *)0} /* Null entry to terminate list */
 };
 

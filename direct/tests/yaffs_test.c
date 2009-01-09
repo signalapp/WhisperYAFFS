@@ -37,6 +37,8 @@ int init_test;
 int do_upgrade;
 int n_cycles = -1;
 
+extern int ops_multiplier;
+
 char mount_point[200];
 
 void BadUsage(void)
@@ -49,7 +51,7 @@ int main(int argc, char **argv)
 	int ch;
 	
 
-	while ((ch = getopt(argc,argv, "fin:ps:u"))
+	while ((ch = getopt(argc,argv, "filn:ps:u"))
 	       != EOF)
 		switch (ch) {
 		case 's':
@@ -63,6 +65,9 @@ int main(int argc, char **argv)
 			break;
 		case 'f':
 			do_fsx = 1;
+			break;
+		case 'l':
+			ops_multiplier *= 5;
 			break;
 		case 'u':
 			do_upgrade = 1;
@@ -99,7 +104,7 @@ int main(int argc, char **argv)
 			printf("Running stress on %s with seed %d\n",argv[1],random_seed);
 			NorStressTestRun(mount_point,n_cycles,do_fsx);
 		} else if(do_fsx){
-			yaffs_fsx_main(mount_point);
+			yaffs_fsx_main(mount_point,n_cycles);
 		}else {
 			printf("No test to run!\n");
 			BadUsage();

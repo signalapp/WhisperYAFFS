@@ -74,6 +74,8 @@ static int initialised = 0;
 static int remaining_ops;
 static int nops_so_far;
 
+int ops_multiplier = 500;
+
 static void ynorsim_MaybePowerFail(void)
 {
 
@@ -94,7 +96,7 @@ static void ynorsim_Ready(void)
     return;
   srand(random_seed);
   remaining_ops = 1000000000;
-  remaining_ops = (rand() % 10000) * 4000 * YNORSIM_BIT_CHANGES;
+  remaining_ops = (rand() % 10000) * ops_multiplier * YNORSIM_BIT_CHANGES;
   ynorsim_RestoreImage();
 }
 

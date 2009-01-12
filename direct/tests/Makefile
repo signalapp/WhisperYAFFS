@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.1 2009-01-04 21:44:24 charles Exp $
+# $Id: Makefile,v 1.2 2009-01-12 00:49:01 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -78,4 +78,4 @@ yaffs_test: $(SYMLINKS) $(YAFFSTESTOBJS)
 
 
 clean:
-	rm -f $(ALLOBJS) core
+	rm -f yaffs_test $(ALLOBJS) core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)

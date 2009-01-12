@@ -7,9 +7,9 @@ do
    seed=$RANDOM   
    j=$(( $i % 10 ))
    rm seed*$j
-   echo $seed>seed$i
+   echo $seed>seed-for-run-$i
    rm data*$j
-   cp ynorsimdata data$i
+   cp emfile-nor data-for-run-$i
    echo "######### Run $i with seed $seed"
    ./yaffs_test -f -u -p -s$seed M18-1
 done

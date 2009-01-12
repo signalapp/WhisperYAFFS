@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define YNORSIM_FNAME "ynorsimdata"
+#define YNORSIM_FNAME "emfile-nor"
 
 /* Set YNORSIM_BIT_CHANGES to a a value from 1..30 to 
  *simulate bit flipping as the programming happens. 

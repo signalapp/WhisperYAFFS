@@ -16,7 +16,7 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.15 2008-07-21 01:03:19 charles Exp $";
+const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.16 2009-01-12 00:49:01 charles Exp $";
 
 
 #include "yportenv.h"
@@ -71,7 +71,7 @@ static __u8 localBuffer[PAGE_SIZE];
 
 static char *NToName(char *buf,int n)
 {
-	sprintf(buf,"emfile2k-%d",n);
+	sprintf(buf,"emfile-2k-%d",n);
 	return buf;
 }
 

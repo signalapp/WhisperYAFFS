@@ -16,7 +16,7 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.4 2008-07-21 01:03:19 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.5 2009-01-12 00:49:01 charles Exp $";
 
 
 #include "yportenv.h"
@@ -83,7 +83,7 @@ static int  CheckInit(yaffs_Device *dev)
 	
 	filedisk.nBlocks = (SIZE_IN_MB * 1024 * 1024)/(16 * 1024);
 	
-	filedisk.handle = open("emfile512-0", O_RDWR | O_CREAT, S_IREAD | S_IWRITE);
+	filedisk.handle = open("emfile-512-0", O_RDWR | O_CREAT, S_IREAD | S_IWRITE);
 	
 	if(filedisk.handle < 0)
 	{

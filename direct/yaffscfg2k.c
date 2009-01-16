@@ -34,9 +34,7 @@ unsigned yaffs_traceMask =
 	YAFFS_TRACE_ERROR | 
 	YAFFS_TRACE_TRACING | 
 	YAFFS_TRACE_ALLOCATE | 
-	YAFFS_TRACE_CHECKPOINT |
 	YAFFS_TRACE_BAD_BLOCKS |
-
 	YAFFS_TRACE_VERIFY | 
 	
 	0;
@@ -167,21 +165,19 @@ int yaffs_StartUp(void)
 	m18_1Dev.deinitialiseNAND = ynorif1_DeinitialiseNAND;
 
 
-	// /flash (yaffs2)
+	// /yaffs2 
 	// Set this puppy up to use
 	// the file emulation space as
-	// 2kpage/64chunk per block/128MB device
+	// 2kpage/64chunk per block
+	//
 	memset(&flashDev,0,sizeof(flashDev));
 
-	flashDev.totalBytesPerChunk = 512;
+	flashDev.totalBytesPerChunk = 2048;
 	flashDev.nChunksPerBlock = 64;
 	flashDev.nReservedBlocks = 5;
-	flashDev.inbandTags = 1;
-	//flashDev.checkpointStartBlock = 1;
-	//flashDev.checkpointEndBlock = 20;
+	flashDev.inbandTags = 0;
 	flashDev.startBlock = 0;
-	flashDev.endBlock = 200; // Make it smaller
-	//flashDev.endBlock = yflash_GetNumberOfBlocks()-1;
+	flashDev.endBlock = yflash2_GetNumberOfBlocks()-1;
 	flashDev.isYaffs2 = 1;
 	flashDev.wideTnodesDisabled=0;
 	flashDev.nShortOpCaches = 10; // Use caches
@@ -193,27 +189,6 @@ int yaffs_StartUp(void)
 	flashDev.markNANDBlockBad = yflash2_MarkNANDBlockBad;
 	flashDev.queryNANDBlock = yflash2_QueryNANDBlock;
 
-	// /ram2k
-	// Set this puppy up to use
-	// the file emulation space as
-	// 2kpage/64chunk per block/128MB device
-	memset(&ram2kDev,0,sizeof(ram2kDev));
-
-	ram2kDev.totalBytesPerChunk = nandemul2k_GetBytesPerChunk();
-	ram2kDev.nChunksPerBlock = nandemul2k_GetChunksPerBlock();
-	ram2kDev.nReservedBlocks = 5;
-	ram2kDev.startBlock = 0; // First block after /boot
-	//ram2kDev.endBlock = 127; // Last block in 16MB
-	ram2kDev.endBlock = nandemul2k_GetNumberOfBlocks() - 1; // Last block in 512MB
-	ram2kDev.isYaffs2 = 1;
-	ram2kDev.nShortOpCaches = 10; // Use caches
-	ram2kDev.genericDevice = (void *) 3;	// Used to identify the device in fstat.
-	ram2kDev.writeChunkWithTagsToNAND = nandemul2k_WriteChunkWithTagsToNAND;
-	ram2kDev.readChunkWithTagsFromNAND = nandemul2k_ReadChunkWithTagsFromNAND;
-	ram2kDev.eraseBlockInNAND = nandemul2k_EraseBlockInNAND;
-	ram2kDev.initialiseNAND = nandemul2k_InitialiseNAND;
-	ram2kDev.markNANDBlockBad = nandemul2k_MarkNANDBlockBad;
-	ram2kDev.queryNANDBlock = nandemul2k_QueryNANDBlock;
 
 	yaffs_initialise(yaffsfs_config);
 	

@@ -18,7 +18,7 @@
 
 #if 1
 
-#define SIZE_IN_MB 128
+#define SIZE_IN_MB 32
 //#define SIZE_IN_MB 8000
 #define PAGE_DATA_SIZE (2048)
 #define PAGE_SPARE_SIZE  (64)

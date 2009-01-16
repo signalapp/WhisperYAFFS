@@ -16,7 +16,7 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.16 2009-01-12 00:49:01 charles Exp $";
+const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.17 2009-01-16 00:46:59 charles Exp $";
 
 
 #include "yportenv.h"
@@ -33,7 +33,6 @@ const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.16 2009-01-12 
 #include "yaffs_fileem2k.h"
 #include "yaffs_packedtags2.h"
 
-//#define SIMULATE_FAILURES
 
 
 #define REPORT_ERROR 0
@@ -52,7 +51,7 @@ typedef struct
 
 
 #define MAX_HANDLES 20
-#define BLOCKS_PER_HANDLE 8000
+#define BLOCKS_PER_HANDLE (32*8)
 
 typedef struct
 {
@@ -63,6 +62,30 @@ typedef struct
 static yflash_Device filedisk;
 
 int yaffs_testPartialWrite = 0;
+
+extern int random_seed;
+extern int simulate_power_failure;
+static int initialised = 0;
+static int remaining_ops;
+static int nops_so_far;
+
+int ops_multiplier;
+
+
+static void yflash2_MaybePowerFail(void)
+{
+
+   nops_so_far++;
+   
+   
+   remaining_ops--;
+   if(simulate_power_failure &&
+      remaining_ops < 1){
+       printf("Simulated power failure after %d operations\n",nops_so_far);
+    	exit(0);
+  }
+}
+
 
 
 
@@ -118,7 +141,11 @@ static int  CheckInit(void)
 
 	initialised = 1;
 	
-	memset(dummyBuffer,0xff,sizeof(dummyBuffer));
+
+	srand(random_seed);
+	remaining_ops = (rand() % 1000) * 2;
+  	memset(dummyBuffer,0xff,sizeof(dummyBuffer));
+
 	
 	
 	filedisk.nBlocks = SIZE_IN_MB * BLOCKS_PER_MB;
@@ -179,24 +206,25 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 	}
 	
 	else {
-	
+		/* First do a write of a partial page */
+		int n_partials;
+		int bpos;
+
 		if(data)
 		{
 			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
 			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 		
-			lseek(h,pos,SEEK_SET);
-			nRead =  read(h, localBuffer,dev->nDataBytesPerChunk);
-			for(i = error = 0; i < dev->nDataBytesPerChunk && !error; i++){
-				if(REPORT_ERROR && localBuffer[i] != 0xFF){
-					printf("nand simulation: chunk %d data byte %d was %0x2\n",
-						chunkInNAND,i,localBuffer[i]);
-					error = 1;
-				}
+			
+			memcpy(localBuffer,data, dev->nDataBytesPerChunk);
+			
+			n_partials = rand()%20;
+			
+			for(i = 0; i < n_partials; i++){
+				bpos = rand() % dev->nDataBytesPerChunk;
+				
+				localBuffer[bpos] |= (1 << (rand() & 7));
 			}
-		
-			for(i = 0; i < dev->nDataBytesPerChunk; i++)
-			localBuffer[i] &= data[i];
 		  
 			if(REPORT_ERROR && memcmp(localBuffer,data,dev->nDataBytesPerChunk))
 				printf("nand simulator: data does not match\n");
@@ -208,14 +236,85 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 				close(h);
 				exit(1);
 			}
-		
-#ifdef SIMULATE_FAILURES
-				if((chunkInNAND >> 6) == 100) 
-				written = 0;
 
-				if((chunkInNAND >> 6) == 110) 
-				written = 0;
-#endif
+
+			if(written != dev->nDataBytesPerChunk) return YAFFS_FAIL;
+		}
+		yflash2_MaybePowerFail();
+	
+		if(tags)
+		{
+			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE + PAGE_DATA_SIZE ;
+			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
+		
+			lseek(h,pos,SEEK_SET);
+
+			if( 0 && dev->isYaffs2)
+			{
+			
+				written = write(h,tags,sizeof(yaffs_ExtendedTags));
+				if(written != sizeof(yaffs_ExtendedTags)) return YAFFS_FAIL;
+			}
+			else
+			{
+				yaffs_PackedTags2 pt;
+				yaffs_PackTags2(&pt,tags);
+				__u8 * ptab = (__u8 *)&pt;
+
+				nRead = read(h,localBuffer,sizeof(pt));
+				for(i = error = 0; REPORT_ERROR && i < sizeof(pt) && !error; i++){
+					if(localBuffer[i] != 0xFF){
+						printf("nand simulation: chunk %d oob byte %d was %0x2\n",
+							chunkInNAND,i,localBuffer[i]);
+							error = 1;
+					}
+				}
+		
+				for(i = 0; i < sizeof(pt); i++)
+				localBuffer[i] &= ptab[i];
+				
+				n_partials = rand()% sizeof(pt);
+			
+				for(i = 0; i < n_partials; i++){
+					bpos = rand() % sizeof(pt);
+				
+					localBuffer[bpos] |= (1 << (rand() & 7));
+				}			
+			 
+				if(REPORT_ERROR && memcmp(localBuffer,&pt,sizeof(pt)))
+					printf("nand sim: tags corruption\n");
+				
+				lseek(h,pos,SEEK_SET);
+			
+				written = write(h,localBuffer,sizeof(pt));
+				if(written != sizeof(pt)) return YAFFS_FAIL;
+			}
+		}
+		
+		//yflash2_MaybePowerFail();
+		
+		/* Next do the whole write */
+		if(data)
+		{
+			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
+			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
+		
+			
+			memset(localBuffer,0xFF, PAGE_SIZE);		
+			for(i = 0; i < dev->nDataBytesPerChunk; i++){
+				localBuffer[i] &= data[i];
+			}
+		  
+			if(REPORT_ERROR && memcmp(localBuffer,data,dev->nDataBytesPerChunk))
+				printf("nand simulator: data does not match\n");
+			
+			lseek(h,pos,SEEK_SET);
+			written = write(h,localBuffer,dev->nDataBytesPerChunk);
+		
+			if(yaffs_testPartialWrite){
+				close(h);
+				exit(1);
+			}
 
 
 			if(written != dev->nDataBytesPerChunk) return YAFFS_FAIL;
@@ -261,6 +360,8 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 				if(written != sizeof(pt)) return YAFFS_FAIL;
 			}
 		}
+		
+		yflash2_MaybePowerFail();
 	
 	}
 	return YAFFS_OK;	

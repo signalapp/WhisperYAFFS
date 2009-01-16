@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 			simulate_power_failure = 0;
 			NorStressTestInitialise(mount_point);
 		} else if(do_upgrade){
-			printf("Running stress on %s with seed %d\n",argv[1],random_seed);
+			printf("Running stress on %s with seed %d\n",mount_point,random_seed);
 			NorStressTestRun(mount_point,n_cycles,do_fsx);
 		} else if(do_fsx){
 			yaffs_fsx_main(mount_point,n_cycles);

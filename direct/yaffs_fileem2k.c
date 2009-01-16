@@ -16,7 +16,7 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.17 2009-01-16 00:46:59 charles Exp $";
+const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.18 2009-01-16 02:26:56 charles Exp $";
 
 
 #include "yportenv.h"
@@ -143,7 +143,7 @@ static int  CheckInit(void)
 	
 
 	srand(random_seed);
-	remaining_ops = (rand() % 1000) * 2;
+	remaining_ops = (rand() % 1000) * 5;
   	memset(dummyBuffer,0xff,sizeof(dummyBuffer));
 
 	

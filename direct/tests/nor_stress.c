@@ -71,7 +71,9 @@ void MakeFullNames(const char *prefix)
 static void FatalError(void)
 {
   printf("Integrity error\n");
-  while(1){}
+  while(1){
+   sleep(1);
+  }
 }
 
 static void UpdateCounter(const char *name, unsigned *val,  int initialise)

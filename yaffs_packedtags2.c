@@ -163,15 +163,11 @@ void yaffs_UnpackTags2TagsPart(yaffs_ExtendedTags * t, yaffs_PackedTags2TagsPart
 void yaffs_UnpackTags2(yaffs_ExtendedTags * t, yaffs_PackedTags2 * pt)
 {
 
-	yaffs_UnpackTags2TagsPart(t,&pt->t);
-
+	yaffs_ECCResult eccResult = YAFFS_ECC_RESULT_NO_ERROR;
+	
 	if (pt->t.sequenceNumber != 0xFFFFFFFF) {
 		/* Page is in use */
-#ifdef YAFFS_IGNORE_TAGS_ECC
-		{
-			t->eccResult = YAFFS_ECC_RESULT_NO_ERROR;
-		}
-#else
+#ifndef YAFFS_IGNORE_TAGS_ECC
 		{
 			yaffs_ECCOther ecc;
 			int result;
@@ -186,20 +182,24 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags * t, yaffs_PackedTags2 * pt)
 						  &pt->ecc, &ecc);
 			switch(result){
 				case 0:
-					t->eccResult = YAFFS_ECC_RESULT_NO_ERROR;
+					eccResult = YAFFS_ECC_RESULT_NO_ERROR;
 					break;
 				case 1:
-					t->eccResult = YAFFS_ECC_RESULT_FIXED;
+					eccResult = YAFFS_ECC_RESULT_FIXED;
 					break;
 				case -1:
-					t->eccResult = YAFFS_ECC_RESULT_UNFIXED;
+					eccResult = YAFFS_ECC_RESULT_UNFIXED;
 					break;
 				default:
-					t->eccResult = YAFFS_ECC_RESULT_UNKNOWN;
+					eccResult = YAFFS_ECC_RESULT_UNKNOWN;
 			}
 		}
 #endif
 	}
+
+	yaffs_UnpackTags2TagsPart(t,&pt->t);
+	
+	t->eccResult = eccResult;
 
 	yaffs_DumpPackedTags2(pt);
 	yaffs_DumpTags2(t);

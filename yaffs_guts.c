@@ -13,7 +13,7 @@
 
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.72 2009-01-16 00:44:45 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.73 2009-01-16 02:14:52 charles Exp $";
 
 #include "yportenv.h"
 
@@ -752,9 +752,14 @@ static void yaffs_VerifyObject(yaffs_Object *obj)
 	__u32 chunkMax;
 	
 	__u32 chunkIdOk;
-	__u32 chunkIsLive;
+	__u32 chunkInRange;
+	__u32 chunkShouldNotBeDeleted;
+	__u32 chunkValid; 
 	
 	if(!obj)
+		return;
+		
+	if(obj->beingCreated)
 		return;
 	
 	dev = obj->myDev;
@@ -767,21 +772,24 @@ static void yaffs_VerifyObject(yaffs_Object *obj)
 	chunkMin = dev->internalStartBlock * dev->nChunksPerBlock;
 	chunkMax = (dev->internalEndBlock+1) * dev->nChunksPerBlock - 1;
 
-	chunkIdOk = (((unsigned)(obj->hdrChunk)) >= chunkMin && ((unsigned)(obj->hdrChunk)) <= chunkMax);
-	chunkIsLive = chunkIdOk &&
+	chunkInRange = (((unsigned)(obj->hdrChunk)) >= chunkMin && ((unsigned)(obj->hdrChunk)) <= chunkMax);
+	chunkIdOk = chunkInRange || obj->hdrChunk == 0;
+	chunkValid  =  chunkInRange &&
 			yaffs_CheckChunkBit(dev,
 					    obj->hdrChunk / dev->nChunksPerBlock,
 					    obj->hdrChunk % dev->nChunksPerBlock);
+	chunkShouldNotBeDeleted = chunkInRange && !chunkValid;
+
 	if(!obj->fake &&
-	    (!chunkIdOk || !chunkIsLive)) {
+	    (!chunkIdOk || chunkShouldNotBeDeleted)) {
 	   T(YAFFS_TRACE_VERIFY,
 	   (TSTR("Obj %d has chunkId %d %s %s"TENDSTR),
 	   obj->objectId,obj->hdrChunk,
 	   chunkIdOk ? "" : ",out of range",
-	   chunkIsLive || !chunkIdOk ? "" : ",marked as deleted"));
+	   chunkShouldNotBeDeleted ? ",marked as deleted" : ""));
 	}
 	
-	if(chunkIdOk && chunkIsLive &&!yaffs_SkipNANDVerification(dev)) {
+	if(chunkValid &&!yaffs_SkipNANDVerification(dev)) {
 		yaffs_ExtendedTags tags;
 		yaffs_ObjectHeader *oh;
 		__u8 *buffer = yaffs_GetTempBuffer(dev,__LINE__);
@@ -1926,6 +1934,8 @@ static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device * dev)
 		/* Now sweeten it up... */
 
 		memset(tn, 0, sizeof(yaffs_Object));
+		tn->beingCreated = 1;
+		
 		tn->myDev = dev;
 		tn->hdrChunk = 0;
 		tn->variantType = YAFFS_OBJECT_TYPE_UNKNOWN;
@@ -1947,6 +1957,8 @@ static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device * dev)
 		if (dev->lostNFoundDir) {
 			yaffs_AddObjectToDirectory(dev->lostNFoundDir, tn);
 		}
+		
+		tn->beingCreated = 0;
 	}
 	
 	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/

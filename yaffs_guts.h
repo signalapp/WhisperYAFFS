@@ -421,6 +421,7 @@ struct yaffs_ObjectStruct {
 				 * still in the inode cache. Free of object is defered.
 				 * until the inode is released.
                                  */
+        __u8 beingCreated:1;	/* This object is still being created so skip some checks. */
 
         __u8 serial;            /* serial number of chunk in NAND. Cached here */
 /*        __u16 sum_prev; */

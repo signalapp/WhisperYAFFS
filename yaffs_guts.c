@@ -11,8 +11,9 @@
  * published by the Free Software Foundation.
  */
 
+
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.71 2009-01-12 00:53:47 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.72 2009-01-16 00:44:45 charles Exp $";
 
 #include "yportenv.h"
 
@@ -4363,7 +4364,6 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object * in, yaffs_Tnode * tn,
 			}
 		} else if (level == 0) {
 			__u32 baseOffset = chunkOffset <<  YAFFS_TNODES_LEVEL0_BITS;
-			/* printf("write tnode at %d\n",baseOffset); */
 			ok = (yaffs_CheckpointWrite(dev,&baseOffset,sizeof(baseOffset)) == sizeof(baseOffset));
 			if(ok)
 				ok = (yaffs_CheckpointWrite(dev,tn,tnodeSize) == tnodeSize);
@@ -4412,7 +4412,6 @@ static int yaffs_ReadCheckpointTnodes(yaffs_Object *obj)
 		/* Read level 0 tnode */
 		
 		
-		/* printf("read  tnode at %d\n",baseChunk); */
 		tn = yaffs_GetTnodeRaw(dev);
 		if(tn)
 			ok = (yaffs_CheckpointRead(dev,tn,tnodeSize) == tnodeSize);
@@ -6286,7 +6285,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 				dev->nFreeChunks++;
 				
-			} else if (tags.chunkId > 0) {
+			} else if (tags.eccResult == YAFFS_ECC_RESULT_UNFIXED){
+				printf("Error in ECC\n");
+				/* Don't actually delete because the chunk is not yet set up as being in use */
+				/* yaffs_DeleteChunk(dev, chunk, 1, __LINE__); */
+			}else if (tags.chunkId > 0) {
 				/* chunkId > 0 so it is a data chunk... */
 				unsigned int endpos;
 				__u32 chunkBase =

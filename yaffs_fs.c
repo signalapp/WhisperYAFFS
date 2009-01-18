@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.69 2008-08-28 02:42:11 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.70 2009-01-18 21:50:37 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -103,14 +103,17 @@ extern const char *yaffs_guts_c_version;
 
 unsigned int yaffs_traceMask = YAFFS_TRACE_BAD_BLOCKS;
 unsigned int yaffs_wr_attempts = YAFFS_WR_ATTEMPTS;
+unsigned int yaffs_auto_checkpoint = 1;
 
 /* Module Parameters */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 module_param(yaffs_traceMask,uint,0644);
 module_param(yaffs_wr_attempts,uint,0644);
+module_param(yaffs_auto_checkpoint,uint,0644);
 #else
 MODULE_PARM(yaffs_traceMask,"i");
 MODULE_PARM(yaffs_wr_attempts,"i");
+MODULE_PARM(yaffs_auto_checkpoint,"i");
 #endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,25))
@@ -1471,7 +1474,8 @@ static int yaffs_write_super(struct super_block *sb)
 {
 
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_write_super\n"));
-	yaffs_do_sync_fs(sb);
+	if (yaffs_auto_checkpoint >= 2)
+		yaffs_do_sync_fs(sb);
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18))
 	return 0; 
 #endif
@@ -1487,7 +1491,8 @@ static int yaffs_sync_fs(struct super_block *sb)
 
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_sync_fs\n"));
 
-	yaffs_do_sync_fs(sb);
+	if (yaffs_auto_checkpoint >= 1)
+		yaffs_do_sync_fs(sb);
 	
 	return 0; 
 
@@ -1636,8 +1641,8 @@ static void yaffs_MarkSuperBlockDirty(void *vsb)
 	struct super_block *sb = (struct super_block *)vsb;
 
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_MarkSuperBlockDirty() sb = %p\n",sb));
-//	if(sb)
-//		sb->s_dirt = 1;
+	if(sb)
+		sb->s_dirt = 1;
 }
 
 typedef struct {
@@ -1979,6 +1984,9 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		return NULL;
 	}
 	sb->s_root = root;
+	sb->s_dirt = !dev->isCheckpointed;
+	T(YAFFS_TRACE_ALWAYS,
+	  ("yaffs_read_super: isCheckpointed %d\n", dev->isCheckpointed));
 
 	T(YAFFS_TRACE_OS, ("yaffs_read_super: done\n"));
 	return sb;

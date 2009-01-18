@@ -13,7 +13,7 @@
 
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.73 2009-01-16 02:14:52 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.74 2009-01-18 23:24:08 charles Exp $";
 
 #include "yportenv.h"
 
@@ -6298,7 +6298,10 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 				dev->nFreeChunks++;
 				
 			} else if (tags.eccResult == YAFFS_ECC_RESULT_UNFIXED){
-				printf("Error in ECC\n");
+				T(YAFFS_TRACE_SCAN,
+				  (TSTR(" Unfixed ECC in chunk(%d:%d), chunk ignored"TENDSTR),
+				  blk, c));
+
 				/* Don't actually delete because the chunk is not yet set up as being in use */
 				/* yaffs_DeleteChunk(dev, chunk, 1, __LINE__); */
 			}else if (tags.chunkId > 0) {

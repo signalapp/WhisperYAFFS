@@ -11,5 +11,5 @@ do
    rm emfile-2k-0-*$j
    cp emfile-2k-0 emfile-2k-0-$i
    echo "######### Run $i with seed $seed"
-   ./yaffs_test -u -p -s$seed yaffs2
+   ./yaffs_test -u -f -p -s$seed yaffs2
 done

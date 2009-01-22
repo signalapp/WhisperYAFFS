@@ -16,7 +16,7 @@
 #
 #  Somewhat "inspired by" the mtd patchin script
 #
-#  $Id: patch-ker.sh,v 1.4 2007-12-13 15:35:17 wookey Exp $
+#  $Id: patch-ker.sh,v 1.5 2009-01-22 00:44:46 charles Exp $
 
 VERSION=0
 PATCHLEVEL=0
@@ -92,12 +92,12 @@ else
     YAFFS_PATCHED=1
     echo "Updating $KCONFIG"
     mv -f $KCONFIG  $KCONFIGOLD
-    sed -n -e "/JFFS/,99999 ! p" $KCONFIGOLD >$KCONFIG
+    sed -n -e "/[Jj][Ff][Ff][Ss]/,99999 ! p" $KCONFIGOLD >$KCONFIG
     echo "">>$KCONFIG
     echo "# Patched by YAFFS" >>$KCONFIG
     echo "source \"fs/yaffs2/Kconfig\"">>$KCONFIG
     echo "">>$KCONFIG
-    sed -n -e "/JFFS/,99999 p" $KCONFIGOLD >>$KCONFIG
+    sed -n -e "/[Jj][Ff][Ff][Ss]/,99999 p" $KCONFIGOLD >>$KCONFIG
 
    # now do fs/Makefile -- simply add the target at the end
     echo "Updating $MAKEFILE"

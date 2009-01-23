@@ -13,7 +13,7 @@
 
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.75 2009-01-23 00:31:01 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.76 2009-01-23 06:36:49 charles Exp $";
 
 #include "yportenv.h"
 
@@ -33,11 +33,6 @@ const char *yaffs_guts_c_version =
 #include "yaffs_nand.h"
 #include "yaffs_packedtags2.h"
 
-
-#ifdef CONFIG_YAFFS_WINCE
-void yfsd_LockYAFFS(BOOL fsLockOnly);
-void yfsd_UnlockYAFFS(BOOL fsLockOnly);
-#endif
 
 #define YAFFS_PASSIVE_GC_CHUNKS 2
 
@@ -4783,14 +4778,9 @@ int yaffs_ReadDataFromFile(yaffs_Object * in, __u8 * buffer, loff_t offset,
 
 				cache->locked = 1;
 
-#ifdef CONFIG_YAFFS_WINCE
-				yfsd_UnlockYAFFS(TRUE);
-#endif
+
 				memcpy(buffer, &cache->data[start], nToCopy);
 
-#ifdef CONFIG_YAFFS_WINCE
-				yfsd_LockYAFFS(TRUE);
-#endif
 				cache->locked = 0;
 			} else {
 				/* Read into the local buffer then copy..*/
@@ -4799,41 +4789,19 @@ int yaffs_ReadDataFromFile(yaffs_Object * in, __u8 * buffer, loff_t offset,
 				    yaffs_GetTempBuffer(dev, __LINE__);
 				yaffs_ReadChunkDataFromObject(in, chunk,
 							      localBuffer);
-#ifdef CONFIG_YAFFS_WINCE
-				yfsd_UnlockYAFFS(TRUE);
-#endif
+
 				memcpy(buffer, &localBuffer[start], nToCopy);
 
-#ifdef CONFIG_YAFFS_WINCE
-				yfsd_LockYAFFS(TRUE);
-#endif
+
 				yaffs_ReleaseTempBuffer(dev, localBuffer,
 							__LINE__);
 			}
 
 		} else {
-#ifdef CONFIG_YAFFS_WINCE
-			__u8 *localBuffer = yaffs_GetTempBuffer(dev, __LINE__);
 
-			/* Under WinCE can't do direct transfer. Need to use a local buffer.
-			 * This is because we otherwise screw up WinCE's memory mapper
-			 */
-			yaffs_ReadChunkDataFromObject(in, chunk, localBuffer);
-
-#ifdef CONFIG_YAFFS_WINCE
-			yfsd_UnlockYAFFS(TRUE);
-#endif
-			memcpy(buffer, localBuffer, dev->nDataBytesPerChunk);
-
-#ifdef CONFIG_YAFFS_WINCE
-			yfsd_LockYAFFS(TRUE);
-			yaffs_ReleaseTempBuffer(dev, localBuffer, __LINE__);
-#endif
-
-#else
 			/* A full chunk. Read directly into the supplied buffer. */
 			yaffs_ReadChunkDataFromObject(in, chunk, buffer);
-#endif
+
 		}
 
 		n -= nToCopy;
@@ -4945,16 +4913,12 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
 				if (cache) {
 					yaffs_UseChunkCache(dev, cache, 1);
 					cache->locked = 1;
-#ifdef CONFIG_YAFFS_WINCE
-					yfsd_UnlockYAFFS(TRUE);
-#endif
+
 
 					memcpy(&cache->data[start], buffer,
 					       nToCopy);
 
-#ifdef CONFIG_YAFFS_WINCE
-					yfsd_LockYAFFS(TRUE);
-#endif
+
 					cache->locked = 0;
 					cache->nBytes = nToWriteBack;
 
@@ -4982,15 +4946,10 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
 				yaffs_ReadChunkDataFromObject(in, chunk,
 							      localBuffer);
 
-#ifdef CONFIG_YAFFS_WINCE
-				yfsd_UnlockYAFFS(TRUE);
-#endif
+
 
 				memcpy(&localBuffer[start], buffer, nToCopy);
 
-#ifdef CONFIG_YAFFS_WINCE
-				yfsd_LockYAFFS(TRUE);
-#endif
 				chunkWritten =
 				    yaffs_WriteChunkDataToObject(in, chunk,
 								 localBuffer,
@@ -5005,30 +4964,13 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
 		} else {
 			/* A full chunk. Write directly from the supplied buffer. */
 			
-#ifdef CONFIG_YAFFS_WINCE
-			/* Under WinCE can't do direct transfer. Need to use a local buffer.
-			 * This is because we otherwise screw up WinCE's memory mapper
-			 */
-			__u8 *localBuffer = yaffs_GetTempBuffer(dev, __LINE__);
-#ifdef CONFIG_YAFFS_WINCE
-			yfsd_UnlockYAFFS(TRUE);
-#endif
-			memcpy(localBuffer, buffer, dev->nDataBytesPerChunk);
-#ifdef CONFIG_YAFFS_WINCE
-			yfsd_LockYAFFS(TRUE);
-#endif
-			chunkWritten =
-			    yaffs_WriteChunkDataToObject(in, chunk, localBuffer,
-							 dev->nDataBytesPerChunk,
-							 0);
-			yaffs_ReleaseTempBuffer(dev, localBuffer, __LINE__);
-#else
+
 
 			chunkWritten =
 			    yaffs_WriteChunkDataToObject(in, chunk, buffer,
 							 dev->nDataBytesPerChunk,
 							 0);
-#endif
+
 			/* Since we've overwritten the cached data, we better invalidate it. */
 			yaffs_InvalidateChunkCache(in, chunk);
 		}

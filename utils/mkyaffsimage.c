@@ -241,7 +241,7 @@ static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
 	
 	t.chunkId = chunkId;
 	t.serialNumber = 0;
-	t.byteCount = nBytes;
+	t.byteCountLSB = nBytes;
 	t.objectId = objId;
 
     if (convert_endian)

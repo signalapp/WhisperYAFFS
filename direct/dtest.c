@@ -22,7 +22,6 @@
 
 #include "yaffsfs.h"
 
-#include "nor_stress.h"
 
 void dumpDir(const char *dname);
 

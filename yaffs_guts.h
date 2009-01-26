@@ -108,6 +108,9 @@
 #define YAFFS_LOWEST_SEQUENCE_NUMBER	0x00001000
 #define YAFFS_HIGHEST_SEQUENCE_NUMBER	0xEFFFFF00
 
+/* Special sequence number for bad block that failed to be marked bad */
+#define YAFFS_SEQUENCE_BAD_BLOCK	0xFFFF0000
+
 /* ChunkCache is used for short read/write operations.*/
 typedef struct {
 	struct yaffs_ObjectStruct *object;
@@ -423,10 +426,8 @@ struct yaffs_ObjectStruct {
                                  */
         __u8 beingCreated:1;	/* This object is still being created so skip some checks. */
 
-        __u8 serial;            /* serial number of chunk in NAND. Cached here */
-/*        __u16 sum_prev; */
-        __u16 sum;              /* sum of the name to speed searching */
-/*        __u16 sum_trailer; */
+	__u8 serial;		/* serial number of chunk in NAND. Cached here */
+	__u16 sum;		/* sum of the name to speed searching */
 
         struct yaffs_DeviceStruct *myDev;       /* The device I'm on */
 
@@ -446,10 +447,10 @@ struct yaffs_ObjectStruct {
 
 	__u32 objectId;		/* the object id value */
 
-        __u32 yst_mode;
+	__u32 yst_mode;
 
 #ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
-        YCHAR shortName[YAFFS_SHORT_NAME_LENGTH + 1];
+	YCHAR shortName[YAFFS_SHORT_NAME_LENGTH + 1];
 #endif
 
 #ifndef __KERNEL__
@@ -581,7 +582,7 @@ struct yaffs_DeviceStruct {
         int (*deinitialiseNAND) (struct yaffs_DeviceStruct * dev);
 
 #ifdef CONFIG_YAFFS_YAFFS2
-        int (*writeChunkWithTagsToNAND) (struct yaffs_DeviceStruct * dev,
+	int (*writeChunkWithTagsToNAND) (struct yaffs_DeviceStruct * dev,
 					 int chunkInNAND, const __u8 * data,
 					 const yaffs_ExtendedTags * tags);
 	int (*readChunkWithTagsFromNAND) (struct yaffs_DeviceStruct * dev,

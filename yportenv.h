@@ -65,7 +65,7 @@
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
 
 /* #define YPRINTF(x) printk x */
-#define YMALLOC(x) kmalloc(x,GFP_KERNEL)
+#define YMALLOC(x) kmalloc(x,GFP_NOFS)
 #define YFREE(x)   kfree(x)
 #define YMALLOC_ALT(x) vmalloc(x)
 #define YFREE_ALT(x)   vfree(x)

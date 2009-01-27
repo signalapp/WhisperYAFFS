@@ -11,9 +11,8 @@
  * published by the Free Software Foundation.
  */
 
-
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.76 2009-01-23 06:36:49 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.77 2009-01-27 02:00:42 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1034,7 +1033,30 @@ static void yaffs_RetireBlock(yaffs_Device * dev, int blockInNAND)
 
 	yaffs_InvalidateCheckpoint(dev);
 	
-	yaffs_MarkBlockBad(dev, blockInNAND);
+	if (yaffs_MarkBlockBad(dev, blockInNAND) != YAFFS_OK) {
+		if (yaffs_EraseBlockInNAND(dev, blockInNAND) != YAFFS_OK) {
+			T(YAFFS_TRACE_ALWAYS, (TSTR(
+				"yaffs: Failed to mark bad and erase block %d"
+				TENDSTR), blockInNAND));
+		}
+		else {
+			yaffs_ExtendedTags tags;
+			int chunkId = blockInNAND * dev->nChunksPerBlock;
+
+			__u8 *buffer = yaffs_GetTempBuffer(dev, __LINE__);
+
+			memset(buffer, 0xff, dev->nDataBytesPerChunk);
+			yaffs_InitialiseTags(&tags);
+			tags.sequenceNumber = YAFFS_SEQUENCE_BAD_BLOCK;
+			if (dev->writeChunkWithTagsToNAND(dev, chunkId -
+			    dev->chunkOffset, buffer, &tags) != YAFFS_OK)
+				T(YAFFS_TRACE_ALWAYS, (TSTR("yaffs: Failed to "
+					"write bad block marker to block %d"
+					TENDSTR), blockInNAND));
+
+			yaffs_ReleaseTempBuffer(dev, buffer, __LINE__);
+		}
+	}
 
 	bi->blockState = YAFFS_BLOCK_STATE_DEAD;
 	bi->gcPrioritise = 0;
@@ -1118,7 +1140,6 @@ static __u16 yaffs_CalcNameSum(const YCHAR * name)
 			bname++;
 		}
 	}
-	
 	return sum;
 }
 
@@ -2226,12 +2247,6 @@ yaffs_Object *yaffs_CreateNewObject(yaffs_Device * dev, int number,
 		theObject->yst_atime = theObject->yst_mtime =
 		    theObject->yst_ctime = Y_CURRENT_TIME;
 #endif
-
-#if 0
-		theObject->sum_prev = 12345;
-		theObject->sum_trailer = 6789;
-#endif
-
 		switch (type) {
 		case YAFFS_OBJECT_TYPE_FILE:
 			theObject->variant.fileVariant.fileSize = 0;
@@ -3157,13 +3172,11 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block, int wholeBlo
 						 * We need to nuke the shrinkheader flags first
 						 * We no longer want the shrinkHeader flag since its work is done
 						 * and if it is left in place it will mess up scanning.
-						 * Also, clear out any shadowing stuff
 						 */
 
 						yaffs_ObjectHeader *oh;
 						oh = (yaffs_ObjectHeader *)buffer;
 						oh->isShrink = 0;
-						tags.extraShadows = 0;
 						tags.extraIsShrinkHeader = 0;
 						
 						yaffs_VerifyObjectHeader(object,oh,&tags,1);
@@ -3199,7 +3212,6 @@ static int yaffs_GarbageCollectBlock(yaffs_Device * dev, int block, int wholeBlo
 		}
 
 		yaffs_ReleaseTempBuffer(dev, buffer, __LINE__);
-		
 
 
 		/* Do any required cleanups */
@@ -4306,10 +4318,18 @@ static void yaffs_ObjectToCheckpointObject(yaffs_CheckpointObject *cp,
 		cp->fileSizeOrEquivalentObjectId = obj->variant.hardLinkVariant.equivalentObjectId;
 }
 
-static void yaffs_CheckpointObjectToObject( yaffs_Object *obj,yaffs_CheckpointObject *cp)
+static int yaffs_CheckpointObjectToObject( yaffs_Object *obj,yaffs_CheckpointObject *cp)
 {
 
 	yaffs_Object *parent;
+
+	if (obj->variantType != cp->variantType) {
+		T(YAFFS_TRACE_ERROR,(TSTR("Checkpoint read object %d type %d "
+			"chunk %d does not match existing object type %d"
+			TENDSTR), cp->objectId, cp->variantType, cp->hdrChunk,
+			obj->variantType));
+		return 0;
+	}
 	
 	obj->objectId = cp->objectId;
 	
@@ -4321,8 +4341,14 @@ static void yaffs_CheckpointObjectToObject( yaffs_Object *obj,yaffs_CheckpointOb
 	else
 		parent = NULL;
 		
-	if(parent)
+	if(parent) {
+		if (parent->variantType != YAFFS_OBJECT_TYPE_DIRECTORY) {
+			T(YAFFS_TRACE_ALWAYS,(TSTR("Checkpoint read object %d parent %d type %d chunk %d Parent type, %d, not directory"TENDSTR),
+				cp->objectId,cp->parentId,cp->variantType,cp->hdrChunk,parent->variantType));
+			return 0;
+		}
 		yaffs_AddObjectToDirectory(parent, obj);
+	}
 
 	obj->hdrChunk = cp->hdrChunk;
 	obj->variantType = cp->variantType;
@@ -4342,6 +4368,7 @@ static void yaffs_CheckpointObjectToObject( yaffs_Object *obj,yaffs_CheckpointOb
 
 	if(obj->hdrChunk > 0)
 		obj->lazyLoaded = 1;
+	return 1;
 }
 
 
@@ -4515,7 +4542,9 @@ static int yaffs_ReadCheckpointObjects(yaffs_Device *dev)
 		else if(ok){
 			obj = yaffs_FindOrCreateObjectByNumber(dev,cp.objectId, cp.variantType);
 			if(obj) {
-				yaffs_CheckpointObjectToObject(obj,&cp);
+				ok = yaffs_CheckpointObjectToObject(obj,&cp);
+				if (!ok)
+					break;
 				if(obj->variantType == YAFFS_OBJECT_TYPE_FILE) {
                                         ok = yaffs_ReadCheckpointTnodes(obj);
                                 } else if(obj->variantType == YAFFS_OBJECT_TYPE_HARDLINK) {
@@ -4526,6 +4555,8 @@ static int yaffs_ReadCheckpointObjects(yaffs_Device *dev)
                                 }
 			   
 			}
+			else
+				ok = 0;
 		}
 	}
 	
@@ -5176,7 +5207,6 @@ static int yaffs_DoGenericObjectDeletion(yaffs_Object * in)
  * and the inode associated with the file.
  * It does not delete the links associated with the file.
  */
- 
 static int yaffs_UnlinkFile(yaffs_Object * in)
 {
 
@@ -5402,6 +5432,8 @@ static void yaffs_HandleShadowedObject(yaffs_Device * dev, int objId,
 	obj =
 	    yaffs_FindOrCreateObjectByNumber(dev, objId,
 					     YAFFS_OBJECT_TYPE_FILE);
+	if (!obj)
+		return;
 	yaffs_AddObjectToDirectory(dev->unlinkedDir, obj);
 	obj->variant.fileVariant.shrinkSize = 0;
 	obj->valid = 1;		/* So that we don't read any other info for this file */
@@ -5544,6 +5576,9 @@ static int yaffs_Scan(yaffs_Device * dev)
 
 		bi->blockState = state;
 		bi->sequenceNumber = sequenceNumber;
+
+		if(bi->sequenceNumber == YAFFS_SEQUENCE_BAD_BLOCK)
+			bi->blockState = state = YAFFS_BLOCK_STATE_DEAD;
 
 		T(YAFFS_TRACE_SCAN_DEBUG,
 		  (TSTR("Block scanning block %d state %d seq %d" TENDSTR), blk,
@@ -5790,7 +5825,9 @@ static int yaffs_Scan(yaffs_Device * dev)
 					    yaffs_FindOrCreateObjectByNumber
 					    (dev, oh->parentObjectId,
 					     YAFFS_OBJECT_TYPE_DIRECTORY);
-					if (parent->variantType ==
+					if(!parent)
+						alloc_failed = 1;
+					if (parent && parent->variantType ==
 					    YAFFS_OBJECT_TYPE_UNKNOWN) {
                                                 /* Set up as a directory */
                                                 parent->variantType =
@@ -5798,7 +5835,7 @@ static int yaffs_Scan(yaffs_Device * dev)
                                                 YINIT_LIST_HEAD(&parent->variant.
                                                                directoryVariant.
                                                                children);
-                                        } else if (parent->variantType !=
+                                        } else if (!parent || parent->variantType !=
 						   YAFFS_OBJECT_TYPE_DIRECTORY)
 					{
 						/* Hoosterman, another problem....
@@ -6068,6 +6105,8 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 		if(bi->sequenceNumber == YAFFS_SEQUENCE_CHECKPOINT_DATA)
 			bi->blockState = state = YAFFS_BLOCK_STATE_CHECKPOINT;
+		if(bi->sequenceNumber == YAFFS_SEQUENCE_BAD_BLOCK)
+			bi->blockState = state = YAFFS_BLOCK_STATE_DEAD;
 			
 		T(YAFFS_TRACE_SCAN_DEBUG,
 		  (TSTR("Block scanning block %d state %d seq %d" TENDSTR), blk,
@@ -6317,6 +6356,8 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					in = yaffs_FindOrCreateObjectByNumber
 					    (dev, tags.objectId,
 					     tags.extraObjectType);
+					if (!in)
+						alloc_failed = 1;
 				}
 
 				if (!in ||
@@ -6347,8 +6388,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 						oh->isShrink = oh->inbandIsShrink;
 					}
 
-					if (!in)
+					if (!in) {
 						in = yaffs_FindOrCreateObjectByNumber(dev, tags.objectId, oh->type);
+						if (!in)
+							alloc_failed = 1;
+					}
 
 				}
 
@@ -6358,7 +6402,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					  (TSTR
 					   ("yaffs tragedy: Could not make object for object  %d at chunk %d during scan"
 					    TENDSTR), tags.objectId, chunk));
-
+					continue;
 				}
 
 				if (in->valid) {
@@ -6414,6 +6458,16 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					yaffs_DeleteChunk(dev, chunk, 1, __LINE__);
 
 				}
+
+				if (!in->valid && in->variantType !=
+				    (oh ? oh->type : tags.extraObjectType))
+					T(YAFFS_TRACE_ERROR, (TSTR
+					   ("yaffs tragedy: Bad object type, "
+					    "%d != %d, for object %d at chunk "
+					    "%d during scan" TENDSTR), oh ?
+					    oh->type : tags.extraObjectType,
+					    in->variantType, tags.objectId,
+					    chunk));
 
 				if (!in->valid &&
 				    (tags.objectId == YAFFS_OBJECTID_ROOT ||
@@ -6507,11 +6561,14 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 					}
 					in->dirty = 0;
 
+					if (!parent)
+						alloc_failed = 1;
+
 					/* directory stuff...
 					 * hook up to parent
 					 */
 
-					if (parent->variantType ==
+					if (parent && parent->variantType ==
 					    YAFFS_OBJECT_TYPE_UNKNOWN) {
                                                 /* Set up as a directory */
                                                 parent->variantType =
@@ -6519,7 +6576,7 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
                                                 YINIT_LIST_HEAD(&parent->variant.
                                                                directoryVariant.
                                                                children);
-                                        } else if (parent->variantType !=
+                                        } else if (!parent || parent->variantType !=
 						   YAFFS_OBJECT_TYPE_DIRECTORY)
 					{
 						/* Hoosterman, another problem....

@@ -90,6 +90,7 @@
 
 #define TENDSTR "\n"
 #define TSTR(x) KERN_WARNING x
+#define TCONT(x) x
 #define TOUT(p) printk p
 
 #define yaffs_trace(mask, fmt, args...) \

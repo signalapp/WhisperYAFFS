@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.77 2009-01-27 02:00:42 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.78 2009-01-27 02:52:45 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1051,7 +1051,7 @@ static void yaffs_RetireBlock(yaffs_Device * dev, int blockInNAND)
 			if (dev->writeChunkWithTagsToNAND(dev, chunkId -
 			    dev->chunkOffset, buffer, &tags) != YAFFS_OK)
 				T(YAFFS_TRACE_ALWAYS, (TSTR("yaffs: Failed to "
-					"write bad block marker to block %d"
+					TCONT("write bad block marker to block %d")
 					TENDSTR), blockInNAND));
 
 			yaffs_ReleaseTempBuffer(dev, buffer, __LINE__);
@@ -3717,8 +3717,8 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object * in, int chunkInInode,
 	if(nBytes < 1 || nBytes > dev->totalBytesPerChunk){
 	  T(YAFFS_TRACE_ERROR,
 	  (TSTR("Writing %d bytes to chunk!!!!!!!!!" TENDSTR), nBytes));
-	  while(1){}
-        }
+	  YBUG();
+     }
 	
 	
 
@@ -4325,7 +4325,7 @@ static int yaffs_CheckpointObjectToObject( yaffs_Object *obj,yaffs_CheckpointObj
 
 	if (obj->variantType != cp->variantType) {
 		T(YAFFS_TRACE_ERROR,(TSTR("Checkpoint read object %d type %d "
-			"chunk %d does not match existing object type %d"
+			TCONT("chunk %d does not match existing object type %d")
 			TENDSTR), cp->objectId, cp->variantType, cp->hdrChunk,
 			obj->variantType));
 		return 0;
@@ -4343,7 +4343,9 @@ static int yaffs_CheckpointObjectToObject( yaffs_Object *obj,yaffs_CheckpointObj
 		
 	if(parent) {
 		if (parent->variantType != YAFFS_OBJECT_TYPE_DIRECTORY) {
-			T(YAFFS_TRACE_ALWAYS,(TSTR("Checkpoint read object %d parent %d type %d chunk %d Parent type, %d, not directory"TENDSTR),
+			T(YAFFS_TRACE_ALWAYS,(TSTR("Checkpoint read object %d parent %d type %d"
+				TCONT(" chunk %d Parent type, %d, not directory")
+				TENDSTR),
 				cp->objectId,cp->parentId,cp->variantType,cp->hdrChunk,parent->variantType));
 			return 0;
 		}
@@ -4871,8 +4873,10 @@ int yaffs_WriteDataToFile(yaffs_Object * in, const __u8 * buffer, loff_t offset,
 		
 		if(chunk * dev->nDataBytesPerChunk + start != offset ||
 		   start >= dev->nDataBytesPerChunk){
-		   T(YAFFS_TRACE_ERROR,(TSTR("AddrToChunk of offset %d gives chunk %d start %d"TENDSTR),
-		   			(int)offset, chunk,start));
+		   T(YAFFS_TRACE_ERROR,(
+			   TSTR("AddrToChunk of offset %d gives chunk %d start %d"
+			   TENDSTR),
+		   	   (int)offset, chunk,start));
 		}
 		chunk++;
 
@@ -6461,10 +6465,11 @@ static int yaffs_ScanBackwards(yaffs_Device * dev)
 
 				if (!in->valid && in->variantType !=
 				    (oh ? oh->type : tags.extraObjectType))
-					T(YAFFS_TRACE_ERROR, (TSTR
-					   ("yaffs tragedy: Bad object type, "
-					    "%d != %d, for object %d at chunk "
-					    "%d during scan" TENDSTR), oh ?
+					T(YAFFS_TRACE_ERROR, (
+						TSTR("yaffs tragedy: Bad object type, "
+					    TCONT("%d != %d, for object %d at chunk ")
+					    TCONT("%d during scan")
+						TENDSTR), oh ?
 					    oh->type : tags.extraObjectType,
 					    in->variantType, tags.objectId,
 					    chunk));

@@ -70,6 +70,7 @@
 
 #define TENDSTR "\n"
 #define TSTR(x) x
+#define TCONT(x) x
 #define TOUT(p) printf p
 
 

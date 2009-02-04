@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.71 2009-01-22 00:45:54 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.72 2009-02-04 21:40:27 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -805,7 +805,6 @@ static int yaffs_write_end(struct file *filp, struct address_space *mapping,
 {
 	int ret = 0;
 	void *addr, *kva;
-        pgoff_t index = pos >> PAGE_CACHE_SHIFT;
         uint32_t offset_into_page = pos & (PAGE_CACHE_SIZE -1); 
 
 
@@ -1055,7 +1054,7 @@ static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
 	} else {
 		T(YAFFS_TRACE_OS,
 		  (KERN_DEBUG
-		   "yaffs_file_write about to write writing %d bytes"
+		   "yaffs_file_write about to write writing %zu bytes"
 		   "to object %d at %d\n",
 		   n, obj->objectId, ipos));
 	}
@@ -1063,7 +1062,7 @@ static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
 	nWritten = yaffs_WriteDataToFile(obj, buf, ipos, n, 0);
 
 	T(YAFFS_TRACE_OS,
-	  (KERN_DEBUG "yaffs_file_write writing %d bytes, %d written at %d\n",
+	  (KERN_DEBUG "yaffs_file_write writing %zu bytes, %d written at %d\n",
 	   n, nWritten, ipos));
 	if (nWritten > 0) {
 		ipos += nWritten;

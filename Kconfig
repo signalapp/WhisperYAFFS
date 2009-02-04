@@ -5,7 +5,7 @@
 config YAFFS_FS
 	tristate "YAFFS2 file system support"
 	default n
-	depends on MTD
+	depends on MTD_BLOCK
 	select YAFFS_YAFFS1
 	select YAFFS_YAFFS2
 	help

@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.72 2009-02-04 21:40:27 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.73 2009-03-01 23:52:28 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -97,6 +97,16 @@ extern const char *yaffs_guts_c_version;
 #define YAFFS_USE_WRITE_BEGIN_END 0
 #endif
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,28))
+static uint32_t YCALCBLOCKS(uint64_t partition_size, uint32_t block_size)
+{
+	uint64_t result = partition_size;
+	do_div(result,block_size);
+	return (uint32_t)result;
+}
+#else
+#define YCALCBLOCKS(s,b) ((s)/(b))
+#endif
 
 #include <asm/uaccess.h>
 
@@ -352,14 +362,16 @@ static struct super_operations yaffs_super_ops = {
 
 static void yaffs_GrossLock(yaffs_Device * dev)
 {
-	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs locking\n"));
+	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs locking %p\n",current));
 
 	down(&dev->grossLock);
+        T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs locked %p\n",current));
+	
 }
 
 static void yaffs_GrossUnlock(yaffs_Device * dev)
 {
-	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs unlocking\n"));
+	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs unlocking %p\n",current));
 	up(&dev->grossLock);
 
 }
@@ -745,7 +757,12 @@ static int yaffs_write_begin(struct file *filp, struct address_space *mapping,
         
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "start yaffs_write_begin\n"));
 	/* Get a page */
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,28)
+	pg = grab_cache_page_write_begin(mapping,index,flags);
+#else
 	pg = __grab_cache_page(mapping,index);
+#endif
+
 	*pagep = pg;	
 	if(!pg){
 		ret =  -ENOMEM;
@@ -1217,6 +1234,13 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 /*
  * File creation. Allocate an inode, and we're done..
  */
+ 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29)
+#define YCRED(x) x
+#else
+#define YCRED(x) x->cred
+#endif
+
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
 static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 		       dev_t rdev)
@@ -1233,8 +1257,8 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 	yaffs_Object *parent = yaffs_InodeToObject(dir);
 
 	int error = -ENOSPC;
-	uid_t uid = current->fsuid;
-	gid_t gid = (dir->i_mode & S_ISGID) ? dir->i_gid : current->fsgid;
+	uid_t uid = YCRED(current)->fsuid;
+	gid_t gid = (dir->i_mode & S_ISGID) ? dir->i_gid : YCRED(current)->fsgid;
 
 	if((dir->i_mode & S_ISGID) && S_ISDIR(mode))
 		mode |= S_ISGID;
@@ -1286,7 +1310,7 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 					 uid, gid);
 		break;
 	case S_IFLNK:		/* symlink */
-		T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_mknod: making file\n"));
+		T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_mknod: making symlink\n"));
 		obj = NULL;	/* Do we ever get here? */
 		break;
 	}
@@ -1413,8 +1437,8 @@ static int yaffs_symlink(struct inode *dir, struct dentry *dentry,
 {
 	yaffs_Object *obj;
 	yaffs_Device *dev;
-	uid_t uid = current->fsuid;
-	gid_t gid = (dir->i_mode & S_ISGID) ? dir->i_gid : current->fsgid;
+	uid_t uid = YCRED(current)->fsuid;
+	gid_t gid = (dir->i_mode & S_ISGID) ? dir->i_gid : YCRED(current)->fsgid;
 
 	T(YAFFS_TRACE_OS, (KERN_DEBUG "yaffs_symlink\n"));
 
@@ -1954,7 +1978,11 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	T(YAFFS_TRACE_OS, (" %s %d\n", WRITE_SIZE_STR, WRITE_SIZE(mtd)));
 	T(YAFFS_TRACE_OS, (" oobsize %d\n", mtd->oobsize));
 	T(YAFFS_TRACE_OS, (" erasesize %d\n", mtd->erasesize));
-	T(YAFFS_TRACE_OS, (" size %d\n", mtd->size));
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29)
+	T(YAFFS_TRACE_OS, (" size %u\n", mtd->size));
+#else
+	T(YAFFS_TRACE_OS, (" size %lld\n", mtd->size));
+#endif
 
 #ifdef CONFIG_YAFFS_AUTO_YAFFS2
 
@@ -2051,7 +2079,8 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 
 	/* Set up the memory size parameters.... */
 
-	nBlocks = mtd->size / (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK);
+	nBlocks = YCALCBLOCKS(mtd->size ,(YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK));
+
 	dev->startBlock = 0;
 	dev->endBlock = nBlocks - 1;
 	dev->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
@@ -2077,7 +2106,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		dev->totalBytesPerChunk = mtd->oobblock;
 		dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
 #endif
-		nBlocks = mtd->size / mtd->erasesize;
+		nBlocks = YCALCBLOCKS(mtd->size,mtd->erasesize);
 
 		dev->startBlock = 0;
 		dev->endBlock = nBlocks - 1;

@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.24 2008-11-11 01:47:46 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.25 2009-03-05 01:47:17 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -630,7 +630,7 @@ int yaffs_close(int fd)
 		h->obj->inUse--;
 		if(h->obj->inUse <= 0 && h->obj->unlinked)
 		{
-			yaffs_DeleteFile(h->obj);
+			yaffs_DeleteObject(h->obj);
 		}
 		yaffsfs_PutHandle(fd);
 		retVal = 0;
@@ -1849,14 +1849,19 @@ int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath)
 
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,newpath,&name,0);
-	obj = yaffs_MknodSymLink(parent,name,mode,0,0,oldpath);
-	if(obj)
-	{
-		retVal = 0;
-	}
-	else
-	{
-		yaffsfs_SetError(-ENOSPC); // just assume no space for now
+	if(parent){
+		obj = yaffs_MknodSymLink(parent,name,mode,0,0,oldpath);
+		if(obj)
+		{
+			retVal = 0;
+		}
+		else
+		{
+			yaffsfs_SetError(-ENOSPC); // just assume no space for now
+			retVal = -1;
+		}
+	} else {
+		yaffsfs_SetError(-EINVAL);
 		retVal = -1;
 	}
 

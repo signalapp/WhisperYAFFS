@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.74 2009-03-05 01:05:28 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.75 2009-03-05 01:45:28 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -566,7 +566,7 @@ static void yaffs_delete_inode(struct inode *inode)
 	if (obj) {
 		dev = obj->myDev;
 		yaffs_GrossLock(dev);
-		yaffs_DeleteFile(obj);
+		yaffs_DeleteObject(obj);
 		yaffs_GrossUnlock(dev);
 	}
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,13))

@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.78 2009-01-27 02:52:45 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.79 2009-03-05 01:45:28 charles Exp $";
 
 #include "yportenv.h"
 
@@ -79,7 +79,6 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,
 				  int chunkInNAND);
 
 static int yaffs_UnlinkWorker(yaffs_Object * obj);
-static void yaffs_DestroyObject(yaffs_Object * obj);
 
 static int yaffs_TagsMatch(const yaffs_ExtendedTags * tags, int objectId,
 			   int chunkInObject);
@@ -2023,6 +2022,9 @@ static void yaffs_FreeObject(yaffs_Object * tn)
 
 	yaffs_Device *dev = tn->myDev;
 
+#ifdef  __KERNEL__
+	T(YAFFS_TRACE_OS,(TSTR("FreeObject %p inode %p"TENDSTR),tn,tn->myInode));
+#endif
 	
 	if(tn->parent)
 		YBUG();
@@ -2396,7 +2398,7 @@ static yaffs_Object *yaffs_MknodObject(yaffs_ObjectType type,
 
 		if (yaffs_UpdateObjectHeader(in, name, 0, 0, 0) < 0) {
 			/* Could not create the object header, fail the creation */
-			yaffs_DestroyObject(in);
+			yaffs_DeleteObject(in);
 			in = NULL;
 		}
 
@@ -5211,7 +5213,7 @@ static int yaffs_DoGenericObjectDeletion(yaffs_Object * in)
  * and the inode associated with the file.
  * It does not delete the links associated with the file.
  */
-static int yaffs_UnlinkFile(yaffs_Object * in)
+static int yaffs_UnlinkFileIfNeeded(yaffs_Object * in)
 {
 
 	int retVal;
@@ -5262,7 +5264,7 @@ int yaffs_DeleteFile(yaffs_Object * in)
 		 * That won't be the case if it has been resized to zero.
 		 */
 		if (!in->unlinked) {
-			retVal = yaffs_UnlinkFile(in);
+			retVal = yaffs_UnlinkFileIfNeeded(in);
 		}
 		if (retVal == YAFFS_OK && in->unlinked && !in->deleted) {
 			in->deleted = deleted = 1;
@@ -5307,31 +5309,47 @@ static int yaffs_DeleteHardLink(yaffs_Object * in)
         return yaffs_DoGenericObjectDeletion(in);
 }
 
-static void yaffs_DestroyObject(yaffs_Object * obj)
+int yaffs_DeleteObject(yaffs_Object * obj)
 {
+int retVal = -1;
 	switch (obj->variantType) {
 	case YAFFS_OBJECT_TYPE_FILE:
-		yaffs_DeleteFile(obj);
+		retVal = yaffs_DeleteFile(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_DIRECTORY:
-		yaffs_DeleteDirectory(obj);
+		return yaffs_DeleteDirectory(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_SYMLINK:
-		yaffs_DeleteSymLink(obj);
+		retVal = yaffs_DeleteSymLink(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_HARDLINK:
-		yaffs_DeleteHardLink(obj);
+		retVal = yaffs_DeleteHardLink(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_SPECIAL:
-		yaffs_DoGenericObjectDeletion(obj);
+		retVal = yaffs_DoGenericObjectDeletion(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_UNKNOWN:
+	        retVal = 0;
 		break;		/* should not happen. */
 	}
+	
+	return retVal;
 }
 
 static int yaffs_UnlinkWorker(yaffs_Object * obj)
 {
+
+	int immediateDeletion = 0;
+
+#ifdef __KERNEL__
+	if (!obj->myInode) {
+		immediateDeletion = 1;
+	}
+#else
+	if (obj->inUse <= 0) {
+		immediateDeletion = 1;
+	}
+#endif
 
         if (obj->variantType == YAFFS_OBJECT_TYPE_HARDLINK) {
                 return yaffs_DeleteHardLink(obj);
@@ -5368,10 +5386,10 @@ static int yaffs_UnlinkWorker(yaffs_Object * obj)
 		}
 		return retVal;
 
-	} else {
+	} else if(immediateDeletion){
 		switch (obj->variantType) {
 		case YAFFS_OBJECT_TYPE_FILE:
-			return yaffs_UnlinkFile(obj);
+			return yaffs_DeleteFile(obj);
 			break;
 		case YAFFS_OBJECT_TYPE_DIRECTORY:
 			return yaffs_DeleteDirectory(obj);
@@ -5387,6 +5405,9 @@ static int yaffs_UnlinkWorker(yaffs_Object * obj)
 		default:
 			return YAFFS_FAIL;
 		}
+	} else {
+		return yaffs_ChangeObjectName(obj, obj->myDev->unlinkedDir,
+					   _Y("unlinked"), 0, 0);
 	}
 }
 
@@ -5518,7 +5539,7 @@ static void yaffs_StripDeletedObjects(yaffs_Device *dev)
 		&dev->unlinkedDir->variant.directoryVariant.children) {
 		if (i) {
 			l = ylist_entry(i, yaffs_Object, siblings);
-			yaffs_DestroyObject(l);
+			yaffs_DeleteObject(l);
 		}
 	}
 	
@@ -5526,7 +5547,7 @@ static void yaffs_StripDeletedObjects(yaffs_Device *dev)
 		&dev->deletedDir->variant.directoryVariant.children) {
 		if (i) {
 			l = ylist_entry(i, yaffs_Object, siblings);
-			yaffs_DestroyObject(l);
+			yaffs_DeleteObject(l);
 		}
 	}
 
@@ -5722,7 +5743,7 @@ static int yaffs_Scan(yaffs_Device * dev)
 					 * deleted, and worse still it has changed type. Delete the old object.
 					 */
 
-					yaffs_DestroyObject(in);
+					yaffs_DeleteObject(in);
 
 					in = 0;
 				}
@@ -5950,7 +5971,7 @@ static int yaffs_Scan(yaffs_Device * dev)
 			 */
 			obj = yaffs_FindObjectByNumber(dev,fixer->shadowedId);
 			if(obj)
-				yaffs_DestroyObject(obj);
+				yaffs_DeleteObject(obj);
 	
 			obj = yaffs_FindObjectByNumber(dev,fixer->objectId);
 			if(obj){
@@ -6720,6 +6741,7 @@ static void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
 	if(!obj){
 		T(YAFFS_TRACE_ALWAYS, (TSTR("No object to verify" TENDSTR)));
 		YBUG();
+		return;
 	}
 
         if(yaffs_SkipVerification(obj->myDev))
@@ -6728,6 +6750,7 @@ static void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
 	if(!obj->parent){
 		T(YAFFS_TRACE_ALWAYS, (TSTR("Object does not have parent" TENDSTR)));
 		YBUG();
+		return;
 	}
 		
 	if(obj->parent->variantType != YAFFS_OBJECT_TYPE_DIRECTORY){
@@ -6759,8 +6782,10 @@ static void yaffs_VerifyDirectory(yaffs_Object *directory)
         struct ylist_head *lh;
         yaffs_Object *listObj;
         
-	if(!directory)
+	if(!directory){
 		YBUG();
+		return;
+	}
 
         if(yaffs_SkipFullVerification(directory->myDev))
                 return;
@@ -6819,6 +6844,7 @@ static void yaffs_AddObjectToDirectory(yaffs_Object * directory,
 		   ("tragedy: Trying to add an object to a null pointer directory"
 		    TENDSTR)));
 		YBUG();
+		return;
 	}
 	if (directory->variantType != YAFFS_OBJECT_TYPE_DIRECTORY) {
 		T(YAFFS_TRACE_ALWAYS,
@@ -6879,6 +6905,7 @@ yaffs_Object *yaffs_FindObjectByName(yaffs_Object * directory,
 		   ("tragedy: yaffs_FindObjectByName: null pointer directory"
 		    TENDSTR)));
 		YBUG();
+		return NULL;
 	}
 	if (directory->variantType != YAFFS_OBJECT_TYPE_DIRECTORY) {
 		T(YAFFS_TRACE_ALWAYS,
@@ -6934,12 +6961,14 @@ int yaffs_ApplyToDirectoryChildren(yaffs_Object * theDir,
 		   ("tragedy: yaffs_FindObjectByName: null pointer directory"
 		    TENDSTR)));
 		YBUG();
+		return YAFFS_FAIL;
 	}
 	if (theDir->variantType != YAFFS_OBJECT_TYPE_DIRECTORY) {
 		T(YAFFS_TRACE_ALWAYS,
 		  (TSTR
 		   ("tragedy: yaffs_FindObjectByName: non-directory" TENDSTR)));
                 YBUG();
+                return YAFFS_FAIL;
         }
 
         ylist_for_each(i, &theDir->variant.directoryVariant.children) {

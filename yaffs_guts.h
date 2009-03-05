@@ -824,7 +824,7 @@ int yaffs_RenameObject(yaffs_Object * oldDir, const YCHAR * oldName,
 		       yaffs_Object * newDir, const YCHAR * newName);
 
 int yaffs_Unlink(yaffs_Object * dir, const YCHAR * name);
-int yaffs_DeleteFile(yaffs_Object * obj);
+int yaffs_DeleteObject(yaffs_Object * obj);
 
 int yaffs_GetObjectName(yaffs_Object * obj, YCHAR * name, int buffSize);
 int yaffs_GetObjectFileLength(yaffs_Object * obj);

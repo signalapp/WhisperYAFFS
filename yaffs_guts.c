@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.79 2009-03-05 01:45:28 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.80 2009-03-05 21:46:46 charles Exp $";
 
 #include "yportenv.h"
 
@@ -6858,10 +6858,7 @@ static void yaffs_AddObjectToDirectory(yaffs_Object * directory,
                 /* Not initialised */
                 YBUG();
 
-        } else if (ylist_empty(&obj->siblings)) {
-        	YBUG();
         } 
-
 
 	yaffs_VerifyDirectory(directory);
 

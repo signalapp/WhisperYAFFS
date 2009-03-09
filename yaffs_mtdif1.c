@@ -36,7 +36,7 @@
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
 #if (MTD_VERSION_CODE > MTD_VERSION(2, 6, 17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.9 2009-03-06 17:20:52 wookey Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.10 2009-03-09 07:41:10 charles Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
@@ -336,9 +336,8 @@ int nandmtd1_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
 	/* We don't yet have a good place to test for MTD config prerequists.
 	 * Do it here as we are called during the initial scan.
 	 */
-	if (nandmtd1_TestPrerequists(mtd) != YAFFS_OK) {
+	if (nandmtd1_TestPrerequists(mtd) != YAFFS_OK)
 		return YAFFS_FAIL;
-	}
 
 	retval = nandmtd1_ReadChunkWithTagsFromNAND(dev, chunkNo, NULL, &etags);
 	etags.blockBad = (mtd->block_isbad)(mtd, addr);

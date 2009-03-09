@@ -408,26 +408,25 @@ int yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(yaffs_Device *dev,
 
 	yaffs_SpareInitialise(&spare);
 
-	if (eTags->chunkDeleted) {
+	if (eTags->chunkDeleted)
 		spare.pageStatus = 0;
-	} else {
+	else {
 		tags.objectId = eTags->objectId;
 		tags.chunkId = eTags->chunkId;
 
 		tags.byteCountLSB = eTags->byteCount & 0x3ff;
 
-		if (dev->nDataBytesPerChunk >= 1024) {
+		if (dev->nDataBytesPerChunk >= 1024)
 			tags.byteCountMSB = (eTags->byteCount >> 10) & 3;
-		} else {
+		else
 			tags.byteCountMSB = 3;
-		}
 
 
 		tags.serialNumber = eTags->serialNumber;
 
-		if (!dev->useNANDECC && data) {
+		if (!dev->useNANDECC && data)
 			yaffs_CalcECC(data, &spare);
-		}
+
 		yaffs_LoadTagsIntoSpare(&spare, &tags);
 
 	}

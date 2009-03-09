@@ -35,9 +35,8 @@ void yaffs_UnpackTags1(yaffs_ExtendedTags *t, const yaffs_PackedTags1 *pt)
 
 	if (memcmp(allFF, pt, sizeof(yaffs_PackedTags1))) {
 		t->blockBad = 0;
-		if (pt->shouldBeFF != 0xFFFFFFFF) {
+		if (pt->shouldBeFF != 0xFFFFFFFF)
 			t->blockBad = 1;
-		}
 		t->chunkUsed = 1;
 		t->objectId = pt->objectId;
 		t->chunkId = pt->chunkId;

@@ -74,24 +74,21 @@ void yaffs_PackTags2TagsPart(yaffs_PackedTags2TagsPart *ptt,
 		/* We save the parent object in the chunkId */
 		ptt->chunkId = EXTRA_HEADER_INFO_FLAG
 			| t->extraParentObjectId;
-		if (t->extraIsShrinkHeader) {
+		if (t->extraIsShrinkHeader)
 			ptt->chunkId |= EXTRA_SHRINK_FLAG;
-		}
-		if (t->extraShadows) {
+		if (t->extraShadows)
 			ptt->chunkId |= EXTRA_SHADOWS_FLAG;
-		}
 
 		ptt->objectId &= ~EXTRA_OBJECT_TYPE_MASK;
 		ptt->objectId |=
 		    (t->extraObjectType << EXTRA_OBJECT_TYPE_SHIFT);
 
-		if (t->extraObjectType == YAFFS_OBJECT_TYPE_HARDLINK) {
+		if (t->extraObjectType == YAFFS_OBJECT_TYPE_HARDLINK)
 			ptt->byteCount = t->extraEquivalentObjectId;
-		} else if (t->extraObjectType == YAFFS_OBJECT_TYPE_FILE) {
+		else if (t->extraObjectType == YAFFS_OBJECT_TYPE_FILE)
 			ptt->byteCount = t->extraFileLength;
-		} else {
+		else
 			ptt->byteCount = 0;
-		}
 	}
 
 	yaffs_DumpPackedTags2TagsPart(ptt);
@@ -148,11 +145,10 @@ void yaffs_UnpackTags2TagsPart(yaffs_ExtendedTags *t,
 			    ptt->objectId >> EXTRA_OBJECT_TYPE_SHIFT;
 			t->objectId &= ~EXTRA_OBJECT_TYPE_MASK;
 
-			if (t->extraObjectType == YAFFS_OBJECT_TYPE_HARDLINK) {
+			if (t->extraObjectType == YAFFS_OBJECT_TYPE_HARDLINK)
 				t->extraEquivalentObjectId = ptt->byteCount;
-			} else {
+			else
 				t->extraFileLength = ptt->byteCount;
-			}
 		}
 	}
 

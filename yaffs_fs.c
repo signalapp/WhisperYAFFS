@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.77 2009-03-09 07:25:09 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.78 2009-03-09 13:08:09 wookey Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -489,8 +489,6 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry)
 	d_add(dentry, inode);
 
 	return NULL;
-	/*      return (ERR_PTR(-EIO)); */
-
 }
 
 
@@ -623,8 +621,7 @@ static int yaffs_readpage_nolock(struct file *f, struct page *pg)
 
 	yaffs_GrossLock(dev);
 
-	ret =
-		yaffs_ReadDataFromFile(obj, pg_buf,
+	ret = yaffs_ReadDataFromFile(obj, pg_buf,
 				pg->index << PAGE_CACHE_SHIFT,
 				PAGE_CACHE_SIZE);
 

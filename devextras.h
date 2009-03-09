@@ -53,8 +53,8 @@ struct ylist_head name = { &(name), &(name)}
 /* Initialise a list head to an empty list */
 #define YINIT_LIST_HEAD(p) \
 do { \
- (p)->next = (p);\
- (p)->prev = (p); \
+	(p)->next = (p);\
+	(p)->prev = (p); \
 } while (0)
 
 
@@ -183,9 +183,6 @@ struct iattr {
 };
 
 #endif
-
-
-#define KERN_DEBUG
 
 #else
 

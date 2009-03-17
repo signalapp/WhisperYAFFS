@@ -1,7 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2007 Aleph One Ltd.
+ * Copyright (C) 2002-2009 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.78 2009-03-09 13:08:09 wookey Exp $";
+    "$Id: yaffs_fs.c,v 1.79 2009-03-17 01:12:00 wookey Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>

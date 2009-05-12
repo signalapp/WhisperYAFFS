@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.79 2009-03-17 01:12:00 wookey Exp $";
+    "$Id: yaffs_fs.c,v 1.80 2009-05-12 02:23:51 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -1075,7 +1075,7 @@ static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
 
 	}
 	yaffs_GrossUnlock(dev);
-	return nWritten == 0 ? -ENOSPC : nWritten;
+	return (nWritten == 0) && (n > 0) ? -ENOSPC : nWritten;
 }
 
 /* Space holding and freeing is done to ensure we have space available for write_begin/end */

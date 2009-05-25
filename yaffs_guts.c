@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.82 2009-03-09 04:24:17 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.83 2009-05-25 02:27:36 charles Exp $";
 
 #include "yportenv.h"
 
@@ -49,6 +49,7 @@ static void yaffs_HandleUpdateChunk(yaffs_Device *dev, int chunkInNAND,
 				const yaffs_ExtendedTags *tags);
 
 /* Other local prototypes */
+static void yaffs_UpdateParent(yaffs_Object *obj);
 static int yaffs_UnlinkObject(yaffs_Object *obj);
 static int yaffs_ObjectHasCachedWriteData(yaffs_Object *obj);
 
@@ -2345,6 +2346,7 @@ static yaffs_Object *yaffs_MknodObject(yaffs_ObjectType type,
 			in = NULL;
 		}
 
+		yaffs_UpdateParent(parent);
 	}
 
 	return in;
@@ -2499,6 +2501,9 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName,
 						existingTarget->objectId);
 			yaffs_UnlinkObject(existingTarget);
 		}
+		yaffs_UpdateParent(oldDir);
+		if(newDir != oldDir)
+			yaffs_UpdateParent(newDir);
 
 		return yaffs_ChangeObjectName(obj, newDir, newName, 1, 0);
 	}
@@ -5230,6 +5235,9 @@ static int yaffs_UnlinkWorker(yaffs_Object *obj)
 		immediateDeletion = 1;
 #endif
 
+	if(obj)
+		yaffs_UpdateParent(obj->parent);
+
 	if (obj->variantType == YAFFS_OBJECT_TYPE_HARDLINK) {
 		return yaffs_DeleteHardLink(obj);
 	} else if (!ylist_empty(&obj->hardLinks)) {
@@ -6666,6 +6674,26 @@ static void yaffs_VerifyDirectory(yaffs_Object *directory)
 	}
 }
 
+/*
+ *yaffs_UpdateParent() handles fixing a directories mtime when a new
+ * link (ie. name) is created or deleted in the directory.
+ *
+ * ie.
+ *   create dir/a : update dir's mtime
+ *   rm dir/a:   update dir's mtime
+ *   modify dir/a: don't update dir's mtimme.
+ */
+ 
+static void yaffs_UpdateParent(yaffs_Object *obj)
+{
+	if(!obj)
+		return;
+
+	obj->dirty = 1;
+	obj->yst_mtime = Y_CURRENT_TIME;
+
+	yaffs_UpdateObjectHeader(obj,NULL,0,0,0);
+}
 
 static void yaffs_RemoveObjectFromDirectory(yaffs_Object *obj)
 {
@@ -6683,10 +6711,9 @@ static void yaffs_RemoveObjectFromDirectory(yaffs_Object *obj)
 
 	ylist_del_init(&obj->siblings);
 	obj->parent = NULL;
-
+	
 	yaffs_VerifyDirectory(parent);
 }
-
 
 static void yaffs_AddObjectToDirectory(yaffs_Object *directory,
 					yaffs_Object *obj)

@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.80 2009-05-12 02:23:51 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.81 2009-05-26 01:22:44 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -163,6 +163,11 @@ static struct inode *yaffs_iget(struct super_block *sb, unsigned long ino);
 #define yaffs_SuperToDevice(sb)	((yaffs_Device *)sb->u.generic_sbp)
 #endif
 
+
+#define update_dir_time(dir) do {\
+			(dir)->i_ctime = (dir)->i_mtime = CURRENT_TIME; \
+		} while(0)
+		
 static void yaffs_put_super(struct super_block *sb);
 
 static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
@@ -1286,6 +1291,7 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 	if (obj) {
 		inode = yaffs_get_inode(dir->i_sb, mode, rdev, obj);
 		d_instantiate(dentry, inode);
+		update_dir_time(dir);
 		T(YAFFS_TRACE_OS,
 			("yaffs_mknod created object %d count = %d\n",
 			obj->objectId, atomic_read(&inode->i_count)));
@@ -1339,6 +1345,7 @@ static int yaffs_unlink(struct inode *dir, struct dentry *dentry)
 		dir->i_version++;
 		yaffs_GrossUnlock(dev);
 		mark_inode_dirty(dentry->d_inode);
+		update_dir_time(dir);
 		return 0;
 	}
 	yaffs_GrossUnlock(dev);
@@ -1379,8 +1386,10 @@ static int yaffs_link(struct dentry *old_dentry, struct inode *dir,
 
 	yaffs_GrossUnlock(dev);
 
-	if (link)
+	if (link){
+		update_dir_time(dir);
 		return 0;
+	}
 
 	return -EPERM;
 }
@@ -1406,6 +1415,7 @@ static int yaffs_symlink(struct inode *dir, struct dentry *dentry,
 
 		inode = yaffs_get_inode(dir->i_sb, obj->yst_mode, 0, obj);
 		d_instantiate(dentry, inode);
+		update_dir_time(dir);
 		T(YAFFS_TRACE_OS, ("symlink created OK\n"));
 		return 0;
 	} else {
@@ -1478,7 +1488,10 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 			new_dentry->d_inode->i_nlink--;
 			mark_inode_dirty(new_dentry->d_inode);
 		}
-
+		
+		update_dir_time(old_dir);
+		if(old_dir != new_dir)
+			update_dir_time(new_dir);
 		return 0;
 	} else {
 		return -ENOTEMPTY;

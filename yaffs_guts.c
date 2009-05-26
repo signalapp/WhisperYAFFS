@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.83 2009-05-25 02:27:36 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.84 2009-05-26 04:50:08 charles Exp $";
 
 #include "yportenv.h"
 
@@ -6675,13 +6675,13 @@ static void yaffs_VerifyDirectory(yaffs_Object *directory)
 }
 
 /*
- *yaffs_UpdateParent() handles fixing a directories mtime when a new
+ *yaffs_UpdateParent() handles fixing a directories mtime and ctime when a new
  * link (ie. name) is created or deleted in the directory.
  *
  * ie.
- *   create dir/a : update dir's mtime
- *   rm dir/a:   update dir's mtime
- *   modify dir/a: don't update dir's mtimme.
+ *   create dir/a : update dir's mtime/ctime
+ *   rm dir/a:   update dir's mtime/ctime
+ *   modify dir/a: don't update dir's mtimme/ctime
  */
  
 static void yaffs_UpdateParent(yaffs_Object *obj)
@@ -6690,7 +6690,7 @@ static void yaffs_UpdateParent(yaffs_Object *obj)
 		return;
 
 	obj->dirty = 1;
-	obj->yst_mtime = Y_CURRENT_TIME;
+	obj->yst_mtime = obj->yst_ctime = Y_CURRENT_TIME;
 
 	yaffs_UpdateObjectHeader(obj,NULL,0,0,0);
 }

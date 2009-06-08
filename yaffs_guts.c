@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.84 2009-05-26 04:50:08 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.85 2009-06-08 23:50:44 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2985,7 +2985,8 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 	/* Take off the number of soft deleted entries because
 	 * they're going to get really deleted during GC.
 	 */
-	dev->nFreeChunks -= bi->softDeletions;
+	if(dev->gcChunk == 0) /* first time through for this block */
+		dev->nFreeChunks -= bi->softDeletions;
 
 	dev->isDoingGC = 1;
 

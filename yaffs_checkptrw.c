@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-	"$Id: yaffs_checkptrw.c,v 1.18 2009-03-06 17:20:49 wookey Exp $";
+	"$Id: yaffs_checkptrw.c,v 1.19 2009-06-19 01:35:46 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -168,6 +168,9 @@ int yaffs_CheckpointOpen(yaffs_Device *dev, int forWriting)
 		dev->blocksInCheckpoint = 0;
 		dev->checkpointMaxBlocks = (dev->internalEndBlock - dev->internalStartBlock)/16 + 2;
 		dev->checkpointBlockList = YMALLOC(sizeof(int) * dev->checkpointMaxBlocks);
+		if(!dev->checkpointBlockList)
+			return 0;
+
 		for (i = 0; i < dev->checkpointMaxBlocks; i++)
 			dev->checkpointBlockList[i] = -1;
 	}

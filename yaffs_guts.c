@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.85 2009-06-08 23:50:44 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.86 2009-07-28 03:04:54 charles Exp $";
 
 #include "yportenv.h"
 
@@ -760,7 +760,7 @@ static void yaffs_VerifyObject(yaffs_Object *obj)
 	chunkMax = (dev->internalEndBlock+1) * dev->nChunksPerBlock - 1;
 
 	chunkInRange = (((unsigned)(obj->hdrChunk)) >= chunkMin && ((unsigned)(obj->hdrChunk)) <= chunkMax);
-	chunkIdOk = chunkInRange || obj->hdrChunk == 0;
+	chunkIdOk = chunkInRange || (obj->hdrChunk == 0);
 	chunkValid = chunkInRange &&
 			yaffs_CheckChunkBit(dev,
 					obj->hdrChunk / dev->nChunksPerBlock,
@@ -3630,7 +3630,7 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object *in, int chunkInInode,
 	newTags.chunkId = chunkInInode;
 	newTags.objectId = in->objectId;
 	newTags.serialNumber =
-	    (prevChunkId >= 0) ? prevTags.serialNumber + 1 : 1;
+	    (prevChunkId > 0) ? prevTags.serialNumber + 1 : 1;
 	newTags.byteCount = nBytes;
 
 	if (nBytes < 1 || nBytes > dev->totalBytesPerChunk) {
@@ -3646,7 +3646,7 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object *in, int chunkInInode,
 	if (newChunkId >= 0) {
 		yaffs_PutChunkIntoFile(in, chunkInInode, newChunkId, 0);
 
-		if (prevChunkId >= 0)
+		if (prevChunkId > 0)
 			yaffs_DeleteChunk(dev, prevChunkId, 1, __LINE__);
 
 		yaffs_CheckFileSanity(in);
@@ -3732,7 +3732,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 		if (name && *name) {
 			memset(oh->name, 0, sizeof(oh->name));
 			yaffs_strncpy(oh->name, name, YAFFS_MAX_NAME_LENGTH);
-		} else if (prevChunkId >= 0)
+		} else if (prevChunkId > 0)
 			memcpy(oh->name, oldName, sizeof(oh->name));
 		else
 			memset(oh->name, 0, sizeof(oh->name));
@@ -3790,13 +3790,13 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 		/* Create new chunk in NAND */
 		newChunkId =
 		    yaffs_WriteNewChunkWithTagsToNAND(dev, buffer, &newTags,
-						      (prevChunkId >= 0) ? 1 : 0);
+						      (prevChunkId > 0) ? 1 : 0);
 
 		if (newChunkId >= 0) {
 
 			in->hdrChunk = newChunkId;
 
-			if (prevChunkId >= 0) {
+			if (prevChunkId > 0) {
 				yaffs_DeleteChunk(dev, prevChunkId, 1,
 						  __LINE__);
 			}

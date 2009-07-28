@@ -434,7 +434,6 @@ void fill_files(char *path,int flags, int maxIterations,int siz)
 	do{
 		sprintf(str,"%s/%d",path,i);
 		h = yaffs_open(str, O_CREAT | O_TRUNC | O_RDWR,S_IREAD | S_IWRITE);
-		yaffs_close(h);
 
 		if(h >= 0)
 		{
@@ -1398,6 +1397,50 @@ void fill_disk_test(const char *mountpt)
 }
 
 
+void fill_files_test(const char *mountpt)
+{
+	int i;
+	yaffs_StartUp();
+	
+	for(i = 0; i < 5; i++)
+	{
+		yaffs_mount(mountpt);
+		fill_files(mountpt,2,3,100);
+		yaffs_unmount(mountpt);
+	}
+	
+}
+
+void fill_empty_files_test(const char *mountpt)
+{
+	int i;
+	yaffs_StartUp();
+	char name[100];
+	int result = 0;
+	
+	int d,f;
+
+	for(i = 0; i < 5; i++)
+	{
+		yaffs_mount(mountpt);
+		for(d = 0; result >= 0 && d < 1000; d++){
+			sprintf(name,"%s/%d",mountpt,d);
+			result= yaffs_mkdir(name,0);
+			printf("creating directory %s result %d\n",name,result);
+			
+			for(f = 0; result >= 0 && f < 100; f++){
+				sprintf(name,"%s/%d/%d",mountpt,d,f);
+				result= yaffs_open(name,O_CREAT, 0);
+				yaffs_close(result);
+				printf("creating file %s result %d\n",name,result);
+			}
+		}
+		yaffs_unmount(mountpt);
+	}
+	
+}
+
+
 
 void lookup_test(const char *mountpt)
 {
@@ -2317,7 +2360,7 @@ int main(int argc, char *argv[])
 
 	//rename_over_test("//////////////////flash///////////////////yaffs1///////////");
 	
-	rmdir_test("/M18-1");
+	fill_empty_files_test("/yaffs2/");
 	
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);

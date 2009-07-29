@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.86 2009-07-28 03:04:54 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.87 2009-07-29 04:30:24 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2969,7 +2969,6 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 
 	isCheckpointBlock = (bi->blockState == YAFFS_BLOCK_STATE_CHECKPOINT);
 
-	bi->blockState = YAFFS_BLOCK_STATE_COLLECTING;
 
 	T(YAFFS_TRACE_TRACING,
 			(TSTR("Collecting block %d, in use %d, shrink %d, wholeBlock %d" TENDSTR),
@@ -2980,6 +2979,9 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 
 	/*yaffs_VerifyFreeChunks(dev); */
 
+	if(bi->blockState == YAFFS_BLOCK_STATE_FULL)
+		bi->blockState = YAFFS_BLOCK_STATE_COLLECTING;
+	
 	bi->hasShrinkHeader = 0;	/* clear the flag so that the block can erase */
 
 	/* Take off the number of soft deleted entries because

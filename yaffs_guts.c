@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.87 2009-07-29 04:30:24 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.88 2009-08-11 01:28:42 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5172,14 +5172,19 @@ int yaffs_DeleteFile(yaffs_Object *in)
 	}
 }
 
-static int yaffs_DeleteDirectory(yaffs_Object *in)
+static int yaffs_IsNonEmptyDirectory(yaffs_Object *obj)
+{
+	return (obj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY) &&
+		!(ylist_empty(&obj->variant.directoryVariant.children));
+}
+
+static int yaffs_DeleteDirectory(yaffs_Object *obj)
 {
 	/* First check that the directory is empty. */
-	if (ylist_empty(&in->variant.directoryVariant.children))
-		return yaffs_DoGenericObjectDeletion(in);
+	if (yaffs_IsNonEmptyDirectory(obj))
+		return YAFFS_FAIL;
 
-	return YAFFS_FAIL;
-
+	return yaffs_DoGenericObjectDeletion(obj);
 }
 
 static int yaffs_DeleteSymLink(yaffs_Object *in)
@@ -5295,7 +5300,9 @@ static int yaffs_UnlinkWorker(yaffs_Object *obj)
 		default:
 			return YAFFS_FAIL;
 		}
-	} else
+	} else if(yaffs_IsNonEmptyDirectory(obj))
+		return YAFFS_FAIL;
+	else
 		return yaffs_ChangeObjectName(obj, obj->myDev->unlinkedDir,
 					   _Y("unlinked"), 0, 0);
 }
@@ -6811,7 +6818,7 @@ yaffs_Object *yaffs_FindObjectByName(yaffs_Object *directory,
 				 * Do a real check
 				 */
 				yaffs_GetObjectName(l, buffer,
-						    YAFFS_MAX_NAME_LENGTH);
+						    YAFFS_MAX_NAME_LENGTH + 1);
 				if (yaffs_strncmp(name, buffer, YAFFS_MAX_NAME_LENGTH) == 0)
 					return l;
 			}
@@ -7060,7 +7067,7 @@ int yaffs_DumpObject(yaffs_Object *obj)
 {
 	YCHAR name[257];
 
-	yaffs_GetObjectName(obj, name, 256);
+	yaffs_GetObjectName(obj, name, YAFFS_MAX_NAME_LENGTH + 1);
 
 	T(YAFFS_TRACE_ALWAYS,
 	  (TSTR

@@ -1440,6 +1440,53 @@ void fill_empty_files_test(const char *mountpt)
 	
 }
 
+void long_name_test(const char *mountpt)
+{
+	int i;
+	yaffs_StartUp();
+	char fullName[1000];
+	char name[300];
+	int result = 0;
+	
+	int d,f;
+	
+	// Make a 256 byte name
+	memset(name,0,sizeof(name));
+	for(i = 0; i < 256; i++)
+		name[i] = '0' + i % 10;
+		
+	sprintf(fullName,"%s/%s",mountpt,name);
+
+	for(i = 0; i < 1; i++)
+	{
+		yaffs_mount(mountpt);
+		
+		printf("Files at start\n");
+		dumpDir(mountpt);
+		
+		printf("Creating file %s\n",fullName);
+		
+		f = yaffs_open(fullName,O_CREAT | O_RDWR,0);
+		yaffs_close(f);
+		
+		printf("Result %d\n",f);
+			
+		printf("Files\n");
+		dumpDir(mountpt);
+		
+		printf("Deleting %s\n",fullName);
+		result = yaffs_unlink(fullName);
+		printf("Result %d\n",result);
+		
+		printf("Files\n");
+		
+		dumpDir(mountpt);
+		
+		yaffs_unmount(mountpt);
+	}
+	
+}
+
 
 
 void lookup_test(const char *mountpt)
@@ -2360,7 +2407,8 @@ int main(int argc, char *argv[])
 
 	//rename_over_test("//////////////////flash///////////////////yaffs1///////////");
 	
-	fill_empty_files_test("/yaffs2/");
+	//fill_empty_files_test("/yaffs2/");
+	long_name_test("/yaffs2");
 	
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);

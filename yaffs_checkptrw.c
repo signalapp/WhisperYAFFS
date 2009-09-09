@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-	"$Id: yaffs_checkptrw.c,v 1.19 2009-06-19 01:35:46 charles Exp $";
+	"$Id: yaffs_checkptrw.c,v 1.20 2009-09-09 03:03:01 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -43,6 +43,9 @@ static int yaffs_CheckpointErase(yaffs_Device *dev)
 		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, i);
 		if (bi->blockState == YAFFS_BLOCK_STATE_CHECKPOINT) {
 			T(YAFFS_TRACE_CHECKPOINT, (TSTR("erasing checkpt block %d"TENDSTR), i));
+
+			dev->nBlockErasures++;
+
 			if (dev->eraseBlockInNAND(dev, i - dev->blockOffset /* realign */)) {
 				bi->blockState = YAFFS_BLOCK_STATE_EMPTY;
 				dev->nErasedBlocks++;
@@ -222,6 +225,8 @@ static int yaffs_CheckpointFlushBuffer(yaffs_Device *dev)
 
 	realignedChunk = chunk - dev->chunkOffset;
 
+	dev->nPageWrites++;
+
 	dev->writeChunkWithTagsToNAND(dev, realignedChunk,
 			dev->checkpointBuffer, &tags);
 	dev->checkpointByteOffset = 0;
@@ -309,6 +314,8 @@ int yaffs_CheckpointRead(yaffs_Device *dev, void *data, int nBytes)
 					dev->checkpointCurrentChunk;
 
 				realignedChunk = chunk - dev->chunkOffset;
+				
+				dev->nPageReads++;
 
 				/* read in the next chunk */
 				/* printf("read checkpoint page %d\n",dev->checkpointPage); */

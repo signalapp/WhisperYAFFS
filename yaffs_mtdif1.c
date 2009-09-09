@@ -36,7 +36,7 @@
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
 #if (MTD_VERSION_CODE > MTD_VERSION(2, 6, 17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.10 2009-03-09 07:41:10 charles Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.11 2009-09-09 03:03:01 charles Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
@@ -101,8 +101,6 @@ int nandmtd1_WriteChunkWithTagsToNAND(yaffs_Device *dev,
 	/* we assume that PackedTags1 and yaffs_Tags are compatible */
 	compile_time_assertion(sizeof(yaffs_PackedTags1) == 12);
 	compile_time_assertion(sizeof(yaffs_Tags) == 8);
-
-	dev->nPageWrites++;
 
 	yaffs_PackTags1(&pt1, etags);
 	yaffs_CalcTagsECC((yaffs_Tags *)&pt1);
@@ -179,8 +177,6 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	yaffs_PackedTags1 pt1;
 	int retval;
 	int deleted;
-
-	dev->nPageReads++;
 
 	memset(&ops, 0, sizeof(ops));
 	ops.mode = MTD_OOB_AUTO;

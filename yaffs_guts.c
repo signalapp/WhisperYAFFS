@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.88 2009-08-11 01:28:42 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.89 2009-09-09 00:56:53 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1545,11 +1545,16 @@ static int yaffs_FindChunkInGroup(yaffs_Device *dev, int theChunk,
 	for (j = 0; theChunk && j < dev->chunkGroupSize; j++) {
 		if (yaffs_CheckChunkBit(dev, theChunk / dev->nChunksPerBlock,
 				theChunk % dev->nChunksPerBlock)) {
-			yaffs_ReadChunkWithTagsFromNAND(dev, theChunk, NULL,
-							tags);
-			if (yaffs_TagsMatch(tags, objectId, chunkInInode)) {
-				/* found it; */
+			
+			if(dev->chunkGroupSize == 1)
 				return theChunk;
+			else {
+				yaffs_ReadChunkWithTagsFromNAND(dev, theChunk, NULL,
+								tags);
+				if (yaffs_TagsMatch(tags, objectId, chunkInInode)) {
+					/* found it; */
+					return theChunk;
+				}
 			}
 		}
 		theChunk++;

@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.81 2009-05-26 01:22:44 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.82 2009-09-18 00:39:21 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -751,7 +751,7 @@ static int yaffs_write_begin(struct file *filp, struct address_space *mapping,
 
 	T(YAFFS_TRACE_OS, ("start yaffs_write_begin\n"));
 	/* Get a page */
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 28)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 28)
 	pg = grab_cache_page_write_begin(mapping, index, flags);
 #else
 	pg = __grab_cache_page(mapping, index);

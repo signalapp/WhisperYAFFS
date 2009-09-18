@@ -74,8 +74,8 @@
 /* KR - added for use in scan so processes aren't blocked indefinitely. */
 #define YYIELD() schedule()
 
-#define YAFFS_ROOT_MODE			0666
-#define YAFFS_LOSTNFOUND_MODE		0666
+#define YAFFS_ROOT_MODE			0755
+#define YAFFS_LOSTNFOUND_MODE		0700
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
 #define Y_CURRENT_TIME CURRENT_TIME.tv_sec
@@ -146,8 +146,8 @@
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
 /* #define YPRINTF(x) printf x */
 
-#define YAFFS_ROOT_MODE				0666
-#define YAFFS_LOSTNFOUND_MODE		0666
+#define YAFFS_ROOT_MODE			0755
+#define YAFFS_LOSTNFOUND_MODE		0700
 
 #define yaffs_SumCompare(x, y) ((x) == (y))
 #define yaffs_strcmp(a, b) strcmp(a, b)

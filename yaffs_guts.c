@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.89 2009-09-09 00:56:53 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.90 2009-09-23 23:24:55 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5060,23 +5060,27 @@ loff_t yaffs_GetFileSize(yaffs_Object *obj)
 
 
 
-int yaffs_FlushFile(yaffs_Object *in, int updateTime)
+int yaffs_FlushFile(yaffs_Object *in, int updateTime, int dataSync)
 {
 	int retVal;
 	if (in->dirty) {
 		yaffs_FlushFilesChunkCache(in);
-		if (updateTime) {
+		if(dataSync) /* Only sync data */
+			retVal=YAFFS_OK;
+		else {
+			if (updateTime) {
 #ifdef CONFIG_YAFFS_WINCE
-			yfsd_WinFileTimeNow(in->win_mtime);
+				yfsd_WinFileTimeNow(in->win_mtime);
 #else
 
-			in->yst_mtime = Y_CURRENT_TIME;
+				in->yst_mtime = Y_CURRENT_TIME;
 
 #endif
-		}
+			}
 
-		retVal = (yaffs_UpdateObjectHeader(in, NULL, 0, 0, 0) >=
-			0) ? YAFFS_OK : YAFFS_FAIL;
+			retVal = (yaffs_UpdateObjectHeader(in, NULL, 0, 0, 0) >=
+				0) ? YAFFS_OK : YAFFS_FAIL;
+		}
 	} else {
 		retVal = YAFFS_OK;
 	}

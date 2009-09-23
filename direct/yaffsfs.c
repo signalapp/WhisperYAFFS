@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.25 2009-03-05 01:47:17 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.26 2009-09-23 23:24:55 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -587,7 +587,7 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 	return handle;
 }
 
-int yaffs_flush(int fd)
+int yaffs_Dofsync(int fd,int datasync)
 {
 	yaffsfs_Handle *h = NULL;
 	int retVal = 0;
@@ -599,7 +599,7 @@ int yaffs_flush(int fd)
 	if(h && h->inUse)
 	{
 		// flush the file
-		yaffs_FlushFile(h->obj,1);
+		yaffs_FlushFile(h->obj,1,datasync);
 	}
 	else
 	{
@@ -613,6 +613,15 @@ int yaffs_flush(int fd)
 	return retVal;
 }
 
+int yaffs_fsync(int fd)
+{
+	return yaffs_Dofsync(fd,0);
+}
+
+int yaffs_fdatasync(int fd)
+{
+	return yaffs_Dofsync(fd,1);
+}
 
 int yaffs_close(int fd)
 {
@@ -626,7 +635,7 @@ int yaffs_close(int fd)
 	if(h && h->inUse)
 	{
 		// clean up
-		yaffs_FlushFile(h->obj,1);
+		yaffs_FlushFile(h->obj,1,0);
 		h->obj->inUse--;
 		if(h->obj->inUse <= 0 && h->obj->unlinked)
 		{
@@ -1265,7 +1274,7 @@ int yaffs_set_wince_times(int fd,
                 }
 
                 obj->dirty = 1;
-                result = yaffs_FlushFile(obj,0);
+                result = yaffs_FlushFile(obj,0,0);
                 retVal = 0;
         }
         else
@@ -1295,7 +1304,7 @@ static int yaffsfs_DoChMod(yaffs_Object *obj,mode_t mode)
 	{
 		obj->yst_mode = mode;
 		obj->dirty = 1;
-		result = yaffs_FlushFile(obj,0);
+		result = yaffs_FlushFile(obj,0,0);
 	}
 
 	return result == YAFFS_OK ? 0 : -1;

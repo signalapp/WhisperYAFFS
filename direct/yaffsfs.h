@@ -216,7 +216,9 @@ struct yaffs_stat{
 
 int yaffs_open(const YCHAR *path, int oflag, int mode) ;
 int yaffs_close(int fd) ;
-int yaffs_flush(int fd) ;
+int yaffs_fsync(int fd) ;
+int yaffs_fdatasync(int fd) ;
+int yaffs_flush(int fd) ; /* same as yaffs_fsync() */
 
 int yaffs_access(const YCHAR *path, int amode);
 

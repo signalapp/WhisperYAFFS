@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.82 2009-09-18 00:39:21 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.83 2009-09-23 23:24:55 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -589,7 +589,7 @@ static int yaffs_file_flush(struct file *file)
 
 	yaffs_GrossLock(dev);
 
-	yaffs_FlushFile(obj, 1);
+	yaffs_FlushFile(obj, 1,0);
 
 	yaffs_GrossUnlock(dev);
 
@@ -1438,7 +1438,7 @@ static int yaffs_sync_object(struct file *file, struct dentry *dentry,
 
 	T(YAFFS_TRACE_OS, ("yaffs_sync_object\n"));
 	yaffs_GrossLock(dev);
-	yaffs_FlushFile(obj, 1);
+	yaffs_FlushFile(obj, 1, datasync);
 	yaffs_GrossUnlock(dev);
 	return 0;
 }
@@ -1596,6 +1596,21 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 }
 
 
+
+static void yaffs_flush_sb_inodes(struct super_block *sb)
+{
+	struct inode *iptr;
+	yaffs_Object *obj;
+	
+	list_for_each_entry(iptr,&sb->s_inodes, i_sb_list){
+		obj = yaffs_InodeToObject(iptr);
+		if(obj){
+			T(YAFFS_TRACE_OS, ("flushing obj %d\n",obj->objectId));
+			yaffs_FlushFile(obj,1,0);
+		}
+	}
+}
+
 static int yaffs_do_sync_fs(struct super_block *sb)
 {
 
@@ -1607,6 +1622,7 @@ static int yaffs_do_sync_fs(struct super_block *sb)
 
 		if (dev) {
 			yaffs_FlushEntireDeviceCache(dev);
+			yaffs_flush_sb_inodes(sb);
 			yaffs_CheckpointSave(dev);
 		}
 

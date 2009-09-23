@@ -840,7 +840,8 @@ int yaffs_ResizeFile(yaffs_Object *obj, loff_t newSize);
 
 yaffs_Object *yaffs_MknodFile(yaffs_Object *parent, const YCHAR *name,
 				__u32 mode, __u32 uid, __u32 gid);
-int yaffs_FlushFile(yaffs_Object *obj, int updateTime);
+
+int yaffs_FlushFile(yaffs_Object *obj, int updateTime, int dataSync);
 
 /* Flushing and checkpointing */
 void yaffs_FlushEntireDeviceCache(yaffs_Device *dev);

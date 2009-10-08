@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.1 2009-10-08 01:58:52 charles Exp $
+# $Id: Makefile,v 1.2 2009-10-08 23:11:12 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -62,7 +62,14 @@ yaffs_wrap.c: yaffs.i yaffsfs_for_swig.h
 	swig -python yaffs.i
 
 yaffsfs_for_swig.h: yaffsfs.h
-	cat yaffsfs.h | sed -e "s/YCHAR/char/g" | sed -e "s/YUCHAR/unsigned char/g" | sed -e "s/struct yaffs_stat/struct yaffs_stat_struct/g" > $@
+	cat yaffsfs.h | \
+	sed -e "s/YCHAR/char/g" | \
+	sed -e "s/YUCHAR/unsigned char/g" | \
+	sed -e "s/void \*/char \*/g" | \
+	sed -e "s/loff_t/long long/g" | \
+	sed -e "s/off_t/long/g" | \
+	sed -e "s/struct yaffs_stat/struct yaffs_stat_struct/g" \
+	> $@
 
 $(ALLOBJS): %.o: %.c
 	gcc -c $(CFLAGS) -I/usr/include/python2.6/  -o $@ $<

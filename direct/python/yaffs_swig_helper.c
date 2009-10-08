@@ -18,4 +18,6 @@ int yaffs_print_constants(void)
 	printf( "O_WRONLY.......%d\n",O_WRONLY);
 	printf( "O_RDWR.........%d\n",O_RDWR);
 	printf( "O_TRUNC........%d\n",O_TRUNC);
+
+	return 0;
 }

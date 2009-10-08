@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.26 2009-09-23 23:24:55 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.27 2009-10-08 01:57:59 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -616,6 +616,11 @@ int yaffs_Dofsync(int fd,int datasync)
 int yaffs_fsync(int fd)
 {
 	return yaffs_Dofsync(fd,0);
+}
+
+int yaffs_flush(int fd)
+{
+	return yaffs_fsync(fd);
 }
 
 int yaffs_fdatasync(int fd)
@@ -1971,7 +1976,10 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 	return retVal;
 }
 
-int yaffs_mknod(const YCHAR *pathname, mode_t mode, dev_t dev);
+int yaffs_mknod(const YCHAR *pathname, mode_t mode, dev_t dev)
+{
+	return -1;
+}
 
 int yaffs_DumpDevStruct(const YCHAR *path)
 {

@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.2 2009-10-08 23:11:12 charles Exp $
+# $Id: Makefile,v 1.3 2009-10-09 06:12:26 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -36,10 +36,10 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 		 yaffs_norif1.o  ynorsim.o
 
 
-YAFFSTESTOBJS  = $(COMMONTESTOBJS) yaffs_wrap.o yaffs_swig_helper.o
+YAFFSSWIGOBJS  = $(COMMONTESTOBJS) yaffs_wrap.o yaffs_python_helper.o
+YAFFSLIBOBJS  = $(COMMONTESTOBJS) yaffs_python_helper.o
 
 
-ALLOBJS = $(sort $(YAFFSTESTOBJS))
 
 YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
@@ -56,7 +56,7 @@ YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h y
 
 SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
 
-all: _yaffs.so
+all: _yaffs.so libyaffsfs.so
 
 yaffs_wrap.c: yaffs.i yaffsfs_for_swig.h
 	swig -python yaffs.i
@@ -71,7 +71,10 @@ yaffsfs_for_swig.h: yaffsfs.h
 	sed -e "s/struct yaffs_stat/struct yaffs_stat_struct/g" \
 	> $@
 
-$(ALLOBJS): %.o: %.c
+$(YAFFSLIBOBJS): %.o: %.c
+	gcc -c $(CFLAGS)   -o $@ $<
+
+yaffs_wrap.o:  %.o: %.c
 	gcc -c $(CFLAGS) -I/usr/include/python2.6/  -o $@ $<
 
 
@@ -83,13 +86,18 @@ $(YAFFSDIRECTSYMLINKS):
 
 
 
-_yaffs.so: $(SYMLINKS) yaffs_wrap.c $(ALLOBJS)
-	gcc -shared $(ALLOBJS) -o $@
+_yaffs.so: $(SYMLINKS) yaffs_wrap.c $(YAFFSSWIGOBJS)
+	gcc -shared $(YAFFSSWIGOBJS) -o $@
+
+libyaffsfs.so: $(SYMLINKS) $(YAFFSLIBOBJS)
+	gcc -shared $(YAFFSLIBOBJS) -o $@
 
 
 
 
 clean:
-	rm -f _yaffs.so yaffs.py yaffs.pyc yaffs_wrap.c $(ALLOBJS) core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
+	rm -f _yaffs.so yaffs.py yaffs.pyc yaffs_wrap.c $(YAFFSLIBOBJS) yaffs_wrap.o core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
 	rm -f *.c.*
 	rm -f yaffsfs_for_swig.h
+	rm -f libyaffsfs.so
+

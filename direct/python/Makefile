@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.3 2009-10-09 06:12:26 charles Exp $
+# $Id: Makefile,v 1.4 2009-10-12 23:05:49 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -36,7 +36,6 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 		 yaffs_norif1.o  ynorsim.o
 
 
-YAFFSSWIGOBJS  = $(COMMONTESTOBJS) yaffs_wrap.o yaffs_python_helper.o
 YAFFSLIBOBJS  = $(COMMONTESTOBJS) yaffs_python_helper.o
 
 
@@ -56,26 +55,11 @@ YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h y
 
 SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
 
-all: _yaffs.so libyaffsfs.so
+all:  libyaffsfs.so
 
-yaffs_wrap.c: yaffs.i yaffsfs_for_swig.h
-	swig -python yaffs.i
-
-yaffsfs_for_swig.h: yaffsfs.h
-	cat yaffsfs.h | \
-	sed -e "s/YCHAR/char/g" | \
-	sed -e "s/YUCHAR/unsigned char/g" | \
-	sed -e "s/void \*/char \*/g" | \
-	sed -e "s/loff_t/long long/g" | \
-	sed -e "s/off_t/long/g" | \
-	sed -e "s/struct yaffs_stat/struct yaffs_stat_struct/g" \
-	> $@
 
 $(YAFFSLIBOBJS): %.o: %.c
 	gcc -c $(CFLAGS)   -o $@ $<
-
-yaffs_wrap.o:  %.o: %.c
-	gcc -c $(CFLAGS) -I/usr/include/python2.6/  -o $@ $<
 
 
 $(YAFFSSYMLINKS):
@@ -86,9 +70,6 @@ $(YAFFSDIRECTSYMLINKS):
 
 
 
-_yaffs.so: $(SYMLINKS) yaffs_wrap.c $(YAFFSSWIGOBJS)
-	gcc -shared $(YAFFSSWIGOBJS) -o $@
-
 libyaffsfs.so: $(SYMLINKS) $(YAFFSLIBOBJS)
 	gcc -shared $(YAFFSLIBOBJS) -o $@
 
@@ -96,8 +77,6 @@ libyaffsfs.so: $(SYMLINKS) $(YAFFSLIBOBJS)
 
 
 clean:
-	rm -f _yaffs.so yaffs.py yaffs.pyc yaffs_wrap.c $(YAFFSLIBOBJS) yaffs_wrap.o core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
-	rm -f *.c.*
-	rm -f yaffsfs_for_swig.h
+	rm -f  $(YAFFSLIBOBJS)  core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
 	rm -f libyaffsfs.so
 

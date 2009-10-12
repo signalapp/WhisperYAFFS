@@ -34,6 +34,7 @@ int yaffs_print_constants(void)
 	printf( "O_RDWR.........%d\n",O_RDWR);
 	printf( "O_TRUNC........%d\n",O_TRUNC);
 
+	printf( "sizeof(off_t)..%d\n",sizeof(off_t)); 
 	return 0;
 }
 

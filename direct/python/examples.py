@@ -22,10 +22,28 @@ def yaffs_ls(dname):
                 yaffs_ls(fullname)
                 
             sep = yaffs_readdir(dc)
+        yaffs_closedir(dc)
+        return 0
     else:
         print "Could not open directory"
         return -1
 
+def yaffs_mkfile(fname,fsize):
+    fd = yaffs_open(fname,66, 0666)
+    if fd >= 0:
+        b = create_string_buffer("",1024)
+        totalwrite=0
+        while fsize > 0:
+            thiswrite = 1024 if fsize > 1024 else fsize
+            result = yaffs_write(fd,b,thiswrite)
+            totalwrite += result
+            fsize -= result
+            if result != thiswrite:
+                fsize= 0
+
+        return totalwrite
+    else :
+        return -1
 
 root = "/yaffs2"
 

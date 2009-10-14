@@ -6,8 +6,8 @@ do
 
    seed=$RANDOM   
    j=$(( $i % 10 ))
-   rm seed*$j
-   echo $seed>seed-for-run-$i
+   rm seed-nor-*$j
+   echo $seed>seed-nor-for-run-$i
    rm data*$j
    cp emfile-nor data-for-run-$i
    echo "######### Run $i with seed $seed"

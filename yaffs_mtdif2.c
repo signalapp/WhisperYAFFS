@@ -14,7 +14,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-	"$Id: yaffs_mtdif2.c,v 1.23 2009-03-06 17:20:53 wookey Exp $";
+	"$Id: yaffs_mtdif2.c,v 1.24 2009-10-14 00:01:57 charles Exp $";
 
 #include "yportenv.h"
 
@@ -47,6 +47,9 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device *dev, int chunkInNAND,
 
 	yaffs_PackedTags2 pt;
 
+	int packed_tags_size = dev->noTagsECC ? sizeof(pt.t) : sizeof(pt);
+	void * packed_tags_ptr = dev->noTagsECC ? (void *) &pt.t : (void *)&pt;
+
 	T(YAFFS_TRACE_MTD,
 	  (TSTR
 	   ("nandmtd2_WriteChunkWithTagsToNAND chunk %d data %p tags %p"
@@ -66,22 +69,22 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device *dev, int chunkInNAND,
 		pt2tp = (yaffs_PackedTags2TagsPart *)(data + dev->nDataBytesPerChunk);
 		yaffs_PackTags2TagsPart(pt2tp, tags);
 	} else
-		yaffs_PackTags2(&pt, tags);
+		yaffs_PackTags2(dev, &pt, tags);
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 	ops.mode = MTD_OOB_AUTO;
-	ops.ooblen = (dev->inbandTags) ? 0 : sizeof(pt);
+	ops.ooblen = (dev->inbandTags) ? 0 : packed_tags_size;
 	ops.len = dev->totalBytesPerChunk;
 	ops.ooboffs = 0;
 	ops.datbuf = (__u8 *)data;
-	ops.oobbuf = (dev->inbandTags) ? NULL : (void *)&pt;
+	ops.oobbuf = (dev->inbandTags) ? NULL : packed_tags_ptr;
 	retval = mtd->write_oob(mtd, addr, &ops);
 
 #else
 	if (!dev->inbandTags) {
 		retval =
 		    mtd->write_ecc(mtd, addr, dev->nDataBytesPerChunk,
-				   &dummy, data, (__u8 *) &pt, NULL);
+				   &dummy, data, (__u8 *) packed_tags_ptr, NULL);
 	} else {
 		retval =
 		    mtd->write(mtd, addr, dev->totalBytesPerChunk, &dummy,
@@ -110,6 +113,9 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 
 	yaffs_PackedTags2 pt;
 
+	int packed_tags_size = dev->noTagsECC ? sizeof(pt.t) : sizeof(pt);
+	void * packed_tags_ptr = dev->noTagsECC ? (void *) &pt.t: (void *)&pt;
+
 	T(YAFFS_TRACE_MTD,
 	  (TSTR
 	   ("nandmtd2_ReadChunkWithTagsFromNAND chunk %d data %p tags %p"
@@ -132,8 +138,8 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 				&dummy, data);
 	else if (tags) {
 		ops.mode = MTD_OOB_AUTO;
-		ops.ooblen = sizeof(pt);
-		ops.len = data ? dev->nDataBytesPerChunk : sizeof(pt);
+		ops.ooblen = packed_tags_size;
+		ops.len = data ? dev->nDataBytesPerChunk : packed_tags_size;
 		ops.ooboffs = 0;
 		ops.datbuf = data;
 		ops.oobbuf = dev->spareBuffer;
@@ -166,8 +172,8 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 		}
 	} else {
 		if (tags) {
-			memcpy(&pt, dev->spareBuffer, sizeof(pt));
-			yaffs_UnpackTags2(tags, &pt);
+			memcpy(packed_tags_ptr, dev->spareBuffer, packed_tags_size);
+			yaffs_UnpackTags2(dev, tags, &pt);
 		}
 	}
 

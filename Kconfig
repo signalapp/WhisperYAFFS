@@ -90,6 +90,18 @@ config YAFFS_AUTO_YAFFS2
 
 	  If unsure, say Y.
 
+config YAFFS_DISABLE_TAGS_ECC
+	bool "Disable YAFFS from doing ECC on tags by default"
+	depends on YAFFS_FS && YAFFS_YAFFS2
+	default n
+	help
+	  This defaults Yaffs to using its own ECC calculations on tags instead of
+	  just relying on the MTD.
+	  This behavior can also be overridden with tags_ecc_on and
+	  tags_ecc_off mount options.
+
+	  If unsure, say N.
+
 config YAFFS_DISABLE_LAZY_LOAD
 	bool "Disable lazy loading"
 	depends on YAFFS_YAFFS2

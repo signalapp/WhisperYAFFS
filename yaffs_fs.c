@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.83 2009-09-23 23:24:55 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.84 2009-10-14 00:01:56 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -1812,6 +1812,8 @@ typedef struct {
 	int skip_checkpoint_read;
 	int skip_checkpoint_write;
 	int no_cache;
+	int tags_ecc_on;
+	int tags_ecc_overridden;
 } yaffs_options;
 
 #define MAX_OPT_LEN 20
@@ -1827,6 +1829,9 @@ static int yaffs_parse_options(yaffs_options *options, const char *options_str)
 		memset(cur_opt, 0, MAX_OPT_LEN + 1);
 		p = 0;
 
+		while(*options_str == ',')
+			options_str++;
+
 		while (*options_str && *options_str != ',') {
 			if (p < MAX_OPT_LEN) {
 				cur_opt[p] = *options_str;
@@ -1837,7 +1842,13 @@ static int yaffs_parse_options(yaffs_options *options, const char *options_str)
 
 		if (!strcmp(cur_opt, "inband-tags"))
 			options->inband_tags = 1;
-		else if (!strcmp(cur_opt, "no-cache"))
+		else if (!strcmp(cur_opt, "tags-ecc-off")){
+			options->tags_ecc_on = 0;
+			options->tags_ecc_overridden=1;
+		} else if (!strcmp(cur_opt, "tags-ecc-on")){
+			options->tags_ecc_on = 1;
+			options->tags_ecc_overridden = 1;
+		} else if (!strcmp(cur_opt, "no-cache"))
 			options->no_cache = 1;
 		else if (!strcmp(cur_opt, "no-checkpoint-read"))
 			options->skip_checkpoint_read = 1;
@@ -2052,6 +2063,12 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	dev->nReservedBlocks = 5;
 	dev->nShortOpCaches = (options.no_cache) ? 0 : 10;
 	dev->inbandTags = options.inband_tags;
+
+#ifdef CONFIG_YAFFS_DISABLE_TAGS_ECC
+	dev->noTagsECC = 1;
+#endif
+	if(options.tags_ecc_overridden)
+		dev->noTagsECC = !options.tags_ecc_on;
 
 	/* ... and the functions. */
 	if (yaffsVersion == 2) {
@@ -2289,6 +2306,7 @@ static char *yaffs_dump_dev(char *buf, yaffs_Device * dev)
 	buf +=
 	    sprintf(buf, "nBackgroudDeletions %d\n", dev->nBackgroundDeletions);
 	buf += sprintf(buf, "useNANDECC......... %d\n", dev->useNANDECC);
+	buf += sprintf(buf, "noTagsECC.......... %d\n", dev->noTagsECC);
 	buf += sprintf(buf, "isYaffs2........... %d\n", dev->isYaffs2);
 	buf += sprintf(buf, "inbandTags......... %d\n", dev->inbandTags);
 

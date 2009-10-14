@@ -557,7 +557,8 @@ struct yaffs_DeviceStruct {
 
 	int useHeaderFileSize;	/* Flag to determine if we should use file sizes from the header */
 
-	int useNANDECC;		/* Flag to decide whether or not to use NANDECC */
+	int useNANDECC;		/* Flag to decide whether or not to use NANDECC on data (yaffs1) */
+	int noTagsECC;		/* Flag to decide whether or not to do ECC on packed tags (yaffs2) */ 
 
 	void *genericDevice;	/* Pointer to device context
 				 * On an mtd this holds the mtd pointer.

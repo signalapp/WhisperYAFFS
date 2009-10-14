@@ -29,6 +29,10 @@
 /* Meaning: Yaffs does its own ECC, rather than using MTD ECC */
 /* #define CONFIG_YAFFS_DOES_ECC */
 
+/* Default: Selected */
+/* Meaning: Yaffs does its own ECC on tags for packed tags rather than use mtd */
+#define CONFIG_YAFFS_DOES_TAGS_ECC
+
 /* Default: Not selected */
 /* Meaning: ECC byte order is 'wrong'.  Only meaningful if */
 /*          CONFIG_YAFFS_DOES_ECC is set */

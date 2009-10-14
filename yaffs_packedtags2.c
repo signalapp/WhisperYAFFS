@@ -96,17 +96,14 @@ void yaffs_PackTags2TagsPart(yaffs_PackedTags2TagsPart *ptt,
 }
 
 
-void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t)
+void yaffs_PackTags2(yaffs_Device *dev, yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t)
 {
 	yaffs_PackTags2TagsPart(&pt->t, t);
 
-#ifndef YAFFS_IGNORE_TAGS_ECC
-	{
+	if(!dev->noTagsECC)
 		yaffs_ECCCalculateOther((unsigned char *)&pt->t,
 					sizeof(yaffs_PackedTags2TagsPart),
 					&pt->ecc);
-	}
-#endif
 }
 
 
@@ -158,27 +155,24 @@ void yaffs_UnpackTags2TagsPart(yaffs_ExtendedTags *t,
 }
 
 
-void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
+void yaffs_UnpackTags2(yaffs_Device *dev, yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
 {
 
 	yaffs_ECCResult eccResult = YAFFS_ECC_RESULT_NO_ERROR;
 
-	if (pt->t.sequenceNumber != 0xFFFFFFFF) {
-		/* Page is in use */
-#ifndef YAFFS_IGNORE_TAGS_ECC
-		{
-			yaffs_ECCOther ecc;
-			int result;
-			yaffs_ECCCalculateOther((unsigned char *)&pt->t,
-						sizeof
-						(yaffs_PackedTags2TagsPart),
-						&ecc);
-			result =
-			    yaffs_ECCCorrectOther((unsigned char *)&pt->t,
-						  sizeof
-						  (yaffs_PackedTags2TagsPart),
-						  &pt->ecc, &ecc);
-			switch (result) {
+	if (pt->t.sequenceNumber != 0xFFFFFFFF &&
+	    !dev->noTagsECC){
+		/* Chunk is in use and we need to do ECC */
+		
+		yaffs_ECCOther ecc;
+		int result;
+		yaffs_ECCCalculateOther((unsigned char *)&pt->t,
+					sizeof(yaffs_PackedTags2TagsPart),
+					&ecc);
+		result = yaffs_ECCCorrectOther((unsigned char *)&pt->t,
+						sizeof(yaffs_PackedTags2TagsPart),
+						&pt->ecc, &ecc);
+		switch (result) {
 			case 0:
 				eccResult = YAFFS_ECC_RESULT_NO_ERROR;
 				break;
@@ -190,9 +184,7 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
 				break;
 			default:
 				eccResult = YAFFS_ECC_RESULT_UNKNOWN;
-			}
 		}
-#endif
 	}
 
 	yaffs_UnpackTags2TagsPart(t, &pt->t);
@@ -201,6 +193,5 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
 
 	yaffs_DumpPackedTags2(pt);
 	yaffs_DumpTags2(t);
-
 }
 

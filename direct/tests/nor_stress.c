@@ -68,12 +68,16 @@ void MakeFullNames(const char *prefix)
   MakeName(fullTempMainName,prefix,"tmp-main");
 }
 
-static void FatalError(void)
+static void FatalError(int lineNo)
 {
-  printf("Integrity error\n");
+  printf("Integrity error %d\n",lineNo);
   while(1){
    sleep(1);
   }
+}
+void print_stat(const char *str, struct yaffs_stat *st)
+{
+	printf("%s inode %d\n",str,st->st_ino);
 }
 
 static void UpdateCounter(const char *name, unsigned *val,  int initialise)
@@ -100,7 +104,7 @@ static void UpdateCounter(const char *name, unsigned *val,  int initialise)
        x[0] + 1 != x[1]){
       printf("Error reading counter %s handle %d, x[0] %u x[1] %u last error %d\n",
               name, inh, x[0], x[1],yaffsfs_GetLastError());
-      FatalError();
+      FatalError(__LINE__);
               
     }
     x[0]++;
@@ -110,11 +114,20 @@ static void UpdateCounter(const char *name, unsigned *val,  int initialise)
   FSX();
   outh = yaffs_open(fullTempCounterName, O_RDWR | O_TRUNC | O_CREAT, S_IREAD | S_IWRITE);
   if(outh >= 0){
+   struct yaffs_stat tmpstat, oldstat, tmpfstat;
    FSX(); 
     nwritten = yaffs_write(outh,x,sizeof(x));
     FSX();
+    yaffs_fstat(outh,&tmpfstat);
     yaffs_close(outh);
     FSX();
+
+    printf("About to rename %s to %s\n",fullTempCounterName,name);
+    yaffs_stat(fullTempCounterName,&tmpstat);
+    yaffs_stat(name,&oldstat);
+    print_stat("old stat",&oldstat);
+    print_stat("new stat",&tmpstat);
+    print_stat("new fstat",&tmpfstat);
     yaffs_rename(fullTempCounterName,name);
     FSX();
   }
@@ -122,7 +135,7 @@ static void UpdateCounter(const char *name, unsigned *val,  int initialise)
   if(nwritten != sizeof(x)){
       printf("Error writing counter %s handle %d, x[0] %u x[1] %u\n",
               name, inh, x[0], x[1]);
-      FatalError();
+      FatalError(__LINE__);
   }
   
   *val = x[0];
@@ -156,7 +169,12 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 			
 			yaffs_lstat(str,&s);
 			
-			printf("%s inode %d obj %x length %d mode %X ",str,s.st_ino,de->d_dont_use,(int)s.st_size,s.st_mode);
+			printf("%s inode %ld %d obj %x length %d mode %X ",str, de->d_ino, s.st_ino,de->d_dont_use,(int)s.st_size,s.st_mode);\
+			if(de->d_ino != s.st_ino){
+				printf(" \n\n!!!! HEY inode mismatch\n\n");
+				FatalError(__LINE__);
+			}
+
 			switch(s.st_mode & S_IFMT)
 			{
 				case S_IFREG: printf("data file"); break;
@@ -176,7 +194,7 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 				dump_directory_tree_worker(str,1);
 				
                         if(s.st_ino > 10000)
-                          FatalError();
+                          FatalError(__LINE__);
 							
 		}
 		
@@ -204,12 +222,15 @@ static int yWriteFile(const char *fname, unsigned sz32)
 	int h;
 	int r;
 	int i;
+	struct yaffs_stat st;
 	unsigned checksum = 0;
 	
-	printf("Writing file %s\n",fname);
 
 	FSX();
 	h = yaffs_open(fname,O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+	yaffs_fstat(h,&st);
+	printf("Writing file %s inode %d\n",fname, st.st_ino);
+	
 	FSX();
 
 	if(h < 0){
@@ -338,7 +359,7 @@ static void DoUpdateMainFile(void)
 	result = yWriteFile(fullTempMainName,sz32);
 	FSX();
 	if(result)
-	    FatalError();
+	    FatalError(__LINE__);
 	yaffs_rename(fullTempMainName,fullMainName);
 	FSX();
 }
@@ -348,7 +369,7 @@ static void DoVerifyMainFile(void)
         int result;
 	result = yVerifyFile(fullMainName);
 	if(result)
-	    FatalError();
+	    FatalError(__LINE__);
 
 }
 

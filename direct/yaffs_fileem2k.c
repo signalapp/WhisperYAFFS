@@ -16,7 +16,7 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.19 2009-10-14 00:01:57 charles Exp $";
+const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.20 2009-10-15 00:45:46 charles Exp $";
 
 
 #include "yportenv.h"
@@ -72,7 +72,7 @@ static int nops_so_far;
 int ops_multiplier;
 
 
-static void yflash2_MaybePowerFail(void)
+static void yflash2_MaybePowerFail(unsigned int chunkInNAND, int failPoint)
 {
 
    nops_so_far++;
@@ -82,6 +82,8 @@ static void yflash2_MaybePowerFail(void)
    if(simulate_power_failure &&
       remaining_ops < 1){
        printf("Simulated power failure after %d operations\n",nops_so_far);
+       printf("  Fail simulated on chunkInNAND %d, at fail point %d\n",
+       			chunkInNAND, failPoint);
     	exit(0);
   }
 }
@@ -240,7 +242,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 
 			if(written != dev->nDataBytesPerChunk) return YAFFS_FAIL;
 		}
-		yflash2_MaybePowerFail();
+		// yflash2_MaybePowerFail(chunkInNAND,1);
 	
 		if(tags)
 		{
@@ -291,7 +293,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 			}
 		}
 		
-		//yflash2_MaybePowerFail();
+		//yflash2_MaybePowerFail(chunkInNAND,2);
 		
 		/* Next do the whole write */
 		if(data)
@@ -361,7 +363,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 			}
 		}
 		
-		yflash2_MaybePowerFail();
+		yflash2_MaybePowerFail(chunkInNAND,3);
 	
 	}
 	return YAFFS_OK;	

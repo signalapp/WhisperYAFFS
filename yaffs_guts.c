@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.90 2009-09-23 23:24:55 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.91 2009-10-15 00:45:46 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2466,12 +2466,16 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName,
 	yaffs_Object *obj = NULL;
 	yaffs_Object *existingTarget = NULL;
 	int force = 0;
+	int result;
+	yaffs_Device *dev;
 
 
 	if (!oldDir || oldDir->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
 		YBUG();
 	if (!newDir || newDir->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
 		YBUG();
+
+	dev = oldDir->myDev;
 
 #ifdef CONFIG_YAFFS_CASE_INSENSITIVE
 	/* Special case for case insemsitive systems (eg. WinCE).
@@ -2482,7 +2486,7 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName,
 		force = 1;
 #endif
 
-	else if (yaffs_strlen(newName) > YAFFS_MAX_NAME_LENGTH)
+	if(yaffs_strlen(newName) > YAFFS_MAX_NAME_LENGTH)
 		/* ENAMETOOLONG */
 		return YAFFS_FAIL;
 
@@ -2500,17 +2504,26 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName,
 			return YAFFS_FAIL;	/* EEXIST or ENOTEMPTY */
 		} else if (existingTarget && existingTarget != obj) {
 			/* Nuke the target first, using shadowing,
-			 * but only if it isn't the same object
+			 * but only if it isn't the same object.
+			 *
+			 * Note we must disable gc otherwise it can mess up the shadowing.
+			 *
 			 */
+			dev->isDoingGC=1;
 			yaffs_ChangeObjectName(obj, newDir, newName, force,
 						existingTarget->objectId);
+			existingTarget->isShadowed = 1;
 			yaffs_UnlinkObject(existingTarget);
+			dev->isDoingGC=0;
 		}
+
+		result = yaffs_ChangeObjectName(obj, newDir, newName, 1, 0);
+
 		yaffs_UpdateParent(oldDir);
 		if(newDir != oldDir)
 			yaffs_UpdateParent(newDir);
-
-		return yaffs_ChangeObjectName(obj, newDir, newName, 1, 0);
+		
+		return result;
 	}
 	return YAFFS_FAIL;
 }
@@ -5031,11 +5044,13 @@ int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
 	}
 
 
-	/* Write a new object header.
+	/* Write a new object header to reflect the resize.
 	 * show we've shrunk the file, if need be
-	 * Do this only if the file is not in the deleted directories.
+	 * Do this only if the file is not in the deleted directories
+	 * and is not shadowed.
 	 */
 	if (in->parent &&
+	    !in->isShadowed &&
 	    in->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
 	    in->parent->objectId != YAFFS_OBJECTID_DELETED)
 		yaffs_UpdateObjectHeader(in, NULL, 0,
@@ -5350,7 +5365,8 @@ static void yaffs_HandleShadowedObject(yaffs_Device *dev, int objId,
 		/* Handle YAFFS2 case (backward scanning)
 		 * If the shadowed object exists then ignore.
 		 */
-		if (yaffs_FindObjectByNumber(dev, objId))
+		obj = yaffs_FindObjectByNumber(dev, objId);
+		if(obj)
 			return;
 	}
 
@@ -5362,6 +5378,7 @@ static void yaffs_HandleShadowedObject(yaffs_Device *dev, int objId,
 					     YAFFS_OBJECT_TYPE_FILE);
 	if (!obj)
 		return;
+	obj->isShadowed = 1;
 	yaffs_AddObjectToDirectory(dev->unlinkedDir, obj);
 	obj->variant.fileVariant.shrinkSize = 0;
 	obj->valid = 1;		/* So that we don't read any other info for this file */
@@ -6279,9 +6296,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 				}
 
 				if (!in ||
-#ifdef CONFIG_YAFFS_DISABLE_LAZY_LOAD
-				    !in->valid ||
-#endif
+				    (!in->valid && dev->disableLazyLoad) ||
 				    tags.extraShadows ||
 				    (!in->valid &&
 				    (tags.objectId == YAFFS_OBJECTID_ROOT ||

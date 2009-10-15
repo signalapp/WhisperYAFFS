@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.84 2009-10-14 00:01:56 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.85 2009-10-15 00:45:46 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -1814,6 +1814,8 @@ typedef struct {
 	int no_cache;
 	int tags_ecc_on;
 	int tags_ecc_overridden;
+	int lazy_load_enabled;
+	int lazy_load_overridden;
 } yaffs_options;
 
 #define MAX_OPT_LEN 20
@@ -1848,6 +1850,12 @@ static int yaffs_parse_options(yaffs_options *options, const char *options_str)
 		} else if (!strcmp(cur_opt, "tags-ecc-on")){
 			options->tags_ecc_on = 1;
 			options->tags_ecc_overridden = 1;
+		} else if (!strcmp(cur_opt, "lazy-load-off")){
+			options->lazy_load_enabled = 0;
+			options->lazy_load_overridden=1;
+		} else if (!strcmp(cur_opt, "lazy-load-on")){
+			options->lazy_load_enabled = 1;
+			options->lazy_load_overridden = 1;
 		} else if (!strcmp(cur_opt, "no-cache"))
 			options->no_cache = 1;
 		else if (!strcmp(cur_opt, "no-checkpoint-read"))
@@ -2063,6 +2071,12 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	dev->nReservedBlocks = 5;
 	dev->nShortOpCaches = (options.no_cache) ? 0 : 10;
 	dev->inbandTags = options.inband_tags;
+
+#ifdef CONFIG_YAFFS_DISABLE_LAZY_LOAD
+	dev->disableLazyLoad = 1;
+#endif
+	if(options.lazy_load_overridden)
+		dev->disableLazyLoad = !options.lazy_load_enabled;
 
 #ifdef CONFIG_YAFFS_DISABLE_TAGS_ECC
 	dev->noTagsECC = 1;

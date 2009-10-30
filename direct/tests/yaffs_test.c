@@ -43,6 +43,15 @@ char mount_point[200];
 
 void BadUsage(void)
 {
+	printf("Usage: yaffs_test [options] mountpoint\n");
+	printf("options\n");
+	printf(" f: do fsx testing\n");
+	printf(" i: initialise for upgrade testing\n");
+	printf(" l: multiply number of operations by 5\n");
+	printf(" n nnn: number of cycles\n");
+	printf(" p: simulate power fail testing\n");
+	printf(" s sss: set seed\n");
+	printf(" u: do upgrade test\n);
 	exit(2);
 }
 

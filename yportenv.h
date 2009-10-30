@@ -94,7 +94,7 @@
 #define TOUT(p) printk p
 
 #define yaffs_trace(mask, fmt, args...) \
-	do { if ((mask) & (yaffs_traceMask|YAFFS_TRACE_ERROR)) \
+	do { if ((mask) & (yaffs_traceMask| YAFFS_TRACE_ALWAYS)) \
 		printk(KERN_WARNING "yaffs: " fmt, ## args); \
 	} while (0)
 

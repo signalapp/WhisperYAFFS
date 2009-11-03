@@ -885,6 +885,8 @@ yaffs_fsx_init(const char *mount_pt)
 	} else 
 		check_trunc_hack();
 		
+	printf("yaffs_fsx_init done\n");
+		
 	return 0;
 }
 

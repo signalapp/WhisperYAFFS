@@ -51,7 +51,7 @@ void BadUsage(void)
 	printf(" n nnn: number of cycles\n");
 	printf(" p: simulate power fail testing\n");
 	printf(" s sss: set seed\n");
-	printf(" u: do upgrade test\n);
+	printf(" u: do upgrade test\n");
 	exit(2);
 }
 
@@ -105,6 +105,7 @@ int main(int argc, char **argv)
 
 		yaffs_StartUp();
 		yaffs_mount(mount_point);
+		printf("Mount complete\n");
 			
 		if(do_upgrade && init_test){
 			simulate_power_failure = 0;

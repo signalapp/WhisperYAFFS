@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.91 2009-10-15 00:45:46 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.92 2009-11-03 02:41:00 charles Exp $";
 
 #include "yportenv.h"
 
@@ -7455,6 +7455,10 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	yaffs_VerifyFreeChunks(dev);
 	yaffs_VerifyBlocks(dev);
 
+
+	/* Clean up any aborted checkpoint data */
+	if(!dev->isCheckpointed && dev->blocksInCheckpoint > 0)
+		yaffs_InvalidateCheckpoint(dev);
 
 	T(YAFFS_TRACE_TRACING,
 	  (TSTR("yaffs: yaffs_GutsInitialise() done.\n" TENDSTR)));

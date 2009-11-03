@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_checkptrw_c_version =
-	"$Id: yaffs_checkptrw.c,v 1.21 2009-10-29 03:05:55 charles Exp $";
+	"$Id: yaffs_checkptrw.c,v 1.22 2009-11-03 02:36:30 charles Exp $";
 
 
 #include "yaffs_checkptrw.h"
@@ -395,7 +395,8 @@ int yaffs_CheckpointInvalidateStream(yaffs_Device *dev)
 {
 	/* Erase the checkpoint data */
 
-	T(YAFFS_TRACE_CHECKPOINT, (TSTR("checkpoint invalidate"TENDSTR)));
+	T(YAFFS_TRACE_CHECKPOINT, (TSTR("checkpoint invalidate of %d blocks"TENDSTR),
+		dev->blocksInCheckpoint));
 
 	return yaffs_CheckpointErase(dev);
 }

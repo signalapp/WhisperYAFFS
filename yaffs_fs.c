@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.85 2009-10-15 00:45:46 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.86 2009-11-07 02:11:01 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -118,7 +118,7 @@ static uint32_t YCALCBLOCKS(uint64_t partition_size, uint32_t block_size)
 #include "yaffs_mtdif1.h"
 #include "yaffs_mtdif2.h"
 
-unsigned int yaffs_traceMask = YAFFS_TRACE_BAD_BLOCKS;
+unsigned int yaffs_traceMask = YAFFS_TRACE_BAD_BLOCKS | YAFFS_TRACE_ALWAYS;
 unsigned int yaffs_wr_attempts = YAFFS_WR_ATTEMPTS;
 unsigned int yaffs_auto_checkpoint = 1;
 
@@ -1814,11 +1814,13 @@ typedef struct {
 	int no_cache;
 	int tags_ecc_on;
 	int tags_ecc_overridden;
-	int lazy_load_enabled;
-	int lazy_load_overridden;
+	int lazy_loading_enabled;
+	int lazy_loading_overridden;
+	int empty_lost_and_found;
+	int empty_lost_and_found_overridden;
 } yaffs_options;
 
-#define MAX_OPT_LEN 20
+#define MAX_OPT_LEN 30
 static int yaffs_parse_options(yaffs_options *options, const char *options_str)
 {
 	char cur_opt[MAX_OPT_LEN + 1];
@@ -1850,12 +1852,18 @@ static int yaffs_parse_options(yaffs_options *options, const char *options_str)
 		} else if (!strcmp(cur_opt, "tags-ecc-on")){
 			options->tags_ecc_on = 1;
 			options->tags_ecc_overridden = 1;
-		} else if (!strcmp(cur_opt, "lazy-load-off")){
-			options->lazy_load_enabled = 0;
-			options->lazy_load_overridden=1;
-		} else if (!strcmp(cur_opt, "lazy-load-on")){
-			options->lazy_load_enabled = 1;
-			options->lazy_load_overridden = 1;
+		} else if (!strcmp(cur_opt, "lazy-loading-off")){
+			options->lazy_loading_enabled = 0;
+			options->lazy_loading_overridden=1;
+		} else if (!strcmp(cur_opt, "lazy-loading-on")){
+			options->lazy_loading_enabled = 1;
+			options->lazy_loading_overridden = 1;
+		} else if (!strcmp(cur_opt, "empty-lost-and-found-off")){
+			options->empty_lost_and_found = 0;
+			options->empty_lost_and_found_overridden=1;
+		} else if (!strcmp(cur_opt, "empty-lost-and-found-on")){
+			options->empty_lost_and_found = 1;
+			options->empty_lost_and_found_overridden=1;
 		} else if (!strcmp(cur_opt, "no-cache"))
 			options->no_cache = 1;
 		else if (!strcmp(cur_opt, "no-checkpoint-read"))
@@ -2075,14 +2083,20 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 #ifdef CONFIG_YAFFS_DISABLE_LAZY_LOAD
 	dev->disableLazyLoad = 1;
 #endif
-	if(options.lazy_load_overridden)
-		dev->disableLazyLoad = !options.lazy_load_enabled;
+	if(options.lazy_loading_overridden)
+		dev->disableLazyLoad = !options.lazy_loading_enabled;
 
 #ifdef CONFIG_YAFFS_DISABLE_TAGS_ECC
 	dev->noTagsECC = 1;
 #endif
 	if(options.tags_ecc_overridden)
 		dev->noTagsECC = !options.tags_ecc_on;
+
+#ifdef CONFIG_YAFFS_EMPTY_LOST_AND_FOUND
+	dev->emptyLostAndFound = 1;
+#endif
+	if(options.empty_lost_and_found_overridden)
+		dev->emptyLostAndFound = options.empty_lost_and_found;
 
 	/* ... and the functions. */
 	if (yaffsVersion == 2) {
@@ -2284,7 +2298,7 @@ static DECLARE_FSTYPE(yaffs2_fs_type, "yaffs2", yaffs2_read_super,
 
 static struct proc_dir_entry *my_proc_entry;
 
-static char *yaffs_dump_dev(char *buf, yaffs_Device * dev)
+static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 {
 	buf += sprintf(buf, "startBlock......... %d\n", dev->startBlock);
 	buf += sprintf(buf, "endBlock........... %d\n", dev->endBlock);
@@ -2319,10 +2333,19 @@ static char *yaffs_dump_dev(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "nUnlinkedFiles..... %d\n", dev->nUnlinkedFiles);
 	buf +=
 	    sprintf(buf, "nBackgroudDeletions %d\n", dev->nBackgroundDeletions);
+
+	return buf;
+}
+
+
+static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
+{
 	buf += sprintf(buf, "useNANDECC......... %d\n", dev->useNANDECC);
 	buf += sprintf(buf, "noTagsECC.......... %d\n", dev->noTagsECC);
 	buf += sprintf(buf, "isYaffs2........... %d\n", dev->isYaffs2);
 	buf += sprintf(buf, "inbandTags......... %d\n", dev->inbandTags);
+	buf += sprintf(buf, "emptyLostAndFound.. %d\n", dev->emptyLostAndFound);
+	buf += sprintf(buf, "disableLazyLoad.... %d\n", dev->disableLazyLoad);
 
 	return buf;
 }
@@ -2345,27 +2368,35 @@ static int yaffs_proc_read(char *page,
 	*(int *)start = 1;
 
 	/* Print header first */
-	if (step == 0) {
+	if (step == 0)
 		buf += sprintf(buf, "YAFFS built:" __DATE__ " " __TIME__
 			       "\n%s\n%s\n", yaffs_fs_c_version,
 			       yaffs_guts_c_version);
-	}
+	else if (step == 1)
+		buf += sprintf(buf,"\n");
+	else {
+		step-=2;
+		
+		/* hold lock_kernel while traversing yaffs_dev_list */
+		lock_kernel();
 
-	/* hold lock_kernel while traversing yaffs_dev_list */
-	lock_kernel();
-
-	/* Locate and print the Nth entry.  Order N-squared but N is small. */
-	ylist_for_each(item, &yaffs_dev_list) {
-		yaffs_Device *dev = ylist_entry(item, yaffs_Device, devList);
-		if (n < step) {
-			n++;
-			continue;
+		/* Locate and print the Nth entry.  Order N-squared but N is small. */
+		ylist_for_each(item, &yaffs_dev_list) {
+			yaffs_Device *dev = ylist_entry(item, yaffs_Device, devList);
+			if (n < (step & ~1)) {
+				n+=2;
+				continue;
+			}
+			if((step & 1)==0){
+				buf += sprintf(buf, "\nDevice %d \"%s\"\n", n, dev->name);
+				buf = yaffs_dump_dev_part0(buf, dev);
+			} else
+				buf = yaffs_dump_dev_part1(buf, dev);
+			
+			break;
 		}
-		buf += sprintf(buf, "\nDevice %d \"%s\"\n", n, dev->name);
-		buf = yaffs_dump_dev(buf, dev);
-		break;
+		unlock_kernel();
 	}
-	unlock_kernel();
 
 	return buf - page < count ? buf - page : count;
 }
@@ -2410,7 +2441,7 @@ static struct {
 };
 
 #define MAX_MASK_NAME_LENGTH 40
-static int yaffs_proc_write(struct file *file, const char *buf,
+static int yaffs_proc_write_trace_options(struct file *file, const char *buf,
 					 unsigned long count, void *data)
 {
 	unsigned rg = 0, mask_bitfield;
@@ -2500,6 +2531,13 @@ static int yaffs_proc_write(struct file *file, const char *buf,
 	}
 
 	return count;
+}
+
+
+static int yaffs_proc_write(struct file *file, const char *buf,
+					 unsigned long count, void *data)
+{
+        return yaffs_proc_write_trace_options(file, buf, count, data);
 }
 
 /* Stuff to handle installation of file systems */

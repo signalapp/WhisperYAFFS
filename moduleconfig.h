@@ -42,6 +42,12 @@
 /* Meaning: Disables testing whether chunks are erased before writing to them*/
 #define CONFIG_YAFFS_DISABLE_CHUNK_ERASED_CHECK
 
+/* Default: Not Selected */
+/* Meaning: At mount automatically empty all files from lost and found. */
+/* This is done to fix an old problem where rmdir was not checking for an */
+/* empty directory. This can also be achieved with a mount option. */
+/* #define CONFIG_YAFFS_EMPTY_LOST_AND_FOUND */
+
 /* Default: Selected */
 /* Meaning: Cache short names, taking more RAM, but faster look-ups */
 #define CONFIG_YAFFS_SHORT_NAMES_IN_RAM

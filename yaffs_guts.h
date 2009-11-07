@@ -405,6 +405,8 @@ typedef union {
 	yaffs_HardLinkStructure hardLinkVariant;
 } yaffs_ObjectVariant;
 
+
+
 struct yaffs_ObjectStruct {
 	__u8 deleted:1;		/* This should only apply to unlinked files. */
 	__u8 softDeleted:1;	/* it has also been soft deleted */
@@ -531,6 +533,7 @@ typedef struct {
 } yaffs_TempBuffer;
 
 /*----------------- Device ---------------------------------*/
+
 
 struct yaffs_DeviceStruct {
 	struct ylist_head devList;
@@ -768,7 +771,9 @@ struct yaffs_DeviceStruct {
 	/* yaffs2 runtime stuff */
 	unsigned sequenceNumber;	/* Sequence number of currently allocating block */
 	unsigned oldestDirtySequence;
-
+	
+	/* Auto empty lost and found directory on mount */
+	int emptyLostAndFound;
 };
 
 typedef struct yaffs_DeviceStruct yaffs_Device;

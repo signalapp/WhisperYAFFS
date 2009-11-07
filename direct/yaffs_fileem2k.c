@@ -16,7 +16,7 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.20 2009-10-15 00:45:46 charles Exp $";
+const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.21 2009-11-07 22:35:15 charles Exp $";
 
 
 #include "yportenv.h"
@@ -82,7 +82,7 @@ static void yflash2_MaybePowerFail(unsigned int chunkInNAND, int failPoint)
    if(simulate_power_failure &&
       remaining_ops < 1){
        printf("Simulated power failure after %d operations\n",nops_so_far);
-       printf("  Fail simulated on chunkInNAND %d, at fail point %d\n",
+       printf("  power failed on chunkInNAND %d, at fail point %d\n",
        			chunkInNAND, failPoint);
     	exit(0);
   }

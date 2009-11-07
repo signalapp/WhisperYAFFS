@@ -27,6 +27,8 @@ do { \
 #endif
 
 
+void (*ext_fatal)(void) = NULL;
+
 static unsigned powerUps;
 static unsigned cycleStarts;
 static unsigned cycleEnds;
@@ -71,6 +73,9 @@ void MakeFullNames(const char *prefix)
 static void FatalError(int lineNo)
 {
   printf("Integrity error %d\n",lineNo);
+  if(ext_fatal)
+  	ext_fatal();
+  	
   while(1){
    sleep(1);
   }

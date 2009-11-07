@@ -19,13 +19,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include "yaffsfs.h"
 
 #include "nor_stress.h"
 #include "yaffs_fsx.h"
 
-
+void (*ext_fatal)(void);
 
 
 int random_seed;
@@ -55,11 +56,28 @@ void BadUsage(void)
 	exit(2);
 }
 
+void test_fatal(void)
+{
+	printf("fatal yaffs test pid %d sleeping\n",getpid());
+	while(1)
+		sleep(1);
+	
+}
+
+void bad_ptr_handler(int sig)
+{
+	printf("signal %d received\n",sig);
+	test_fatal();
+}
 int main(int argc, char **argv)
 {
 	int ch;
 	
-
+	ext_fatal = test_fatal;
+	signal(SIGSEGV,bad_ptr_handler);
+	signal(SIGBUS,bad_ptr_handler);
+	signal(SIGABRT,bad_ptr_handler);
+	
 	while ((ch = getopt(argc,argv, "filn:ps:u"))
 	       != EOF)
 		switch (ch) {

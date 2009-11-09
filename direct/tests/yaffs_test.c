@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include "yaffsfs.h"
 
@@ -34,13 +35,109 @@ int simulate_power_failure = 0;
 
 
 int do_fsx;
+int do_bash_around;
+
 int init_test;
 int do_upgrade;
 int n_cycles = -1;
+int yaffs_test_maxMallocs;
 
 extern int ops_multiplier;
 
 char mount_point[200];
+
+#define BASH_HANDLES 20
+void yaffs_bash_around(const char *mountpt, int n_cycles)
+{
+	char name[200];
+	char name1[200];
+	int  h[BASH_HANDLES];
+	int i;
+	int op;
+	int pos;
+	int n;
+	int n1;
+	int start_op;
+	int op_max = 99;
+	
+	int cycle = 0;
+	
+	sprintf(name,"%s/bashdir",mountpt);
+	
+	yaffs_mkdir(name,0666);
+
+	for(i = 0; i < BASH_HANDLES; i++)
+		h[i] = -1;
+		
+	while(n_cycles){
+		if(cycle % 100 == 0){
+			printf("CYCLE %8d mo %2d space %d ",cycle,op_max,yaffs_freespace(mountpt));
+			for(i = 0; i < BASH_HANDLES; i++)
+				printf("%2d ",h[i]);
+			printf("\n");
+		}
+		cycle++;
+
+		if(n_cycles > 0)
+			n_cycles--;
+		i = rand() % BASH_HANDLES;
+		op = rand() % op_max;
+		pos = rand() & 20000000;
+		n = rand() % 100;
+		n1 = rand() % 100;
+		
+		sprintf(name,"%s/bashdir/xx%d",mountpt,n);
+		sprintf(name1,"%s/bashdir/xx%d",mountpt,n1);
+
+		start_op = op;
+		
+		op-=1;
+		if(op < 0){
+			if(h[i]>= 0){
+				yaffs_close(h[i]);
+				h[i] = -1;
+			}
+			continue;
+		}
+		op-=1;
+		if(op < 0){
+			if(h[i] < 0)
+				h[i] = yaffs_open(name,O_CREAT| O_RDWR, 0666);
+			continue;
+		}
+
+		op-=5;
+		if(op< 0){
+			yaffs_lseek(h[i],pos,SEEK_SET);
+			yaffs_write(h[i],name,n);
+			continue;
+		}
+		op-=1;
+		if(op < 0){
+			yaffs_unlink(name);
+			continue;
+		}
+		op-=1;
+		if(op < 0){
+			yaffs_rename(name,name1);
+			continue;
+		}
+		op-=1;
+		if(op < 0){
+			yaffs_mkdir(name,0666);
+			continue;
+		}
+		op-=1;
+		if(op < 0){
+			yaffs_rmdir(name);
+			continue;
+		}
+		
+		op_max = start_op-op;
+	}
+		
+	
+}
 
 void BadUsage(void)
 {
@@ -49,18 +146,29 @@ void BadUsage(void)
 	printf(" f: do fsx testing\n");
 	printf(" i: initialise for upgrade testing\n");
 	printf(" l: multiply number of operations by 5\n");
+	printf(" m: random max number of mallocs\n");
 	printf(" n nnn: number of cycles\n");
 	printf(" p: simulate power fail testing\n");
 	printf(" s sss: set seed\n");
 	printf(" u: do upgrade test\n");
+	printf(" b: bash-about test\n");
 	exit(2);
 }
 
+int sleep_exit = 0;
+int sleep_time = 0;
 void test_fatal(void)
 {
 	printf("fatal yaffs test pid %d sleeping\n",getpid());
-	while(1)
+	while(!sleep_exit){
 		sleep(1);
+		sleep_time++;
+	}
+	
+	signal(SIGSEGV,SIG_IGN);
+	signal(SIGBUS,SIG_IGN);
+	signal(SIGABRT,SIG_IGN);
+	sleep_exit = 0;
 	
 }
 
@@ -69,16 +177,19 @@ void bad_ptr_handler(int sig)
 	printf("signal %d received\n",sig);
 	test_fatal();
 }
+
 int main(int argc, char **argv)
 {
 	int ch;
-	
+	int random_mallocs=0;
 	ext_fatal = test_fatal;
+
+#if 1
 	signal(SIGSEGV,bad_ptr_handler);
 	signal(SIGBUS,bad_ptr_handler);
 	signal(SIGABRT,bad_ptr_handler);
-	
-	while ((ch = getopt(argc,argv, "filn:ps:u"))
+#endif	
+	while ((ch = getopt(argc,argv, "bfilmn:ps:u"))
 	       != EOF)
 		switch (ch) {
 		case 's':
@@ -90,6 +201,9 @@ int main(int argc, char **argv)
 		case 'i':
 			init_test = 1;
 			break;
+		case 'b':
+			do_bash_around = 1;
+			break;
 		case 'f':
 			do_fsx = 1;
 			break;
@@ -98,6 +212,9 @@ int main(int argc, char **argv)
 			break;
 		case 'u':
 			do_upgrade = 1;
+			break;
+		case 'm':
+			random_mallocs=1;
 			break;
 		case 'n':
 			n_cycles = atoi(optarg);
@@ -108,6 +225,10 @@ int main(int argc, char **argv)
 		}
 	argc -= optind;
 	argv += optind;
+	
+	if(random_mallocs){
+		yaffs_test_maxMallocs = 0xFFF & random_seed;
+	}
 	
 	if(argc == 1) {
 		strcpy(mount_point,argv[0]);
@@ -133,6 +254,8 @@ int main(int argc, char **argv)
 			NorStressTestRun(mount_point,n_cycles,do_fsx);
 		} else if(do_fsx){
 			yaffs_fsx_main(mount_point,n_cycles);
+		} else if(do_bash_around){
+			yaffs_bash_around(mount_point,n_cycles);
 		}else {
 			printf("No test to run!\n");
 			BadUsage();

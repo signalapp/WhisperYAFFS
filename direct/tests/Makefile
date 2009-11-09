@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.3 2009-01-16 00:47:00 charles Exp $
+# $Id: Makefile,v 1.4 2009-11-09 19:16:33 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -23,7 +23,7 @@ CFLAGS +=     -DCONFIG_YAFFS_PROVIDE_DEFS -DCONFIG_YAFFSFS_PROVIDE_VALUES -DNO_Y
 CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS) -Wstrict-aliasing 
 #CFLAGS +=    -fno-strict-aliasing
 CFLAGS +=    -O0
-#CFLAGS +=    -DVALGRIND_TEST
+#CFLAGS +=    -DCONFIG_YAFFS_VALGRIND_TEST
 
 #CFLAGS+=   -Wshadow -Wpointer-arith -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline

@@ -71,7 +71,8 @@ void yaffs_bash_around(const char *mountpt, int n_cycles)
 		
 	while(n_cycles){
 		if(cycle % 100 == 0){
-			printf("CYCLE %8d mo %2d space %d ",cycle,op_max,yaffs_freespace(mountpt));
+			printf("CYCLE %8d mo %2d inodes %d space %d ",cycle,op_max,
+				yaffs_inodecount(mountpt),yaffs_freespace(mountpt));
 			for(i = 0; i < BASH_HANDLES; i++)
 				printf("%2d ",h[i]);
 			printf("\n");

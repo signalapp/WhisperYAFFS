@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.93 2009-11-07 02:06:58 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.94 2009-11-10 23:55:05 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1323,7 +1323,7 @@ static void yaffs_InitialiseTnodes(yaffs_Device *dev)
 }
 
 
-void yaffs_PutLevel0Tnode(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos,
+void yaffs_LoadLevel0Tnode(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos,
 		unsigned val)
 {
 	__u32 *map = (__u32 *)tn;
@@ -1481,13 +1481,13 @@ static yaffs_Tnode *yaffs_AddOrFindLevel0Tnode(yaffs_Device *dev,
 			if (tn) {
 				tn->internal[0] = fStruct->top;
 				fStruct->top = tn;
+				fStruct->topLevel++;
 			} else {
 				T(YAFFS_TRACE_ERROR,
-				  (TSTR("yaffs: no more tnodes" TENDSTR)));
+					(TSTR("yaffs: no more tnodes" TENDSTR)));
+				return NULL;
 			}
 		}
-
-		fStruct->topLevel = requiredTallness;
 	}
 
 	/* Traverse down to level 0, adding anything we need */
@@ -1506,6 +1506,8 @@ static yaffs_Tnode *yaffs_AddOrFindLevel0Tnode(yaffs_Device *dev,
 			if ((l > 1) && !tn->internal[x]) {
 				/* Add missing non-level-zero tnode */
 				tn->internal[x] = yaffs_GetTnode(dev);
+				if(!tn->internal[x])
+					return NULL;
 
 			} else if (l == 1) {
 				/* Looking from level 1 at level 0 */
@@ -1518,6 +1520,8 @@ static yaffs_Tnode *yaffs_AddOrFindLevel0Tnode(yaffs_Device *dev,
 				} else if (!tn->internal[x]) {
 					/* Don't have one, none passed in */
 					tn->internal[x] = yaffs_GetTnode(dev);
+					if(!tn->internal[x])
+						return NULL;
 				}
 			}
 
@@ -1641,7 +1645,7 @@ static int yaffs_DeleteWorker(yaffs_Object *in, yaffs_Tnode *tn, __u32 level,
 
 					}
 
-					yaffs_PutLevel0Tnode(dev, tn, i, 0);
+					yaffs_LoadLevel0Tnode(dev, tn, i, 0);
 				}
 
 			}
@@ -1718,7 +1722,7 @@ static int yaffs_SoftDeleteWorker(yaffs_Object *in, yaffs_Tnode *tn,
 					 * a block.
 					 */
 					yaffs_SoftDeleteChunk(dev, theChunk);
-					yaffs_PutLevel0Tnode(dev, tn, i, 0);
+					yaffs_LoadLevel0Tnode(dev, tn, i, 0);
 				}
 
 			}
@@ -2169,17 +2173,19 @@ yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev, int number,
 	if (number < 0)
 		number = yaffs_CreateNewObjectNumber(dev);
 
-	theObject = yaffs_AllocateEmptyObject(dev);
-	if (!theObject)
-		return NULL;
-
 	if (type == YAFFS_OBJECT_TYPE_FILE) {
 		tn = yaffs_GetTnode(dev);
-		if (!tn) {
-			yaffs_FreeObject(theObject);
+		if (!tn)
 			return NULL;
-		}
 	}
+
+	theObject = yaffs_AllocateEmptyObject(dev);
+	if (!theObject){
+		if(tn)
+			yaffs_FreeTnode(dev,tn);
+		return NULL;
+	}
+
 
 	if (theObject) {
 		theObject->fake = 0;
@@ -2282,11 +2288,6 @@ static yaffs_Object *yaffs_MknodObject(yaffs_ObjectType type,
 	if (yaffs_FindObjectByName(parent, name))
 		return NULL;
 
-	in = yaffs_CreateNewObject(dev, -1, type);
-
-	if (!in)
-		return YAFFS_FAIL;
-
 	if (type == YAFFS_OBJECT_TYPE_SYMLINK) {
 		str = yaffs_CloneString(aliasString);
 		if (!str) {
@@ -2294,6 +2295,15 @@ static yaffs_Object *yaffs_MknodObject(yaffs_ObjectType type,
 			return NULL;
 		}
 	}
+
+	in = yaffs_CreateNewObject(dev, -1, type);
+
+	if (!in){
+		if(str)
+			YFREE(str);
+		return NULL;
+	}
+
 
 
 
@@ -3353,7 +3363,7 @@ static int yaffs_FindAndDeleteChunkInFile(yaffs_Object *in, int chunkInInode,
 
 		/* Delete the entry in the filestructure (if found) */
 		if (retVal != -1)
-			yaffs_PutLevel0Tnode(dev, tn, chunkInInode, 0);
+			yaffs_LoadLevel0Tnode(dev, tn, chunkInInode, 0);
 	}
 
 	return retVal;
@@ -3423,6 +3433,8 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in, int chunkInInode,
 	/* NB inScan is zero unless scanning.
 	 * For forward scanning, inScan is > 0;
 	 * for backward scanning inScan is < 0
+	 *
+	 * chunkInNAND = 0 is a dummy insert to make sure the tnodes are there.
 	 */
 
 	yaffs_Tnode *tn;
@@ -3454,6 +3466,11 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in, int chunkInInode,
 					NULL);
 	if (!tn)
 		return YAFFS_FAIL;
+	
+	if(!chunkInNAND)
+		/* Dummy insert, bail now */
+		return YAFFS_OK;
+		
 
 	existingChunk = yaffs_GetChunkGroupBase(dev, tn, chunkInInode);
 
@@ -3535,7 +3552,7 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in, int chunkInInode,
 	if (existingChunk == 0)
 		in->nDataChunks++;
 
-	yaffs_PutLevel0Tnode(dev, tn, chunkInInode, chunkInNAND);
+	yaffs_LoadLevel0Tnode(dev, tn, chunkInInode, chunkInNAND);
 
 	return YAFFS_OK;
 }
@@ -3657,12 +3674,20 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object *in, int chunkInInode,
 		(TSTR("Writing %d bytes to chunk!!!!!!!!!" TENDSTR), nBytes));
 		YBUG();
 	}
-
+	
+	/*
+	 * If there isn't already a chunk there then do a dummy
+	 * insert to make sue we have the desired tnode structure.
+	 */
+	if(prevChunkId < 1 &&
+		yaffs_PutChunkIntoFile(in, chunkInInode, 0, 0) != YAFFS_OK)
+		return -1;
+		
 	newChunkId =
 	    yaffs_WriteNewChunkWithTagsToNAND(dev, buffer, &newTags,
 					      useReserve);
 
-	if (newChunkId >= 0) {
+	if (newChunkId > 0) {
 		yaffs_PutChunkIntoFile(in, chunkInInode, newChunkId, 0);
 
 		if (prevChunkId > 0)

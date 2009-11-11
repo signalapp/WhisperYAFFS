@@ -1,0 +1,23 @@
+#!/bin/sh
+
+TREE_BASE=/mnt/dirtree
+
+for (( d=0; d<50; d++ ))
+do
+	mkdir -p $TREE_BASE/dir$d
+	
+	for (( f=0; f<50; f++ ))
+	do
+		ls > $TREE_BASE/dir$d/file$f
+	done
+done
+
+
+echo "Foo bar file" > $TREE_BASE/foo_file
+
+ln $TREE_BASE/foo_file $TREE_BASE/../foo_link
+
+
+
+
+

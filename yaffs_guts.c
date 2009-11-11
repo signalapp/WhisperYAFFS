@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.94 2009-11-10 23:55:05 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.95 2009-11-11 01:40:41 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2290,10 +2290,8 @@ static yaffs_Object *yaffs_MknodObject(yaffs_ObjectType type,
 
 	if (type == YAFFS_OBJECT_TYPE_SYMLINK) {
 		str = yaffs_CloneString(aliasString);
-		if (!str) {
-			yaffs_FreeObject(in);
+		if (!str)
 			return NULL;
-		}
 	}
 
 	in = yaffs_CreateNewObject(dev, -1, type);

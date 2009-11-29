@@ -640,7 +640,6 @@ struct yaffs_DeviceStruct {
 
 	struct semaphore sem;	/* Semaphore for waiting on erasure.*/
 	struct semaphore grossLock;	/* Gross locking semaphore */
-	struct rw_semaphore dirLock; /* Lock the directory structure */
 	__u8 *spareBuffer;	/* For mtdif2 use. Don't know the size of the buffer
 				 * at compile time so we have to allocate it.
 				 */

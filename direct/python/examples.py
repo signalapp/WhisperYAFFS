@@ -17,10 +17,12 @@ def yaffs_ls(dname):
 
             if isFile :
                 print "File ",se.d_ino, hex(perms), st.st_size, fullname
-            if isDir :
+            elif isDir :
                 print "Dir  ",se.d_ino, hex(perms), fullname
                 yaffs_ls(fullname)
-                
+            else :
+            	print "Other (",hex(st.st_mode),") ",se.d_ino, hex(perms), fullname
+
             sep = yaffs_readdir(dc)
         yaffs_closedir(dc)
         return 0

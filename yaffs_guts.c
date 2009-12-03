@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.95 2009-11-11 01:40:41 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.96 2009-12-03 03:42:28 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1864,10 +1864,14 @@ static int yaffs_CreateFreeObjects(yaffs_Device *dev, int nObjects)
 	list = YMALLOC(sizeof(yaffs_ObjectList));
 
 	if (!newObjects || !list) {
-		if (newObjects)
+		if (newObjects){
 			YFREE(newObjects);
-		if (list)
+			newObjects = NULL;
+		}
+		if (list){
 			YFREE(list);
+			list = NULL;
+		}
 		T(YAFFS_TRACE_ALLOCATE,
 		  (TSTR("yaffs: Could not allocate more objects" TENDSTR)));
 		return YAFFS_FAIL;
@@ -2011,6 +2015,7 @@ static void yaffs_FreeObject(yaffs_Object *tn)
 
 #ifdef VALGRIND_TEST
 	YFREE(tn);
+	tn = NULL;
 #else
 	/* Link into the free list. */
 	tn->siblings.next = (struct ylist_head *)(dev->freeObjects);
@@ -2253,11 +2258,12 @@ static YCHAR *yaffs_CloneString(const YCHAR *str)
 {
 	YCHAR *newStr = NULL;
 
-	if (str && *str) {
-		newStr = YMALLOC((yaffs_strlen(str) + 1) * sizeof(YCHAR));
-		if (newStr)
-			yaffs_strcpy(newStr, str);
-	}
+	if (!str)
+		str = _Y("");
+
+	newStr = YMALLOC((yaffs_strlen(str) + 1) * sizeof(YCHAR));
+	if (newStr)
+		yaffs_strcpy(newStr, str);
 
 	return newStr;
 
@@ -2266,7 +2272,7 @@ static YCHAR *yaffs_CloneString(const YCHAR *str)
 /*
  * Mknod (create) a new object.
  * equivalentObject only has meaning for a hard link;
- * aliasString only has meaning for a sumlink.
+ * aliasString only has meaning for a symlink.
  * rdev only has meaning for devices (a subset of special objects)
  */
 
@@ -3715,6 +3721,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 	int newChunkId;
 	yaffs_ExtendedTags newTags;
 	yaffs_ExtendedTags oldTags;
+	YCHAR *alias = NULL;
 
 	__u8 *buffer = NULL;
 	YCHAR oldName[YAFFS_MAX_NAME_LENGTH + 1];
@@ -3803,8 +3810,11 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 			/* Do nothing */
 			break;
 		case YAFFS_OBJECT_TYPE_SYMLINK:
+			alias = in->variant.symLinkVariant.alias;
+			if(!alias)
+				alias = _Y("no alias");
 			yaffs_strncpy(oh->alias,
-				      in->variant.symLinkVariant.alias,
+					alias,
 				      YAFFS_MAX_ALIAS_LENGTH);
 			oh->alias[YAFFS_MAX_ALIAS_LENGTH] = 0;
 			break;
@@ -5083,13 +5093,17 @@ int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
 
 loff_t yaffs_GetFileSize(yaffs_Object *obj)
 {
+	YCHAR *alias = NULL;
 	obj = yaffs_GetEquivalentObject(obj);
 
 	switch (obj->variantType) {
 	case YAFFS_OBJECT_TYPE_FILE:
 		return obj->variant.fileVariant.fileSize;
 	case YAFFS_OBJECT_TYPE_SYMLINK:
-		return yaffs_strlen(obj->variant.symLinkVariant.alias);
+		alias = obj->variant.symLinkVariant.alias;
+		if(!alias)
+			return 0;
+		return yaffs_strlen(alias);
 	default:
 		return 0;
 	}
@@ -5235,7 +5249,9 @@ static int yaffs_DeleteDirectory(yaffs_Object *obj)
 
 static int yaffs_DeleteSymLink(yaffs_Object *in)
 {
-	YFREE(in->variant.symLinkVariant.alias);
+	if(in->variant.symLinkVariant.alias)
+		YFREE(in->variant.symLinkVariant.alias);
+	in->variant.symLinkVariant.alias=NULL;
 
 	return yaffs_DoGenericObjectDeletion(in);
 }
@@ -7101,9 +7117,11 @@ int yaffs_GetObjectFileLength(yaffs_Object *obj)
 
 	if (obj->variantType == YAFFS_OBJECT_TYPE_FILE)
 		return obj->variant.fileVariant.fileSize;
-	if (obj->variantType == YAFFS_OBJECT_TYPE_SYMLINK)
+	if (obj->variantType == YAFFS_OBJECT_TYPE_SYMLINK){
+		if(!obj->variant.symLinkVariant.alias)
+			return 0;
 		return yaffs_strlen(obj->variant.symLinkVariant.alias);
-	else {
+	} else {
 		/* Only a directory should drop through to here */
 		return obj->myDev->nDataBytesPerChunk;
 	}

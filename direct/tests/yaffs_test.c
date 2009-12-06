@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 	signal(SIGBUS,bad_ptr_handler);
 	signal(SIGABRT,bad_ptr_handler);
 #endif	
-	while ((ch = getopt(argc,argv, "bfilmn:ps:u"))
+	while ((ch = getopt(argc,argv, "bfilmn:ps:t:u"))
 	       != EOF)
 		switch (ch) {
 		case 's':
@@ -219,6 +219,9 @@ int main(int argc, char **argv)
 			break;
 		case 'n':
 			n_cycles = atoi(optarg);
+			break;
+		case 't':
+			yaffs_traceMask = strtol(optarg,NULL,0);
 			break;
 		default:
 			BadUsage();

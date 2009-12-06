@@ -27,5 +27,5 @@ do
    echo "#########"
    echo "#########"
    echo "#########"
-   ./yaffs_test -u -f -p -s$seed yaffs2
+   ./yaffs_test -u -f -p -s$seed -t 0 yaffs2
 done

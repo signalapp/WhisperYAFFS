@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.96 2009-12-03 03:42:28 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.97 2009-12-06 22:53:10 charles Exp $";
 
 #include "yportenv.h"
 
@@ -3135,6 +3135,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 					if (tags.chunkId == 0) {
 						/* It is an object Id,
 						 * We need to nuke the shrinkheader flags first
+						 * Also need to clean up shadowing.
 						 * We no longer want the shrinkHeader flag since its work is done
 						 * and if it is left in place it will mess up scanning.
 						 */
@@ -3143,6 +3144,9 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 						oh = (yaffs_ObjectHeader *)buffer;
 						oh->isShrink = 0;
 						tags.extraIsShrinkHeader = 0;
+						oh->shadowsObject = 0;
+						oh->inbandShadowsObject = 0;
+						tags.extraShadows = 0;
 
 						yaffs_VerifyObjectHeader(object, oh, &tags, 1);
 					}

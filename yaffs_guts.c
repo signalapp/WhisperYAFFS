@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.97 2009-12-06 22:53:10 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.98 2009-12-07 01:17:33 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1130,7 +1130,7 @@ static void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name)
 {
 #ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
 	memset(obj->shortName, 0, sizeof(YCHAR) * (YAFFS_SHORT_NAME_LENGTH+1));
-	if (name && yaffs_strlen(name) <= YAFFS_SHORT_NAME_LENGTH)
+	if (name && yaffs_strnlen(name,YAFFS_SHORT_NAME_LENGTH+1) <= YAFFS_SHORT_NAME_LENGTH)
 		yaffs_strcpy(obj->shortName, name);
 	else
 		obj->shortName[0] = _Y('\0');
@@ -2257,14 +2257,17 @@ static yaffs_Object *yaffs_FindOrCreateObjectByNumber(yaffs_Device *dev,
 static YCHAR *yaffs_CloneString(const YCHAR *str)
 {
 	YCHAR *newStr = NULL;
+	int len;
 
 	if (!str)
 		str = _Y("");
 
-	newStr = YMALLOC((yaffs_strlen(str) + 1) * sizeof(YCHAR));
-	if (newStr)
-		yaffs_strcpy(newStr, str);
-
+	len = yaffs_strnlen(str,YAFFS_MAX_ALIAS_LENGTH);
+	newStr = YMALLOC((len + 1) * sizeof(YCHAR));
+	if (newStr){
+		yaffs_strncpy(newStr, str,len);
+		newStr[len] = 0;
+	}
 	return newStr;
 
 }
@@ -2499,7 +2502,7 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName,
 		force = 1;
 #endif
 
-	if(yaffs_strlen(newName) > YAFFS_MAX_NAME_LENGTH)
+	if(yaffs_strnlen(newName,YAFFS_MAX_NAME_LENGTH+1) > YAFFS_MAX_NAME_LENGTH)
 		/* ENAMETOOLONG */
 		return YAFFS_FAIL;
 
@@ -5107,7 +5110,7 @@ loff_t yaffs_GetFileSize(yaffs_Object *obj)
 		alias = obj->variant.symLinkVariant.alias;
 		if(!alias)
 			return 0;
-		return yaffs_strlen(alias);
+		return yaffs_strnlen(alias,YAFFS_MAX_ALIAS_LENGTH);
 	default:
 		return 0;
 	}
@@ -7091,7 +7094,7 @@ int yaffs_GetObjectName(yaffs_Object *obj, YCHAR *name, int buffSize)
 	}
 #ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
 	else if (obj->shortName[0])
-		yaffs_strcpy(name, obj->shortName);
+		yaffs_strncpy(name, obj->shortName,YAFFS_SHORT_NAME_LENGTH+1);
 #endif
 	else {
 		int result;
@@ -7107,11 +7110,12 @@ int yaffs_GetObjectName(yaffs_Object *obj, YCHAR *name, int buffSize)
 							NULL);
 		}
 		yaffs_strncpy(name, oh->name, buffSize - 1);
+		name[buffSize-1]=0;
 
 		yaffs_ReleaseTempBuffer(obj->myDev, buffer, __LINE__);
 	}
 
-	return yaffs_strlen(name);
+	return yaffs_strnlen(name,buffSize-1);
 }
 
 int yaffs_GetObjectFileLength(yaffs_Object *obj)
@@ -7124,7 +7128,7 @@ int yaffs_GetObjectFileLength(yaffs_Object *obj)
 	if (obj->variantType == YAFFS_OBJECT_TYPE_SYMLINK){
 		if(!obj->variant.symLinkVariant.alias)
 			return 0;
-		return yaffs_strlen(obj->variant.symLinkVariant.alias);
+		return yaffs_strnlen(obj->variant.symLinkVariant.alias,YAFFS_MAX_ALIAS_LENGTH);
 	} else {
 		/* Only a directory should drop through to here */
 		return obj->myDev->nDataBytesPerChunk;

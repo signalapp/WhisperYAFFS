@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.28 2009-10-19 23:42:55 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.29 2009-12-07 01:17:33 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1544,7 +1544,7 @@ struct yaffs_dirent *yaffs_readdir(yaffs_DIR *dirp)
 			dsc->de.d_dont_use = (unsigned)dsc->nextReturn;
 			dsc->de.d_off = dsc->offset++;
 			yaffs_GetObjectName(dsc->nextReturn,dsc->de.d_name,NAME_MAX);
-			if(yaffs_strlen(dsc->de.d_name) == 0)
+			if(yaffs_strnlen(dsc->de.d_name,NAME_MAX+1) == 0)
 			{
 				// this should not happen!
 				yaffs_strcpy(dsc->de.d_name,_Y("zz"));
@@ -1652,6 +1652,7 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 	yaffs_Object *obj = NULL;
 	yaffs_Object *target = NULL;
 	int retVal = 0;
+	int newNameLength = 0;
 
 
 	yaffsfs_Lock();
@@ -1680,8 +1681,18 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 			yaffsfs_SetError(-EXDEV);
 			retVal = -1;
 		}
-
-		if(newdir && yaffs_strlen(newname) > 0) {
+		
+		newNameLength = yaffs_strnlen(newname,YAFFS_MAX_NAME_LENGTH+1);
+		
+		if(newNameLength == 0){
+			yaffsfs_SetError(-ENOENT);
+			retVal = -1;
+		} else if (newNameLength > YAFFS_MAX_NAME_LENGTH){
+			yaffsfs_SetError(-ENAMETOOLONG);
+			retVal = -1;
+		}
+		
+		if(retVal == 0) {
 			link = yaffs_Link(newdir,newname,obj);
 			if(link)
 				retVal = 0;

@@ -114,6 +114,10 @@
 #define ENOTEMPTY 39
 #endif
 
+#ifndef ENAMETOOLONG
+#define ENAMETOOLONG 36
+#endif
+
 #ifndef ENOMEM
 #define ENOMEM 12
 #endif

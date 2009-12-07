@@ -41,7 +41,7 @@
 #define yaffs_strcpy(a,b)    strcpy(a,b)
 #define yaffs_strncpy(a,b,c) strncpy(a,b,c)
 #define yaffs_strncmp(a,b,c) strncmp(a,b,c)
-#define yaffs_strlen(s)	     strlen(s)
+#define yaffs_strnlen(s,m)	     strnlen(s,m)
 #define yaffs_sprintf	     sprintf
 #define yaffs_toupper(a)     toupper(a)
 

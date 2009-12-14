@@ -1,15 +1,31 @@
 #!/bin/bash
 
+iterations=100000
 
-for ((i=0; i < 100000; i++))  
+[ -z $1 ]  || iterations=$1
+
+
+rm iteration-max-*
+touch iteration-max-$iterations
+
+echo " Running $iterations iterations"
+sleep 2
+
+for ((i=0; i < $iterations; i++))  
 do
 
    seed=$RANDOM   
    j=$(( $i % 10 ))
    rm seed-nor-*$j
    echo $seed>seed-nor-for-run-$i
-   rm data*$j
-   cp emfile-nor data-for-run-$i
-   echo "######### Run $i with seed $seed"
-   ./yaffs_test -f -u -p -s$seed M18-1
+   rm emfile-nor-*$j
+   cp emfile-nor emfile-nor-$i
+   echo "#########"
+   echo "#########"
+   echo "#########"
+   echo "######### Run $i of $iterations with seed $seed"
+   echo "#########"
+   echo "#########"
+   echo "#########"
+   ./yaffs_test -u -f -p -s$seed M18-1
 done

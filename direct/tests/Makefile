@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.4 2009-11-09 19:16:33 charles Exp $
+# $Id: Makefile,v 1.5 2009-12-14 19:46:27 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -60,7 +60,7 @@ YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h y
 SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
 #all: directtest2k boottest
 
-all: yaffs_test
+all: yaffs_test fuzzer
 
 $(ALLOBJS): %.o: %.c
 	gcc -c $(CFLAGS) -o $@ $<
@@ -74,10 +74,14 @@ $(YAFFSDIRECTSYMLINKS):
 
 
 yaffs_test: $(SYMLINKS) $(YAFFSTESTOBJS)
-	gcc -o $@ $(YAFFSTESTOBJS)
+	gcc $(CFLLAG) -o $@ $(YAFFSTESTOBJS)
+
+fuzzer: fuzzer.c
+	gcc $(CFLAGS) -o $@ $<
+
 
 
 
 
 clean:
-	rm -f yaffs_test $(ALLOBJS) core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
+	rm -f yaffs_test fuzzer fuzzer.o $(ALLOBJS) core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)

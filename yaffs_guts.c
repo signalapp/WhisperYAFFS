@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.98 2009-12-07 01:17:33 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.99 2009-12-14 22:03:05 charles Exp $";
 
 #include "yportenv.h"
 
@@ -112,6 +112,12 @@ static __u32 yaffs_GetChunkGroupBase(yaffs_Device *dev, yaffs_Tnode *tn,
 static yaffs_Tnode *yaffs_FindLevel0Tnode(yaffs_Device *dev,
 					yaffs_FileStructure *fStruct,
 					__u32 chunkId);
+
+static void yaffs_SkipRestOfBlock(yaffs_Device *dev);
+static int yaffs_VerifyChunkWritten(yaffs_Device *dev,
+					int chunkInNAND,
+					const __u8 *data,
+					yaffs_ExtendedTags *tags);
 
 /* Function to calculate chunk and offset */
 
@@ -918,6 +924,29 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,
 
 }
 
+
+static int yaffs_VerifyChunkWritten(yaffs_Device *dev,
+					int chunkInNAND,
+					const __u8 *data,
+					yaffs_ExtendedTags *tags)
+{
+	int retval = YAFFS_OK;
+	yaffs_ExtendedTags tempTags;
+	__u8 *buffer = yaffs_GetTempBuffer(dev,__LINE__);
+	int result;
+	
+	result = yaffs_ReadChunkWithTagsFromNAND(dev,chunkInNAND,buffer,&tempTags);
+	if(memcmp(buffer,data,dev->nDataBytesPerChunk) ||
+		tempTags.objectId != tags->objectId ||
+		tempTags.chunkId  != tags->chunkId ||
+		tempTags.byteCount != tags->byteCount)
+		retval = YAFFS_FAIL;
+
+	yaffs_ReleaseTempBuffer(dev, buffer, __LINE__);
+
+	return retval;
+}
+
 static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 					const __u8 *data,
 					yaffs_ExtendedTags *tags,
@@ -957,12 +986,11 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 		 * chunk due to power loss.  This checking policy should
 		 * catch that case with very few checks and thus save a
 		 * lot of checks that are most likely not needed.
+		 *
+		 * Mods to the above
+		 * If an erase check fails or the write fails we skip the 
+		 * rest of the block.
 		 */
-		if (bi->gcPrioritise) {
-			yaffs_DeleteChunk(dev, chunk, 1, __LINE__);
-			/* try another chunk */
-			continue;
-		}
 
 		/* let's give it a try */
 		attempts++;
@@ -977,19 +1005,29 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 				(TSTR("**>> yaffs chunk %d was not erased"
 				TENDSTR), chunk));
 
-				/* try another chunk */
+				/* If not erased, delete this one,
+				 * skip rest of block and
+				 * try another chunk */
+				 yaffs_DeleteChunk(dev,chunk,1,__LINE__);
+				 yaffs_SkipRestOfBlock(dev);
 				continue;
 			}
-			bi->skipErasedCheck = 1;
 		}
 
 		writeOk = yaffs_WriteChunkWithTagsToNAND(dev, chunk,
 				data, tags);
+
+		if(!bi->skipErasedCheck)
+			writeOk = yaffs_VerifyChunkWritten(dev, chunk, data, tags);
+
 		if (writeOk != YAFFS_OK) {
+			/* Clean up aborted write, skip to next block and
+			 * try another chunk */
 			yaffs_HandleWriteChunkError(dev, chunk, erasedOk);
-			/* try another chunk */
 			continue;
 		}
+
+		bi->skipErasedCheck = 1;
 
 		/* Copy the data into the robustification buffer */
 		yaffs_HandleWriteChunkOk(dev, chunk, data, tags);
@@ -1100,6 +1138,7 @@ static void yaffs_HandleWriteChunkError(yaffs_Device *dev, int chunkInNAND,
 
 	/* Delete the chunk */
 	yaffs_DeleteChunk(dev, chunkInNAND, 1, __LINE__);
+	yaffs_SkipRestOfBlock(dev);
 }
 
 
@@ -2978,6 +3017,22 @@ static int yaffs_GetErasedChunks(yaffs_Device *dev)
 	return n;
 
 }
+
+/*
+ * yaffs_SkipRestOfBlock() skips over the rest of the allocation block
+ * if we don't want to write to it.
+ */
+static void yaffs_SkipRestOfBlock(yaffs_Device *dev)
+{
+	if(dev->allocationBlock > 0){
+		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, dev->allocationBlock);
+		if(bi->blockState == YAFFS_BLOCK_STATE_ALLOCATING){
+			bi->blockState = YAFFS_BLOCK_STATE_FULL;
+			dev->allocationBlock = -1;
+		}
+	}
+}
+
 
 static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 		int wholeBlock)
@@ -5758,7 +5813,7 @@ static int yaffs_Scan(yaffs_Device *dev)
 					dev->allocationBlock = blk;
 					dev->allocationPage = c;
 					dev->allocationBlockFinder = blk;
-					/* Set it to here to encourage the allocator to go forth from here. */
+					/* Set block finder here to encourage the allocator to go forth from here. */
 
 				}
 
@@ -6004,12 +6059,6 @@ static int yaffs_Scan(yaffs_Device *dev)
 						break;
 					}
 
-/*
-					if (parent == dev->deletedDir) {
-						yaffs_DestroyObject(in);
-						bi->hasShrinkHeader = 1;
-					}
-*/
 				}
 			}
 		}
@@ -6017,6 +6066,12 @@ static int yaffs_Scan(yaffs_Device *dev)
 		if (state == YAFFS_BLOCK_STATE_NEEDS_SCANNING) {
 			/* If we got this far while scanning, then the block is fully allocated.*/
 			state = YAFFS_BLOCK_STATE_FULL;
+		}
+
+		if (state == YAFFS_BLOCK_STATE_ALLOCATING) {
+			/* If the block was partially allocated then treat it as fully allocated.*/
+			state = YAFFS_BLOCK_STATE_FULL;
+			dev->allocationBlock = -1;
 		}
 
 		bi->blockState = state;
@@ -6361,12 +6416,8 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 							dev->allocationBlockFinder = blk;
 						} else {
 							/* This is a partially written block that is not
-							 * the current allocation block. This block must have
-							 * had a write failure, so set up for retirement.
+							 * the current allocation block.
 							 */
-
-							 /* bi->needsRetiring = 1; ??? TODO */
-							 bi->gcPrioritise = 1;
 
 							 T(YAFFS_TRACE_ALWAYS,
 							 (TSTR("Partially written block %d detected" TENDSTR),
@@ -6629,6 +6680,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 									   oh->
 									   shadowsObject,
 									   1);
+							
 
 
 						yaffs_SetObjectName(in, oh->name);
@@ -6760,6 +6812,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 			state = YAFFS_BLOCK_STATE_FULL;
 		}
 
+
 		bi->blockState = state;
 
 		/* Now let's see if it was dirty */
@@ -6770,6 +6823,8 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 		}
 
 	}
+	
+	yaffs_SkipRestOfBlock(dev);
 
 	if (altBlockIndex)
 		YFREE_ALT(blockIndex);

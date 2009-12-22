@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.99 2009-12-14 22:03:05 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.100 2009-12-22 04:09:06 charles Exp $";
 
 #include "yportenv.h"
 
@@ -554,8 +554,8 @@ static void yaffs_VerifyObjectHeader(yaffs_Object *obj, yaffs_ObjectHeader *oh, 
 
 	if (!(tags && obj && oh)) {
 		T(YAFFS_TRACE_VERIFY,
-				(TSTR("Verifying object header tags %x obj %x oh %x"TENDSTR),
-				(__u32)tags, (__u32)obj, (__u32)oh));
+				(TSTR("Verifying object header tags %p obj %p oh %p"TENDSTR),
+				tags, obj, oh));
 		return;
 	}
 
@@ -4519,8 +4519,8 @@ static int yaffs_WriteCheckpointObjects(yaffs_Device *dev)
 					cp.structType = sizeof(cp);
 
 					T(YAFFS_TRACE_CHECKPOINT, (
-						TSTR("Checkpoint write object %d parent %d type %d chunk %d obj addr %x" TENDSTR),
-						cp.objectId, cp.parentId, cp.variantType, cp.hdrChunk, (unsigned) obj));
+						TSTR("Checkpoint write object %d parent %d type %d chunk %d obj addr %p" TENDSTR),
+						cp.objectId, cp.parentId, cp.variantType, cp.hdrChunk, obj));
 
 					ok = (yaffs_CheckpointWrite(dev, &cp, sizeof(cp)) == sizeof(cp));
 
@@ -4553,7 +4553,7 @@ static int yaffs_ReadCheckpointObjects(yaffs_Device *dev)
 		ok = (yaffs_CheckpointRead(dev, &cp, sizeof(cp)) == sizeof(cp));
 		if (cp.structType != sizeof(cp)) {
 			T(YAFFS_TRACE_CHECKPOINT, (TSTR("struct size %d instead of %d ok %d"TENDSTR),
-				cp.structType, sizeof(cp), ok));
+				cp.structType, (int)sizeof(cp), ok));
 			ok = 0;
 		}
 
@@ -7821,7 +7821,7 @@ static void yaffs_VerifyFreeChunks(yaffs_Device *dev)
 	do { \
 		if (sizeof(structure) != syze) { \
 			T(YAFFS_TRACE_ALWAYS, (TSTR("%s should be %d but is %d\n" TENDSTR),\
-				name, syze, sizeof(structure))); \
+				name, syze, (int) sizeof(structure))); \
 			return YAFFS_FAIL; \
 		} \
 	} while (0)
@@ -7832,7 +7832,7 @@ static int yaffs_CheckStructures(void)
 /*      yaffs_CheckStruct(yaffs_TagsUnion,8,"yaffs_TagsUnion"); */
 /*      yaffs_CheckStruct(yaffs_Spare,16,"yaffs_Spare"); */
 #ifndef CONFIG_YAFFS_TNODE_LIST_DEBUG
-	yaffs_CheckStruct(yaffs_Tnode, 2 * YAFFS_NTNODES_LEVEL0, "yaffs_Tnode");
+/*	yaffs_CheckStruct(yaffs_Tnode, 2 * YAFFS_NTNODES_LEVEL0, "yaffs_Tnode"); */
 #endif
 #ifndef CONFIG_YAFFS_WINCE
 	yaffs_CheckStruct(yaffs_ObjectHeader, 512, "yaffs_ObjectHeader");

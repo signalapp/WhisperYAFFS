@@ -1,6 +1,6 @@
 #!/bin/sh
 modprobe mtd
 modprobe mtdblock
-modprobe nandsim first_id_byte=0x20 second_id_byte=0xa2 third_id_byte=00 fourth_id_byte=0x15
+#modprobe nandsim first_id_byte=0x20 second_id_byte=0xa2 third_id_byte=00 fourth_id_byte=0x15
+modprobe nandsim first_id_byte=0x20 second_id_byte=0xaa third_id_byte=0x00 fourth_id_byte=0x15
 cat /proc/mtd
-

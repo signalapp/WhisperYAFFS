@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.100 2009-12-22 04:09:06 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.101 2009-12-25 01:53:05 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1818,17 +1818,32 @@ static yaffs_Tnode *yaffs_PruneWorker(yaffs_Device *dev, yaffs_Tnode *tn,
 	if (tn) {
 		hasData = 0;
 
-		for (i = 0; i < YAFFS_NTNODES_INTERNAL; i++) {
-			if (tn->internal[i] && level > 0) {
-				tn->internal[i] =
-				    yaffs_PruneWorker(dev, tn->internal[i],
-						      level - 1,
-						      (i == 0) ? del0 : 1);
-			}
+		if(level > 0){
+        		for (i = 0; i < YAFFS_NTNODES_INTERNAL; i++) {
+	        		if (tn->internal[i]) {
+		        		tn->internal[i] =
+		        		        yaffs_PruneWorker(dev, tn->internal[i],
+						        level - 1,
+						        (i == 0) ? del0 : 1);
+        			}
 
-			if (tn->internal[i])
-				hasData++;
-		}
+	        		if (tn->internal[i])
+		        		hasData++;
+                        }
+		} else {
+		        int tnodeSize;
+		        __u32 *map = (__u32 *)tn;
+                	tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+
+                	if (tnodeSize < sizeof(yaffs_Tnode))
+                	        tnodeSize = sizeof(yaffs_Tnode);
+                        tnodeSize /= sizeof(__u32);
+
+                        for(i = 0; !hasData && i < tnodeSize; i++){
+                                if(map[i])
+                                        hasData++;
+                        }
+                }
 
 		if (hasData == 0 && del0) {
 			/* Free and return NULL */

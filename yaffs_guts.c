@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.102 2009-12-30 22:30:12 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.103 2010-01-01 23:54:03 charles Exp $";
 
 #include "yportenv.h"
 
@@ -1351,6 +1351,7 @@ static void yaffs_DeinitialiseTnodes(yaffs_Device *dev)
 
 	dev->freeTnodes = NULL;
 	dev->nFreeTnodes = 0;
+	dev->nTnodesCreated = 0;
 }
 
 static void yaffs_InitialiseTnodes(yaffs_Device *dev)
@@ -2109,6 +2110,7 @@ static void yaffs_DeinitialiseObjects(yaffs_Device *dev)
 
 	dev->freeObjects = NULL;
 	dev->nFreeObjects = 0;
+	dev->nObjectsCreated = 0;
 }
 
 static void yaffs_InitialiseObjects(yaffs_Device *dev)

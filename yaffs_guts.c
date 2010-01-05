@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.103 2010-01-01 23:54:03 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.104 2010-01-05 22:58:15 charles Exp $";
 
 #include "yportenv.h"
 
@@ -5403,23 +5403,26 @@ static int yaffs_UnlinkWorker(yaffs_Object *obj)
 		 * Instead, we do the following:
 		 * - Select a hardlink.
 		 * - Unhook it from the hard links
-		 * - Unhook it from its parent directory (so that the rename can work)
+		 * - Move it from its parent directory (so that the rename can work)
 		 * - Rename the object to the hardlink's name.
 		 * - Delete the hardlink
 		 */
 
 		yaffs_Object *hl;
+		yaffs_Object *parent;
 		int retVal;
 		YCHAR name[YAFFS_MAX_NAME_LENGTH + 1];
 
 		hl = ylist_entry(obj->hardLinks.next, yaffs_Object, hardLinks);
 
-		ylist_del_init(&hl->hardLinks);
-		ylist_del_init(&hl->siblings);
-
 		yaffs_GetObjectName(hl, name, YAFFS_MAX_NAME_LENGTH + 1);
+		parent = hl->parent;
 
-		retVal = yaffs_ChangeObjectName(obj, hl->parent, name, 0, 0);
+		ylist_del_init(&hl->hardLinks);
+
+ 		yaffs_AddObjectToDirectory(obj->myDev->unlinkedDir, hl);
+
+		retVal = yaffs_ChangeObjectName(obj,parent, name, 0, 0);
 
 		if (retVal == YAFFS_OK)
 			retVal = yaffs_DoGenericObjectDeletion(hl);

@@ -47,6 +47,18 @@ def yaffs_mkfile(fname,fsize):
     else :
         return -1
 
+def yaffs_link_test(dir):
+    fnamea = dir + '/aaa'
+    fnameb = dir + '/bbb'
+    yaffs_unlink(fnamea)
+    fd = yaffs_open(fnamea,66,0666)
+    yaffs_link(fnamea,fnameb)
+    yaffs_ls(dir)
+    yaffs_unlink(fnamea)
+    yaffs_ls(dir)
+    yaffs_unlink(fnameb)
+
+    
 root = "/yaffs2"
 
 yaffs_StartUp()

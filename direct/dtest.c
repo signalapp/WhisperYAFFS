@@ -422,7 +422,7 @@ void fill_disk_and_delete(const char *path, int nfiles, int ncycles)
 }
 
 
-void fill_files(char *path,int flags, int maxIterations,int siz)
+void fill_files(const char *path,int flags, int maxIterations,int siz)
 {
 	int i;
 	int j;
@@ -1488,7 +1488,6 @@ void long_name_test(const char *mountpt)
 }
 
 
-
 void lookup_test(const char *mountpt)
 {
 	int i;
@@ -1551,7 +1550,52 @@ void lookup_test(const char *mountpt)
 	
 }
 
-void link_test(const char *mountpt)
+void link_test0(const char *mountpt)
+{
+	int i;
+	char namea[300];
+	char nameb[300];
+	int result = 0;
+	
+
+	yaffs_StartUp();
+	yaffs_mount(mountpt);
+	
+		
+	sprintf(namea,"%s/a",mountpt);
+	sprintf(nameb,"%s/b",mountpt);
+
+	printf("mounted\n");
+        dumpDir(mountpt);
+
+	yaffs_unlink(namea);
+	printf("a unlinked\n");
+        dumpDir(mountpt);
+
+	yaffs_unlink(nameb);
+	printf("b unlinked\n");
+        dumpDir(mountpt);
+	
+	result = yaffs_open(namea,O_CREAT| O_RDWR,0666);
+        yaffs_close(result);
+	printf("a created\n");
+        dumpDir(mountpt);
+
+        yaffs_link(namea,nameb);
+        printf("linked\n");
+        dumpDir(mountpt);
+        yaffs_unlink(namea);
+        printf("a ulinked\n");
+        dumpDir(mountpt);
+        yaffs_unlink(nameb);
+        printf("b unlinked\n");
+        dumpDir(mountpt);
+
+	yaffs_unmount(mountpt);
+}
+
+
+void link_test1(const char *mountpt)
 {
 	int i;
 	int h;
@@ -2408,8 +2452,9 @@ int main(int argc, char *argv[])
 	//rename_over_test("//////////////////flash///////////////////yaffs1///////////");
 	
 	//fill_empty_files_test("/yaffs2/");
-	long_name_test("/yaffs2");
-	
+	//long_name_test("/yaffs2");
+	link_test0("/yaffs2");
+	link_test1("yaffs2");
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
 	  //small_mount_test("/flash/flash",1000);

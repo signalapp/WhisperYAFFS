@@ -66,6 +66,8 @@ yaffs_mount(root)
 
 yaffs_mkdir(root+"/dd",0666)
 
-yaffs_open(root+"/dd/111",66,0666)
+h = yaffs_open(root+"/dd/111",66,0666)
+yaffs_close(h)
 
 yaffs_ls(root)
+

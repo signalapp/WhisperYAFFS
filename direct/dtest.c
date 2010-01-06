@@ -1631,7 +1631,37 @@ void link_test1(const char *mountpt)
 	yaffs_mount(mountpt);
 	
 	printf("link test done\n");	
+}
+
+void handle_test(const char *mountpt)
+{
+	int i;
+	int h;
+	int cycle;
+	char a[100];
+
+	sprintf(a,"%s/aaa",mountpt);
 	
+	yaffs_StartUp();
+	
+	yaffs_mount(mountpt);
+
+        for(cycle = 0; cycle < 5; cycle++){
+        printf("Start cycle %d\n",cycle);
+ 	i = 0;
+	do {
+        h = yaffs_open(a, O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	printf("%d  handle %d\n",i,h);
+	i++;
+	} while(h >= 0);
+	
+	while(i >= -1) {
+	 yaffs_close(i);
+	 i--;
+        }
+        }
+	
+	yaffs_unmount(mountpt);
 }
 
 void freespace_test(const char *mountpt)
@@ -2453,8 +2483,8 @@ int main(int argc, char *argv[])
 	
 	//fill_empty_files_test("/yaffs2/");
 	//long_name_test("/yaffs2");
-	link_test0("/yaffs2");
-	link_test1("yaffs2");
+	//link_test0("/yaffs2");
+	//link_test1("yaffs2");
 	 //scan_pattern_test("/flash",10000,10);
 	//short_scan_test("/flash/flash",40000,200);
 	  //small_mount_test("/flash/flash",1000);
@@ -2468,7 +2498,7 @@ int main(int argc, char *argv[])
 	 // huge_array_test("/flash/flash",10);
 
 
-
+       handle_test("yaffs2/");
 	
 	//long_test_on_path("/ram2k");
 	// long_test_on_path("/flash");

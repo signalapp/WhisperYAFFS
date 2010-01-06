@@ -25,7 +25,7 @@
 
 #include "yportenv.h"
 
-#define YAFFSFS_N_HANDLES 200
+#define YAFFSFS_N_HANDLES 100
 
 
 typedef struct {

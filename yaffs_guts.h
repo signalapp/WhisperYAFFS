@@ -455,10 +455,6 @@ struct yaffs_ObjectStruct {
 	YCHAR shortName[YAFFS_SHORT_NAME_LENGTH + 1];
 #endif
 
-#ifndef __KERNEL__
-	__u32 inUse;
-#endif
-
 #ifdef CONFIG_YAFFS_WINCE
 	__u32 win_ctime[2];
 	__u32 win_mtime[2];
@@ -473,10 +469,7 @@ struct yaffs_ObjectStruct {
 
 	__u32 yst_rdev;
 
-#ifdef __KERNEL__
-	struct inode *myInode;
-
-#endif
+	void *myInode;
 
 	yaffs_ObjectType variantType;
 

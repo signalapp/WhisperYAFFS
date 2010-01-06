@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.104 2010-01-05 22:58:15 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.105 2010-01-06 04:02:12 charles Exp $";
 
 #include "yportenv.h"
 
@@ -2050,9 +2050,7 @@ static void yaffs_FreeObject(yaffs_Object *tn)
 {
 	yaffs_Device *dev = tn->myDev;
 
-#ifdef __KERNEL__
 	T(YAFFS_TRACE_OS, (TSTR("FreeObject %p inode %p"TENDSTR), tn, tn->myInode));
-#endif
 
 	if (tn->parent)
 		YBUG();
@@ -2060,7 +2058,6 @@ static void yaffs_FreeObject(yaffs_Object *tn)
 		YBUG();
 
 
-#ifdef __KERNEL__
 	if (tn->myInode) {
 		/* We're still hooked up to a cached inode.
 		 * Don't delete now, but mark for later deletion
@@ -2068,7 +2065,6 @@ static void yaffs_FreeObject(yaffs_Object *tn)
 		tn->deferedFree = 1;
 		return;
 	}
-#endif
 
 	yaffs_UnhashObject(tn);
 
@@ -5254,13 +5250,8 @@ static int yaffs_UnlinkFileIfNeeded(yaffs_Object *in)
 	int retVal;
 	int immediateDeletion = 0;
 
-#ifdef __KERNEL__
 	if (!in->myInode)
 		immediateDeletion = 1;
-#else
-	if (in->inUse <= 0)
-		immediateDeletion = 1;
-#endif
 
 	if (immediateDeletion) {
 		retVal =
@@ -5380,13 +5371,8 @@ static int yaffs_UnlinkWorker(yaffs_Object *obj)
 
 	int immediateDeletion = 0;
 
-#ifdef __KERNEL__
 	if (!obj->myInode)
 		immediateDeletion = 1;
-#else
-	if (obj->inUse <= 0)
-		immediateDeletion = 1;
-#endif
 
 	if(obj)
 		yaffs_UpdateParent(obj->parent);

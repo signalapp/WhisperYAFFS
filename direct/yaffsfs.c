@@ -24,7 +24,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.29 2009-12-07 01:17:33 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.30 2010-01-06 04:00:23 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -41,16 +41,21 @@ static void yaffsfs_RemoveObjectCallback(yaffs_Object *obj);
 
 unsigned int yaffs_wr_attempts;
 
+typedef struct {
+	int count;
+	yaffs_Object *iObj;
+} yaffsfs_Inode;
+
 typedef struct{
 	__u8  inUse:1;		// this handle is in use
 	__u8  readOnly:1;	// this handle is read only
 	__u8  append:1;		// append only
 	__u8  exclusive:1;	// exclusive
+	int   inodeId:20;	// the object
 	__u32 position;		// current position in file
-	yaffs_Object *obj;	// the object
 }yaffsfs_Handle;
 
-
+static yaffsfs_Inode yaffsfs_inode[YAFFSFS_N_HANDLES];
 static yaffsfs_Handle yaffsfs_handle[YAFFSFS_N_HANDLES];
 
 // yaffsfs_InitHandle
@@ -59,10 +64,11 @@ static yaffsfs_Handle yaffsfs_handle[YAFFSFS_N_HANDLES];
 static int yaffsfs_InitHandles(void)
 {
 	int i;
-	for(i = 0; i < YAFFSFS_N_HANDLES; i++){
-		yaffsfs_handle[i].inUse = 0;
-		yaffsfs_handle[i].obj = NULL;
-	}
+	memset(yaffsfs_inode,0,sizeof(yaffsfs_inode));
+	memset(yaffsfs_handle,0,sizeof(yaffsfs_handle));
+	for(i = 0; i < YAFFSFS_N_HANDLES; i++)
+		yaffsfs_handle[i].inodeId = -1;
+
 	return 0;
 }
 
@@ -74,14 +80,85 @@ yaffsfs_Handle *yaffsfs_GetHandlePointer(int h)
 	return &yaffsfs_handle[h];
 }
 
-yaffs_Object *yaffsfs_GetHandleObject(int handle)
+yaffsfs_Inode *yaffsfs_GetInodePointer(int handle)
 {
 	yaffsfs_Handle *h = yaffsfs_GetHandlePointer(handle);
 
-	if(h && h->inUse)
-		return h->obj;
+	if(h && h->inUse && h->inodeId >= 0 && h->inodeId < YAFFSFS_N_HANDLES)
+		return  &yaffsfs_inode[h->inodeId];
 
 	return NULL;
+}
+
+yaffs_Object *yaffsfs_GetHandleObject(int handle)
+{
+	yaffsfs_Inode *in = yaffsfs_GetInodePointer(handle);
+
+	if(in)
+		return in->iObj;
+
+	return NULL;
+}
+
+//yaffsfs_GetInodeIdForObject
+// Grab an inode entry when opening a new inode.
+//
+
+static int yaffsfs_GetInodeIdForObject(yaffs_Object *obj)
+{
+	int i;
+	int ret = -1;
+	yaffsfs_Inode *in = NULL;
+	
+	if(obj)
+		obj = yaffs_GetEquivalentObject(obj);
+
+	/* Look for it. If we can't find it then make one */
+	for(i = 0; i < YAFFSFS_N_HANDLES && ret < 0; i++){
+		if(yaffsfs_inode[i].iObj == obj)
+			ret = i;
+	}
+
+	for(i = 0; i < YAFFSFS_N_HANDLES && ret < 0; i++){
+		if(!yaffsfs_inode[i].iObj)
+			ret = i;
+	}
+	
+	
+	if(ret>=0){
+		in = &yaffsfs_inode[ret];
+		if(!in->iObj)
+			in->count = 0;
+		in->iObj = obj;
+		in->count++;
+	}
+	
+	
+	return ret;
+}
+
+static void yaffsfs_ReleaseInode(yaffsfs_Inode *in)
+{
+	yaffs_Object *obj;
+	
+	obj = in->iObj;
+
+	if(obj->unlinked)
+		yaffs_DeleteObject(obj);
+	
+	obj->myInode = NULL;
+	in->iObj = NULL;
+
+}
+
+static void yaffsfs_PutInode(int inodeId)
+{
+	if(inodeId >= 0 && inodeId < YAFFSFS_N_HANDLES){
+		yaffsfs_Inode *in = & yaffsfs_inode[inodeId];
+		in->count--;
+		if(in->count <= 0)
+			yaffsfs_ReleaseInode(in);
+	}	
 }
 
 
@@ -101,6 +178,7 @@ static int yaffsfs_GetHandle(void)
 		}
 		if(!h->inUse){
 			memset(h,0,sizeof(yaffsfs_Handle));
+			h->inodeId=-1;
 			h->inUse=1;
 			return i;
 		}
@@ -109,18 +187,21 @@ static int yaffsfs_GetHandle(void)
 }
 
 // yaffs_PutHandle
-// Let go of a handle (when closing a file)
+// Let go of a handle when closing a file or aborting an open.
 //
 static int yaffsfs_PutHandle(int handle)
 {
 	yaffsfs_Handle *h = yaffsfs_GetHandlePointer(handle);
 
 	if(h){
+		if(h->inodeId >= 0)
+			yaffsfs_PutInode(h->inodeId);
 		h->inUse = 0;
-		h->obj = NULL;
+		h->inodeId = -1;
 	}
 	return 0;
 }
+
 
 
 
@@ -431,6 +512,9 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 		if(obj && obj->variantType == YAFFS_OBJECT_TYPE_SYMLINK)
 			obj = yaffsfs_FollowLink(obj,symDepth++);
 
+		if(obj)
+			obj = yaffs_GetEquivalentObject(obj);
+
 		if(obj && obj->variantType != YAFFS_OBJECT_TYPE_FILE)
 			obj = NULL;
 
@@ -439,10 +523,9 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 			alreadyOpen = alreadyExclusive = 0;
 
 			for(i = 0; i < YAFFSFS_N_HANDLES; i++){
-
 				if(i != handle &&
 				   yaffsfs_handle[i].inUse &&
-				    obj == yaffsfs_handle[i].obj){
+				    obj == yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj){
 				 	alreadyOpen = 1;
 					if(yaffsfs_handle[i].exclusive)
 						alreadyExclusive = 1;
@@ -484,14 +567,25 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 		}
 
 		if(obj && !openDenied) {
-			h->obj = obj;
+			int inodeId = yaffsfs_GetInodeIdForObject(obj);
+
+			if(inodeId<0) {
+				/*
+				 * Todo: Fix any problem if inodes run out, though that
+				 * can't happen if the number of inode items >= number of handles. 
+				 */
+			}
+			
+			h->inodeId = inodeId;
 			h->inUse = 1;
 			h->readOnly = (oflag & (O_WRONLY | O_RDWR)) ? 0 : 1;
 			h->append =  (oflag & O_APPEND) ? 1 : 0;
 			h->exclusive = (oflag & O_EXCL) ? 1 : 0;
 			h->position = 0;
 
-                        obj->inUse++;
+			/* Hook inode to object */
+                        obj->myInode = (void*) &yaffsfs_inode[inodeId];
+
                         if((oflag & O_TRUNC) && !h->readOnly)
                                 yaffs_ResizeFile(obj,0);
 		} else {
@@ -520,7 +614,7 @@ int yaffs_Dofsync(int fd,int datasync)
 
 	if(h && h->inUse)
 		// flush the file
-		yaffs_FlushFile(h->obj,1,datasync);
+		yaffs_FlushFile(yaffsfs_inode[h->inodeId].iObj,1,datasync);
 	else {
 		// bad handle
 		yaffsfs_SetError(-EBADF);
@@ -558,11 +652,7 @@ int yaffs_close(int fd)
 
 	if(h && h->inUse) {
 		// clean up
-		yaffs_FlushFile(h->obj,1,0);
-		h->obj->inUse--;
-		if(h->obj->inUse <= 0 && h->obj->unlinked)
-			yaffs_DeleteObject(h->obj);
-
+		yaffs_FlushFile(yaffsfs_inode[h->inodeId].iObj,1,0);
 		yaffsfs_PutHandle(fd);
 		retVal = 0;
 	} else {
@@ -1296,7 +1386,7 @@ int yaffs_unmount(const YCHAR *path)
 			yaffs_CheckpointSave(dev);
 
 			for(i = inUse = 0; i < YAFFSFS_N_HANDLES && !inUse; i++){
-				if(yaffsfs_handle[i].inUse && yaffsfs_handle[i].obj->myDev == dev)
+				if(yaffsfs_handle[i].inUse && yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj->myDev == dev)
 					inUse = 1; // the device is in use, can't unmount
 			}
 

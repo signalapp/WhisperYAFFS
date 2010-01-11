@@ -97,11 +97,11 @@ void yaffs_PackTags2TagsPart(yaffs_PackedTags2TagsPart *ptt,
 }
 
 
-void yaffs_PackTags2(yaffs_Device *dev, yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t)
+void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t, int tagsECC)
 {
 	yaffs_PackTags2TagsPart(&pt->t, t);
 
-	if(!dev->noTagsECC)
+	if(tagsECC)
 		yaffs_ECCCalculateOther((unsigned char *)&pt->t,
 					sizeof(yaffs_PackedTags2TagsPart),
 					&pt->ecc);
@@ -156,13 +156,13 @@ void yaffs_UnpackTags2TagsPart(yaffs_ExtendedTags *t,
 }
 
 
-void yaffs_UnpackTags2(yaffs_Device *dev, yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt)
+void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt, int tagsECC)
 {
 
 	yaffs_ECCResult eccResult = YAFFS_ECC_RESULT_NO_ERROR;
 
 	if (pt->t.sequenceNumber != 0xFFFFFFFF &&
-	    !dev->noTagsECC){
+	    tagsECC){
 		/* Chunk is in use and we need to do ECC */
 		
 		yaffs_ECCOther ecc;

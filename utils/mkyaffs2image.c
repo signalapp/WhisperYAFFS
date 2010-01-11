@@ -42,7 +42,7 @@ unsigned yaffs_traceMask=0;
 #define chunkSize 2048
 #define spareSize 64
 
-const char * mkyaffsimage_c_version = "$Id: mkyaffs2image.c,v 1.4 2007-02-14 01:09:06 wookey Exp $";
+const char * mkyaffsimage_c_version = "$Id: mkyaffs2image.c,v 1.5 2010-01-11 21:43:18 charles Exp $";
 
 
 typedef struct
@@ -182,7 +182,7 @@ static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
 
 	nPages++;
 
-	yaffs_PackTags2(&pt,&t);
+	yaffs_PackTags2(&pt,&t,1);
 	
 //	return write(outFile,&pt,sizeof(yaffs_PackedTags2));
 	return write(outFile,&pt,spareSize);

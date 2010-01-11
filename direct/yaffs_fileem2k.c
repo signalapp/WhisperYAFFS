@@ -16,7 +16,7 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.22 2010-01-11 04:06:47 charles Exp $";
+const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.23 2010-01-11 21:43:18 charles Exp $";
 
 
 #include "yportenv.h"
@@ -261,7 +261,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 			else
 			{
 				yaffs_PackedTags2 pt;
-				yaffs_PackTags2(dev,&pt,tags);
+				yaffs_PackTags2(&pt,tags, !dev->noTagsECC);
 				__u8 * ptab = (__u8 *)&pt;
 
 				nRead = read(h,localBuffer,sizeof(pt));
@@ -339,7 +339,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 			else
 			{
 				yaffs_PackedTags2 pt;
-				yaffs_PackTags2(dev,&pt,tags);
+				yaffs_PackTags2(&pt,tags,!dev->noTagsECC);
 				__u8 * ptab = (__u8 *)&pt;
 
 				nRead = read(h,localBuffer,sizeof(pt));
@@ -474,7 +474,7 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *d
 			{
 				yaffs_PackedTags2 pt;
 				nread= read(h,&pt,sizeof(pt));
-				yaffs_UnpackTags2(dev,tags,&pt);
+				yaffs_UnpackTags2(tags,&pt, !dev->noTagsECC);
 #ifdef SIMULATE_FAILURES
 				if((chunkInNAND >> 6) == 100) {
 					if(fail300 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){

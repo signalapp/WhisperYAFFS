@@ -14,7 +14,7 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-	"$Id: yaffs_mtdif2.c,v 1.25 2010-01-11 04:06:46 charles Exp $";
+	"$Id: yaffs_mtdif2.c,v 1.26 2010-01-11 21:43:18 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -69,7 +69,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device *dev, int chunkInNAND,
 		pt2tp = (yaffs_PackedTags2TagsPart *)(data + dev->nDataBytesPerChunk);
 		yaffs_PackTags2TagsPart(pt2tp, tags);
 	} else
-		yaffs_PackTags2(dev, &pt, tags);
+		yaffs_PackTags2(&pt, tags, !dev->noTagsECC);
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 	ops.mode = MTD_OOB_AUTO;
@@ -173,7 +173,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 	} else {
 		if (tags) {
 			memcpy(packed_tags_ptr, dev->spareBuffer, packed_tags_size);
-			yaffs_UnpackTags2(dev, tags, &pt);
+			yaffs_UnpackTags2(tags, &pt, !dev->noTagsECC);
 		}
 	}
 

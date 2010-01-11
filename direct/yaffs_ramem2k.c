@@ -16,7 +16,7 @@
  */
 
 
-const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.6 2010-01-11 04:06:47 charles Exp $";
+const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.7 2010-01-11 21:43:18 charles Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
@@ -221,7 +221,7 @@ int nandemul2k_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const 
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_PackTags2(dev,(yaffs_PackedTags2 *)x,tags);
+		yaffs_PackTags2((yaffs_PackedTags2 *)x,tags, !dev->noTagsECC);
 			
 	}
 	
@@ -257,7 +257,7 @@ int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_UnpackTags2(dev,tags,(yaffs_PackedTags2 *)x);
+		yaffs_UnpackTags2(tags,(yaffs_PackedTags2 *)x, !dev->noTagsECC);
 	}
 
 	return YAFFS_OK;

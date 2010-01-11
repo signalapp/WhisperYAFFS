@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.22 2009-01-04 21:44:24 charles Exp $
+# $Id: Makefile,v 1.23 2010-01-11 04:06:47 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -48,7 +48,7 @@ SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsin
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
           yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
-          yaffs_qsort.c yaffs_qsort.h
+          yaffs_qsort.c yaffs_qsort.h yaffs_trace.h
 
 #all: directtest2k boottest
 

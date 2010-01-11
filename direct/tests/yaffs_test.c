@@ -24,6 +24,8 @@
 
 #include "yaffsfs.h"
 
+#include "yaffs_trace.h"
+
 #include "nor_stress.h"
 #include "yaffs_fsx.h"
 

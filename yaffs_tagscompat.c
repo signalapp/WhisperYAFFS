@@ -15,6 +15,7 @@
 #include "yaffs_tagscompat.h"
 #include "yaffs_ecc.h"
 #include "yaffs_getblockinfo.h"
+#include "yaffs_trace.h"
 
 static void yaffs_HandleReadDataError(yaffs_Device *dev, int chunkInNAND);
 #ifdef NOTYET

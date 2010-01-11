@@ -14,8 +14,10 @@
 #include "yaffsfs.h"
 #include "yaffs_guts.h"
 #include "yaffscfg.h"
-#include <string.h> // for memset
 #include "yportenv.h"
+#include "yaffs_trace.h"
+
+#include <string.h> // for memset
 
 #define YAFFSFS_MAX_SYMLINK_DEREFERENCES 5
 
@@ -24,7 +26,7 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.30 2010-01-06 04:00:23 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.31 2010-01-11 04:06:47 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;

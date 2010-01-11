@@ -13,6 +13,7 @@
 
 #include "yaffs_packedtags2.h"
 #include "yportenv.h"
+#include "yaffs_trace.h"
 #include "yaffs_tagsvalidity.h"
 
 /* This code packs a set of extended tags into a binary structure for

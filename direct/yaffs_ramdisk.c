@@ -18,10 +18,11 @@
  * Use this with dev->useNANDECC enabled, then ECC overheads are not required.
  */
 
-const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.5 2008-05-05 07:58:58 charles Exp $";
+const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.6 2010-01-11 04:06:47 charles Exp $";
 
 
 #include "yportenv.h"
+#include "yaffs_trace.h"
 
 #include "yaffs_ramdisk.h"
 #include "yaffs_guts.h"

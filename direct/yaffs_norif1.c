@@ -35,11 +35,12 @@
  *   
  */
 
-const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.4 2009-01-09 02:54:14 charles Exp $";
+const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.5 2010-01-11 04:06:47 charles Exp $";
 
 #include "yaffs_norif1.h"
 
 #include "yportenv.h"
+#include "yaffs_trace.h"
 
 #include "yaffs_flashif.h"
 #include "yaffs_guts.h"

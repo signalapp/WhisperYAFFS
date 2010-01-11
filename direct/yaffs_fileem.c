@@ -16,10 +16,11 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.5 2009-01-12 00:49:01 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.6 2010-01-11 04:06:47 charles Exp $";
 
 
 #include "yportenv.h"
+#include "yaffs_trace.h"
 
 #include "yaffs_flashif.h"
 #include "yaffs_guts.h"

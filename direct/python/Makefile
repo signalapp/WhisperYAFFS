@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.4 2009-10-12 23:05:49 charles Exp $
+# $Id: Makefile,v 1.5 2010-01-11 04:06:47 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -50,7 +50,7 @@ YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h y
 		       yaffs_fileem2k.h yaffsfs.h yaffs_malloc.h yaffs_ramdisk.h ydirectenv.h \
 		       yaffscfg.h yaffs_fileem.c yaffs_flashif.c yaffs_ramdisk.c yaffs_ramem2k.c\
 		       yaffs_norif1.c yaffs_norif1.h ynorsim.c ynorsim.h \
-		       yaffs_nandif.c yaffs_nandif.h
+		       yaffs_nandif.c yaffs_nandif.h yaffs_trace.h
 
 
 SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)

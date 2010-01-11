@@ -12,9 +12,10 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.105 2010-01-06 04:02:12 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.106 2010-01-11 04:06:46 charles Exp $";
 
 #include "yportenv.h"
+#include "yaffs_trace.h"
 
 #include "yaffsinterface.h"
 #include "yaffs_guts.h"

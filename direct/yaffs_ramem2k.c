@@ -16,7 +16,7 @@
  */
 
 
-const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.5 2009-10-14 00:01:57 charles Exp $";
+const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.6 2010-01-11 04:06:47 charles Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
@@ -27,6 +27,7 @@ const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.5 2009-10-14 00:
 #ifdef CONFIG_YAFFS_RAM_ENABLED
 
 #include "yportenv.h"
+#include "yaffs_trace.h"
 
 #include "yaffs_nandemul2k.h"
 #include "yaffs_guts.h"

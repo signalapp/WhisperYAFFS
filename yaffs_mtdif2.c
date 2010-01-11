@@ -14,10 +14,10 @@
 /* mtd interface for YAFFS2 */
 
 const char *yaffs_mtdif2_c_version =
-	"$Id: yaffs_mtdif2.c,v 1.24 2009-10-14 00:01:57 charles Exp $";
+	"$Id: yaffs_mtdif2.c,v 1.25 2010-01-11 04:06:46 charles Exp $";
 
 #include "yportenv.h"
-
+#include "yaffs_trace.h"
 
 #include "yaffs_mtdif2.h"
 

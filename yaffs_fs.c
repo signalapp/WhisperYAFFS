@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.90 2009-12-23 03:14:17 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.91 2010-01-11 04:06:46 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -114,6 +114,7 @@ static uint32_t YCALCBLOCKS(uint64_t partition_size, uint32_t block_size)
 #include <linux/uaccess.h>
 
 #include "yportenv.h"
+#include "yaffs_trace.h"
 #include "yaffs_guts.h"
 
 #include <linux/mtd/mtd.h>
@@ -1585,7 +1586,7 @@ static int yaffs_sync_object(struct file *file, struct dentry *dentry,
 
 	dev = obj->myDev;
 
-	T(YAFFS_TRACE_OS, ("yaffs_sync_object\n"));
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_sync_object\n"));
 	yaffs_GrossLock(dev);
 	yaffs_FlushFile(obj, 1, datasync);
 	yaffs_GrossUnlock(dev);
@@ -1776,7 +1777,7 @@ static int yaffs_do_sync_fs(struct super_block *sb)
 {
 
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
-	T(YAFFS_TRACE_OS, ("yaffs_do_sync_fs\n"));
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_do_sync_fs\n"));
 
 	if (sb->s_dirt) {
 		yaffs_GrossLock(dev);
@@ -1802,7 +1803,7 @@ static int yaffs_write_super(struct super_block *sb)
 #endif
 {
 
-	T(YAFFS_TRACE_OS, ("yaffs_write_super\n"));
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_write_super\n"));
 	if (yaffs_auto_checkpoint >= 2)
 		yaffs_do_sync_fs(sb);
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 18))
@@ -1817,7 +1818,7 @@ static int yaffs_sync_fs(struct super_block *sb, int wait)
 static int yaffs_sync_fs(struct super_block *sb)
 #endif
 {
-	T(YAFFS_TRACE_OS, ("yaffs_sync_fs\n"));
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_sync_fs\n"));
 
 	if (yaffs_auto_checkpoint >= 1)
 		yaffs_do_sync_fs(sb);
@@ -2593,6 +2594,7 @@ static struct {
 	{"scan_debug", YAFFS_TRACE_SCAN_DEBUG},
 	{"scan", YAFFS_TRACE_SCAN},
 	{"tracing", YAFFS_TRACE_TRACING},
+	{"sync", YAFFS_TRACE_SYNC},
 
 	{"verify", YAFFS_TRACE_VERIFY},
 	{"verify_nand", YAFFS_TRACE_VERIFY_NAND},

@@ -17,6 +17,7 @@
 #define __YAFFS_GETBLOCKINFO_H__
 
 #include "yaffs_guts.h"
+#include "yaffs_trace.h"
 
 /* Function to manipulate block info */
 static Y_INLINE yaffs_BlockInfo *yaffs_GetBlockInfo(yaffs_Device * dev, int blk)

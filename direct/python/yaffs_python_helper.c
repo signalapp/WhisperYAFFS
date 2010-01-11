@@ -22,6 +22,7 @@
  */
  
 #include "yaffsfs.h"
+#include "yaffs_trace.h"
 
 int simulate_power_failure;
 int random_seed;

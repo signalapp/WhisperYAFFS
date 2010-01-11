@@ -24,6 +24,7 @@
  */
 
 #include "yportenv.h"
+#include "yaffs_trace.h"
 #include "yaffs_guts.h"
 #include "yaffs_packedtags1.h"
 #include "yaffs_tagscompat.h"	/* for yaffs_CalcTagsECC */
@@ -36,7 +37,7 @@
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
 #if (MTD_VERSION_CODE > MTD_VERSION(2, 6, 17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.11 2009-09-09 03:03:01 charles Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.12 2010-01-11 04:06:46 charles Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8

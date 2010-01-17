@@ -1,6 +1,42 @@
 #!/bin/sh
 modprobe mtd
 modprobe mtdblock
-#modprobe nandsim first_id_byte=0x20 second_id_byte=0xa2 third_id_byte=00 fourth_id_byte=0x15
-modprobe nandsim first_id_byte=0x20 second_id_byte=0xaa third_id_byte=0x00 fourth_id_byte=0x15
+
+case $1 in
+	16MiB-512 )
+		modprobe nandsim first_id_byte=0x20 second_id_byte=0x33
+		;;
+	32MiB-512 )
+		modprobe nandsim first_id_byte=0x20 second_id_byte=0x35
+		;;
+	64MiB-512 )
+		modprobe nandsim first_id_byte=0x20 second_id_byte=0x36
+		;;
+	128MiB-512 )
+		modprobe nandsim first_id_byte=0x20 second_id_byte=0x78
+		;;
+	256MiB-512 )
+		modprobe nandsim first_id_byte=0x20 second_id_byte=0x71
+		;;
+	64MiB-2048 )
+		modprobe nandsim first_id_byte=0x20 second_id_byte=0xa2 third_id_byte=0x00 fourth_id_byte=0x15
+		;;
+	128MiB-2048 )
+		modprobe nandsim first_id_byte=0xec second_id_byte=0xa1 third_id_byte=0x00 fourth_id_byte=0x15
+		;;
+	256MiB-2048 )
+		modprobe nandsim first_id_byte=0x20 second_id_byte=0xaa third_id_byte=0x00 fourth_id_byte=0x15
+		;;
+	512MiB-2048 )
+		modprobe nandsim first_id_byte=0x20 second_id_byte=0xac third_id_byte=0x00 fourth_id_byte=0x15
+		;;
+	1GiB-2048 )
+		modprobe nandsim first_id_byte=0xec second_id_byte=0xd3 third_id_byte=0x51 fourth_id_byte=0x95
+		;;
+	* )
+		echo "No nand config specified. Need one of:"
+		echo " 16MiB-512, 32MiB-512, 64Mib-512, 128MiB-512, 256MiB-512, 64MiB-2048, 128MiB-2048, 256MiB-2048, 512MiB-2048, 1GiB-2048"
+		return 1
+esac
+
 cat /proc/mtd

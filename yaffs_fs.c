@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.91 2010-01-11 04:06:46 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.92 2010-01-19 21:16:30 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -323,6 +323,17 @@ static const struct file_operations yaffs_file_operations = {
 #endif
 };
 #endif
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,25))
+static void zero_user_segment(struct page *page, unsigned start, unsigned end)
+{
+	void * kaddr = kmap_atomic(page, KM_USER0);
+	memset(kaddr + start, 0, end - start);
+	kunmap_atomic(kaddr, KM_USER0);
+	flush_dcache_page(page);
+}
+#endif
+
 
 static const struct inode_operations yaffs_file_inode_operations = {
 	.setattr = yaffs_setattr,

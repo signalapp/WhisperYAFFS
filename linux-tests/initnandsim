@@ -35,7 +35,7 @@ case $1 in
 		;;
 	* )
 		echo "No nand config specified. Need one of:"
-		echo " 16MiB-512, 32MiB-512, 64Mib-512, 128MiB-512, 256MiB-512, 64MiB-2048, 128MiB-2048, 256MiB-2048, 512MiB-2048, 1GiB-2048"
+		echo " 16MiB-512, 32MiB-512, 64MiB-512, 128MiB-512, 256MiB-512, 64MiB-2048, 128MiB-2048, 256MiB-2048, 512MiB-2048, 1GiB-2048"
 		return 1
 esac
 

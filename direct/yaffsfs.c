@@ -26,7 +26,12 @@
 #endif
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.31 2010-01-11 04:06:47 charles Exp $";
+/* YAFFSFS_RW_SIZE must be a power of 2 */
+#define YAFFSFS_RW_SHIFT (13)
+#define YAFFSFS_RW_SIZE  (1<<YAFFSFS_RW_SHIFT)
+
+
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.32 2010-02-05 03:59:04 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -49,11 +54,11 @@ typedef struct {
 } yaffsfs_Inode;
 
 typedef struct{
-	__u8  inUse:1;		// this handle is in use
-	__u8  readOnly:1;	// this handle is read only
-	__u8  append:1;		// append only
-	__u8  exclusive:1;	// exclusive
-	int   inodeId:20;	// the object
+	__u8 	readOnly:1;	// this handle is read only
+	__u8 	append:1;	// append only
+	__u8	exclusive:1;	// exclusive
+	int	inodeId:13;	// the object
+	int	useCount:16;	// Use count for this handle
 	__u32 position;		// current position in file
 }yaffsfs_Handle;
 
@@ -86,7 +91,7 @@ yaffsfs_Inode *yaffsfs_GetInodePointer(int handle)
 {
 	yaffsfs_Handle *h = yaffsfs_GetHandlePointer(handle);
 
-	if(h && h->inUse && h->inodeId >= 0 && h->inodeId < YAFFSFS_N_HANDLES)
+	if(h && h->useCount > 0 && h->inodeId >= 0 && h->inodeId < YAFFSFS_N_HANDLES)
 		return  &yaffsfs_inode[h->inodeId];
 
 	return NULL;
@@ -168,7 +173,7 @@ static void yaffsfs_PutInode(int inodeId)
 // Grab a handle (when opening a file)
 //
 
-static int yaffsfs_GetHandle(void)
+static int yaffsfs_GetNewHandle(void)
 {
 	int i;
 	yaffsfs_Handle *h;
@@ -178,28 +183,44 @@ static int yaffsfs_GetHandle(void)
 		if(!h){
 			// todo bug: should never happen
 		}
-		if(!h->inUse){
+		if(h->useCount < 1){
 			memset(h,0,sizeof(yaffsfs_Handle));
 			h->inodeId=-1;
-			h->inUse=1;
+			h->useCount=1;
 			return i;
 		}
 	}
 	return -1;
 }
 
+// yaffs_GetHandle
+// Increase use of handle when reading/writing a file
+static int yaffsfs_GetHandle(int handle)
+{
+	yaffsfs_Handle *h = yaffsfs_GetHandlePointer(handle);
+
+	if(h && h->useCount > 0){	
+		h->useCount++;
+	}
+	return 0;
+}
+
 // yaffs_PutHandle
-// Let go of a handle when closing a file or aborting an open.
+// Let go of a handle when closing a file or aborting an open or
+// ending a read or write.
 //
 static int yaffsfs_PutHandle(int handle)
 {
 	yaffsfs_Handle *h = yaffsfs_GetHandlePointer(handle);
 
-	if(h){
-		if(h->inodeId >= 0)
-			yaffsfs_PutInode(h->inodeId);
-		h->inUse = 0;
-		h->inodeId = -1;
+	if(h && h->useCount > 0){	
+		h->useCount--;
+		if(h->useCount < 1){
+			if(h->inodeId >= 0){
+				yaffsfs_PutInode(h->inodeId);
+				h->inodeId = -1;
+			}
+		}
 	}
 	return 0;
 }
@@ -461,8 +482,8 @@ int yaffs_dup(int fd)
 	yaffsfs_Lock();
 
 	oldPtr = yaffsfs_GetHandlePointer(fd);
-	if(oldPtr && oldPtr->inUse)
-		newHandle = yaffsfs_GetHandle();
+	if(oldPtr && oldPtr->useCount > 0)
+		newHandle = yaffsfs_GetNewHandle();
 	if(newHandle >= 0)
 		newPtr = yaffsfs_GetHandlePointer(newHandle);
 
@@ -501,7 +522,7 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 
 	yaffsfs_Lock();
 
-	handle = yaffsfs_GetHandle();
+	handle = yaffsfs_GetNewHandle();
 
 	if(handle >= 0){
 
@@ -526,7 +547,7 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 
 			for(i = 0; i < YAFFSFS_N_HANDLES; i++){
 				if(i != handle &&
-				   yaffsfs_handle[i].inUse &&
+				   yaffsfs_handle[i].useCount > 0 &&
 				    obj == yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj){
 				 	alreadyOpen = 1;
 					if(yaffsfs_handle[i].exclusive)
@@ -579,7 +600,6 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 			}
 			
 			h->inodeId = inodeId;
-			h->inUse = 1;
 			h->readOnly = (oflag & (O_WRONLY | O_RDWR)) ? 0 : 1;
 			h->append =  (oflag & O_APPEND) ? 1 : 0;
 			h->exclusive = (oflag & O_EXCL) ? 1 : 0;
@@ -614,7 +634,7 @@ int yaffs_Dofsync(int fd,int datasync)
 
 	h = yaffsfs_GetHandlePointer(fd);
 
-	if(h && h->inUse)
+	if(h && h->useCount > 0)
 		// flush the file
 		yaffs_FlushFile(yaffsfs_inode[h->inodeId].iObj,1,datasync);
 	else {
@@ -652,7 +672,7 @@ int yaffs_close(int fd)
 
 	h = yaffsfs_GetHandlePointer(fd);
 
-	if(h && h->inUse) {
+	if(h && h->useCount > 0) {
 		// clean up
 		yaffs_FlushFile(yaffsfs_inode[h->inodeId].iObj,1,0);
 		yaffsfs_PutHandle(fd);
@@ -668,24 +688,33 @@ int yaffs_close(int fd)
 	return retVal;
 }
 
-int yaffs_read(int fd, void *buf, unsigned int nbyte)
+
+
+int yaffsfs_do_read(int fd, void *buf, unsigned int nbyte, int isPread, int offset)
 {
 	yaffsfs_Handle *h = NULL;
 	yaffs_Object *obj = NULL;
 	int pos = 0;
-	int nRead = -1;
+	int startPos = 0;
+	int nRead = 0;
+	int nToRead = 0;
+	int totalRead = 0;
 	unsigned int maxRead;
 
 	yaffsfs_Lock();
 	h = yaffsfs_GetHandlePointer(fd);
 	obj = yaffsfs_GetHandleObject(fd);
 
-	if(!h || !obj)
+	if(!h || !obj){
 		// bad handle
 		yaffsfs_SetError(-EBADF);
-
-	else if( h && obj){
-		pos=  h->position;
+		totalRead = -1;
+	} else if( h && obj){
+		if(isPread)
+			startPos = offset;
+		else
+			startPos = h->position;
+			
 		if(yaffs_GetObjectFileLength(obj) > pos)
 			maxRead = yaffs_GetObjectFileLength(obj) - pos;
 		else
@@ -696,136 +725,152 @@ int yaffs_read(int fd, void *buf, unsigned int nbyte)
 
 
 		if(nbyte > 0) {
-			nRead = yaffs_ReadDataFromFile(obj,buf,pos,nbyte);
-			if(nRead >= 0)
-				h->position = pos + nRead;
-			else {
-				//todo error
+			yaffsfs_GetHandle(fd);
+			pos = startPos;
+			
+			while(nbyte > 0) {
+				nToRead = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
+				if(nToRead > nbyte)
+					nToRead = nbyte;
+
+				nRead = yaffs_ReadDataFromFile(obj,buf,pos,nToRead);
+
+				if(nRead > 0){
+					totalRead += nRead;
+					pos += nRead;
+					buf += nRead;
+				}
+
+				if(nRead == nToRead)
+					nbyte-=nRead;
+				else
+					nbyte = 0; /* no more to read */
+					
+					
+				if(nbyte > 0){
+					yaffsfs_Unlock();
+					yaffsfs_Lock();
+				}
+
+			}
+
+			yaffsfs_PutHandle(fd);
+			if(!isPread) {
+				if(totalRead >= 0)
+					h->position = startPos + totalRead;
+				else {
+					//todo error
+				}
 			}
 		} else
-			nRead = 0;
+			totalRead = 0;
 
 	}
 
 	yaffsfs_Unlock();
 
+	return (totalRead >= 0) ? totalRead : -1;
 
-	return (nRead >= 0) ? nRead : -1;
+}
 
+int yaffs_read(int fd, void *buf, unsigned int nbyte)
+{
+	return yaffsfs_do_read(fd, buf, nbyte, 0, 0);
 }
 
 int yaffs_pread(int fd, void *buf, unsigned int nbyte, unsigned int offset)
 {
+	return yaffsfs_do_read(fd, buf, nbyte, 1, offset);
+}
+
+int yaffsfs_do_write(int fd, const void *buf, unsigned int nbyte, int isPwrite, int offset)
+{
 	yaffsfs_Handle *h = NULL;
 	yaffs_Object *obj = NULL;
 	int pos = 0;
-	int nRead = -1;
-	unsigned int maxRead;
+	int startPos = 0;
+	int nWritten = 0;
+	int totalWritten = 0;
+	int writeThrough = 0;
+	int nToWrite = 0;
 
 	yaffsfs_Lock();
 	h = yaffsfs_GetHandlePointer(fd);
 	obj = yaffsfs_GetHandleObject(fd);
 
-	if(!h || !obj)
+	if(!h || !obj){
 		// bad handle
 		yaffsfs_SetError(-EBADF);
-	else if( h && obj) {
-		pos= offset;
-		if(yaffs_GetObjectFileLength(obj) > pos)
-			maxRead = yaffs_GetObjectFileLength(obj) - pos;
+		totalWritten = -1;
+	} else if( h && obj && h->readOnly){
+		yaffsfs_SetError(-EINVAL);
+		totalWritten=-1;
+	} else if( h && obj){
+		if(isPwrite)
+			startPos = offset;
+		if(h->append)
+			startPos = yaffs_GetObjectFileLength(obj);
 		else
-			maxRead = 0;
+			startPos = h->position;
+		if( nbyte > 0){
+			yaffsfs_GetHandle(fd);
+			pos = startPos;
+			while(nbyte > 0) {
+				nToWrite = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
+				if(nToWrite > nbyte)
+					nToWrite = nbyte;
+				
+				nWritten = yaffs_WriteDataToFile(obj,buf,pos,nToWrite,writeThrough);
+				if(nWritten > 0){
+					totalWritten += nWritten;
+					pos += nWritten;
+					buf += nWritten;
+				}
 
-		if(nbyte > maxRead)
-			nbyte = maxRead;
+				if(nWritten == nToWrite)
+					nbyte -= nToWrite;
+				else
+					nbyte = 0;
+				
+				if(nWritten < 1 && totalWritten < 1){
+					yaffsfs_SetError(-ENOSPC);
+					totalWritten = -1;
+				}
 
+				if(nbyte > 0){
+					yaffsfs_Unlock();
+					yaffsfs_Lock();
+				}
+			}
 
-		if(nbyte > 0)
-			nRead = yaffs_ReadDataFromFile(obj,buf,pos,nbyte);
-		else
-			nRead = 0;
+			yaffsfs_PutHandle(fd);
+
+			if(!isPwrite){
+				if(totalWritten > 0)
+					h->position = startPos + totalWritten;
+				else {
+					//todo error
+				}
+			}
+		} else
+			totalWritten = 0;
+
 	}
 
 	yaffsfs_Unlock();
 
-
-	return (nRead >= 0) ? nRead : -1;
+	return (totalWritten >= 0) ? totalWritten : -1;
 
 }
 
 int yaffs_write(int fd, const void *buf, unsigned int nbyte)
 {
-	yaffsfs_Handle *h = NULL;
-	yaffs_Object *obj = NULL;
-	int pos = 0;
-	int nWritten = -1;
-	int writeThrough = 0;
-
-	yaffsfs_Lock();
-	h = yaffsfs_GetHandlePointer(fd);
-	obj = yaffsfs_GetHandleObject(fd);
-
-	if(!h || !obj)
-		// bad handle
-		yaffsfs_SetError(-EBADF);
-	else if( h && obj && h->readOnly){
-		// todo error
-	} else if( h && obj){
-		if(h->append)
-			pos =  yaffs_GetObjectFileLength(obj);
-		else
-			pos = h->position;
-
-		nWritten = yaffs_WriteDataToFile(obj,buf,pos,nbyte,writeThrough);
-
-		if(nWritten >= 0)
-			h->position = pos + nWritten;
-		else {
-			//todo error
-		}
-
-	}
-
-	yaffsfs_Unlock();
-
-
-	return (nWritten >= 0) ? nWritten : -1;
-
+	return yaffsfs_do_write(fd, buf, nbyte, 0, 0);
 }
 
 int yaffs_pwrite(int fd, const void *buf, unsigned int nbyte, unsigned int offset)
 {
-	yaffsfs_Handle *h = NULL;
-	yaffs_Object *obj = NULL;
-	int pos = 0;
-	int nWritten = -1;
-	int writeThrough = 0;
-
-	yaffsfs_Lock();
-	h = yaffsfs_GetHandlePointer(fd);
-	obj = yaffsfs_GetHandleObject(fd);
-
-	if(!h || !obj)
-		// bad handle
-		yaffsfs_SetError(-EBADF);
-	else if( h && obj && h->readOnly){
-		// todo error
-	}
-	else if( h && obj){
-		pos = offset;
-
-                nWritten = yaffs_WriteDataToFile(obj,buf,pos,nbyte,writeThrough);
-
-                if(nWritten < 0 || ((unsigned int)nWritten) < nbyte)
-                        yaffsfs_SetError(-ENOSPC);
-
-        }
-
-	yaffsfs_Unlock();
-
-
-	return (nWritten >= 0) ? nWritten : -1;
-
+	return yaffsfs_do_write(fd, buf, nbyte, 1, offset);
 }
 
 
@@ -1388,7 +1433,7 @@ int yaffs_unmount(const YCHAR *path)
 			yaffs_CheckpointSave(dev);
 
 			for(i = inUse = 0; i < YAFFSFS_N_HANDLES && !inUse; i++){
-				if(yaffsfs_handle[i].inUse && yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj->myDev == dev)
+				if(yaffsfs_handle[i].useCount > 0 && yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj->myDev == dev)
 					inUse = 1; // the device is in use, can't unmount
 			}
 

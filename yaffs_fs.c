@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.92 2010-01-19 21:16:30 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.93 2010-02-10 03:54:08 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -1662,14 +1662,20 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 {
 	struct inode *inode = dentry->d_inode;
-	int error;
+	int error = 0;
 	yaffs_Device *dev;
 
 	T(YAFFS_TRACE_OS,
 		("yaffs_setattr of object %d\n",
 		yaffs_InodeToObject(inode)->objectId));
 
-	error = inode_change_ok(inode, attr);
+	/* Fail if a requested resize >= 2GB */		
+	if (attr->ia_valid & ATTR_SIZE &&
+		(attr->ia_size >> 31))
+		error = -EINVAL;
+
+	if (error == 0)
+		error = inode_change_ok(inode, attr);
 	if (error == 0) {
 		int result;
 		if (!error){
@@ -1692,8 +1698,9 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 		yaffs_GrossUnlock(dev);
 
 	}
+
 	T(YAFFS_TRACE_OS,
-		("yaffs_setattr done\n"));
+		("yaffs_setattr done returning %d\n",error));
 
 	return error;
 }

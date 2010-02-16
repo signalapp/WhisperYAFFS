@@ -645,6 +645,7 @@ struct yaffs_DeviceStruct {
 #endif
 
 	int isMounted;
+	int readOnly;
 
 	int isCheckpointed;
 

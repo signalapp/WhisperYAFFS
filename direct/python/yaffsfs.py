@@ -170,10 +170,25 @@ yaffs_mount = ylib.yaffs_mount
 yaffs_mount.argtypes = [c_char_p]
 yaffs_mount.restype = c_int
 
+#int yaffs_mount2(const YCHAR *path,int readOnly) ;
+yaffs_mount2 = ylib.yaffs_mount2
+yaffs_mount2.argtypes = [c_char_p, c_int]
+yaffs_mount2.restype = c_int
+
 #int yaffs_unmount(const YCHAR *path) ;
 yaffs_unmount = ylib.yaffs_unmount
 yaffs_unmount.argtypes = [c_char_p]
 yaffs_unmount.restype = c_int
+
+#int yaffs_unmount(const YCHAR *path, int force) ;
+yaffs_unmount2 = ylib.yaffs_unmount2
+yaffs_unmount2.argtypes = [c_char_p, c_int]
+yaffs_unmount2.restype = c_int
+
+#int yaffs_remount(const YCHAR *path, int force, int readOnly) ;
+yaffs_remount = ylib.yaffs_remount
+yaffs_remount.argtypes = [c_char_p, c_int, c_int]
+yaffs_remount.restype = c_int
 
 #int yaffs_sync(const YCHAR *path) ;
 yaffs_sync = ylib.yaffs_sync

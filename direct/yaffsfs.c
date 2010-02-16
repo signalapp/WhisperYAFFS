@@ -31,7 +31,7 @@
 #define YAFFSFS_RW_SIZE  (1<<YAFFSFS_RW_SHIFT)
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.32 2010-02-05 03:59:04 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.33 2010-02-16 23:24:57 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -581,7 +581,10 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 		} else if((oflag & O_CREAT)) {
 			// Let's see if we can create this file
 			dir = yaffsfs_FindDirectory(NULL,path,&name,0);
-			if(dir)
+			if(dir  && dir->myDev->readOnly){
+				yaffsfs_SetError(-EINVAL);
+				errorReported = 1;
+			} else if(dir)
 				obj = yaffs_MknodFile(dir,name,mode,0,0);
 			else {
 				yaffsfs_SetError(-ENOTDIR);
@@ -802,7 +805,7 @@ int yaffsfs_do_write(int fd, const void *buf, unsigned int nbyte, int isPwrite, 
 		// bad handle
 		yaffsfs_SetError(-EBADF);
 		totalWritten = -1;
-	} else if( h && obj && h->readOnly){
+	} else if( h && obj && (h->readOnly || obj->myDev->readOnly)){
 		yaffsfs_SetError(-EINVAL);
 		totalWritten=-1;
 	} else if( h && obj){
@@ -889,6 +892,8 @@ int yaffs_truncate(const YCHAR *path,off_t newSize)
 		yaffsfs_SetError(-ENOENT);
 	else if(obj->variantType != YAFFS_OBJECT_TYPE_FILE)
 		yaffsfs_SetError(-EISDIR);
+	else if(obj->myDev->readOnly)
+		yaffsfs_SetError(-EINVAL);
 	else
 		result = yaffs_ResizeFile(obj,newSize);
 
@@ -911,6 +916,8 @@ int yaffs_ftruncate(int fd, off_t newSize)
 	if(!h || !obj)
 		// bad handle
 		yaffsfs_SetError(-EBADF);
+	else if(obj->myDev->readOnly)
+		yaffsfs_SetError(-EINVAL);
 	else
 		// resize the file
 		result = yaffs_ResizeFile(obj,newSize);
@@ -977,6 +984,8 @@ int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 		yaffsfs_SetError(-ENOTDIR);
 	else if(!obj)
 		yaffsfs_SetError(-ENOENT);
+	else if(obj->myDev->readOnly)
+		yaffsfs_SetError(-EINVAL);
 	else if(!isDirectory && obj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY)
 		yaffsfs_SetError(-EISDIR);
 	else if(isDirectory && obj->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
@@ -1025,6 +1034,9 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 	if(!olddir || !newdir || !obj) {
 		// bad file
 		yaffsfs_SetError(-EBADF);
+		renameAllowed = 0;
+	} else if(obj->myDev->readOnly){
+		yaffsfs_SetError(-EINVAL);
 		renameAllowed = 0;
 	} else if(olddir->myDev != newdir->myDev) {
 		// oops must be on same device
@@ -1294,11 +1306,12 @@ int yaffs_chmod(const YCHAR *path, mode_t mode)
 	yaffsfs_Lock();
 	obj = yaffsfs_FindObject(NULL,path,0);
 
-	if(obj)
-		retVal = yaffsfs_DoChMod(obj,mode);
-	else
-		// todo error not found
+	if(!obj)
 		yaffsfs_SetError(-ENOENT);
+	else if(obj->myDev->readOnly)
+		yaffsfs_SetError(-EINVAL);
+	else
+		retVal = yaffsfs_DoChMod(obj,mode);
 
 	yaffsfs_Unlock();
 
@@ -1316,11 +1329,12 @@ int yaffs_fchmod(int fd, mode_t mode)
 	yaffsfs_Lock();
 	obj = yaffsfs_GetHandleObject(fd);
 
-	if(obj)
-		retVal = yaffsfs_DoChMod(obj,mode);
+	if(!obj)
+		yaffsfs_SetError(-ENOENT);
+	else if(obj->myDev->readOnly)
+		yaffsfs_SetError(-EINVAL);
 	else
-		// bad handle
-		yaffsfs_SetError(-EBADF);
+		retVal = yaffsfs_DoChMod(obj,mode);
 
 	yaffsfs_Unlock();
 
@@ -1337,18 +1351,22 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,path,&name,0);
-	if(parent)
-		dir = yaffs_MknodDirectory(parent,name,mode,0,0);
-	if(dir)
-		retVal = 0;
-	else {
-		if(!parent)
-			yaffsfs_SetError(-ENOENT); // missing path
-		else if (yaffs_FindObjectByName(parent,name))
-			yaffsfs_SetError(-EEXIST); // the name already exists
-		else
-			yaffsfs_SetError(-ENOSPC); // just assume no space
-		retVal = -1;
+	if(parent && parent->myDev->readOnly){
+		yaffsfs_SetError(-EINVAL);
+	} else {
+		if(parent)
+			dir = yaffs_MknodDirectory(parent,name,mode,0,0);
+		if(dir)
+			retVal = 0;
+		else {
+			if(!parent)
+				yaffsfs_SetError(-ENOENT); // missing path
+			else if (yaffs_FindObjectByName(parent,name))
+				yaffsfs_SetError(-EEXIST); // the name already exists
+			else
+				yaffsfs_SetError(-ENOSPC); // just assume no space
+			retVal = -1;
+		}
 	}
 
 	yaffsfs_Unlock();
@@ -1356,7 +1374,7 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 	return retVal;
 }
 
-int yaffs_mount(const YCHAR *path)
+int yaffs_mount2(const YCHAR *path,int readOnly)
 {
 	int retVal=-1;
 	int result=YAFFS_FAIL;
@@ -1369,6 +1387,7 @@ int yaffs_mount(const YCHAR *path)
 	dev = yaffsfs_FindDevice(path,&dummy);
 	if(dev){
 		if(!dev->isMounted){
+			dev->readOnly = readOnly ? 1 : 0;
 			result = yaffs_GutsInitialise(dev);
 			if(result == YAFFS_FAIL)
 				// todo error - mount failed
@@ -1386,6 +1405,11 @@ int yaffs_mount(const YCHAR *path)
 	yaffsfs_Unlock();
 	return retVal;
 
+}
+
+int yaffs_mount(const YCHAR *path)
+{
+	return yaffs_mount2(path,0);
 }
 
 int yaffs_sync(const YCHAR *path)
@@ -1416,7 +1440,47 @@ int yaffs_sync(const YCHAR *path)
 }
 
 
-int yaffs_unmount(const YCHAR *path)
+int yaffs_remount(const YCHAR *path, int force, int readOnly)
+{
+        int retVal=-1;
+	yaffs_Device *dev=NULL;
+	YCHAR *dummy;
+
+	yaffsfs_Lock();
+	dev = yaffsfs_FindDevice(path,&dummy);
+	if(dev){
+		if(dev->isMounted){
+			int i;
+			int inUse;
+
+			yaffs_FlushEntireDeviceCache(dev);
+
+			for(i = inUse = 0; i < YAFFSFS_N_HANDLES && !inUse && !force; i++){
+				if(yaffsfs_handle[i].useCount>0 && yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj->myDev == dev)
+					inUse = 1; // the device is in use, can't unmount
+			}
+
+			if(!inUse || force){
+				if(readOnly)
+					yaffs_CheckpointSave(dev);
+				dev->readOnly =  readOnly ? 1 : 0;
+				retVal = 0;
+			} else
+				yaffsfs_SetError(-EBUSY);
+
+		} else
+			yaffsfs_SetError(-EINVAL);
+
+	}
+	else
+		yaffsfs_SetError(-ENODEV);
+
+	yaffsfs_Unlock();
+	return retVal;
+
+}
+
+int yaffs_unmount2(const YCHAR *path, int force)
 {
         int retVal=-1;
 	yaffs_Device *dev=NULL;
@@ -1437,7 +1501,7 @@ int yaffs_unmount(const YCHAR *path)
 					inUse = 1; // the device is in use, can't unmount
 			}
 
-			if(!inUse){
+			if(!inUse || force){
 				yaffs_Deinitialise(dev);
 
 				retVal = 0;
@@ -1457,6 +1521,11 @@ int yaffs_unmount(const YCHAR *path)
 	yaffsfs_Unlock();
 	return retVal;
 
+}
+
+int yaffs_unmount(const YCHAR *path)
+{
+	return yaffs_unmount2(path,0);
 }
 
 loff_t yaffs_freespace(const YCHAR *path)
@@ -1738,7 +1807,9 @@ int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath)
 
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,newpath,&name,0);
-	if(parent){
+	if(parent && parent->myDev->readOnly)
+		yaffsfs_SetError(-EINVAL);
+	else if(parent){
 		obj = yaffs_MknodSymLink(parent,name,mode,0,0,oldpath);
 		if(obj)
 			retVal = 0;
@@ -1800,6 +1871,9 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 	if(!obj) {
 		yaffsfs_SetError(-ENOENT);
 		retVal = -1;
+	} else if(obj->myDev->readOnly){
+		yaffsfs_SetError(-EINVAL);
+		retVal= -1;
 	} else if(target) {
 		yaffsfs_SetError(-EEXIST);
 		retVal = -1;

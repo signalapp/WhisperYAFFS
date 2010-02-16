@@ -265,7 +265,11 @@ void yaffs_rewinddir(yaffs_DIR *dirp) ;
 int yaffs_closedir(yaffs_DIR *dirp) ;
 
 int yaffs_mount(const YCHAR *path) ;
+int yaffs_mount2(const YCHAR *path, int readOnly);
 int yaffs_unmount(const YCHAR *path) ;
+int yaffs_unmount2(const YCHAR *path, int force);
+int yaffs_remount(const YCHAR *path, int force, int readOnly);
+
 
 int yaffs_sync(const YCHAR *path) ;
 

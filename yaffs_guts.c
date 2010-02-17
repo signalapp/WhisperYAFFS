@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.106 2010-01-11 04:06:46 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.107 2010-02-17 02:01:25 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -1189,11 +1189,22 @@ static void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name)
  * adds them to the tnode free list.
  * Don't use this function directly
  */
+static Y_INLINE int yaffs_CalcTnodeSize(yaffs_Device *dev)
+{
+	int tnodeSize;
+	/* Calculate the tnode size in bytes for variable width tnode support.
+	 * Must be a multiple of 32-bits  */
+	tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+
+	if (tnodeSize < sizeof(yaffs_Tnode))
+		tnodeSize = sizeof(yaffs_Tnode);
+	return tnodeSize;
+}
 
 static int yaffs_CreateTnodes(yaffs_Device *dev, int nTnodes)
 {
 	int i;
-	int tnodeSize;
+	int tnodeSize = yaffs_CalcTnodeSize(dev);
 	yaffs_Tnode *newTnodes;
 	__u8 *mem;
 	yaffs_Tnode *curr;
@@ -1203,12 +1214,6 @@ static int yaffs_CreateTnodes(yaffs_Device *dev, int nTnodes)
 	if (nTnodes < 1)
 		return YAFFS_OK;
 
-	/* Calculate the tnode size in bytes for variable width tnode support.
-	 * Must be a multiple of 32-bits  */
-	tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
-
-	if (tnodeSize < sizeof(yaffs_Tnode))
-		tnodeSize = sizeof(yaffs_Tnode);
 
 	/* make these things */
 
@@ -1281,6 +1286,11 @@ static yaffs_Tnode *yaffs_GetTnodeRaw(yaffs_Device *dev)
 {
 	yaffs_Tnode *tn = NULL;
 
+#ifdef CONFIG_YAFFS_VALGRIND_TEST
+	tn = YMALLOC(yaffs_CalcTnodeSize(dev));
+	if(tn)
+		dev->nTnodesCreated++;
+#else
 	/* If there are none left make more */
 	if (!dev->freeTnodes)
 		yaffs_CreateTnodes(dev, YAFFS_ALLOCATION_NTNODES);
@@ -1297,7 +1307,7 @@ static yaffs_Tnode *yaffs_GetTnodeRaw(yaffs_Device *dev)
 		dev->freeTnodes = dev->freeTnodes->internal[0];
 		dev->nFreeTnodes--;
 	}
-
+#endif
 	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
 
 	return tn;
@@ -1306,10 +1316,7 @@ static yaffs_Tnode *yaffs_GetTnodeRaw(yaffs_Device *dev)
 static yaffs_Tnode *yaffs_GetTnode(yaffs_Device *dev)
 {
 	yaffs_Tnode *tn = yaffs_GetTnodeRaw(dev);
-	int tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
-
-	if (tnodeSize < sizeof(yaffs_Tnode))
-		tnodeSize = sizeof(yaffs_Tnode);
+	int tnodeSize = yaffs_CalcTnodeSize(dev);
 
 	if (tn)
 		memset(tn, 0, tnodeSize);
@@ -1321,6 +1328,10 @@ static yaffs_Tnode *yaffs_GetTnode(yaffs_Device *dev)
 static void yaffs_FreeTnode(yaffs_Device *dev, yaffs_Tnode *tn)
 {
 	if (tn) {
+#ifdef CONFIG_YAFFS_VALGRIND_TEST
+		YFREE(tn);
+		dev->nTnodesCreated--;
+#else
 #ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
 		if (tn->internal[YAFFS_NTNODES_INTERNAL] != 0) {
 			/* Hoosterman, this thing looks like it is already in the list */
@@ -1332,6 +1343,7 @@ static void yaffs_FreeTnode(yaffs_Device *dev, yaffs_Tnode *tn)
 		tn->internal[0] = dev->freeTnodes;
 		dev->freeTnodes = tn;
 		dev->nFreeTnodes++;
+#endif
 	}
 	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
 }
@@ -1549,7 +1561,6 @@ static yaffs_Tnode *yaffs_AddOrFindLevel0Tnode(yaffs_Device *dev,
 				tn->internal[x] = yaffs_GetTnode(dev);
 				if(!tn->internal[x])
 					return NULL;
-
 			} else if (l == 1) {
 				/* Looking from level 1 at level 0 */
 				if (passedTn) {
@@ -1837,15 +1848,10 @@ static yaffs_Tnode *yaffs_PruneWorker(yaffs_Device *dev, yaffs_Tnode *tn,
 					hasData++;
 			}
 		} else {
-			int tnodeSize;
+			int tnodeSize_u32 = yaffs_CalcTnodeSize(dev)/sizeof(__u32);
 			__u32 *map = (__u32 *)tn;
-			tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
 
-			if (tnodeSize < sizeof(yaffs_Tnode))
-				tnodeSize = sizeof(yaffs_Tnode);
-			tnodeSize /= sizeof(__u32);
-
-                        for(i = 0; !hasData && i < tnodeSize; i++){
+                        for(i = 0; !hasData && i < tnodeSize_u32; i++){
                                 if(map[i])
                                         hasData++;
                         }
@@ -1963,8 +1969,10 @@ static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device *dev)
 {
 	yaffs_Object *tn = NULL;
 
-#ifdef VALGRIND_TEST
+#ifdef CONFIG_YAFFS_VALGRIND_TEST
 	tn = YMALLOC(sizeof(yaffs_Object));
+	if(tn)
+		dev->nObjectsCreated++;
 #else
 	/* If there are none left make more */
 	if (!dev->freeObjects)
@@ -2053,6 +2061,8 @@ static void yaffs_FreeObject(yaffs_Object *tn)
 
 	T(YAFFS_TRACE_OS, (TSTR("FreeObject %p inode %p"TENDSTR), tn, tn->myInode));
 
+	if (!tn)
+		YBUG();
 	if (tn->parent)
 		YBUG();
 	if (!ylist_empty(&tn->siblings))
@@ -2069,8 +2079,9 @@ static void yaffs_FreeObject(yaffs_Object *tn)
 
 	yaffs_UnhashObject(tn);
 
-#ifdef VALGRIND_TEST
+#ifdef CONFIG_YAFFS_VALGRIND_TEST
 	YFREE(tn);
+	dev->nObjectsCreated--;
 	tn = NULL;
 #else
 	/* Link into the free list. */
@@ -2229,7 +2240,7 @@ yaffs_Object *yaffs_FindObjectByNumber(yaffs_Device *dev, __u32 number)
 yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev, int number,
 				    yaffs_ObjectType type)
 {
-	yaffs_Object *theObject;
+	yaffs_Object *theObject=NULL;
 	yaffs_Tnode *tn = NULL;
 
 	if (number < 0)
@@ -2367,6 +2378,7 @@ static yaffs_Object *yaffs_MknodObject(yaffs_ObjectType type,
 			YFREE(str);
 		return NULL;
 	}
+
 
 
 
@@ -2919,12 +2931,7 @@ static int yaffs_CalcCheckpointBlocksRequired(yaffs_Device *dev)
 		int nBytes = 0;
 		int nBlocks;
 		int devBlocks = (dev->endBlock - dev->startBlock + 1);
-		int tnodeSize;
-
-		tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
-
-		if (tnodeSize < sizeof(yaffs_Tnode))
-			tnodeSize = sizeof(yaffs_Tnode);
+		int tnodeSize = yaffs_CalcTnodeSize(dev);
 
 		nBytes += sizeof(yaffs_CheckpointValidity);
 		nBytes += sizeof(yaffs_CheckpointDevice);
@@ -3242,7 +3249,8 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 							object->serial =   tags.serialNumber;
 						} else {
 							/* It's a data chunk */
-							yaffs_PutChunkIntoFile
+							int ok;
+							ok = yaffs_PutChunkIntoFile
 							    (object,
 							     tags.chunkId,
 							     newChunk, 0);
@@ -3554,7 +3562,6 @@ static int yaffs_PutChunkIntoFile(yaffs_Object *in, int chunkInInode,
 	if(!chunkInNAND)
 		/* Dummy insert, bail now */
 		return YAFFS_OK;
-		
 
 	existingChunk = yaffs_GetChunkGroupBase(dev, tn, chunkInInode);
 
@@ -3741,8 +3748,14 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object *in, int chunkInInode,
 
 	yaffs_CheckGarbageCollection(dev);
 
-	/* Get the previous chunk at this location in the file if it exists */
+	/* Get the previous chunk at this location in the file if it exists.
+	 * If it does not exist then put a zero into the tree. This creates
+	 * the tnode now, rather than later when it is harder to clean up.
+	 */
 	prevChunkId = yaffs_FindChunkInFile(in, chunkInInode, &prevTags);
+	if(prevChunkId <= 0 &&
+		!yaffs_PutChunkIntoFile(in, chunkInInode, 0, 0)){
+	}
 
 	/* Set up new tags */
 	yaffs_InitialiseTags(&newTags);
@@ -4423,11 +4436,7 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object *in, yaffs_Tnode *tn,
 	int i;
 	yaffs_Device *dev = in->myDev;
 	int ok = 1;
-	int tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
-
-	if (tnodeSize < sizeof(yaffs_Tnode))
-		tnodeSize = sizeof(yaffs_Tnode);
-
+	int tnodeSize = yaffs_CalcTnodeSize(dev);
 
 	if (tn) {
 		if (level > 0) {
@@ -4478,10 +4487,7 @@ static int yaffs_ReadCheckpointTnodes(yaffs_Object *obj)
 	yaffs_FileStructure *fileStructPtr = &obj->variant.fileVariant;
 	yaffs_Tnode *tn;
 	int nread = 0;
-	int tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
-
-	if (tnodeSize < sizeof(yaffs_Tnode))
-		tnodeSize = sizeof(yaffs_Tnode);
+	int tnodeSize = yaffs_CalcTnodeSize(dev);
 
 	ok = (yaffs_CheckpointRead(dev, &baseChunk, sizeof(baseChunk)) == sizeof(baseChunk));
 

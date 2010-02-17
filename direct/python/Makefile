@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.5 2010-01-11 04:06:47 charles Exp $
+# $Id: Makefile,v 1.6 2010-02-17 00:51:15 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -44,13 +44,13 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
           yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
-          yaffs_qsort.c yaffs_qsort.h
+          yaffs_qsort.c yaffs_qsort.h yaffs_trace.h
 
 YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffs_fileem2k.h yaffsfs.h yaffs_malloc.h yaffs_ramdisk.h ydirectenv.h \
 		       yaffscfg.h yaffs_fileem.c yaffs_flashif.c yaffs_ramdisk.c yaffs_ramem2k.c\
 		       yaffs_norif1.c yaffs_norif1.h ynorsim.c ynorsim.h \
-		       yaffs_nandif.c yaffs_nandif.h yaffs_trace.h
+		       yaffs_nandif.c yaffs_nandif.h
 
 
 SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)

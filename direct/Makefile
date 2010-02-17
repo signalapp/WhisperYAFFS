@@ -14,7 +14,7 @@
 #
 # NB Warning this Makefile does not include header dependencies.
 #
-# $Id: Makefile,v 1.23 2010-01-11 04:06:47 charles Exp $
+# $Id: Makefile,v 1.24 2010-02-17 02:18:57 charles Exp $
 
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 
@@ -72,4 +72,4 @@ boottest: $(SYMLINKS) $(BOOTTESTOBJS)
 
 
 clean:
-	rm -f $(ALLOBJS) core
+	rm -f $(ALLOBJS) core core $(SYMLINKS)

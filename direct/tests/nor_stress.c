@@ -157,6 +157,7 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 	yaffs_dirent *de;
 	struct yaffs_stat s;
 	char str[1000];
+	int error_line = 0;
 			
 	d = yaffs_opendir(dname);
 	
@@ -177,7 +178,7 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 			printf("%s inode %ld %d obj %x length %d mode %X ",str, de->d_ino, s.st_ino,de->d_dont_use,(int)s.st_size,s.st_mode);\
 			if(de->d_ino != s.st_ino){
 				printf(" \n\n!!!! HEY inode mismatch\n\n");
-				FatalError(__LINE__);
+				error_line = __LINE__;
 			}
 
 			switch(s.st_mode & S_IFMT)
@@ -199,9 +200,12 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 				dump_directory_tree_worker(str,1);
 				
                         if(s.st_ino > 10000)
-                          FatalError(__LINE__);
+                          error_line = __LINE__;
 							
 		}
+		
+		if(error_line)
+			FatalError(error_line);
 		
 		yaffs_closedir(d);
 	}

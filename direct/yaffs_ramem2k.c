@@ -16,7 +16,7 @@
  */
 
 
-const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.7 2010-01-11 21:43:18 charles Exp $";
+const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.8 2010-02-18 01:18:04 charles Exp $";
 
 #ifndef __KERNEL__
 #define CONFIG_YAFFS_RAM_ENABLED
@@ -221,7 +221,7 @@ int nandemul2k_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const 
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_PackTags2((yaffs_PackedTags2 *)x,tags, !dev->noTagsECC);
+		yaffs_PackTags2((yaffs_PackedTags2 *)x,tags, !dev->param.noTagsECC);
 			
 	}
 	
@@ -257,7 +257,7 @@ int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_UnpackTags2(tags,(yaffs_PackedTags2 *)x, !dev->noTagsECC);
+		yaffs_UnpackTags2(tags,(yaffs_PackedTags2 *)x, !dev->param.noTagsECC);
 	}
 
 	return YAFFS_OK;
@@ -335,7 +335,7 @@ int nandemul2k_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs
 
 	*sequenceNumber = 0;
 	
-	chunkNo = blockNo * dev->nChunksPerBlock;
+	chunkNo = blockNo * dev->param.nChunksPerBlock;
 	
 	nandemul2k_ReadChunkWithTagsFromNAND(dev,chunkNo,NULL,&tags);
 	if(tags.blockBad)

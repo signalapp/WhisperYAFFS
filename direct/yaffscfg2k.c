@@ -136,34 +136,34 @@ int yaffs_StartUp(void)
 	// Set up devices
 	// /ram1   ram, yaffs1
 	memset(&ram1Dev,0,sizeof(ram1Dev));
-	ram1Dev.totalBytesPerChunk = 512;
-	ram1Dev.nChunksPerBlock = 32;
-	ram1Dev.nReservedBlocks = 2; // Set this smaller for RAM
-	ram1Dev.startBlock = 0; // Can use block 0
-	ram1Dev.endBlock = 127; // Last block in 2MB.	
-	//ram1Dev.useNANDECC = 1;
-	ram1Dev.nShortOpCaches = 0;	// Disable caching on this device.
-	ram1Dev.genericDevice = (void *) 0;	// Used to identify the device in fstat.
-	ram1Dev.writeChunkWithTagsToNAND = yramdisk_WriteChunkWithTagsToNAND;
-	ram1Dev.readChunkWithTagsFromNAND = yramdisk_ReadChunkWithTagsFromNAND;
-	ram1Dev.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
-	ram1Dev.initialiseNAND = yramdisk_InitialiseNAND;
+	ram1Dev.param.totalBytesPerChunk = 512;
+	ram1Dev.param.nChunksPerBlock = 32;
+	ram1Dev.param.nReservedBlocks = 2; // Set this smaller for RAM
+	ram1Dev.param.startBlock = 0; // Can use block 0
+	ram1Dev.param.endBlock = 127; // Last block in 2MB.	
+	//ram1Dev.param.useNANDECC = 1;
+	ram1Dev.param.nShortOpCaches = 0;	// Disable caching on this device.
+	ram1Dev.context = (void *) 0;	// Used to identify the device in fstat.
+	ram1Dev.param.writeChunkWithTagsToNAND = yramdisk_WriteChunkWithTagsToNAND;
+	ram1Dev.param.readChunkWithTagsFromNAND = yramdisk_ReadChunkWithTagsFromNAND;
+	ram1Dev.param.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
+	ram1Dev.param.initialiseNAND = yramdisk_InitialiseNAND;
 
 	// /M18-1 yaffs1 on M18 nor sim
 	memset(&m18_1Dev,0,sizeof(m18_1Dev));
-	m18_1Dev.totalBytesPerChunk = 1024;
-	m18_1Dev.nChunksPerBlock =248;
-	m18_1Dev.nReservedBlocks = 2;
-	m18_1Dev.startBlock = 0; // Can use block 0
-	m18_1Dev.endBlock = 31; // Last block
-	m18_1Dev.useNANDECC = 0; // use YAFFS's ECC
-	m18_1Dev.nShortOpCaches = 10; // Use caches
-	m18_1Dev.genericDevice = (void *) 1;	// Used to identify the device in fstat.
-	m18_1Dev.writeChunkToNAND = ynorif1_WriteChunkToNAND;
-	m18_1Dev.readChunkFromNAND = ynorif1_ReadChunkFromNAND;
-	m18_1Dev.eraseBlockInNAND = ynorif1_EraseBlockInNAND;
-	m18_1Dev.initialiseNAND = ynorif1_InitialiseNAND;
-	m18_1Dev.deinitialiseNAND = ynorif1_DeinitialiseNAND;
+	m18_1Dev.param.totalBytesPerChunk = 1024;
+	m18_1Dev.param.nChunksPerBlock =248;
+	m18_1Dev.param.nReservedBlocks = 2;
+	m18_1Dev.param.startBlock = 0; // Can use block 0
+	m18_1Dev.param.endBlock = 31; // Last block
+	m18_1Dev.param.useNANDECC = 0; // use YAFFS's ECC
+	m18_1Dev.param.nShortOpCaches = 10; // Use caches
+	m18_1Dev.context = (void *) 1;	// Used to identify the device in fstat.
+	m18_1Dev.param.writeChunkToNAND = ynorif1_WriteChunkToNAND;
+	m18_1Dev.param.readChunkFromNAND = ynorif1_ReadChunkFromNAND;
+	m18_1Dev.param.eraseBlockInNAND = ynorif1_EraseBlockInNAND;
+	m18_1Dev.param.initialiseNAND = ynorif1_InitialiseNAND;
+	m18_1Dev.param.deinitialiseNAND = ynorif1_DeinitialiseNAND;
 
 
 	// /yaffs2 
@@ -173,22 +173,23 @@ int yaffs_StartUp(void)
 	//
 	memset(&flashDev,0,sizeof(flashDev));
 
-	flashDev.totalBytesPerChunk = 2048;
-	flashDev.nChunksPerBlock = 64;
-	flashDev.nReservedBlocks = 5;
-	flashDev.inbandTags = 0;
-	flashDev.startBlock = 0;
-	flashDev.endBlock = yflash2_GetNumberOfBlocks()-1;
-	flashDev.isYaffs2 = 1;
-	flashDev.wideTnodesDisabled=0;
-	flashDev.nShortOpCaches = 10; // Use caches
-	flashDev.genericDevice = (void *) 2;	// Used to identify the device in fstat.
-	flashDev.writeChunkWithTagsToNAND = yflash2_WriteChunkWithTagsToNAND;
-	flashDev.readChunkWithTagsFromNAND = yflash2_ReadChunkWithTagsFromNAND;
-	flashDev.eraseBlockInNAND = yflash2_EraseBlockInNAND;
-	flashDev.initialiseNAND = yflash2_InitialiseNAND;
-	flashDev.markNANDBlockBad = yflash2_MarkNANDBlockBad;
-	flashDev.queryNANDBlock = yflash2_QueryNANDBlock;
+	flashDev.param.totalBytesPerChunk = 2048;
+	flashDev.param.nChunksPerBlock = 64;
+	flashDev.param.nReservedBlocks = 5;
+	flashDev.param.inbandTags = 0;
+	flashDev.param.startBlock = 0;
+	flashDev.param.endBlock = yflash2_GetNumberOfBlocks()-1;
+	flashDev.param.isYaffs2 = 1;
+	flashDev.param.useNANDECC=1;
+	flashDev.param.wideTnodesDisabled=0;
+	flashDev.param.nShortOpCaches = 10; // Use caches
+	flashDev.context = (void *) 2;	// Used to identify the device in fstat.
+	flashDev.param.writeChunkWithTagsToNAND = yflash2_WriteChunkWithTagsToNAND;
+	flashDev.param.readChunkWithTagsFromNAND = yflash2_ReadChunkWithTagsFromNAND;
+	flashDev.param.eraseBlockInNAND = yflash2_EraseBlockInNAND;
+	flashDev.param.initialiseNAND = yflash2_InitialiseNAND;
+	flashDev.param.markNANDBlockBad = yflash2_MarkNANDBlockBad;
+	flashDev.param.queryNANDBlock = yflash2_QueryNANDBlock;
 
 
 	yaffs_initialise(yaffsfs_config);
@@ -197,9 +198,4 @@ int yaffs_StartUp(void)
 }
 
 
-
-void SetCheckpointReservedBlocks(int n)
-{
-//	flashDev.nCheckpointReservedBlocks = n;
-}
 

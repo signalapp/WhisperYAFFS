@@ -31,7 +31,7 @@
 #define YAFFSFS_RW_SIZE  (1<<YAFFSFS_RW_SHIFT)
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.33 2010-02-16 23:24:57 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.34 2010-02-18 01:18:05 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -1076,7 +1076,7 @@ static int yaffsfs_DoStat(yaffs_Object *obj,struct yaffs_stat *buf)
 		obj = yaffs_GetEquivalentObject(obj);
 
 	if(obj && buf){
-	    	buf->st_dev = (int)obj->myDev->genericDevice;
+	    	buf->st_dev = (int)obj->myDev->context;
 	    	buf->st_ino = obj->objectId;
 	    	buf->st_mode = obj->yst_mode & ~S_IFMT; // clear out file type bits
 
@@ -1556,8 +1556,8 @@ loff_t yaffs_totalspace(const YCHAR *path)
 	yaffsfs_Lock();
 	dev = yaffsfs_FindDevice(path,&dummy);
 	if(dev  && dev->isMounted){
-		retVal = (dev->endBlock - dev->startBlock + 1) - dev->nReservedBlocks;
-		retVal *= dev->nChunksPerBlock;
+		retVal = (dev->param.endBlock - dev->param.startBlock + 1) - dev->param.nReservedBlocks;
+		retVal *= dev->param.nChunksPerBlock;
 		retVal *= dev->nDataBytesPerChunk;
 
 	} else
@@ -1603,7 +1603,7 @@ void yaffs_initialise(yaffsfs_DeviceConfiguration *cfgList)
 
 	while(cfg && cfg->prefix && cfg->dev){
 		cfg->dev->isMounted = 0;
-		cfg->dev->removeObjectCallback = yaffsfs_RemoveObjectCallback;
+		cfg->dev->param.removeObjectCallback = yaffsfs_RemoveObjectCallback;
 		cfg++;
 	}
 

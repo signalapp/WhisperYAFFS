@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_nand_c_version =
-	"$Id: yaffs_nand.c,v 1.11 2009-09-09 03:03:01 charles Exp $";
+	"$Id: yaffs_nand.c,v 1.12 2010-02-18 01:18:04 charles Exp $";
 
 #include "yaffs_nand.h"
 #include "yaffs_tagscompat.h"
@@ -35,8 +35,8 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 	if (!tags)
 		tags = &localTags;
 
-	if (dev->readChunkWithTagsFromNAND)
-		result = dev->readChunkWithTagsFromNAND(dev, realignedChunkInNAND, buffer,
+	if (dev->param.readChunkWithTagsFromNAND)
+		result = dev->param.readChunkWithTagsFromNAND(dev, realignedChunkInNAND, buffer,
 						      tags);
 	else
 		result = yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(dev,
@@ -46,7 +46,7 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 	if (tags &&
 	   tags->eccResult > YAFFS_ECC_RESULT_NO_ERROR) {
 
-		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, chunkInNAND/dev->nChunksPerBlock);
+		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, chunkInNAND/dev->param.nChunksPerBlock);
 		yaffs_HandleChunkError(dev, bi);
 	}
 
@@ -80,8 +80,8 @@ int yaffs_WriteChunkWithTagsToNAND(yaffs_Device *dev,
 		YBUG();
 	}
 
-	if (dev->writeChunkWithTagsToNAND)
-		return dev->writeChunkWithTagsToNAND(dev, chunkInNAND, buffer,
+	if (dev->param.writeChunkWithTagsToNAND)
+		return dev->param.writeChunkWithTagsToNAND(dev, chunkInNAND, buffer,
 						     tags);
 	else
 		return yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(dev,
@@ -95,8 +95,8 @@ int yaffs_MarkBlockBad(yaffs_Device *dev, int blockNo)
 	blockNo -= dev->blockOffset;
 
 
-	if (dev->markNANDBlockBad)
-		return dev->markNANDBlockBad(dev, blockNo);
+	if (dev->param.markNANDBlockBad)
+		return dev->param.markNANDBlockBad(dev, blockNo);
 	else
 		return yaffs_TagsCompatabilityMarkNANDBlockBad(dev, blockNo);
 }
@@ -108,8 +108,8 @@ int yaffs_QueryInitialBlockState(yaffs_Device *dev,
 {
 	blockNo -= dev->blockOffset;
 
-	if (dev->queryNANDBlock)
-		return dev->queryNANDBlock(dev, blockNo, state, sequenceNumber);
+	if (dev->param.queryNANDBlock)
+		return dev->param.queryNANDBlock(dev, blockNo, state, sequenceNumber);
 	else
 		return yaffs_TagsCompatabilityQueryNANDBlock(dev, blockNo,
 							     state,
@@ -126,14 +126,15 @@ int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,
 
 	dev->nBlockErasures++;
 
-	result = dev->eraseBlockInNAND(dev, blockInNAND);
+	result = dev->param.eraseBlockInNAND(dev, blockInNAND);
 
 	return result;
 }
 
 int yaffs_InitialiseNAND(struct yaffs_DeviceStruct *dev)
 {
-	return dev->initialiseNAND(dev);
+	if(dev->param.initialiseNAND)
+		return dev->param.initialiseNAND(dev);
 }
 
 

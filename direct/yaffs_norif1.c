@@ -35,7 +35,7 @@
  *   
  */
 
-const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.5 2010-01-11 04:06:47 charles Exp $";
+const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.6 2010-02-18 01:18:04 charles Exp $";
 
 #include "yaffs_norif1.h"
 
@@ -113,8 +113,8 @@ __u32 *Chunk2DataAddr(yaffs_Device *dev,int chunkId)
 	unsigned chunkInBlock;
 	__u32  addr;
 	
-	block = chunkId/dev->nChunksPerBlock;
-	chunkInBlock = chunkId % dev->nChunksPerBlock;
+	block = chunkId/dev->param.nChunksPerBlock;
+	chunkInBlock = chunkId % dev->param.nChunksPerBlock;
 	
 	addr = (__u32) Block2Addr(dev,block);
 	addr += chunkInBlock * DATA_BYTES_PER_CHUNK;
@@ -128,8 +128,8 @@ __u32 *Chunk2SpareAddr(yaffs_Device *dev,int chunkId)
 	unsigned chunkInBlock;
 	__u32 addr;
 	
-	block = chunkId/dev->nChunksPerBlock;
-	chunkInBlock = chunkId % dev->nChunksPerBlock;
+	block = chunkId/dev->param.nChunksPerBlock;
+	chunkInBlock = chunkId % dev->param.nChunksPerBlock;
 	
 	addr = (__u32) Block2Addr(dev,block);
 	addr += SPARE_AREA_OFFSET;
@@ -174,7 +174,7 @@ int ynorif1_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data,
                 ynorif1_FlashWrite32(spareAddr,(__u32 *)&tmpSpare,sizeof(yaffs_Spare)/4);
 
                 /* Write the data */            
-                ynorif1_FlashWrite32(dataAddr,(__u32 *)data,dev->totalBytesPerChunk / 4);
+                ynorif1_FlashWrite32(dataAddr,(__u32 *)data,dev->param.totalBytesPerChunk / 4);
                 
                 
                 memcpy(&tmpSpare,spare,sizeof(yaffs_Spare));
@@ -213,7 +213,7 @@ int ynorif1_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaf
 	
 	if(data)
 	{
-		ynorif1_FlashRead32(dataAddr,(__u32 *)data,dev->totalBytesPerChunk / 4);
+		ynorif1_FlashRead32(dataAddr,(__u32 *)data,dev->param.totalBytesPerChunk / 4);
 	}
 	
         if(spare)
@@ -291,7 +291,7 @@ int ynorif1_InitialiseNAND(yaffs_Device *dev)
 	
 	ynorif1_FlashInit();
 	/* Go through the blocks formatting them if they are not formatted */
-	for(i = dev->startBlock; i <= dev->endBlock; i++){
+	for(i = dev->param.startBlock; i <= dev->param.endBlock; i++){
 		if(!ynorif1_IsBlockFormatted(dev,i)){
 			ynorif1_FormatBlock(dev,i);
 		}

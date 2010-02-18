@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_mtdif_c_version =
-	"$Id: yaffs_mtdif.c,v 1.22 2009-03-06 17:20:51 wookey Exp $";
+	"$Id: yaffs_mtdif.c,v 1.23 2010-02-18 01:18:04 charles Exp $";
 
 #include "yportenv.h"
 
@@ -23,6 +23,8 @@ const char *yaffs_mtdif_c_version =
 #include "linux/types.h"
 #include "linux/time.h"
 #include "linux/mtd/nand.h"
+
+#include "yaffs_linux.h"
 
 #if (MTD_VERSION_CODE < MTD_VERSION(2, 6, 18))
 static struct nand_oobinfo yaffs_oobinfo = {
@@ -74,7 +76,7 @@ static inline void translate_oob2spare(yaffs_Spare *spare, __u8 *oob)
 int nandmtd_WriteChunkToNAND(yaffs_Device *dev, int chunkInNAND,
 			     const __u8 *data, const yaffs_Spare *spare)
 {
-	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
+	struct mtd_info *mtd = yaffs_DeviceToContext(dev)->mtd;
 #if (MTD_VERSION_CODE > MTD_VERSION(2, 6, 17))
 	struct mtd_oob_ops ops;
 #endif
@@ -89,7 +91,7 @@ int nandmtd_WriteChunkToNAND(yaffs_Device *dev, int chunkInNAND,
 		retval = mtd->write(mtd, addr, dev->nDataBytesPerChunk,
 				&dummy, data);
 	else if (spare) {
-		if (dev->useNANDECC) {
+		if (dev->param.useNANDECC) {
 			translate_spare2oob(spare, spareAsBytes);
 			ops.mode = MTD_OOB_AUTO;
 			ops.ooblen = 8; /* temp hack */
@@ -107,7 +109,7 @@ int nandmtd_WriteChunkToNAND(yaffs_Device *dev, int chunkInNAND,
 	__u8 *spareAsBytes = (__u8 *) spare;
 
 	if (data && spare) {
-		if (dev->useNANDECC)
+		if (dev->param.useNANDECC)
 			retval =
 			    mtd->write_ecc(mtd, addr, dev->nDataBytesPerChunk,
 					   &dummy, data, spareAsBytes,
@@ -138,7 +140,7 @@ int nandmtd_WriteChunkToNAND(yaffs_Device *dev, int chunkInNAND,
 int nandmtd_ReadChunkFromNAND(yaffs_Device *dev, int chunkInNAND, __u8 *data,
 			      yaffs_Spare *spare)
 {
-	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
+	struct mtd_info *mtd = yaffs_DeviceToContext(dev)->mtd;
 #if (MTD_VERSION_CODE > MTD_VERSION(2, 6, 17))
 	struct mtd_oob_ops ops;
 #endif
@@ -153,7 +155,7 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device *dev, int chunkInNAND, __u8 *data,
 		retval = mtd->read(mtd, addr, dev->nDataBytesPerChunk,
 				&dummy, data);
 	else if (spare) {
-		if (dev->useNANDECC) {
+		if (dev->param.useNANDECC) {
 			ops.mode = MTD_OOB_AUTO;
 			ops.ooblen = 8; /* temp hack */
 		} else {
@@ -165,14 +167,14 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device *dev, int chunkInNAND, __u8 *data,
 		ops.ooboffs = 0;
 		ops.oobbuf = spareAsBytes;
 		retval = mtd->read_oob(mtd, addr, &ops);
-		if (dev->useNANDECC)
+		if (dev->param.useNANDECC)
 			translate_oob2spare(spare, spareAsBytes);
 	}
 #else
 	__u8 *spareAsBytes = (__u8 *) spare;
 
 	if (data && spare) {
-		if (dev->useNANDECC) {
+		if (dev->param.useNANDECC) {
 			/* Careful, this call adds 2 ints */
 			/* to the end of the spare data.  Calling function */
 			/* should allocate enough memory for spare, */
@@ -207,24 +209,21 @@ int nandmtd_ReadChunkFromNAND(yaffs_Device *dev, int chunkInNAND, __u8 *data,
 
 int nandmtd_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 {
-	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
+	struct mtd_info *mtd = yaffs_DeviceToContext(dev)->mtd;
 	__u32 addr =
 	    ((loff_t) blockNumber) * dev->nDataBytesPerChunk
-		* dev->nChunksPerBlock;
+		* dev->param.nChunksPerBlock;
 	struct erase_info ei;
+	
 	int retval = 0;
 
 	ei.mtd = mtd;
 	ei.addr = addr;
-	ei.len = dev->nDataBytesPerChunk * dev->nChunksPerBlock;
+	ei.len = dev->nDataBytesPerChunk * dev->param.nChunksPerBlock;
 	ei.time = 1000;
 	ei.retries = 2;
 	ei.callback = NULL;
 	ei.priv = (u_long) dev;
-
-	/* Todo finish off the ei if required */
-
-	sema_init(&dev->sem, 0);
 
 	retval = mtd->erase(mtd, &ei);
 

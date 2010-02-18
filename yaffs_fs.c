@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.93 2010-02-10 03:54:08 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.94 2010-02-18 01:18:04 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -116,6 +116,8 @@ static uint32_t YCALCBLOCKS(uint64_t partition_size, uint32_t block_size)
 #include "yportenv.h"
 #include "yaffs_trace.h"
 #include "yaffs_guts.h"
+
+#include "yaffs_linux.h"
 
 #include <linux/mtd/mtd.h>
 #include "yaffs_mtdif.h"
@@ -379,18 +381,18 @@ static const struct super_operations yaffs_super_ops = {
 	.sync_fs = yaffs_sync_fs,
 	.write_super = yaffs_write_super,
 };
-
+                	                                                                                          	
 static void yaffs_GrossLock(yaffs_Device *dev)
 {
 	T(LOCK_TRACE && YAFFS_TRACE_OS, ("yaffs locking %p\n", current));
-	down(&dev->grossLock);
+	down(&(yaffs_DeviceToContext(dev)->grossLock));
 	T(LOCK_TRACE && YAFFS_TRACE_OS, ("yaffs locked %p\n", current));
 }
 
 static void yaffs_GrossUnlock(yaffs_Device *dev)
 {
 	T(LOCK_TRACE && YAFFS_TRACE_OS, ("yaffs unlocking %p\n", current));
-	up(&dev->grossLock);
+	up(&(yaffs_DeviceToContext(dev)->grossLock));
 }
 
 
@@ -440,7 +442,7 @@ static struct yaffs_SearchContext * yaffs_NewSearch(yaffs_Object *dir)
                                 dir->variant.directoryVariant.children.next,
 				yaffs_Object,siblings);
 		YINIT_LIST_HEAD(&sc->others);
-		ylist_add(&sc->others,&dev->searchContexts);
+		ylist_add(&sc->others,&(yaffs_DeviceToContext(dev)->searchContexts));
 	}
 	return sc;
 }
@@ -489,7 +491,7 @@ static void yaffs_RemoveObjectCallback(yaffs_Object *obj)
 
         struct ylist_head *i;
         struct yaffs_SearchContext *sc;
-        struct ylist_head *search_contexts = &obj->myDev->searchContexts;
+        struct ylist_head *search_contexts = &(yaffs_DeviceToContext(obj->myDev)->searchContexts);
 
 
         /* Iterate through the directory search contexts.
@@ -1734,8 +1736,8 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 		uint64_t bytesInDev;
 		uint64_t bytesFree;
 
-		bytesInDev = ((uint64_t)((dev->endBlock - dev->startBlock + 1))) *
-			((uint64_t)(dev->nChunksPerBlock * dev->nDataBytesPerChunk));
+		bytesInDev = ((uint64_t)((dev->param.endBlock - dev->param.startBlock + 1))) *
+			((uint64_t)(dev->param.nChunksPerBlock * dev->nDataBytesPerChunk));
 
 		do_div(bytesInDev, sb->s_blocksize); /* bytesInDev becomes the number of blocks */
 		buf->f_blocks = bytesInDev;
@@ -1750,16 +1752,16 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 	} else if (sb->s_blocksize > dev->nDataBytesPerChunk) {
 
 		buf->f_blocks =
-			(dev->endBlock - dev->startBlock + 1) *
-			dev->nChunksPerBlock /
+			(dev->param.endBlock - dev->param.startBlock + 1) *
+			dev->param.nChunksPerBlock /
 			(sb->s_blocksize / dev->nDataBytesPerChunk);
 		buf->f_bfree =
 			yaffs_GetNumberOfFreeChunks(dev) /
 			(sb->s_blocksize / dev->nDataBytesPerChunk);
 	} else {
 		buf->f_blocks =
-			(dev->endBlock - dev->startBlock + 1) *
-			dev->nChunksPerBlock *
+			(dev->param.endBlock - dev->param.startBlock + 1) *
+			dev->param.nChunksPerBlock *
 			(dev->nDataBytesPerChunk / sb->s_blocksize);
 
 		buf->f_bfree =
@@ -1904,7 +1906,7 @@ static void yaffs_read_inode(struct inode *inode)
 
 #endif
 
-static YLIST_HEAD(yaffs_dev_list);
+static YLIST_HEAD(yaffs_context_list);
 
 #if 0 /* not used */
 static int yaffs_remount_fs(struct super_block *sb, int *flags, char *data)
@@ -1948,19 +1950,19 @@ static void yaffs_put_super(struct super_block *sb)
 
 	yaffs_CheckpointSave(dev);
 
-	if (dev->putSuperFunc)
-		dev->putSuperFunc(sb);
+	if (yaffs_DeviceToContext(dev)->putSuperFunc)
+		yaffs_DeviceToContext(dev)->putSuperFunc(sb);
 
 	yaffs_Deinitialise(dev);
 
 	yaffs_GrossUnlock(dev);
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
-	ylist_del(&dev->devList);
+	ylist_del_init(&(yaffs_DeviceToContext(dev)->contextList));
 
-	if (dev->spareBuffer) {
-		YFREE(dev->spareBuffer);
-		dev->spareBuffer = NULL;
+	if (yaffs_DeviceToContext(dev)->spareBuffer) {
+		YFREE(yaffs_DeviceToContext(dev)->spareBuffer);
+		yaffs_DeviceToContext(dev)->spareBuffer = NULL;
 	}
 
 	kfree(dev);
@@ -1969,7 +1971,7 @@ static void yaffs_put_super(struct super_block *sb)
 
 static void yaffs_MTDPutSuper(struct super_block *sb)
 {
-	struct mtd_info *mtd = yaffs_SuperToDevice(sb)->genericDevice;
+	struct mtd_info *mtd = yaffs_DeviceToContext(yaffs_SuperToDevice(sb))->mtd;
 
 	if (mtd->sync)
 		mtd->sync(mtd);
@@ -1978,9 +1980,9 @@ static void yaffs_MTDPutSuper(struct super_block *sb)
 }
 
 
-static void yaffs_MarkSuperBlockDirty(void *vsb)
+static void yaffs_MarkSuperBlockDirty(yaffs_Device *dev)
 {
-	struct super_block *sb = (struct super_block *)vsb;
+	struct super_block *sb = yaffs_DeviceToContext(dev)->superBlock;
 
 	T(YAFFS_TRACE_OS, ("yaffs_MarkSuperBlockDirty() sb = %p\n", sb));
 	if (sb)
@@ -2075,6 +2077,8 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	struct mtd_info *mtd;
 	int err;
 	char *data_str = (char *)data;
+	struct yaffs_LinuxContext *context = NULL;
+	yaffs_DeviceParam *param;
 
 	yaffs_options options;
 
@@ -2231,11 +2235,18 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	 * Set the yaffs_Device up for mtd
 	 */
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
-	sb->s_fs_info = dev = kmalloc(sizeof(yaffs_Device), GFP_KERNEL);
-#else
-	sb->u.generic_sbp = dev = kmalloc(sizeof(yaffs_Device), GFP_KERNEL);
-#endif
+	dev = kmalloc(sizeof(yaffs_Device), GFP_KERNEL);
+	context = kmalloc(sizeof(struct yaffs_LinuxContext),GFP_KERNEL);
+	
+	if(!dev || !context ){
+		if(dev)
+			kfree(dev);
+		if(context)
+			kfree(context);
+		dev = NULL;
+		context = NULL;
+	}
+
 	if (!dev) {
 		/* Deep shit could not allocate device structure */
 		T(YAFFS_TRACE_ALWAYS,
@@ -2243,106 +2254,122 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		   "yaffs_Device. \n"));
 		return NULL;
 	}
-
 	memset(dev, 0, sizeof(yaffs_Device));
-	dev->genericDevice = mtd;
-	dev->name = mtd->name;
+	param = &(dev->param);
+
+	memset(context,0,sizeof(struct yaffs_LinuxContext));
+	dev->context = context;
+	YINIT_LIST_HEAD(&(context->contextList));
+	context->dev = dev;
+	context->superBlock = sb;
+
+	
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
+	sb->s_fs_info = dev;
+#else
+	sb->u.generic_sbp = dev;
+#endif
+	
+	yaffs_DeviceToContext(dev)->mtd = mtd;
+	param->name = mtd->name;
 
 	/* Set up the memory size parameters.... */
 
 	nBlocks = YCALCBLOCKS(mtd->size, (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK));
 
-	dev->startBlock = 0;
-	dev->endBlock = nBlocks - 1;
-	dev->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
-	dev->totalBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
-	dev->nReservedBlocks = 5;
-	dev->nShortOpCaches = (options.no_cache) ? 0 : 10;
-	dev->inbandTags = options.inband_tags;
+	param->startBlock = 0;
+	param->endBlock = nBlocks - 1;
+	param->nChunksPerBlock = YAFFS_CHUNKS_PER_BLOCK;
+	param->totalBytesPerChunk = YAFFS_BYTES_PER_CHUNK;
+	param->nReservedBlocks = 5;
+	param->nShortOpCaches = (options.no_cache) ? 0 : 10;
+	param->inbandTags = options.inband_tags;
 
 #ifdef CONFIG_YAFFS_DISABLE_LAZY_LOAD
-	dev->disableLazyLoad = 1;
+	param->disableLazyLoad = 1;
 #endif
 	if(options.lazy_loading_overridden)
-		dev->disableLazyLoad = !options.lazy_loading_enabled;
+		param->disableLazyLoad = !options.lazy_loading_enabled;
 
 #ifdef CONFIG_YAFFS_DISABLE_TAGS_ECC
-	dev->noTagsECC = 1;
+	param->noTagsECC = 1;
 #endif
 	if(options.tags_ecc_overridden)
-		dev->noTagsECC = !options.tags_ecc_on;
+		param->noTagsECC = !options.tags_ecc_on;
 
 #ifdef CONFIG_YAFFS_EMPTY_LOST_AND_FOUND
 	dev->emptyLostAndFound = 1;
 #endif
 	if(options.empty_lost_and_found_overridden)
-		dev->emptyLostAndFound = options.empty_lost_and_found;
+		param->emptyLostAndFound = options.empty_lost_and_found;
 
 	/* ... and the functions. */
 	if (yaffsVersion == 2) {
-		dev->writeChunkWithTagsToNAND =
+		param->writeChunkWithTagsToNAND =
 		    nandmtd2_WriteChunkWithTagsToNAND;
-		dev->readChunkWithTagsFromNAND =
+		param->readChunkWithTagsFromNAND =
 		    nandmtd2_ReadChunkWithTagsFromNAND;
-		dev->markNANDBlockBad = nandmtd2_MarkNANDBlockBad;
-		dev->queryNANDBlock = nandmtd2_QueryNANDBlock;
-		dev->spareBuffer = YMALLOC(mtd->oobsize);
-		dev->isYaffs2 = 1;
+		param->markNANDBlockBad = nandmtd2_MarkNANDBlockBad;
+		param->queryNANDBlock = nandmtd2_QueryNANDBlock;
+		yaffs_DeviceToContext(dev)->spareBuffer = YMALLOC(mtd->oobsize);
+		param->isYaffs2 = 1;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
-		dev->totalBytesPerChunk = mtd->writesize;
-		dev->nChunksPerBlock = mtd->erasesize / mtd->writesize;
+		param->totalBytesPerChunk = mtd->writesize;
+		param->nChunksPerBlock = mtd->erasesize / mtd->writesize;
 #else
-		dev->totalBytesPerChunk = mtd->oobblock;
-		dev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
+		param->totalBytesPerChunk = mtd->oobblock;
+		param->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
 #endif
 		nBlocks = YCALCBLOCKS(mtd->size, mtd->erasesize);
 
-		dev->startBlock = 0;
-		dev->endBlock = nBlocks - 1;
+		param->startBlock = 0;
+		param->endBlock = nBlocks - 1;
 	} else {
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 		/* use the MTD interface in yaffs_mtdif1.c */
-		dev->writeChunkWithTagsToNAND =
+		param->writeChunkWithTagsToNAND =
 			nandmtd1_WriteChunkWithTagsToNAND;
-		dev->readChunkWithTagsFromNAND =
+		param->readChunkWithTagsFromNAND =
 			nandmtd1_ReadChunkWithTagsFromNAND;
-		dev->markNANDBlockBad = nandmtd1_MarkNANDBlockBad;
-		dev->queryNANDBlock = nandmtd1_QueryNANDBlock;
+		param->markNANDBlockBad = nandmtd1_MarkNANDBlockBad;
+		param->queryNANDBlock = nandmtd1_QueryNANDBlock;
 #else
-		dev->writeChunkToNAND = nandmtd_WriteChunkToNAND;
-		dev->readChunkFromNAND = nandmtd_ReadChunkFromNAND;
+		param->writeChunkToNAND = nandmtd_WriteChunkToNAND;
+		param->readChunkFromNAND = nandmtd_ReadChunkFromNAND;
 #endif
-		dev->isYaffs2 = 0;
+		param->isYaffs2 = 0;
 	}
 	/* ... and common functions */
-	dev->eraseBlockInNAND = nandmtd_EraseBlockInNAND;
-	dev->initialiseNAND = nandmtd_InitialiseNAND;
+	param->eraseBlockInNAND = nandmtd_EraseBlockInNAND;
+	param->initialiseNAND = nandmtd_InitialiseNAND;
 
-	dev->putSuperFunc = yaffs_MTDPutSuper;
+	yaffs_DeviceToContext(dev)->putSuperFunc = yaffs_MTDPutSuper;
 
-	dev->superBlock = (void *)sb;
-	dev->markSuperBlockDirty = yaffs_MarkSuperBlockDirty;
+	param->markSuperBlockDirty = yaffs_MarkSuperBlockDirty;
 
+	yaffs_DeviceToContext(dev)->superBlock= sb;
+	
 
 #ifndef CONFIG_YAFFS_DOES_ECC
-	dev->useNANDECC = 1;
+	param->useNANDECC = 1;
 #endif
 
 #ifdef CONFIG_YAFFS_DISABLE_WIDE_TNODES
-	dev->wideTnodesDisabled = 1;
+	param->wideTnodesDisabled = 1;
 #endif
 
-	dev->skipCheckpointRead = options.skip_checkpoint_read;
-	dev->skipCheckpointWrite = options.skip_checkpoint_write;
+	param->skipCheckpointRead = options.skip_checkpoint_read;
+	param->skipCheckpointWrite = options.skip_checkpoint_write;
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
-	ylist_add_tail(&dev->devList, &yaffs_dev_list);
+	ylist_add_tail(&(yaffs_DeviceToContext(dev)->contextList), &yaffs_context_list);
 
         /* Directory search handling...*/
-        YINIT_LIST_HEAD(&dev->searchContexts);
-        dev->removeObjectCallback = yaffs_RemoveObjectCallback;
+        YINIT_LIST_HEAD(&(yaffs_DeviceToContext(dev)->searchContexts));
+        param->removeObjectCallback = yaffs_RemoveObjectCallback;
 
-	init_MUTEX(&dev->grossLock);
+	init_MUTEX(&(yaffs_DeviceToContext(dev)->grossLock));
 
 	yaffs_GrossLock(dev);
 
@@ -2484,14 +2511,14 @@ static struct proc_dir_entry *my_proc_entry;
 
 static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 {
-	buf += sprintf(buf, "startBlock......... %d\n", dev->startBlock);
-	buf += sprintf(buf, "endBlock........... %d\n", dev->endBlock);
-	buf += sprintf(buf, "totalBytesPerChunk. %d\n", dev->totalBytesPerChunk);
+	buf += sprintf(buf, "startBlock......... %d\n", dev->param.startBlock);
+	buf += sprintf(buf, "endBlock........... %d\n", dev->param.endBlock);
+	buf += sprintf(buf, "totalBytesPerChunk. %d\n", dev->param.totalBytesPerChunk);
 	buf += sprintf(buf, "nDataBytesPerChunk. %d\n", dev->nDataBytesPerChunk);
 	buf += sprintf(buf, "chunkGroupBits..... %d\n", dev->chunkGroupBits);
 	buf += sprintf(buf, "chunkGroupSize..... %d\n", dev->chunkGroupSize);
 	buf += sprintf(buf, "nErasedBlocks...... %d\n", dev->nErasedBlocks);
-	buf += sprintf(buf, "nReservedBlocks.... %d\n", dev->nReservedBlocks);
+	buf += sprintf(buf, "nReservedBlocks.... %d\n", dev->param.nReservedBlocks);
 	buf += sprintf(buf, "blocksInCheckpoint. %d\n", dev->blocksInCheckpoint);
 	buf += sprintf(buf, "nTnodesCreated..... %d\n", dev->nTnodesCreated);
 	buf += sprintf(buf, "nFreeTnodes........ %d\n", dev->nFreeTnodes);
@@ -2506,7 +2533,7 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "passiveGCs......... %d\n",
 		    dev->passiveGarbageCollections);
 	buf += sprintf(buf, "nRetriedWrites..... %d\n", dev->nRetriedWrites);
-	buf += sprintf(buf, "nShortOpCaches..... %d\n", dev->nShortOpCaches);
+	buf += sprintf(buf, "nShortOpCaches..... %d\n", dev->param.nShortOpCaches);
 	buf += sprintf(buf, "nRetireBlocks...... %d\n", dev->nRetiredBlocks);
 	buf += sprintf(buf, "eccFixed........... %d\n", dev->eccFixed);
 	buf += sprintf(buf, "eccUnfixed......... %d\n", dev->eccUnfixed);
@@ -2524,12 +2551,12 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 
 static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
 {
-	buf += sprintf(buf, "useNANDECC......... %d\n", dev->useNANDECC);
-	buf += sprintf(buf, "noTagsECC.......... %d\n", dev->noTagsECC);
-	buf += sprintf(buf, "isYaffs2........... %d\n", dev->isYaffs2);
-	buf += sprintf(buf, "inbandTags......... %d\n", dev->inbandTags);
-	buf += sprintf(buf, "emptyLostAndFound.. %d\n", dev->emptyLostAndFound);
-	buf += sprintf(buf, "disableLazyLoad.... %d\n", dev->disableLazyLoad);
+	buf += sprintf(buf, "useNANDECC......... %d\n", dev->param.useNANDECC);
+	buf += sprintf(buf, "noTagsECC.......... %d\n", dev->param.noTagsECC);
+	buf += sprintf(buf, "isYaffs2........... %d\n", dev->param.isYaffs2);
+	buf += sprintf(buf, "inbandTags......... %d\n", dev->param.inbandTags);
+	buf += sprintf(buf, "emptyLostAndFound.. %d\n", dev->param.emptyLostAndFound);
+	buf += sprintf(buf, "disableLazyLoad.... %d\n", dev->param.disableLazyLoad);
 
 	return buf;
 }
@@ -2565,14 +2592,16 @@ static int yaffs_proc_read(char *page,
 		lock_kernel();
 
 		/* Locate and print the Nth entry.  Order N-squared but N is small. */
-		ylist_for_each(item, &yaffs_dev_list) {
-			yaffs_Device *dev = ylist_entry(item, yaffs_Device, devList);
+		ylist_for_each(item, &yaffs_context_list) {
+			struct yaffs_LinuxContext *dc = ylist_entry(item, struct yaffs_LinuxContext, contextList);
+			yaffs_Device *dev = dc->dev;
+
 			if (n < (step & ~1)) {
 				n+=2;
 				continue;
 			}
 			if((step & 1)==0){
-				buf += sprintf(buf, "\nDevice %d \"%s\"\n", n, dev->name);
+				buf += sprintf(buf, "\nDevice %d \"%s\"\n", n, dev->param.name);
 				buf = yaffs_dump_dev_part0(buf, dev);
 			} else
 				buf = yaffs_dump_dev_part1(buf, dev);

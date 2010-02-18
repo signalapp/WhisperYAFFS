@@ -164,14 +164,14 @@ static int yaffs_WriteChunkToNAND(struct yaffs_DeviceStruct *dev,
 				int chunkInNAND, const __u8 *data,
 				yaffs_Spare *spare)
 {
-	if (chunkInNAND < dev->startBlock * dev->nChunksPerBlock) {
+	if (chunkInNAND < dev->param.startBlock * dev->param.nChunksPerBlock) {
 		T(YAFFS_TRACE_ERROR,
 		  (TSTR("**>> yaffs chunk %d is not valid" TENDSTR),
 		   chunkInNAND));
 		return YAFFS_FAIL;
 	}
 
-	return dev->writeChunkToNAND(dev, chunkInNAND, data, spare);
+	return dev->param.writeChunkToNAND(dev, chunkInNAND, data, spare);
 }
 
 static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
@@ -190,8 +190,8 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 		spare = &localSpare;
 	}
 
-	if (!dev->useNANDECC) {
-		retVal = dev->readChunkFromNAND(dev, chunkInNAND, data, spare);
+	if (!dev->param.useNANDECC) {
+		retVal = dev->param.readChunkFromNAND(dev, chunkInNAND, data, spare);
 		if (data && doErrorCorrection) {
 			/* Do ECC correction */
 			/* Todo handle any errors */
@@ -252,7 +252,7 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 
 		memset(&nspare, 0, sizeof(nspare));
 
-		retVal = dev->readChunkFromNAND(dev, chunkInNAND, data,
+		retVal = dev->param.readChunkFromNAND(dev, chunkInNAND, data,
 					(yaffs_Spare *) &nspare);
 		memcpy(spare, &nspare, sizeof(yaffs_Spare));
 		if (data && doErrorCorrection) {
@@ -305,10 +305,10 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,
 	static __u8 cmpbuf[YAFFS_BYTES_PER_CHUNK];
 	static __u8 data[YAFFS_BYTES_PER_CHUNK];
 	/* Might as well always allocate the larger size for */
-	/* dev->useNANDECC == true; */
+	/* dev->param.useNANDECC == true; */
 	static __u8 spare[sizeof(struct yaffs_NANDSpare)];
 
-	dev->readChunkFromNAND(dev, chunkInNAND, data, (yaffs_Spare *) spare);
+	dev->param.readChunkFromNAND(dev, chunkInNAND, data, (yaffs_Spare *) spare);
 
 	if (!init) {
 		memset(cmpbuf, 0xff, YAFFS_BYTES_PER_CHUNK);
@@ -331,7 +331,7 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,
 
 static void yaffs_HandleReadDataError(yaffs_Device *dev, int chunkInNAND)
 {
-	int blockInNAND = chunkInNAND / dev->nChunksPerBlock;
+	int blockInNAND = chunkInNAND / dev->param.nChunksPerBlock;
 
 	/* Mark the block for retirement */
 	yaffs_GetBlockInfo(dev, blockInNAND + dev->blockOffset)->needsRetiring = 1;
@@ -363,7 +363,7 @@ static void yaffs_HandleUpdateChunk(yaffs_Device *dev, int chunkInNAND,
 
 static void yaffs_HandleWriteChunkError(yaffs_Device *dev, int chunkInNAND)
 {
-	int blockInNAND = chunkInNAND / dev->nChunksPerBlock;
+	int blockInNAND = chunkInNAND / dev->param.nChunksPerBlock;
 
 	/* Mark the block for retirement */
 	yaffs_GetBlockInfo(dev, blockInNAND)->needsRetiring = 1;
@@ -422,7 +422,7 @@ int yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(yaffs_Device *dev,
 
 		tags.serialNumber = eTags->serialNumber;
 
-		if (!dev->useNANDECC && data)
+		if (!dev->param.useNANDECC && data)
 			yaffs_CalcECC(data, &spare);
 
 		yaffs_LoadTagsIntoSpare(&spare, &tags);
@@ -496,9 +496,9 @@ int yaffs_TagsCompatabilityMarkNANDBlockBad(struct yaffs_DeviceStruct *dev,
 
 	spare.blockStatus = 'Y';
 
-	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->nChunksPerBlock, NULL,
+	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->param.nChunksPerBlock, NULL,
 			       &spare);
-	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->nChunksPerBlock + 1,
+	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->param.nChunksPerBlock + 1,
 			       NULL, &spare);
 
 	return YAFFS_OK;
@@ -523,9 +523,9 @@ int yaffs_TagsCompatabilityQueryNANDBlock(struct yaffs_DeviceStruct *dev,
 
 	*sequenceNumber = 0;
 
-	yaffs_ReadChunkFromNAND(dev, blockNo * dev->nChunksPerBlock, NULL,
+	yaffs_ReadChunkFromNAND(dev, blockNo * dev->param.nChunksPerBlock, NULL,
 				&spare0, &dummy, 1);
-	yaffs_ReadChunkFromNAND(dev, blockNo * dev->nChunksPerBlock + 1, NULL,
+	yaffs_ReadChunkFromNAND(dev, blockNo * dev->param.nChunksPerBlock + 1, NULL,
 				&spare1, &dummy, 1);
 
 	if (yaffs_CountBits(spare0.blockStatus & spare1.blockStatus) < 7)

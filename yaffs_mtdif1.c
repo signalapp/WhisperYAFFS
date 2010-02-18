@@ -28,6 +28,7 @@
 #include "yaffs_guts.h"
 #include "yaffs_packedtags1.h"
 #include "yaffs_tagscompat.h"	/* for yaffs_CalcTagsECC */
+#include "yaffs_linux.h"
 
 #include "linux/kernel.h"
 #include "linux/version.h"
@@ -37,7 +38,7 @@
 /* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
 #if (MTD_VERSION_CODE > MTD_VERSION(2, 6, 17))
 
-const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.12 2010-01-11 04:06:46 charles Exp $";
+const char *yaffs_mtdif1_c_version = "$Id: yaffs_mtdif1.c,v 1.13 2010-02-18 01:18:04 charles Exp $";
 
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
@@ -92,7 +93,7 @@ static struct nand_ecclayout nand_oob_16 = {
 int nandmtd1_WriteChunkWithTagsToNAND(yaffs_Device *dev,
 	int chunkInNAND, const __u8 *data, const yaffs_ExtendedTags *etags)
 {
-	struct mtd_info *mtd = dev->genericDevice;
+	struct mtd_info *mtd = yaffs_DeviceToContext(dev)->mtd;
 	int chunkBytes = dev->nDataBytesPerChunk;
 	loff_t addr = ((loff_t)chunkInNAND) * chunkBytes;
 	struct mtd_oob_ops ops;
@@ -170,7 +171,7 @@ static int rettags(yaffs_ExtendedTags *etags, int eccResult, int retval)
 int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	int chunkInNAND, __u8 *data, yaffs_ExtendedTags *etags)
 {
-	struct mtd_info *mtd = dev->genericDevice;
+	struct mtd_info *mtd = yaffs_DeviceToContext(dev)->mtd;
 	int chunkBytes = dev->nDataBytesPerChunk;
 	loff_t addr = ((loff_t)chunkInNAND) * chunkBytes;
 	int eccres = YAFFS_ECC_RESULT_NO_ERROR;
@@ -281,8 +282,8 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
  */
 int nandmtd1_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 {
-	struct mtd_info *mtd = dev->genericDevice;
-	int blocksize = dev->nChunksPerBlock * dev->nDataBytesPerChunk;
+	struct mtd_info *mtd = yaffs_DeviceToContext(dev)->mtd;
+	int blocksize = dev->param.nChunksPerBlock * dev->nDataBytesPerChunk;
 	int retval;
 
 	yaffs_trace(YAFFS_TRACE_BAD_BLOCKS, "marking block %d bad\n", blockNo);
@@ -322,8 +323,8 @@ static int nandmtd1_TestPrerequists(struct mtd_info *mtd)
 int nandmtd1_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
 	yaffs_BlockState *pState, __u32 *pSequenceNumber)
 {
-	struct mtd_info *mtd = dev->genericDevice;
-	int chunkNo = blockNo * dev->nChunksPerBlock;
+	struct mtd_info *mtd = yaffs_DeviceToContext(dev)->mtd;
+	int chunkNo = blockNo * dev->param.nChunksPerBlock;
 	loff_t addr = (loff_t)chunkNo * dev->nDataBytesPerChunk;
 	yaffs_ExtendedTags etags;
 	int state = YAFFS_BLOCK_STATE_DEAD;

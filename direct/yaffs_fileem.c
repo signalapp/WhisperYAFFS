@@ -16,7 +16,7 @@
  * This is only intended as test code to test persistence etc.
  */
 
-const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.6 2010-01-11 04:06:47 charles Exp $";
+const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.7 2010-02-18 01:18:04 charles Exp $";
 
 
 #include "yportenv.h"
@@ -210,8 +210,6 @@ int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 
 int yflash_InitialiseNAND(yaffs_Device *dev)
 {
-	dev->useNANDECC = 1; // force on useNANDECC which gets faked. 
-						 // This saves us doing ECC checks.
 	
 	return YAFFS_OK;
 }

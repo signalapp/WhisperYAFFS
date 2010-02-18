@@ -2258,7 +2258,6 @@ void checkpoint_upgrade_test(const char *mountpt,int nmounts)
 	
 	printf("Create start condition\n");
 	yaffs_StartUp();
-	SetCheckpointReservedBlocks(0);
 	yaffs_mount(mountpt);
 	yaffs_mkdir(a,0);
 	sprintf(b,"%s/zz",a);
@@ -2271,7 +2270,6 @@ void checkpoint_upgrade_test(const char *mountpt,int nmounts)
 	printf("Umount/mount attempt full\n");
 	yaffs_unmount(mountpt);
 	
-	SetCheckpointReservedBlocks(10);
 	yaffs_mount(mountpt);
 	
 	printf("unlink small file\n");

@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_nand_c_version =
-	"$Id: yaffs_nand.c,v 1.12 2010-02-18 01:18:04 charles Exp $";
+	"$Id: yaffs_nand.c,v 1.13 2010-02-19 01:05:48 charles Exp $";
 
 #include "yaffs_nand.h"
 #include "yaffs_tagscompat.h"
@@ -135,6 +135,7 @@ int yaffs_InitialiseNAND(struct yaffs_DeviceStruct *dev)
 {
 	if(dev->param.initialiseNAND)
 		return dev->param.initialiseNAND(dev);
+	return YAFFS_OK;
 }
 
 

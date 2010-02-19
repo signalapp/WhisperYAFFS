@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_mtdif_c_version =
-	"$Id: yaffs_mtdif.c,v 1.23 2010-02-18 01:18:04 charles Exp $";
+	"$Id: yaffs_mtdif.c,v 1.24 2010-02-19 01:00:14 charles Exp $";
 
 #include "yportenv.h"
 
@@ -211,7 +211,7 @@ int nandmtd_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 {
 	struct mtd_info *mtd = yaffs_DeviceToContext(dev)->mtd;
 	__u32 addr =
-	    ((loff_t) blockNumber) * dev->nDataBytesPerChunk
+	    ((loff_t) blockNumber) * dev->param.totalBytesPerChunk
 		* dev->param.nChunksPerBlock;
 	struct erase_info ei;
 	
@@ -219,7 +219,7 @@ int nandmtd_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 
 	ei.mtd = mtd;
 	ei.addr = addr;
-	ei.len = dev->nDataBytesPerChunk * dev->param.nChunksPerBlock;
+	ei.len = dev->param.totalBytesPerChunk * dev->param.nChunksPerBlock;
 	ei.time = 1000;
 	ei.retries = 2;
 	ei.callback = NULL;

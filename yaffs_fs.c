@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.94 2010-02-18 01:18:04 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.95 2010-02-19 01:19:12 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -2299,7 +2299,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		param->noTagsECC = !options.tags_ecc_on;
 
 #ifdef CONFIG_YAFFS_EMPTY_LOST_AND_FOUND
-	dev->emptyLostAndFound = 1;
+	param->emptyLostAndFound = 1;
 #endif
 	if(options.empty_lost_and_found_overridden)
 		param->emptyLostAndFound = options.empty_lost_and_found;

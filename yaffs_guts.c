@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.108 2010-02-18 01:18:04 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.109 2010-02-24 21:06:39 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -4738,7 +4738,7 @@ static void yaffs_InvalidateCheckpoint(yaffs_Device *dev)
 		dev->isCheckpointed = 0;
 		yaffs_CheckpointInvalidateStream(dev);
 		if (dev->param.markSuperBlockDirty)
-			dev->param.markSuperBlockDirty(dev->context);
+			dev->param.markSuperBlockDirty(dev);
 	}
 }
 

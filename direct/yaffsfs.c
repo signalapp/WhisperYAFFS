@@ -31,7 +31,7 @@
 #define YAFFSFS_RW_SIZE  (1<<YAFFSFS_RW_SHIFT)
 
 
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.34 2010-02-18 01:18:05 charles Exp $";
+const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.35 2010-02-25 22:38:03 charles Exp $";
 
 // configurationList is the list of devices that are supported
 static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
@@ -693,7 +693,7 @@ int yaffs_close(int fd)
 
 
 
-int yaffsfs_do_read(int fd, void *buf, unsigned int nbyte, int isPread, int offset)
+int yaffsfs_do_read(int fd, void *vbuf, unsigned int nbyte, int isPread, int offset)
 {
 	yaffsfs_Handle *h = NULL;
 	yaffs_Object *obj = NULL;
@@ -703,6 +703,7 @@ int yaffsfs_do_read(int fd, void *buf, unsigned int nbyte, int isPread, int offs
 	int nToRead = 0;
 	int totalRead = 0;
 	unsigned int maxRead;
+	__u8 *buf = (__u8 *)vbuf;
 
 	yaffsfs_Lock();
 	h = yaffsfs_GetHandlePointer(fd);
@@ -717,7 +718,9 @@ int yaffsfs_do_read(int fd, void *buf, unsigned int nbyte, int isPread, int offs
 			startPos = offset;
 		else
 			startPos = h->position;
-			
+
+		pos = startPos;
+					
 		if(yaffs_GetObjectFileLength(obj) > pos)
 			maxRead = yaffs_GetObjectFileLength(obj) - pos;
 		else
@@ -727,46 +730,42 @@ int yaffsfs_do_read(int fd, void *buf, unsigned int nbyte, int isPread, int offs
 			nbyte = maxRead;
 
 
-		if(nbyte > 0) {
-			yaffsfs_GetHandle(fd);
-			pos = startPos;
-			
-			while(nbyte > 0) {
-				nToRead = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
-				if(nToRead > nbyte)
-					nToRead = nbyte;
+		yaffsfs_GetHandle(fd);
 
-				nRead = yaffs_ReadDataFromFile(obj,buf,pos,nToRead);
+		while(nbyte > 0) {
+			nToRead = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
+			if(nToRead > nbyte)
+				nToRead = nbyte;
+			nRead = yaffs_ReadDataFromFile(obj,buf,pos,nToRead);
 
-				if(nRead > 0){
-					totalRead += nRead;
-					pos += nRead;
-					buf += nRead;
-				}
-
-				if(nRead == nToRead)
-					nbyte-=nRead;
-				else
-					nbyte = 0; /* no more to read */
-					
-					
-				if(nbyte > 0){
-					yaffsfs_Unlock();
-					yaffsfs_Lock();
-				}
-
+			if(nRead > 0){
+				totalRead += nRead;
+				pos += nRead;
+				buf += nRead;
 			}
 
-			yaffsfs_PutHandle(fd);
-			if(!isPread) {
-				if(totalRead >= 0)
-					h->position = startPos + totalRead;
-				else {
+			if(nRead == nToRead)
+				nbyte-=nRead;
+			else
+				nbyte = 0; /* no more to read */
+					
+					
+			if(nbyte > 0){
+				yaffsfs_Unlock();
+				yaffsfs_Lock();
+			}
+
+		}
+
+		yaffsfs_PutHandle(fd);
+
+		if(!isPread) {
+			if(totalRead >= 0)
+				h->position = startPos + totalRead;
+			else {
 					//todo error
-				}
 			}
-		} else
-			totalRead = 0;
+		}
 
 	}
 
@@ -786,7 +785,7 @@ int yaffs_pread(int fd, void *buf, unsigned int nbyte, unsigned int offset)
 	return yaffsfs_do_read(fd, buf, nbyte, 1, offset);
 }
 
-int yaffsfs_do_write(int fd, const void *buf, unsigned int nbyte, int isPwrite, int offset)
+int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite, int offset)
 {
 	yaffsfs_Handle *h = NULL;
 	yaffs_Object *obj = NULL;
@@ -796,6 +795,7 @@ int yaffsfs_do_write(int fd, const void *buf, unsigned int nbyte, int isPwrite, 
 	int totalWritten = 0;
 	int writeThrough = 0;
 	int nToWrite = 0;
+	const __u8 *buf = (const __u8 *)vbuf;
 
 	yaffsfs_Lock();
 	h = yaffsfs_GetHandlePointer(fd);
@@ -815,55 +815,51 @@ int yaffsfs_do_write(int fd, const void *buf, unsigned int nbyte, int isPwrite, 
 			startPos = yaffs_GetObjectFileLength(obj);
 		else
 			startPos = h->position;
-		if( nbyte > 0){
-			yaffsfs_GetHandle(fd);
-			pos = startPos;
-			while(nbyte > 0) {
-				nToWrite = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
-				if(nToWrite > nbyte)
-					nToWrite = nbyte;
-				
-				nWritten = yaffs_WriteDataToFile(obj,buf,pos,nToWrite,writeThrough);
-				if(nWritten > 0){
-					totalWritten += nWritten;
-					pos += nWritten;
-					buf += nWritten;
-				}
 
-				if(nWritten == nToWrite)
-					nbyte -= nToWrite;
-				else
-					nbyte = 0;
-				
-				if(nWritten < 1 && totalWritten < 1){
-					yaffsfs_SetError(-ENOSPC);
-					totalWritten = -1;
-				}
+		yaffsfs_GetHandle(fd);
+		pos = startPos;
+		while(nbyte > 0) {
+			nToWrite = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
+			if(nToWrite > nbyte)
+				nToWrite = nbyte;
 
-				if(nbyte > 0){
-					yaffsfs_Unlock();
-					yaffsfs_Lock();
-				}
+			nWritten = yaffs_WriteDataToFile(obj,buf,pos,nToWrite,writeThrough);
+			if(nWritten > 0){
+				totalWritten += nWritten;
+				pos += nWritten;
+				buf += nWritten;
 			}
 
-			yaffsfs_PutHandle(fd);
+			if(nWritten == nToWrite)
+				nbyte -= nToWrite;
+			else
+				nbyte = 0;
 
-			if(!isPwrite){
-				if(totalWritten > 0)
-					h->position = startPos + totalWritten;
-				else {
-					//todo error
-				}
+			if(nWritten < 1 && totalWritten < 1){
+				yaffsfs_SetError(-ENOSPC);
+				totalWritten = -1;
 			}
-		} else
-			totalWritten = 0;
 
+			if(nbyte > 0){
+				yaffsfs_Unlock();
+				yaffsfs_Lock();
+			}
+		}
+
+		yaffsfs_PutHandle(fd);
+
+		if(!isPwrite){
+			if(totalWritten > 0)
+				h->position = startPos + totalWritten;
+			else {
+				//todo error
+			}
+		}
 	}
 
 	yaffsfs_Unlock();
 
 	return (totalWritten >= 0) ? totalWritten : -1;
-
 }
 
 int yaffs_write(int fd, const void *buf, unsigned int nbyte)

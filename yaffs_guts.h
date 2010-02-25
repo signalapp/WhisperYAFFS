@@ -557,6 +557,8 @@ struct yaffs_DeviceParamStruct {
 
 	int emptyLostAndFound;  /* Auto-empty lost+found directory on mount */
 
+	int refreshPeriod;	/* How often we should check to do a block refresh */
+
 	/* Checkpoint control. Can be set before or after initialisation */
 	__u8 skipCheckpointRead;
 	__u8 skipCheckpointWrite;
@@ -723,8 +725,6 @@ struct yaffs_DeviceStruct {
 	yaffs_ChunkCache *srCache;
 	int srLastUse;
 
-	int cacheHits;
-
 	/* Stuff for background deletion and unlinked files.*/
 	yaffs_Object *unlinkedDir;	/* Directory where unlinked and deleted files live. */
 	yaffs_Object *deletedDir;	/* Directory where deleted objects are sent to disappear. */
@@ -732,7 +732,6 @@ struct yaffs_DeviceStruct {
 	int nDeletedFiles;		/* Count of files awaiting deletion;*/
 	int nUnlinkedFiles;		/* Count of unlinked files. */
 	int nBackgroundDeletions;	/* Count of background deletions. */
-
 
 	/* Temporary buffer management */
 	yaffs_TempBuffer tempBuffer[YAFFS_N_TEMP_BUFFERS];
@@ -744,7 +743,9 @@ struct yaffs_DeviceStruct {
 	/* yaffs2 runtime stuff */
 	unsigned sequenceNumber;	/* Sequence number of currently allocating block */
 	unsigned oldestDirtySequence;
-	
+
+	/* Block refreshing */
+	int refreshSkip;	/* A skip down counter. Refresh happens when this gets to zero. */
 
 	/* Statistcs */
 	int nPageWrites;
@@ -762,6 +763,9 @@ struct yaffs_DeviceStruct {
 	int tagsEccUnfixed;
 	int nDeletions;
 	int nUnmarkedDeletions;
+	int refreshCount;
+	int cacheHits;
+
 };
 
 typedef struct yaffs_DeviceStruct yaffs_Device;

@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.109 2010-02-24 21:06:39 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.110 2010-02-25 22:41:46 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -681,12 +681,6 @@ static void yaffs_VerifyFile(yaffs_Object *obj)
 	}
 
 	actualTallness = obj->variant.fileVariant.topLevel;
-
-	if (requiredTallness > actualTallness)
-		T(YAFFS_TRACE_VERIFY,
-		(TSTR("Obj %d had tnode tallness %d, needs to be %d"TENDSTR),
-		 obj->objectId, actualTallness, requiredTallness));
-
 
 	/* Check that the chunks in the tnode tree are all correct.
 	 * We do this by scanning through the tnode tree and
@@ -2705,7 +2699,72 @@ static int yaffs_BlockNotDisqualifiedFromGC(yaffs_Device *dev,
 	return (bi->sequenceNumber <= dev->oldestDirtySequence);
 }
 
-/* FindDiretiestBlock is used to select the dirtiest block (or close enough)
+/*
+ * yaffs_FindRefreshBlock()
+ * periodically finds the oldest full block by sequence number for refreshing.
+ * Only for yaffs2.
+ */
+static __u32 yaffs_FindRefreshBlock(yaffs_Device *dev)
+{
+	__u32 b ;
+
+	__u32 oldest = 0;
+	__u32 oldestSequence = 0;
+
+	yaffs_BlockInfo *bi;
+
+	/*
+	 * If refresh period < 10 then refreshing is disabled.
+	 */
+	if(dev->param.refreshPeriod < 10 ||
+		!dev->param.isYaffs2)
+	        return oldest;
+
+        /*
+         * Fix broken values.
+         */
+        if(dev->refreshSkip > dev->param.refreshPeriod)
+                dev->refreshSkip = dev->param.refreshPeriod;
+
+	if(dev->refreshSkip > 0){
+	        dev->refreshSkip--;
+	        return oldest;
+	}
+
+	/*
+	 * Refresh skip is now zero.
+	 * We'll do a refresh this time around....
+	 * Update the refresh skip and find the oldest block.
+	 */
+	dev->refreshSkip = dev->param.refreshPeriod;
+	dev->refreshCount++;
+
+	for (b = dev->internalStartBlock; b <=dev->internalEndBlock; b++){
+
+		bi = yaffs_GetBlockInfo(dev, b);
+		
+
+		if (bi->blockState == YAFFS_BLOCK_STATE_FULL){
+
+			if(oldest < 1 ||
+                                bi->sequenceNumber < oldestSequence){
+                                oldest = b;
+                                oldestSequence = bi->sequenceNumber;
+                        }
+		}
+	}
+
+	if (oldest > 0) {
+		T(YAFFS_TRACE_GC,
+		  (TSTR("GC refresh count %d selected block %d with sequenceNumber %d" TENDSTR),
+		   dev->refreshCount, oldest, oldestSequence));
+	}
+
+	return oldest;
+}
+
+/*
+ * FindDiretiestBlock is used to select the dirtiest block (or close enough)
  * for garbage collection.
  */
 
@@ -2851,6 +2910,7 @@ static void yaffs_BlockBecameDirty(yaffs_Device *dev, int blockNo)
 	if (erasedOk) {
 		/* Clean it up... */
 		bi->blockState = YAFFS_BLOCK_STATE_EMPTY;
+		bi->sequenceNumber = 0;
 		dev->nErasedBlocks++;
 		bi->pagesInUse = 0;
 		bi->softDeletions = 0;
@@ -3226,13 +3286,16 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 						tags.extraIsShrinkHeader = 0;
 						oh->shadowsObject = 0;
 						oh->inbandShadowsObject = 0;
+						if(object->variantType == YAFFS_OBJECT_TYPE_FILE)
+							oh->fileSize = object->variant.fileVariant.fileSize;
 						tags.extraShadows = 0;
 
 						yaffs_VerifyObjectHeader(object, oh, &tags, 1);
-					}
-
-					newChunk =
-					    yaffs_WriteNewChunkWithTagsToNAND(dev, buffer, &tags, 1);
+						newChunk =
+						    yaffs_WriteNewChunkWithTagsToNAND(dev,(__u8 *) oh, &tags, 1);
+					} else
+						newChunk =
+						    yaffs_WriteNewChunkWithTagsToNAND(dev, buffer, &tags, 1);
 
 					if (newChunk < 0) {
 						retVal = YAFFS_FAIL;
@@ -3289,16 +3352,17 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 
 	yaffs_VerifyCollectedBlock(dev, bi, block);
 
-	chunksAfter = yaffs_GetErasedChunks(dev);
-	if (chunksBefore >= chunksAfter) {
-		T(YAFFS_TRACE_GC,
-		  (TSTR
-		   ("gc did not increase free chunks before %d after %d"
-		    TENDSTR), chunksBefore, chunksAfter));
-	}
+
 
 	/* If the gc completed then clear the current gcBlock so that we find another. */
 	if (bi->blockState != YAFFS_BLOCK_STATE_COLLECTING) {
+		chunksAfter = yaffs_GetErasedChunks(dev);
+		if (chunksBefore >= chunksAfter) {
+			T(YAFFS_TRACE_GC,
+			  (TSTR
+			   ("gc did not increase free chunks before %d after %d"
+			    TENDSTR), chunksBefore, chunksAfter));
+		}
 		dev->gcBlock = -1;
 		dev->gcChunk = 0;
 	}
@@ -3342,15 +3406,19 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 		if (checkpointBlockAdjust < 0)
 			checkpointBlockAdjust = 0;
 
-		if (dev->nErasedBlocks < (dev->param.nReservedBlocks + checkpointBlockAdjust + 2)) {
-			/* We need a block soon...*/
+		/* If we need a block soon then do aggressive gc.*/
+		if (dev->nErasedBlocks < (dev->param.nReservedBlocks + checkpointBlockAdjust + 2))
 			aggressive = 1;
-		} else {
-			/* We're in no hurry */
+		else
 			aggressive = 0;
-		}
 
-		if (dev->gcBlock <= 0) {
+                /* If we don't already have a block being gc'd then see if we should start another */
+
+		if (dev->gcBlock < 1 && !aggressive) {
+			dev->gcBlock = yaffs_FindRefreshBlock(dev);
+			dev->gcChunk = 0;
+		}
+		if (dev->gcBlock < 1) {
 			dev->gcBlock = yaffs_FindBlockForGarbageCollection(dev, aggressive);
 			dev->gcChunk = 0;
 		}
@@ -6472,35 +6540,26 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 
 				if (in &&
 				    in->variantType == YAFFS_OBJECT_TYPE_FILE
-				    && chunkBase <
-				    in->variant.fileVariant.shrinkSize) {
+				    && chunkBase < in->variant.fileVariant.shrinkSize) {
 					/* This has not been invalidated by a resize */
-					if (!yaffs_PutChunkIntoFile(in, tags.chunkId,
-							       chunk, -1)) {
+					if (!yaffs_PutChunkIntoFile(in, tags.chunkId, chunk, -1)) {
 						alloc_failed = 1;
 					}
 
 					/* File size is calculated by looking at the data chunks if we have not
 					 * seen an object header yet. Stop this practice once we find an object header.
 					 */
-					endpos =
-					    (tags.chunkId -
-					     1) * dev->nDataBytesPerChunk +
-					    tags.byteCount;
+					endpos = chunkBase + tags.byteCount;
 
 					if (!in->valid &&	/* have not got an object header yet */
-					    in->variant.fileVariant.
-					    scannedFileSize < endpos) {
-						in->variant.fileVariant.
-						    scannedFileSize = endpos;
-						in->variant.fileVariant.
-						    fileSize =
-						    in->variant.fileVariant.
-						    scannedFileSize;
+					    in->variant.fileVariant.scannedFileSize < endpos) {
+						in->variant.fileVariant.scannedFileSize = endpos;
+						in->variant.fileVariant.fileSize = endpos;
 					}
 
 				} else if (in) {
-					/* This chunk has been invalidated by a resize, so delete */
+					/* This chunk has been invalidated by a resize, or a past file deletion
+					 * so delete the chunk*/
 					yaffs_DeleteChunk(dev, chunk, 1, __LINE__);
 
 				}
@@ -6517,9 +6576,9 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 				in = NULL;
 
 				if (tags.extraHeaderInfoAvailable) {
-					in = yaffs_FindOrCreateObjectByNumber
-					    (dev, tags.objectId,
-					     tags.extraObjectType);
+					in = yaffs_FindOrCreateObjectByNumber(dev,
+						tags.objectId,
+						tags.extraObjectType);
 					if (!in)
 						alloc_failed = 1;
 				}
@@ -6601,13 +6660,8 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 							isShrink = 1;
 						}
 
-						if (isShrink &&
-						    in->variant.fileVariant.
-						    shrinkSize > thisSize) {
-							in->variant.fileVariant.
-							    shrinkSize =
-							    thisSize;
-						}
+						if (isShrink && in->variant.fileVariant.shrinkSize > thisSize)
+							in->variant.fileVariant.shrinkSize = thisSize;
 
 						if (isShrink)
 							bi->hasShrinkHeader = 1;
@@ -6780,14 +6834,12 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 							 * than its current data extents.
 							 */
 							in->variant.fileVariant.fileSize = fileSize;
-							in->variant.fileVariant.scannedFileSize =
-							    in->variant.fileVariant.fileSize;
+							in->variant.fileVariant.scannedFileSize = fileSize;
 						}
 
-						if (isShrink &&
-						    in->variant.fileVariant.shrinkSize > fileSize) {
+						if (in->variant.fileVariant.shrinkSize > fileSize)
 							in->variant.fileVariant.shrinkSize = fileSize;
-						}
+				
 
 						break;
 					case YAFFS_OBJECT_TYPE_HARDLINK:

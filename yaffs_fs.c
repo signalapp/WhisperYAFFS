@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.95 2010-02-19 01:19:12 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.96 2010-02-25 22:41:46 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -2301,6 +2301,13 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 #ifdef CONFIG_YAFFS_EMPTY_LOST_AND_FOUND
 	param->emptyLostAndFound = 1;
 #endif
+
+#ifdef CONFIG_YAFFS_DISABLE_BLOCK_REFRESHING
+	param->refreshPeriod = 0;
+#else
+	param->refreshPeriod = 10000;
+#endif
+
 	if(options.empty_lost_and_found_overridden)
 		param->emptyLostAndFound = options.empty_lost_and_found;
 
@@ -2514,6 +2521,22 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "startBlock......... %d\n", dev->param.startBlock);
 	buf += sprintf(buf, "endBlock........... %d\n", dev->param.endBlock);
 	buf += sprintf(buf, "totalBytesPerChunk. %d\n", dev->param.totalBytesPerChunk);
+	buf += sprintf(buf, "useNANDECC......... %d\n", dev->param.useNANDECC);
+	buf += sprintf(buf, "noTagsECC.......... %d\n", dev->param.noTagsECC);
+	buf += sprintf(buf, "isYaffs2........... %d\n", dev->param.isYaffs2);
+	buf += sprintf(buf, "inbandTags......... %d\n", dev->param.inbandTags);
+	buf += sprintf(buf, "emptyLostAndFound.. %d\n", dev->param.emptyLostAndFound);
+	buf += sprintf(buf, "disableLazyLoad.... %d\n", dev->param.disableLazyLoad);
+	buf += sprintf(buf, "refreshPeriod...... %d\n", dev->param.refreshPeriod);
+
+	buf += sprintf(buf, "\n");
+
+	return buf;
+}
+
+
+static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
+{
 	buf += sprintf(buf, "nDataBytesPerChunk. %d\n", dev->nDataBytesPerChunk);
 	buf += sprintf(buf, "chunkGroupBits..... %d\n", dev->chunkGroupBits);
 	buf += sprintf(buf, "chunkGroupSize..... %d\n", dev->chunkGroupSize);
@@ -2530,8 +2553,7 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "nBlockErasures..... %d\n", dev->nBlockErasures);
 	buf += sprintf(buf, "nGCCopies.......... %d\n", dev->nGCCopies);
 	buf += sprintf(buf, "garbageCollections. %d\n", dev->garbageCollections);
-	buf += sprintf(buf, "passiveGCs......... %d\n",
-		    dev->passiveGarbageCollections);
+	buf += sprintf(buf, "passiveGCs......... %d\n", dev->passiveGarbageCollections);
 	buf += sprintf(buf, "nRetriedWrites..... %d\n", dev->nRetriedWrites);
 	buf += sprintf(buf, "nShortOpCaches..... %d\n", dev->param.nShortOpCaches);
 	buf += sprintf(buf, "nRetireBlocks...... %d\n", dev->nRetiredBlocks);
@@ -2542,21 +2564,9 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "cacheHits.......... %d\n", dev->cacheHits);
 	buf += sprintf(buf, "nDeletedFiles...... %d\n", dev->nDeletedFiles);
 	buf += sprintf(buf, "nUnlinkedFiles..... %d\n", dev->nUnlinkedFiles);
+	buf += sprintf(buf, "refreshCount....... %d\n", dev->refreshCount);
 	buf +=
 	    sprintf(buf, "nBackgroudDeletions %d\n", dev->nBackgroundDeletions);
-
-	return buf;
-}
-
-
-static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
-{
-	buf += sprintf(buf, "useNANDECC......... %d\n", dev->param.useNANDECC);
-	buf += sprintf(buf, "noTagsECC.......... %d\n", dev->param.noTagsECC);
-	buf += sprintf(buf, "isYaffs2........... %d\n", dev->param.isYaffs2);
-	buf += sprintf(buf, "inbandTags......... %d\n", dev->param.inbandTags);
-	buf += sprintf(buf, "emptyLostAndFound.. %d\n", dev->param.emptyLostAndFound);
-	buf += sprintf(buf, "disableLazyLoad.... %d\n", dev->param.disableLazyLoad);
 
 	return buf;
 }

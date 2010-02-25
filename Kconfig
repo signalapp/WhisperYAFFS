@@ -175,3 +175,12 @@ config YAFFS_EMPTY_LOST_AND_FOUND
 	  If this is enabled then the contents of lost and found is
 	  automatically dumped at mount.
 
+config YAFFS_DISABLE_BLOCK_REFRESHING
+	boot "Disable yaffs2 block refreshing"
+	depends on YAFFS_FS
+	default n
+	help
+	 If this is set, then block refreshing is disabled.
+	 Block refreshing infrequently refreshes the oldest block in
+	 a yaffs2 file system. This mechanism helps to refresh flash to
+	 mitigate against data loss. This is particularly useful for MLC.

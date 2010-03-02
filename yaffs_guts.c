@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.110 2010-02-25 22:41:46 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.111 2010-03-02 02:29:21 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -2129,33 +2129,21 @@ static void yaffs_InitialiseObjects(yaffs_Device *dev)
 
 static int yaffs_FindNiceObjectBucket(yaffs_Device *dev)
 {
-	static int x;
 	int i;
 	int l = 999;
 	int lowest = 999999;
 
-	/* First let's see if we can find one that's empty. */
 
-	for (i = 0; i < 10 && lowest > 0; i++) {
-		x++;
-		x %= YAFFS_NOBJECT_BUCKETS;
-		if (dev->objectBucket[x].count < lowest) {
-			lowest = dev->objectBucket[x].count;
-			l = x;
-		}
-
-	}
-
-	/* If we didn't find an empty list, then try
-	 * looking a bit further for a short one
+	/* Search for the shortest list or one that
+	 * isn't too long.
 	 */
 
-	for (i = 0; i < 10 && lowest > 3; i++) {
-		x++;
-		x %= YAFFS_NOBJECT_BUCKETS;
-		if (dev->objectBucket[x].count < lowest) {
-			lowest = dev->objectBucket[x].count;
-			l = x;
+	for (i = 0; i < 10 && lowest > 4; i++) {
+		dev->bucketFinder++;
+		dev->bucketFinder %= YAFFS_NOBJECT_BUCKETS;
+		if (dev->objectBucket[dev->bucketFinder].count < lowest) {
+			lowest = dev->objectBucket[dev->bucketFinder].count;
+			l = dev->bucketFinder;
 		}
 
 	}
@@ -3818,9 +3806,9 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object *in, int chunkInInode,
 	 * the tnode now, rather than later when it is harder to clean up.
 	 */
 	prevChunkId = yaffs_FindChunkInFile(in, chunkInInode, &prevTags);
-	if(prevChunkId <= 0 &&
-		!yaffs_PutChunkIntoFile(in, chunkInInode, 0, 0)){
-	}
+	if(prevChunkId < 1 &&
+		!yaffs_PutChunkIntoFile(in, chunkInInode, 0, 0))
+		return 0;
 
 	/* Set up new tags */
 	yaffs_InitialiseTags(&newTags);
@@ -3837,13 +3825,6 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object *in, int chunkInInode,
 		YBUG();
 	}
 	
-	/*
-	 * If there isn't already a chunk there then do a dummy
-	 * insert to make sue we have the desired tnode structure.
-	 */
-	if(prevChunkId < 1 &&
-		yaffs_PutChunkIntoFile(in, chunkInInode, 0, 0) != YAFFS_OK)
-		return -1;
 		
 	newChunkId =
 	    yaffs_WriteNewChunkWithTagsToNAND(dev, buffer, &newTags,

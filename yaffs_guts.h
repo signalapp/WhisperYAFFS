@@ -700,6 +700,7 @@ struct yaffs_DeviceStruct {
 	yaffs_ObjectList *allocatedObjectList;
 
 	yaffs_ObjectBucket objectBucket[YAFFS_NOBJECT_BUCKETS];
+	__u32 bucketFinder;
 
 	int nFreeChunks;
 

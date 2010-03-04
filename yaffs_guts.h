@@ -603,10 +603,6 @@ struct yaffs_DeviceParamStruct {
 	int disableLazyLoad;	/* Disable lazy loading on this device */
 	int wideTnodesDisabled; /* Set to disable wide tnodes */
 
-	YCHAR *pathDividers;	/* String of legal path dividers */
-
-	
-
 	/* End of stuff that must be set before initialisation. */
 };
 

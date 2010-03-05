@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.111 2010-03-02 02:29:21 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.112 2010-03-05 01:49:00 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -4315,7 +4315,6 @@ static void yaffs_DeviceToCheckpointDevice(yaffs_CheckpointDevice *cp,
 	cp->nUnlinkedFiles = dev->nUnlinkedFiles;
 	cp->nBackgroundDeletions = dev->nBackgroundDeletions;
 	cp->sequenceNumber = dev->sequenceNumber;
-	cp->oldestDirtySequence = dev->oldestDirtySequence;
 
 }
 
@@ -4331,7 +4330,6 @@ static void yaffs_CheckpointDeviceToDevice(yaffs_Device *dev,
 	dev->nUnlinkedFiles = cp->nUnlinkedFiles;
 	dev->nBackgroundDeletions = cp->nBackgroundDeletions;
 	dev->sequenceNumber = cp->sequenceNumber;
-	dev->oldestDirtySequence = cp->oldestDirtySequence;
 }
 
 
@@ -5206,7 +5204,6 @@ int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
 		/* newsSize > oldFileSize */
 		in->variant.fileVariant.fileSize = newSize;
 	}
-
 
 	/* Write a new object header to reflect the resize.
 	 * show we've shrunk the file, if need be
@@ -7603,6 +7600,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	dev->nErasedBlocks = 0;
 	dev->isDoingGC = 0;
 	dev->hasPendingPrioritisedGCs = 1; /* Assume the worst for now, will get fixed on first GC */
+	dev->oldestDirtySequence = 0;
 
 	/* Initialise temporary buffers and caches. */
 	if (!yaffs_InitialiseTempBuffers(dev))
@@ -7685,7 +7683,6 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 				dev->nDeletedFiles = 0;
 				dev->nUnlinkedFiles = 0;
 				dev->nBackgroundDeletions = 0;
-				dev->oldestDirtySequence = 0;
 
 				if (!init_failed && !yaffs_InitialiseBlocks(dev))
 					init_failed = 1;

@@ -63,7 +63,7 @@
 
 #define YAFFS_OBJECT_SPACE		0x40000
 
-#define YAFFS_CHECKPOINT_VERSION 	3
+#define YAFFS_CHECKPOINT_VERSION 	4
 
 #ifdef CONFIG_YAFFS_UNICODE
 #define YAFFS_MAX_NAME_LENGTH		127
@@ -794,7 +794,6 @@ typedef struct {
 
 	/* yaffs2 runtime stuff */
 	unsigned sequenceNumber;	/* Sequence number of currently allocating block */
-	unsigned oldestDirtySequence;
 
 } yaffs_CheckpointDevice;
 

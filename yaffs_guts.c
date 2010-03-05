@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.112 2010-03-05 01:49:00 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.113 2010-03-05 02:26:27 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -404,16 +404,19 @@ static int yaffs_CountChunkBits(yaffs_Device *dev, int blk)
 
 static int yaffs_SkipVerification(yaffs_Device *dev)
 {
+	dev=dev;
 	return !(yaffs_traceMask & (YAFFS_TRACE_VERIFY | YAFFS_TRACE_VERIFY_FULL));
 }
 
 static int yaffs_SkipFullVerification(yaffs_Device *dev)
 {
+	dev=dev;
 	return !(yaffs_traceMask & (YAFFS_TRACE_VERIFY_FULL));
 }
 
 static int yaffs_SkipNANDVerification(yaffs_Device *dev)
 {
+	dev=dev;
 	return !(yaffs_traceMask & (YAFFS_TRACE_VERIFY_NAND));
 }
 
@@ -1094,11 +1097,18 @@ static void yaffs_HandleWriteChunkOk(yaffs_Device *dev, int chunkInNAND,
 				const __u8 *data,
 				const yaffs_ExtendedTags *tags)
 {
+	dev=dev;
+	chunkInNAND=chunkInNAND;
+	data=data;
+	tags=tags;
 }
 
 static void yaffs_HandleUpdateChunk(yaffs_Device *dev, int chunkInNAND,
 				const yaffs_ExtendedTags *tags)
 {
+	dev=dev;
+	chunkInNAND=chunkInNAND;
+	tags=tags;
 }
 
 void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi)
@@ -1445,6 +1455,8 @@ static yaffs_Tnode *yaffs_FindLevel0Tnode(yaffs_Device *dev,
 	__u32 i;
 	int requiredTallness;
 	int level = fStruct->topLevel;
+
+	dev=dev;
 
 	/* Check sane level and chunk Id */
 	if (level < 0 || level > YAFFS_TNODES_MAX_LEVEL)

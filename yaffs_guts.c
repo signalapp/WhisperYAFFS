@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.114 2010-03-07 22:07:03 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.115 2010-03-07 23:43:34 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -1062,7 +1062,9 @@ static int yaffs_CalcOldestDirtySequence(yaffs_Device *dev)
 	__u32 seq;
 	yaffs_BlockInfo *b = 0;
 
-	
+	if(!dev->param.isYaffs2)
+		return 0;
+
 	/* Find the oldest dirty sequence number. */
 	seq = dev->sequenceNumber;
 	for (i = dev->internalStartBlock; i <= dev->internalEndBlock; i++) {
@@ -1078,7 +1080,7 @@ static int yaffs_CalcOldestDirtySequence(yaffs_Device *dev)
 
 static void yaffs_FindOldestDirtySequence(yaffs_Device *dev)
 {
-	if(!dev->oldestDirtySequence)
+	if(dev->param.isYaffs2 && !dev->oldestDirtySequence)
 		dev->oldestDirtySequence = 
 			yaffs_CalcOldestDirtySequence(dev);
 
@@ -1099,6 +1101,9 @@ static void yaffs_FindOldestDirtySequence(yaffs_Device *dev)
 static void yaffs_ClearOldestDirtySequence(yaffs_Device *dev, yaffs_BlockInfo *bi)
 {
 
+	if(!dev->param.isYaffs2)
+		return;
+
 	if(!bi || bi->sequenceNumber == dev->oldestDirtySequence)
 		dev->oldestDirtySequence = 0;
 }
@@ -1110,7 +1115,7 @@ static void yaffs_ClearOldestDirtySequence(yaffs_Device *dev, yaffs_BlockInfo *b
  */
 static void yaffs_UpdateOldestDirtySequence(yaffs_Device *dev, yaffs_BlockInfo *bi)
 {
-	if(dev->oldestDirtySequence){
+	if(dev->param.isYaffs2 && dev->oldestDirtySequence){
 		if(dev->oldestDirtySequence > bi->sequenceNumber)
 			dev->oldestDirtySequence = bi->sequenceNumber;
 	}
@@ -1798,6 +1803,7 @@ static void yaffs_SoftDeleteChunk(yaffs_Device *dev, int chunk)
 	if (theBlock) {
 		theBlock->softDeletions++;
 		dev->nFreeChunks++;
+		yaffs_UpdateOldestDirtySequence(dev,theBlock);
 	}
 }
 

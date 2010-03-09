@@ -176,7 +176,7 @@ config YAFFS_EMPTY_LOST_AND_FOUND
 	  automatically dumped at mount.
 
 config YAFFS_DISABLE_BLOCK_REFRESHING
-	boot "Disable yaffs2 block refreshing"
+	bool "Disable yaffs2 block refreshing"
 	depends on YAFFS_FS
 	default n
 	help

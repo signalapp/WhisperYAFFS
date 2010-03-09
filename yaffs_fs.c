@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.96 2010-02-25 22:41:46 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.97 2010-03-09 04:12:00 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -51,6 +51,8 @@ extern const char *yaffs_guts_c_version;
 #include <linux/interrupt.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
+
+#include <linux/kthread.h>
 
 #include "asm/div64.h"
 
@@ -1779,7 +1781,7 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf)
 
 
 
-static void yaffs_flush_sb_inodes(struct super_block *sb)
+static void yaffs_FlushInodes(struct super_block *sb)
 {
 	struct inode *iptr;
 	yaffs_Object *obj;
@@ -1793,21 +1795,32 @@ static void yaffs_flush_sb_inodes(struct super_block *sb)
 	}
 }
 
-static int yaffs_do_sync_fs(struct super_block *sb)
+
+static void yaffs_FlushSuperBlock(struct super_block *sb, int do_checkpoint)
+{
+	yaffs_Device *dev = yaffs_SuperToDevice(sb);	
+	if(!dev)
+		return;
+	
+	yaffs_FlushInodes(sb);
+	yaffs_UpdateDirtyDirectories(dev);
+	yaffs_FlushEntireDeviceCache(dev);
+	if(do_checkpoint)
+		yaffs_CheckpointSave(dev);
+}
+
+static int yaffs_do_sync_fs(struct super_block *sb, int do_checkpoint)
 {
 
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
-	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_do_sync_fs\n"));
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, 
+		("yaffs_do_sync_fs: %s %s\n", 
+		sb->s_dirt ? "dirty" : "clean",
+		do_checkpoint ? "with checkpoint" : "no checkpoint"));
 
 	if (sb->s_dirt) {
 		yaffs_GrossLock(dev);
-
-		if (dev) {
-			yaffs_FlushEntireDeviceCache(dev);
-			yaffs_flush_sb_inodes(sb);
-			yaffs_CheckpointSave(dev);
-		}
-
+		yaffs_FlushSuperBlock(sb,do_checkpoint);
 		yaffs_GrossUnlock(dev);
 
 		sb->s_dirt = 0;
@@ -1815,6 +1828,70 @@ static int yaffs_do_sync_fs(struct super_block *sb)
 	return 0;
 }
 
+/*
+ * yaffs background thread functions .
+ * yaffs_BackgroundThread() the thread function
+ * yaffs_BackgroundStart() launches the background thread.
+ * yaffs_BackgroundStop() cleans up the background thread.
+ *
+ * NB: 
+ * The thread should only run after the yaffs is initialised
+ * The thread should be stopped before yaffs is unmounted.
+ * The thread should not do any writing while the fs is in read only.
+ */
+
+static int yaffs_BackgroundThread(void *data)
+{
+	yaffs_Device *dev = (yaffs_Device *)data;
+	struct yaffs_LinuxContext *context = yaffs_DeviceToContext(dev);
+
+	T(YAFFS_TRACE_BACKGROUND,
+		("yaffs_background starting for dev %p\n",
+		(void *)dev));
+	
+	while(context->bgRunning){
+		T(YAFFS_TRACE_BACKGROUND,
+			("yaffs_background\n"));
+
+		if(kthread_should_stop())
+			break;
+		yaffs_GrossLock(dev);
+		yaffs_UpdateDirtyDirectories(dev);
+		yaffs_GrossUnlock(dev);
+		msleep(500);
+	}
+	return 0;
+}
+
+static int yaffs_BackgroundStart(yaffs_Device *dev)
+{
+	int retval = 0;
+
+	struct yaffs_LinuxContext *context = yaffs_DeviceToContext(dev);
+
+	context->bgRunning = 1;
+
+	context->bgThread = kthread_run(yaffs_BackgroundThread,(void *)dev,"yaffs_%x",(unsigned)dev);
+
+	if(IS_ERR(context->bgThread)){
+		retval = PTR_ERR(context->bgThread);
+		context->bgThread = NULL;
+		context->bgRunning = 0;
+	}
+	return retval;
+}
+
+static void yaffs_BackgroundStop(yaffs_Device *dev)
+{
+	struct yaffs_LinuxContext *ctxt = yaffs_DeviceToContext(dev);
+
+	ctxt->bgRunning = 0;
+
+	if( ctxt->bgThread){
+		kthread_stop(ctxt->bgThread);
+		ctxt->bgThread = NULL;
+	}
+}
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 static void yaffs_write_super(struct super_block *sb)
@@ -1824,8 +1901,8 @@ static int yaffs_write_super(struct super_block *sb)
 {
 
 	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_write_super\n"));
-	if (yaffs_auto_checkpoint >= 2)
-		yaffs_do_sync_fs(sb);
+	yaffs_do_sync_fs(sb, yaffs_auto_checkpoint >= 2);
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 18))
 	return 0;
 #endif
@@ -1840,8 +1917,7 @@ static int yaffs_sync_fs(struct super_block *sb)
 {
 	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_sync_fs\n"));
 
-	if (yaffs_auto_checkpoint >= 1)
-		yaffs_do_sync_fs(sb);
+	yaffs_do_sync_fs(sb,yaffs_auto_checkpoint >= 1);
 
 	return 0;
 }
@@ -1921,9 +1997,7 @@ static int yaffs_remount_fs(struct super_block *sb, int *flags, char *data)
 
 		yaffs_GrossLock(dev);
 
-		yaffs_FlushEntireDeviceCache(dev);
-
-		yaffs_CheckpointSave(dev);
+		yaffs_FlushSuperBlock(sb,1);
 
 		if (mtd->sync)
 			mtd->sync(mtd);
@@ -1946,12 +2020,12 @@ static void yaffs_put_super(struct super_block *sb)
 
 	yaffs_GrossLock(dev);
 
-	yaffs_FlushEntireDeviceCache(dev);
-
-	yaffs_CheckpointSave(dev);
+	yaffs_FlushSuperBlock(sb,1);
 
 	if (yaffs_DeviceToContext(dev)->putSuperFunc)
 		yaffs_DeviceToContext(dev)->putSuperFunc(sb);
+
+	yaffs_BackgroundStop(dev);
 
 	yaffs_Deinitialise(dev);
 
@@ -2295,6 +2369,9 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 #ifdef CONFIG_YAFFS_DISABLE_TAGS_ECC
 	param->noTagsECC = 1;
 #endif
+
+	param->deferDirectoryUpdate = 1;
+
 	if(options.tags_ecc_overridden)
 		param->noTagsECC = !options.tags_ecc_on;
 
@@ -2385,6 +2462,13 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	T(YAFFS_TRACE_OS,
 	  ("yaffs_read_super: guts initialised %s\n",
 	   (err == YAFFS_OK) ? "OK" : "FAILED"));
+	   
+	if(err == YAFFS_OK)
+		yaffs_BackgroundStart(dev);
+		
+	if(!context->bgThread)
+		param->deferDirectoryUpdate = 0;
+
 
 	/* Release lock before yaffs_get_inode() */
 	yaffs_GrossUnlock(dev);
@@ -2652,6 +2736,8 @@ static struct {
 	{"scan", YAFFS_TRACE_SCAN},
 	{"tracing", YAFFS_TRACE_TRACING},
 	{"sync", YAFFS_TRACE_SYNC},
+
+	{"background", YAFFS_TRACE_BACKGROUND},
 
 	{"verify", YAFFS_TRACE_VERIFY},
 	{"verify_nand", YAFFS_TRACE_VERIFY_NAND},

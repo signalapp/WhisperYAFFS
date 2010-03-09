@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.115 2010-03-07 23:43:34 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.116 2010-03-09 04:12:00 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -2358,6 +2358,8 @@ yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev, int number,
 		case YAFFS_OBJECT_TYPE_DIRECTORY:
 			YINIT_LIST_HEAD(&theObject->variant.directoryVariant.
 					children);
+			YINIT_LIST_HEAD(&theObject->variant.directoryVariant.
+					dirty);
 			break;
 		case YAFFS_OBJECT_TYPE_SYMLINK:
 		case YAFFS_OBJECT_TYPE_HARDLINK:
@@ -4856,9 +4858,9 @@ static void yaffs_InvalidateCheckpoint(yaffs_Device *dev)
 			dev->blocksInCheckpoint > 0) {
 		dev->isCheckpointed = 0;
 		yaffs_CheckpointInvalidateStream(dev);
-		if (dev->param.markSuperBlockDirty)
-			dev->param.markSuperBlockDirty(dev);
 	}
+	if (dev->param.markSuperBlockDirty)
+		dev->param.markSuperBlockDirty(dev);
 }
 
 
@@ -5469,6 +5471,10 @@ int retVal = -1;
 		retVal = yaffs_DeleteFile(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_DIRECTORY:
+		if(!ylist_empty(&obj->variant.directoryVariant.dirty)){
+			T(YAFFS_TRACE_BACKGROUND, (TSTR("Remove object %d from dirty directories" TENDSTR),obj->objectId));
+			ylist_del_init(&obj->variant.directoryVariant.dirty);
+		}
 		return yaffs_DeleteDirectory(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_SYMLINK:
@@ -5543,6 +5549,7 @@ static int yaffs_UnlinkWorker(yaffs_Object *obj)
 			return yaffs_DeleteFile(obj);
 			break;
 		case YAFFS_OBJECT_TYPE_DIRECTORY:
+			ylist_del_init(&obj->variant.directoryVariant.dirty);
 			return yaffs_DeleteDirectory(obj);
 			break;
 		case YAFFS_OBJECT_TYPE_SYMLINK:
@@ -7051,17 +7058,57 @@ static void yaffs_VerifyDirectory(yaffs_Object *directory)
  *   create dir/a : update dir's mtime/ctime
  *   rm dir/a:   update dir's mtime/ctime
  *   modify dir/a: don't update dir's mtimme/ctime
+ *
+ * This can be handled immediately or defered. Defering helps reduce the number
+ * of updates when many files in a directory are changed within a brief period.
+ *
+ * If the directory updating is defered then yaffs_UpdateDirtyDirecories must be
+ * called periodically.
  */
  
 static void yaffs_UpdateParent(yaffs_Object *obj)
 {
+	yaffs_Device *dev;
 	if(!obj)
 		return;
 
+	dev = obj->myDev;
 	obj->dirty = 1;
 	obj->yst_mtime = obj->yst_ctime = Y_CURRENT_TIME;
+	if(dev->param.deferDirectoryUpdate){
+		struct ylist_head *link = &obj->variant.directoryVariant.dirty; 
+	
+		if(ylist_empty(link)){
+			ylist_add(link,&dev->dirtyDirectories);
+			T(YAFFS_TRACE_BACKGROUND, (TSTR("Added object %d to dirty directories" TENDSTR),obj->objectId));
+		}
 
-	yaffs_UpdateObjectHeader(obj,NULL,0,0,0);
+	} else
+		yaffs_UpdateObjectHeader(obj,NULL,0,0,0);
+}
+
+void yaffs_UpdateDirtyDirectories(yaffs_Device *dev)
+{
+	struct ylist_head *link;
+	yaffs_Object *obj;
+	yaffs_DirectoryStructure *dS;
+	yaffs_ObjectVariant *oV;
+
+	T(YAFFS_TRACE_BACKGROUND, (TSTR("Update dirty directories" TENDSTR)));
+
+	while(!ylist_empty(&dev->dirtyDirectories)){
+		link = dev->dirtyDirectories.next;
+		ylist_del_init(link);
+		
+		dS=ylist_entry(link,yaffs_DirectoryStructure,dirty);
+		oV = ylist_entry(dS,yaffs_ObjectVariant,directoryVariant);
+		obj = ylist_entry(oV,yaffs_Object,variant);
+
+		T(YAFFS_TRACE_BACKGROUND, (TSTR("Update directory %d" TENDSTR), obj->objectId));
+
+		if(obj->dirty)
+			yaffs_UpdateObjectHeader(obj,NULL,0,0,0);
+	}
 }
 
 static void yaffs_RemoveObjectFromDirectory(yaffs_Object *obj)
@@ -7672,6 +7719,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	dev->nErasedBlocks = 0;
 	dev->isDoingGC = 0;
 	dev->hasPendingPrioritisedGCs = 1; /* Assume the worst for now, will get fixed on first GC */
+	YINIT_LIST_HEAD(&dev->dirtyDirectories);
 	dev->oldestDirtySequence = 0;
 
 	/* Initialise temporary buffers and caches. */

@@ -23,6 +23,8 @@ struct yaffs_LinuxContext {
 	struct ylist_head	contextList; /* List of these we have mounted */
 	struct yaffs_DeviceStruct *dev;
 	struct super_block * superBlock;
+	struct task_struct *bgThread; /* Background thread for this device */
+	int bgRunning;
         struct semaphore grossLock;     /* Gross locking semaphore */
 	__u8 *spareBuffer;      /* For mtdif2 use. Don't know the size of the buffer
 				 * at compile time so we have to allocate it.

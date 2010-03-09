@@ -386,6 +386,7 @@ typedef struct {
 
 typedef struct {
 	struct ylist_head children;     /* list of child links */
+	struct ylist_head dirty;	/* Entry for list of dirty directories */
 } yaffs_DirectoryStructure;
 
 typedef struct {
@@ -602,8 +603,9 @@ struct yaffs_DeviceParamStruct {
 	int useHeaderFileSize;	/* Flag to determine if we should use file sizes from the header */
 	int disableLazyLoad;	/* Disable lazy loading on this device */
 	int wideTnodesDisabled; /* Set to disable wide tnodes */
-
-	/* End of stuff that must be set before initialisation. */
+	
+	int deferDirectoryUpdate; /* Set to defer directory updates */
+	
 };
 
 typedef struct yaffs_DeviceParamStruct yaffs_DeviceParam;
@@ -744,6 +746,10 @@ struct yaffs_DeviceStruct {
 	/* Block refreshing */
 	int refreshSkip;	/* A skip down counter. Refresh happens when this gets to zero. */
 
+	/* Dirty directory handling */
+	struct ylist_head dirtyDirectories; /* List of dirty directories */
+
+
 	/* Statistcs */
 	int nPageWrites;
 	int nPageReads;
@@ -882,6 +888,10 @@ void yfsd_WinFileTimeNow(__u32 target[2]);
 
 void yaffs_HandleDeferedFree(yaffs_Object *obj);
 
+
+void yaffs_UpdateDirtyDirectories(yaffs_Device *dev);
+
+
 /* Debug dump  */
 int yaffs_DumpObject(yaffs_Object *obj);
 
@@ -895,5 +905,6 @@ void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi);
 
 __u8 *yaffs_GetTempBuffer(yaffs_Device *dev, int lineNo);
 void yaffs_ReleaseTempBuffer(yaffs_Device *dev, __u8 *buffer, int lineNo);
+
 
 #endif

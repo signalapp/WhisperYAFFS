@@ -16,10 +16,19 @@ do
 
    seed=$RANDOM   
    j=$(( $i % 10 ))
-   rm seed-nand-*$j
+   rm -f seed-nand-*$j
    echo $seed>seed-nand-for-run-$i
-   rm emfile-2k-0-*$j
+
+   rm -f emfile-2k-0-*$j
+   rm -f emfile-2k-1-*$j
+   rm -f emfile-2k-2-*$j
+   rm -f emfile-2k-3-*$j
+
    cp emfile-2k-0 emfile-2k-0-$i
+   cp emfile-2k-1 emfile-2k-1-$i
+   cp emfile-2k-2 emfile-2k-2-$i
+   cp emfile-2k-3 emfile-2k-3-$i
+
    echo "#########"
    echo "#########"
    echo "#########"

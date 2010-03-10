@@ -32,10 +32,15 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.97 2010-03-09 04:12:00 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.98 2010-03-10 01:22:19 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 10))
+#define YAFFS_COMPILE_BACKGROUND
+#endif
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
 #include <linux/config.h>
 #endif
@@ -52,7 +57,11 @@ extern const char *yaffs_guts_c_version;
 #include <linux/string.h>
 #include <linux/ctype.h>
 
+#ifdef YAFFS_COMPILE_BACKGROUND
 #include <linux/kthread.h>
+#include <linux/delay.h>
+#endif
+
 
 #include "asm/div64.h"
 
@@ -1840,6 +1849,7 @@ static int yaffs_do_sync_fs(struct super_block *sb, int do_checkpoint)
  * The thread should not do any writing while the fs is in read only.
  */
 
+#ifdef YAFFS_COMPILE_BACKGROUND
 static int yaffs_BackgroundThread(void *data)
 {
 	yaffs_Device *dev = (yaffs_Device *)data;
@@ -1892,6 +1902,22 @@ static void yaffs_BackgroundStop(yaffs_Device *dev)
 		ctxt->bgThread = NULL;
 	}
 }
+#else
+static int yaffs_BackgroundThread(void *data)
+{
+	return 0;
+}
+
+static int yaffs_BackgroundStart(yaffs_Device *dev)
+{
+	return 0;
+}
+
+static void yaffs_BackgroundStop(yaffs_Device *dev)
+{
+}
+#endif
+
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 static void yaffs_write_super(struct super_block *sb)
@@ -2370,7 +2396,10 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	param->noTagsECC = 1;
 #endif
 
+#ifdef CONFIG_YAFFS_DISABLE_BACKGROUND
+#else
 	param->deferDirectoryUpdate = 1;
+#endif
 
 	if(options.tags_ecc_overridden)
 		param->noTagsECC = !options.tags_ecc_on;

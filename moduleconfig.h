@@ -57,6 +57,10 @@
 /* Block Refreshing periodically rewrites the oldest block. */
 /* #define CONFIG_DISABLE_BLOCK_REFRESHING */
 
+/* Default: Unselected */
+/* Meaning: Select to disable background processing */
+/* #define CONFIG_DISABLE_BACKGROUND */
+
 
 /*
 Older-style on-NAND data format has a "pageStatus" byte to record

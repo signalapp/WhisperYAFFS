@@ -118,12 +118,14 @@ static void UpdateCounter(const char *name, unsigned *val,  int initialise)
   
   FSX();
   outh = yaffs_open(fullTempCounterName, O_RDWR | O_TRUNC | O_CREAT, S_IREAD | S_IWRITE);
+  
   if(outh >= 0){
    struct yaffs_stat tmpstat, oldstat, tmpfstat;
    FSX(); 
+    yaffs_fstat(outh,&tmpfstat);
+    printf("\n\n\n*** Writing file %s inode %d\n",fullTempCounterName,tmpfstat.st_ino);
     nwritten = yaffs_write(outh,x,sizeof(x));
     FSX();
-    yaffs_fstat(outh,&tmpfstat);
     yaffs_close(outh);
     FSX();
 
@@ -238,7 +240,7 @@ static int yWriteFile(const char *fname, unsigned sz32)
 	FSX();
 	h = yaffs_open(fname,O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
 	yaffs_fstat(h,&st);
-	printf("Writing file %s inode %d\n",fname, st.st_ino);
+	printf("\n\n\n**** Open writing file %s inode %d\n",fname, st.st_ino);
 	
 	FSX();
 
@@ -275,6 +277,7 @@ static int yWriteFile(const char *fname, unsigned sz32)
 	
 	FSX();
 	yaffs_close(h);
+	printf("File closed\n");
 	return 0;
 
 WRITE_ERROR:
@@ -369,6 +372,7 @@ static void DoUpdateMainFile(void)
 	FSX();
 	if(result)
 	    FatalError(__LINE__);
+	printf("Raname file %s to %s\n",fullTempMainName,fullMainName);
 	yaffs_rename(fullTempMainName,fullMainName);
 	FSX();
 }
@@ -398,8 +402,10 @@ void NorStressTestInitialise(const char *prefix)
 
 void NorStressTestRun(const char *prefix, int n_cycles, int do_fsx)
 {
+
   interleave_fsx = do_fsx;
   MakeFullNames(prefix);
+  dump_directory_tree(fullPathName);
   FSX_INIT(prefix);
     
   dump_directory_tree(fullPathName);

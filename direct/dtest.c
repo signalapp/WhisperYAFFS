@@ -2479,7 +2479,9 @@ int main(int argc, char *argv[])
 
 	//rename_over_test("//////////////////flash///////////////////yaffs1///////////");
 	
-	fill_empty_files_test("/yaffs2/");
+	//fill_empty_files_test("/yaffs2/");
+	resize_stress_test("/yaffs2");
+	
 	//long_name_test("/yaffs2");
 	//link_test0("/yaffs2");
 	//link_test1("yaffs2");
@@ -2496,7 +2498,7 @@ int main(int argc, char *argv[])
 	 // huge_array_test("/flash/flash",10);
 
 
-       handle_test("yaffs2/");
+	// handle_test("yaffs2/");
 	
 	//long_test_on_path("/ram2k");
 	// long_test_on_path("/flash");

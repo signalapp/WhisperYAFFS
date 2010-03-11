@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.116 2010-03-09 04:12:00 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.117 2010-03-11 02:44:43 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -3342,13 +3342,19 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 
 						yaffs_ObjectHeader *oh;
 						oh = (yaffs_ObjectHeader *)buffer;
+
 						oh->isShrink = 0;
 						tags.extraIsShrinkHeader = 0;
+
 						oh->shadowsObject = 0;
 						oh->inbandShadowsObject = 0;
-						if(object->variantType == YAFFS_OBJECT_TYPE_FILE)
-							oh->fileSize = object->variant.fileVariant.fileSize;
 						tags.extraShadows = 0;
+
+						/* Update file size */
+						if(object->variantType == YAFFS_OBJECT_TYPE_FILE){
+							oh->fileSize = object->variant.fileVariant.fileSize;
+							tags.extraFileLength = oh->fileSize;
+						}
 
 						yaffs_VerifyObjectHeader(object, oh, &tags, 1);
 						newChunk =

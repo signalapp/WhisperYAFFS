@@ -1036,6 +1036,36 @@ int resize_stress_test(const char *path)
    
 }
 
+
+int overwrite_test(const char *path)
+{
+   char aname[100];
+   char bname[100];
+   int i;
+   int j;   
+   int a;
+   int b;
+   yaffs_StartUp();
+   
+   yaffs_mount(path);
+   
+   sprintf(aname,"%s%s",path,"/a");
+   sprintf(bname,"%s%s",path,"/b");
+   
+   b = yaffs_open(bname, O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+   for(j= 0; j < 500; j++){
+   	yaffs_write(b,bname,100);
+	a = yaffs_open(aname, O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+   	for(i = 0; i < rand() % 20000; i++)
+   		yaffs_write(a,&a,sizeof(a));
+	yaffs_close(a);
+   }
+   
+   return 0;
+   
+}
+
+
 int root_perm_remount(const char *path)
 {
    struct yaffs_stat s;
@@ -2480,7 +2510,8 @@ int main(int argc, char *argv[])
 	//rename_over_test("//////////////////flash///////////////////yaffs1///////////");
 	
 	//fill_empty_files_test("/yaffs2/");
-	resize_stress_test("/yaffs2");
+	//resize_stress_test("/yaffs2");
+	overwrite_test("/yaffs2");
 	
 	//long_name_test("/yaffs2");
 	//link_test0("/yaffs2");

@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.117 2010-03-11 02:44:43 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.118 2010-03-12 01:22:48 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -35,6 +35,7 @@ const char *yaffs_guts_c_version =
 
 
 #define YAFFS_PASSIVE_GC_CHUNKS 2
+#define YAFFS_SMALL_HOLE_THRESHOLD 3
 
 #include "yaffs_ecc.h"
 
@@ -114,6 +115,7 @@ static yaffs_Tnode *yaffs_FindLevel0Tnode(yaffs_Device *dev,
 					yaffs_FileStructure *fStruct,
 					__u32 chunkId);
 
+static int yaffs_HandleHole(yaffs_Object *obj, loff_t newSize);
 static void yaffs_SkipRestOfBlock(yaffs_Device *dev);
 static int yaffs_VerifyChunkWritten(yaffs_Device *dev,
 					int chunkInNAND,
@@ -3073,7 +3075,7 @@ static int yaffs_CalcCheckpointBlocksRequired(yaffs_Device *dev)
  * Check if there's space to allocate...
  * Thinks.... do we need top make this ths same as yaffs_GetFreeChunks()?
  */
-static int yaffs_CheckSpaceForAllocation(yaffs_Device *dev)
+static int yaffs_CheckSpaceForAllocation(yaffs_Device *dev, int nChunks)
 {
 	int reservedChunks;
 	int reservedBlocks = dev->param.nReservedBlocks;
@@ -3090,7 +3092,7 @@ static int yaffs_CheckSpaceForAllocation(yaffs_Device *dev)
 
 	reservedChunks = ((reservedBlocks + checkpointBlocks) * dev->param.nChunksPerBlock);
 
-	return (dev->nFreeChunks > reservedChunks);
+	return (dev->nFreeChunks > (reservedChunks + nChunks));
 }
 
 static int yaffs_AllocateChunk(yaffs_Device *dev, int useReserve,
@@ -3105,7 +3107,7 @@ static int yaffs_AllocateChunk(yaffs_Device *dev, int useReserve,
 		dev->allocationPage = 0;
 	}
 
-	if (!useReserve && !yaffs_CheckSpaceForAllocation(dev)) {
+	if (!useReserve && !yaffs_CheckSpaceForAllocation(dev, 1)) {
 		/* Not enough space to allocate unless we're allowed to use the reserve. */
 		return -1;
 	}
@@ -5009,7 +5011,7 @@ int yaffs_ReadDataFromFile(yaffs_Object *in, __u8 *buffer, loff_t offset,
 	return nDone;
 }
 
-int yaffs_WriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
+int yaffs_DoWriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
 			int nBytes, int writeThrough)
 {
 
@@ -5086,19 +5088,17 @@ int yaffs_WriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
 				cache = yaffs_FindChunkCache(in, chunk);
 
 				if (!cache
-				    && yaffs_CheckSpaceForAllocation(in->
-								     myDev)) {
-					cache = yaffs_GrabChunkCache(in->myDev);
+				    && yaffs_CheckSpaceForAllocation(dev, 1)) {
+					cache = yaffs_GrabChunkCache(dev);
 					cache->object = in;
 					cache->chunkId = chunk;
 					cache->dirty = 0;
 					cache->locked = 0;
 					yaffs_ReadChunkDataFromObject(in, chunk,
-								      cache->
-								      data);
+								      cache->data);
 				} else if (cache &&
 					!cache->dirty &&
-					!yaffs_CheckSpaceForAllocation(in->myDev)) {
+					!yaffs_CheckSpaceForAllocation(dev, 1)) {
 					/* Drop the cache if it was a read cache item and
 					 * no space check has been made for it.
 					 */
@@ -5189,6 +5189,14 @@ int yaffs_WriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
 	return nDone;
 }
 
+int yaffs_WriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
+			int nBytes, int writeThrough)
+{
+	yaffs_HandleHole(in,offset);
+	return yaffs_DoWriteDataToFile(in,buffer,offset,nBytes,writeThrough);
+}
+
+
 
 /* ---------------------- File resizing stuff ------------------ */
 
@@ -5233,16 +5241,127 @@ static void yaffs_PruneResizedChunks(yaffs_Object *in, int newSize)
 
 }
 
-int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
+
+static void yaffs_ResizeDown( yaffs_Object *obj, loff_t newSize)
 {
-
-	int oldFileSize = in->variant.fileVariant.fileSize;
-	__u32 newSizeOfPartialChunk;
 	int newFullChunks;
-
-	yaffs_Device *dev = in->myDev;
+	__u32 newSizeOfPartialChunk;
+	yaffs_Device *dev = obj->myDev;
 
 	yaffs_AddrToChunk(dev, newSize, &newFullChunks, &newSizeOfPartialChunk);
+
+	yaffs_PruneResizedChunks(obj, newSize);
+
+	if (newSizeOfPartialChunk != 0) {
+		int lastChunk = 1 + newFullChunks;
+		__u8 *localBuffer = yaffs_GetTempBuffer(dev, __LINE__);
+
+		/* Got to read and rewrite the last chunk with its new size and zero pad */
+		yaffs_ReadChunkDataFromObject(obj, lastChunk, localBuffer);
+		memset(localBuffer + newSizeOfPartialChunk, 0,
+			dev->nDataBytesPerChunk - newSizeOfPartialChunk);
+
+		yaffs_WriteChunkDataToObject(obj, lastChunk, localBuffer,
+					     newSizeOfPartialChunk, 1);
+
+		yaffs_ReleaseTempBuffer(dev, localBuffer, __LINE__);
+	}
+
+	obj->variant.fileVariant.fileSize = newSize;
+
+	yaffs_PruneFileStructure(dev, &obj->variant.fileVariant);
+}
+
+
+static int yaffs_HandleHole(yaffs_Object *obj, loff_t newSize)
+{
+	/* if newsSize > oldFileSize.
+	 * We're going to be writing a hole.
+	 * If the hole is small then write zeros otherwise write a start of hole marker.
+	 */
+		
+
+	loff_t oldFileSize;
+	int increase;
+	int smallHole   ;
+	int result = YAFFS_OK;
+	yaffs_Device *dev = NULL;
+
+	__u8 *localBuffer = NULL;
+	
+	int smallIncreaseOk = 0;
+	
+	if(!obj)
+		return YAFFS_FAIL;
+
+	if(obj->variantType != YAFFS_OBJECT_TYPE_FILE)
+		return YAFFS_FAIL;
+	
+	dev = obj->myDev;
+	
+	/* Bail out if not yaffs2 mode */
+	if(!dev->param.isYaffs2)
+		return YAFFS_OK;
+
+	oldFileSize = obj->variant.fileVariant.fileSize;
+
+	if (newSize <= oldFileSize)
+		return YAFFS_OK;
+
+	increase = newSize - oldFileSize;
+
+	if(increase < YAFFS_SMALL_HOLE_THRESHOLD * dev->nDataBytesPerChunk &&
+		yaffs_CheckSpaceForAllocation(dev, YAFFS_SMALL_HOLE_THRESHOLD + 1))
+		smallHole = 1;
+	else
+		smallHole = 0;
+
+	if(smallHole)
+		localBuffer= yaffs_GetTempBuffer(dev, __LINE__);
+	
+	if(localBuffer){
+		/* fill hole with zero bytes */
+		int pos = oldFileSize;
+		int thisWrite;
+		int written;
+		memset(localBuffer,0,dev->nDataBytesPerChunk);
+		smallIncreaseOk = 1;
+
+		while(increase > 0 && smallIncreaseOk){
+			thisWrite = increase;
+			if(thisWrite > dev->nDataBytesPerChunk)
+				thisWrite = dev->nDataBytesPerChunk;
+			written = yaffs_DoWriteDataToFile(obj,localBuffer,pos,thisWrite,0);
+			if(written == thisWrite){
+				pos += thisWrite;
+				increase -= thisWrite;
+			} else
+				smallIncreaseOk = 0;
+		}
+
+		yaffs_ReleaseTempBuffer(dev,localBuffer,__LINE__);
+
+		/* If we were out of space then reverse any chunks we've added */		
+		if(!smallIncreaseOk)
+			yaffs_ResizeDown(obj, oldFileSize);
+	}
+	
+	if (!smallIncreaseOk &&
+		obj->parent &&
+		obj->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
+		obj->parent->objectId != YAFFS_OBJECTID_DELETED){
+		/* Write a hole start header with the old file size */
+		yaffs_UpdateObjectHeader(obj, NULL, 0,1,0);
+	}
+
+	return result;
+
+}
+
+int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
+{
+	yaffs_Device *dev = in->myDev;
+	int oldFileSize = in->variant.fileVariant.fileSize;
 
 	yaffs_FlushFilesChunkCache(in);
 	yaffs_InvalidateWholeChunkCache(in);
@@ -5254,36 +5373,14 @@ int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
 
 	if (newSize == oldFileSize)
 		return YAFFS_OK;
-
-	if (newSize < oldFileSize) {
-
-		yaffs_PruneResizedChunks(in, newSize);
-
-		if (newSizeOfPartialChunk != 0) {
-			int lastChunk = 1 + newFullChunks;
-
-			__u8 *localBuffer = yaffs_GetTempBuffer(dev, __LINE__);
-
-			/* Got to read and rewrite the last chunk with its new size and zero pad */
-			yaffs_ReadChunkDataFromObject(in, lastChunk,
-						      localBuffer);
-
-			memset(localBuffer + newSizeOfPartialChunk, 0,
-			       dev->nDataBytesPerChunk - newSizeOfPartialChunk);
-
-			yaffs_WriteChunkDataToObject(in, lastChunk, localBuffer,
-						     newSizeOfPartialChunk, 1);
-
-			yaffs_ReleaseTempBuffer(dev, localBuffer, __LINE__);
-		}
-
+		
+	if(newSize > oldFileSize){
+		yaffs_HandleHole(in,newSize);
 		in->variant.fileVariant.fileSize = newSize;
-
-		yaffs_PruneFileStructure(dev, &in->variant.fileVariant);
 	} else {
-		/* newsSize > oldFileSize */
-		in->variant.fileVariant.fileSize = newSize;
-	}
+		/* newSize < oldFileSize */ 
+		yaffs_ResizeDown(in, newSize);
+	} 
 
 	/* Write a new object header to reflect the resize.
 	 * show we've shrunk the file, if need be
@@ -5294,8 +5391,8 @@ int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
 	    !in->isShadowed &&
 	    in->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
 	    in->parent->objectId != YAFFS_OBJECTID_DELETED)
-		yaffs_UpdateObjectHeader(in, NULL, 0,
-					 (newSize < oldFileSize) ? 1 : 0, 0);
+		yaffs_UpdateObjectHeader(in, NULL, 0,0,0);
+
 
 	return YAFFS_OK;
 }

@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.118 2010-03-12 01:22:48 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.119 2010-03-12 02:48:34 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -1062,19 +1062,20 @@ static int yaffs_CalcOldestDirtySequence(yaffs_Device *dev)
 {
 	int i;
 	__u32 seq;
-	yaffs_BlockInfo *b = 0;
+	yaffs_BlockInfo *b;
 
 	if(!dev->param.isYaffs2)
 		return 0;
 
 	/* Find the oldest dirty sequence number. */
 	seq = dev->sequenceNumber;
+	b = dev->blockInfo;
 	for (i = dev->internalStartBlock; i <= dev->internalEndBlock; i++) {
-		b = yaffs_GetBlockInfo(dev, i);
 		if (b->blockState == YAFFS_BLOCK_STATE_FULL &&
 		    (b->pagesInUse - b->softDeletions) < dev->param.nChunksPerBlock &&
 		    b->sequenceNumber < seq) 
 				seq = b->sequenceNumber;
+		b++;
 	}
 	return seq;
 }
@@ -2800,11 +2801,8 @@ static __u32 yaffs_FindRefreshBlock(yaffs_Device *dev)
 	 */
 	dev->refreshSkip = dev->param.refreshPeriod;
 	dev->refreshCount++;
-
+	bi = dev->blockInfo;
 	for (b = dev->internalStartBlock; b <=dev->internalEndBlock; b++){
-
-		bi = yaffs_GetBlockInfo(dev, b);
-		
 
 		if (bi->blockState == YAFFS_BLOCK_STATE_FULL){
 
@@ -2814,6 +2812,7 @@ static __u32 yaffs_FindRefreshBlock(yaffs_Device *dev)
                                 oldestSequence = bi->sequenceNumber;
                         }
 		}
+		bi++;
 	}
 
 	if (oldest > 0) {
@@ -2845,10 +2844,8 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
 
 	/* First let's see if we need to grab a prioritised block */
 	if (dev->hasPendingPrioritisedGCs) {
+		bi = dev->blockInfo;
 		for (i = dev->internalStartBlock; i < dev->internalEndBlock && !prioritised; i++) {
-
-			bi = yaffs_GetBlockInfo(dev, i);
-			/* yaffs_VerifyBlock(dev,bi,i); */
 
 			if (bi->gcPrioritise) {
 				pendingPrioritisedExist = 1;
@@ -2860,6 +2857,7 @@ static int yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
 					aggressive = 1; /* Fool the non-aggressive skip logiv below */
 				}
 			}
+			bi++;
 		}
 
 		if (!pendingPrioritisedExist) /* None found, so we can clear this */
@@ -5970,8 +5968,8 @@ static int yaffs_Scan(yaffs_Device *dev)
 	dev->sequenceNumber = YAFFS_LOWEST_SEQUENCE_NUMBER;
 
 	/* Scan all the blocks to determine their state */
+	bi = dev->blockInfo;
 	for (blk = dev->internalStartBlock; blk <= dev->internalEndBlock; blk++) {
-		bi = yaffs_GetBlockInfo(dev, blk);
 		yaffs_ClearChunkBits(dev, blk);
 		bi->pagesInUse = 0;
 		bi->softDeletions = 0;
@@ -5997,6 +5995,7 @@ static int yaffs_Scan(yaffs_Device *dev)
 			dev->nErasedBlocks++;
 			dev->nFreeChunks += dev->param.nChunksPerBlock;
 		}
+		bi++;
 	}
 
 	startIterator = dev->internalStartBlock;
@@ -6494,8 +6493,8 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 	chunkData = yaffs_GetTempBuffer(dev, __LINE__);
 
 	/* Scan all the blocks to determine their state */
+	bi = dev->blockInfo;
 	for (blk = dev->internalStartBlock; blk <= dev->internalEndBlock; blk++) {
-		bi = yaffs_GetBlockInfo(dev, blk);
 		yaffs_ClearChunkBits(dev, blk);
 		bi->pagesInUse = 0;
 		bi->softDeletions = 0;
@@ -6548,6 +6547,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 
 			}
 		}
+		bi++;
 	}
 
 	T(YAFFS_TRACE_SCAN,
@@ -7994,15 +7994,13 @@ void yaffs_Deinitialise(yaffs_Device *dev)
 
 static int yaffs_CountFreeChunks(yaffs_Device *dev)
 {
-	int nFree;
+	int nFree=0;
 	int b;
 
 	yaffs_BlockInfo *blk;
 
-	for (nFree = 0, b = dev->internalStartBlock; b <= dev->internalEndBlock;
-			b++) {
-		blk = yaffs_GetBlockInfo(dev, b);
-
+	blk = dev->blockInfo;
+	for (b = dev->internalStartBlock; b <= dev->internalEndBlock; b++) {
 		switch (blk->blockState) {
 		case YAFFS_BLOCK_STATE_EMPTY:
 		case YAFFS_BLOCK_STATE_ALLOCATING:
@@ -8015,6 +8013,7 @@ static int yaffs_CountFreeChunks(yaffs_Device *dev)
 		default:
 			break;
 		}
+		blk++;
 	}
 
 	return nFree;

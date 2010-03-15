@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.101 2010-03-15 22:27:15 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.102 2010-03-15 23:10:33 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -138,16 +138,19 @@ static uint32_t YCALCBLOCKS(uint64_t partition_size, uint32_t block_size)
 unsigned int yaffs_traceMask = YAFFS_TRACE_BAD_BLOCKS | YAFFS_TRACE_ALWAYS;
 unsigned int yaffs_wr_attempts = YAFFS_WR_ATTEMPTS;
 unsigned int yaffs_auto_checkpoint = 1;
+unsigned int yaffs_gc_control = 1;
 
 /* Module Parameters */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
 module_param(yaffs_traceMask, uint, 0644);
 module_param(yaffs_wr_attempts, uint, 0644);
 module_param(yaffs_auto_checkpoint, uint, 0644);
+module_param(yaffs_gc_control, uint, 0644);
 #else
 MODULE_PARM(yaffs_traceMask, "i");
 MODULE_PARM(yaffs_wr_attempts, "i");
 MODULE_PARM(yaffs_auto_checkpoint, "i");
+MODULE_PARM(yaffs_gc_control, "i");
 #endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25))
@@ -392,6 +395,11 @@ static const struct super_operations yaffs_super_ops = {
 	.sync_fs = yaffs_sync_fs,
 	.write_super = yaffs_write_super,
 };
+
+static unsigned yaffs_gc_control_callback(yaffs_Device *dev)
+{
+	return yaffs_gc_control;
+}
                 	                                                                                          	
 static void yaffs_GrossLock(yaffs_Device *dev)
 {
@@ -2462,6 +2470,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	yaffs_DeviceToContext(dev)->putSuperFunc = yaffs_MTDPutSuper;
 
 	param->markSuperBlockDirty = yaffs_MarkSuperBlockDirty;
+	param->gcControl = yaffs_gc_control_callback;
 
 	yaffs_DeviceToContext(dev)->superBlock= sb;
 	
@@ -2749,7 +2758,6 @@ static int yaffs_debug_proc_read(char *page,
 {
 	struct ylist_head *item;
 	char *buf = page;
-	int step = offset;
 	int n = 0;
 
 	down(&yaffs_context_lock);

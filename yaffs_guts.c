@@ -12,7 +12,7 @@
  */
 
 const char *yaffs_guts_c_version =
-    "$Id: yaffs_guts.c,v 1.119 2010-03-12 02:48:34 charles Exp $";
+    "$Id: yaffs_guts.c,v 1.120 2010-03-15 23:10:34 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
@@ -3455,6 +3455,10 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 	int maxTries = 0;
 
 	int checkpointBlockAdjust;
+
+	if(dev->param.gcControl &&
+		(dev->param.gcControl(dev) & 1) == 0)
+		return YAFFS_OK;
 
 	if (dev->isDoingGC) {
 		/* Bail out so we don't get recursive gc */

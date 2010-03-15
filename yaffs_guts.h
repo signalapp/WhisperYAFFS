@@ -598,6 +598,9 @@ struct yaffs_DeviceParamStruct {
 
 	/* Callback to mark the superblock dirty */
 	void (*markSuperBlockDirty)(struct yaffs_DeviceStruct *dev);
+	
+	/*  Callback to control garbage collection. */
+	unsigned (*gcControl)(struct yaffs_DeviceStruct *dev);
 
         /* Debug control flags. Don't use unless you know what you're doing */
 	int useHeaderFileSize;	/* Flag to determine if we should use file sizes from the header */

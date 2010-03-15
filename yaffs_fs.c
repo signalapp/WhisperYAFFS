@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.99 2010-03-15 06:07:44 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.100 2010-03-15 06:28:36 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -2632,6 +2632,7 @@ static DECLARE_FSTYPE(yaffs2_fs_type, "yaffs2", yaffs2_read_super,
 #endif				/* CONFIG_YAFFS_YAFFS2 */
 
 static struct proc_dir_entry *my_proc_entry;
+static struct proc_dir_entry *debug_proc_entry;
 
 static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 {
@@ -2738,6 +2739,30 @@ static int yaffs_proc_read(char *page,
 		}
 		up(&yaffs_context_lock);
 	}
+
+	return buf - page < count ? buf - page : count;
+}
+
+static int yaffs_debug_proc_read(char *page,
+				char **start,
+				off_t offset, int count, int *eof, void *data)
+{
+	struct ylist_head *item;
+	char *buf = page;
+	int step = offset;
+	int n = 0;
+
+	down(&yaffs_context_lock);
+
+	/* Locate and print the Nth entry.  Order N-squared but N is small. */
+	ylist_for_each(item, &yaffs_context_list) {
+		struct yaffs_LinuxContext *dc = ylist_entry(item, struct yaffs_LinuxContext, contextList);
+		yaffs_Device *dev = dc->dev;
+		
+		buf += sprintf(buf,"%d %u %u\n", n, dev->nFreeChunks, dev->nErasedBlocks * dev->param.nChunksPerBlock);
+	}
+	up(&yaffs_context_lock);
+
 
 	return buf - page < count ? buf - page : count;
 }
@@ -2906,7 +2931,7 @@ static int __init init_yaffs_fs(void)
 
 	init_MUTEX(&yaffs_context_lock);
 
-	/* Install the proc_fs entry */
+	/* Install the proc_fs entries */
 	my_proc_entry = create_proc_entry("yaffs",
 					       S_IRUGO | S_IFREG,
 					       YPROC_ROOT);
@@ -2915,6 +2940,17 @@ static int __init init_yaffs_fs(void)
 		my_proc_entry->write_proc = yaffs_proc_write;
 		my_proc_entry->read_proc = yaffs_proc_read;
 		my_proc_entry->data = NULL;
+	} else
+		return -ENOMEM;
+
+	debug_proc_entry = create_proc_entry("yaffs_debug",
+					       S_IRUGO | S_IFREG,
+					       YPROC_ROOT);
+
+	if (debug_proc_entry) {
+		debug_proc_entry->write_proc = NULL;
+		debug_proc_entry->read_proc = yaffs_debug_proc_read;
+		debug_proc_entry->data = NULL;
 	} else
 		return -ENOMEM;
 

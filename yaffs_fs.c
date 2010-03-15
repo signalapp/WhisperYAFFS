@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.100 2010-03-15 06:28:36 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.101 2010-03-15 22:27:15 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -2758,8 +2758,19 @@ static int yaffs_debug_proc_read(char *page,
 	ylist_for_each(item, &yaffs_context_list) {
 		struct yaffs_LinuxContext *dc = ylist_entry(item, struct yaffs_LinuxContext, contextList);
 		yaffs_Device *dev = dc->dev;
+
+		int erasedChunks;
+		int nObjects;
+		int nTnodes;
+
+		erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
+		nObjects = dev->nObjectsCreated -dev->nFreeObjects;
+		nTnodes = dev->nTnodesCreated - dev->nFreeTnodes;
 		
-		buf += sprintf(buf,"%d %u %u\n", n, dev->nFreeChunks, dev->nErasedBlocks * dev->param.nChunksPerBlock);
+		
+		buf += sprintf(buf,"%d, %d, %d, %d, %d\n", 
+				n, dev->nFreeChunks, erasedChunks,
+				nObjects, nTnodes);
 	}
 	up(&yaffs_context_lock);
 

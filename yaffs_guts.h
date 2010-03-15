@@ -751,23 +751,23 @@ struct yaffs_DeviceStruct {
 
 
 	/* Statistcs */
-	int nPageWrites;
-	int nPageReads;
-	int nBlockErasures;
-	int nErasureFailures;
-	int nGCCopies;
-	int garbageCollections;
-	int passiveGarbageCollections;
-	int nRetriedWrites;
-	int nRetiredBlocks;
-	int eccFixed;
-	int eccUnfixed;
-	int tagsEccFixed;
-	int tagsEccUnfixed;
-	int nDeletions;
-	int nUnmarkedDeletions;
-	int refreshCount;
-	int cacheHits;
+	__u32 nPageWrites;
+	__u32 nPageReads;
+	__u32 nBlockErasures;
+	__u32 nErasureFailures;
+	__u32 nGCCopies;
+	__u32 garbageCollections;
+	__u32 passiveGarbageCollections;
+	__u32 nRetriedWrites;
+	__u32 nRetiredBlocks;
+	__u32 eccFixed;
+	__u32 eccUnfixed;
+	__u32 tagsEccFixed;
+	__u32 tagsEccUnfixed;
+	__u32 nDeletions;
+	__u32 nUnmarkedDeletions;
+	__u32 refreshCount;
+	__u32 cacheHits;
 
 };
 

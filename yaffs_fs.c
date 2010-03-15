@@ -32,7 +32,7 @@
  */
 
 const char *yaffs_fs_c_version =
-    "$Id: yaffs_fs.c,v 1.98 2010-03-10 01:22:19 charles Exp $";
+    "$Id: yaffs_fs.c,v 1.99 2010-03-15 06:07:44 charles Exp $";
 extern const char *yaffs_guts_c_version;
 
 #include <linux/version.h>
@@ -2009,6 +2009,7 @@ static void yaffs_read_inode(struct inode *inode)
 #endif
 
 static YLIST_HEAD(yaffs_context_list);
+struct semaphore yaffs_context_lock;
 
 #if 0 /* not used */
 static int yaffs_remount_fs(struct super_block *sb, int *flags, char *data)
@@ -2057,8 +2058,9 @@ static void yaffs_put_super(struct super_block *sb)
 
 	yaffs_GrossUnlock(dev);
 
-	/* we assume this is protected by lock_kernel() in mount/umount */
+	down(&yaffs_context_lock);
 	ylist_del_init(&(yaffs_DeviceToContext(dev)->contextList));
+	up(&yaffs_context_lock);
 
 	if (yaffs_DeviceToContext(dev)->spareBuffer) {
 		YFREE(yaffs_DeviceToContext(dev)->spareBuffer);
@@ -2476,7 +2478,9 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	param->skipCheckpointWrite = options.skip_checkpoint_write;
 
 	/* we assume this is protected by lock_kernel() in mount/umount */
+	down(&yaffs_context_lock);
 	ylist_add_tail(&(yaffs_DeviceToContext(dev)->contextList), &yaffs_context_list);
+	up(&yaffs_context_lock);
 
         /* Directory search handling...*/
         YINIT_LIST_HEAD(&(yaffs_DeviceToContext(dev)->searchContexts));
@@ -2641,6 +2645,8 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "emptyLostAndFound.. %d\n", dev->param.emptyLostAndFound);
 	buf += sprintf(buf, "disableLazyLoad.... %d\n", dev->param.disableLazyLoad);
 	buf += sprintf(buf, "refreshPeriod...... %d\n", dev->param.refreshPeriod);
+	buf += sprintf(buf, "nShortOpCaches..... %d\n", dev->param.nShortOpCaches);
+	buf += sprintf(buf, "nReservedBlocks.... %d\n", dev->param.nReservedBlocks);
 
 	buf += sprintf(buf, "\n");
 
@@ -2654,32 +2660,32 @@ static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "chunkGroupBits..... %d\n", dev->chunkGroupBits);
 	buf += sprintf(buf, "chunkGroupSize..... %d\n", dev->chunkGroupSize);
 	buf += sprintf(buf, "nErasedBlocks...... %d\n", dev->nErasedBlocks);
-	buf += sprintf(buf, "nReservedBlocks.... %d\n", dev->param.nReservedBlocks);
 	buf += sprintf(buf, "blocksInCheckpoint. %d\n", dev->blocksInCheckpoint);
+	buf += sprintf(buf, "\n");
 	buf += sprintf(buf, "nTnodesCreated..... %d\n", dev->nTnodesCreated);
 	buf += sprintf(buf, "nFreeTnodes........ %d\n", dev->nFreeTnodes);
 	buf += sprintf(buf, "nObjectsCreated.... %d\n", dev->nObjectsCreated);
 	buf += sprintf(buf, "nFreeObjects....... %d\n", dev->nFreeObjects);
 	buf += sprintf(buf, "nFreeChunks........ %d\n", dev->nFreeChunks);
-	buf += sprintf(buf, "nPageWrites........ %d\n", dev->nPageWrites);
-	buf += sprintf(buf, "nPageReads......... %d\n", dev->nPageReads);
-	buf += sprintf(buf, "nBlockErasures..... %d\n", dev->nBlockErasures);
-	buf += sprintf(buf, "nGCCopies.......... %d\n", dev->nGCCopies);
-	buf += sprintf(buf, "garbageCollections. %d\n", dev->garbageCollections);
-	buf += sprintf(buf, "passiveGCs......... %d\n", dev->passiveGarbageCollections);
-	buf += sprintf(buf, "nRetriedWrites..... %d\n", dev->nRetriedWrites);
-	buf += sprintf(buf, "nShortOpCaches..... %d\n", dev->param.nShortOpCaches);
-	buf += sprintf(buf, "nRetireBlocks...... %d\n", dev->nRetiredBlocks);
-	buf += sprintf(buf, "eccFixed........... %d\n", dev->eccFixed);
-	buf += sprintf(buf, "eccUnfixed......... %d\n", dev->eccUnfixed);
-	buf += sprintf(buf, "tagsEccFixed....... %d\n", dev->tagsEccFixed);
-	buf += sprintf(buf, "tagsEccUnfixed..... %d\n", dev->tagsEccUnfixed);
-	buf += sprintf(buf, "cacheHits.......... %d\n", dev->cacheHits);
-	buf += sprintf(buf, "nDeletedFiles...... %d\n", dev->nDeletedFiles);
-	buf += sprintf(buf, "nUnlinkedFiles..... %d\n", dev->nUnlinkedFiles);
-	buf += sprintf(buf, "refreshCount....... %d\n", dev->refreshCount);
+	buf += sprintf(buf, "\n");
+	buf += sprintf(buf, "nPageWrites........ %u\n", dev->nPageWrites);
+	buf += sprintf(buf, "nPageReads......... %u\n", dev->nPageReads);
+	buf += sprintf(buf, "nBlockErasures..... %u\n", dev->nBlockErasures);
+	buf += sprintf(buf, "nGCCopies.......... %u\n", dev->nGCCopies);
+	buf += sprintf(buf, "garbageCollections. %u\n", dev->garbageCollections);
+	buf += sprintf(buf, "passiveGCs......... %u\n", dev->passiveGarbageCollections);
+	buf += sprintf(buf, "nRetriedWrites..... %u\n", dev->nRetriedWrites);
+	buf += sprintf(buf, "nRetireBlocks...... %u\n", dev->nRetiredBlocks);
+	buf += sprintf(buf, "eccFixed........... %u\n", dev->eccFixed);
+	buf += sprintf(buf, "eccUnfixed......... %u\n", dev->eccUnfixed);
+	buf += sprintf(buf, "tagsEccFixed....... %u\n", dev->tagsEccFixed);
+	buf += sprintf(buf, "tagsEccUnfixed..... %u\n", dev->tagsEccUnfixed);
+	buf += sprintf(buf, "cacheHits.......... %u\n", dev->cacheHits);
+	buf += sprintf(buf, "nDeletedFiles...... %u\n", dev->nDeletedFiles);
+	buf += sprintf(buf, "nUnlinkedFiles..... %u\n", dev->nUnlinkedFiles);
+	buf += sprintf(buf, "refreshCount....... %u\n", dev->refreshCount);
 	buf +=
-	    sprintf(buf, "nBackgroudDeletions %d\n", dev->nBackgroundDeletions);
+	    sprintf(buf, "nBackgroudDeletions %u\n", dev->nBackgroundDeletions);
 
 	return buf;
 }
@@ -2711,8 +2717,7 @@ static int yaffs_proc_read(char *page,
 	else {
 		step-=2;
 		
-		/* hold lock_kernel while traversing yaffs_dev_list */
-		lock_kernel();
+		down(&yaffs_context_lock);
 
 		/* Locate and print the Nth entry.  Order N-squared but N is small. */
 		ylist_for_each(item, &yaffs_context_list) {
@@ -2731,7 +2736,7 @@ static int yaffs_proc_read(char *page,
 			
 			break;
 		}
-		unlock_kernel();
+		up(&yaffs_context_lock);
 	}
 
 	return buf - page < count ? buf - page : count;
@@ -2898,6 +2903,8 @@ static int __init init_yaffs_fs(void)
 
 	T(YAFFS_TRACE_ALWAYS,
 	  ("yaffs " __DATE__ " " __TIME__ " Installing. \n"));
+
+	init_MUTEX(&yaffs_context_lock);
 
 	/* Install the proc_fs entry */
 	my_proc_entry = create_proc_entry("yaffs",

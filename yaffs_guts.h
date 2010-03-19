@@ -606,6 +606,7 @@ struct yaffs_DeviceParamStruct {
 	int useHeaderFileSize;	/* Flag to determine if we should use file sizes from the header */
 	int disableLazyLoad;	/* Disable lazy loading on this device */
 	int wideTnodesDisabled; /* Set to disable wide tnodes */
+	int disableSoftDelete;  /* yaffs 1 only: Set to disable the use of softdeletion. */
 	
 	int deferDirectoryUpdate; /* Set to defer directory updates */
 	

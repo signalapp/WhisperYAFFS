@@ -5478,6 +5478,7 @@ static int yaffs_UnlinkFileIfNeeded(yaffs_Object *in)
 
 	int retVal;
 	int immediateDeletion = 0;
+	yaffs_Device *dev = in->myDev;
 
 	if (!in->myInode)
 		immediateDeletion = 1;
@@ -5491,7 +5492,7 @@ static int yaffs_UnlinkFileIfNeeded(yaffs_Object *in)
 		   in->objectId));
 		in->deleted = 1;
 		in->myDev->nDeletedFiles++;
-		if (1 || in->myDev->param.isYaffs2)
+		if (dev->param.disableSoftDelete || dev->param.isYaffs2)
 			yaffs_ResizeFile(in, 0);
 		yaffs_SoftDeleteFile(in);
 	} else {
@@ -5508,8 +5509,10 @@ int yaffs_DeleteFile(yaffs_Object *in)
 {
 	int retVal = YAFFS_OK;
 	int deleted = in->deleted;
+	yaffs_Device *dev = in->myDev;
 
-	yaffs_ResizeFile(in, 0);
+	if (dev->param.disableSoftDelete || dev->param.isYaffs2)
+		yaffs_ResizeFile(in, 0);
 
 	if (in->nDataChunks > 0) {
 		/* Use soft deletion if there is data in the file.

@@ -2943,6 +2943,10 @@ static void yaffs_BlockBecameDirty(yaffs_Device *dev, int blockNo)
 
 	bi->blockState = YAFFS_BLOCK_STATE_DIRTY;
 
+	/* If this is the block being garbage collected then stop gc'ing this block */
+	if(blockNo == dev->gcBlock)
+		dev->gcBlock = -1;
+
 	if (!bi->needsRetiring) {
 		yaffs_InvalidateCheckpoint(dev);
 		erasedOk = yaffs_EraseBlockInNAND(dev, blockNo);
@@ -3215,12 +3219,6 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 	
 	bi->hasShrinkHeader = 0;	/* clear the flag so that the block can erase */
 
-	/* Take off the number of soft deleted entries because
-	 * they're going to get really deleted during GC.
-	 */
-	if(dev->gcChunk == 0) /* first time through for this block */
-		dev->nFreeChunks -= bi->softDeletions;
-
 	dev->isDoingGC = 1;
 
 	if (isCheckpointBlock ||
@@ -3300,6 +3298,13 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 					 * No need to copy this, just forget about it and
 					 * fix up the object.
 					 */
+					 
+					/* Free chunks already includes softdeleted chunks.
+					 * How ever this chunk is going to soon be really deleted
+					 * which will increment free chunks.
+					 * We have to decrement free chunks so this works out properly.
+					 */
+					dev->nFreeChunks--;
 
 					object->nDataChunks--;
 
@@ -3420,8 +3425,14 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 
 
 
-	/* If the gc completed then clear the current gcBlock so that we find another. */
-	if (bi->blockState != YAFFS_BLOCK_STATE_COLLECTING) {
+	if (bi->blockState == YAFFS_BLOCK_STATE_COLLECTING) {
+		/*
+		 * The gc did not complete. Set block state back to FULL
+		 * because checkpointing does not restore gc.
+		 */
+		bi->blockState = YAFFS_BLOCK_STATE_FULL;
+	} else {
+		/* The gc completed. */
 		chunksAfter = yaffs_GetErasedChunks(dev);
 		if (chunksBefore >= chunksAfter) {
 			T(YAFFS_TRACE_GC,

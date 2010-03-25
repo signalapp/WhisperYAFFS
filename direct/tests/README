@@ -10,3 +10,48 @@ If anyone knows otherwise, please contact me: manningc2@actrix.gen.nz
 
 I find it best to run these tests in a ramfs to make them run faster (and
 not pound the disk).
+
+A quick word about running some of these tests...
+
+
+There are two tests, one simulating nor and the other nand, labelled
+
+*nor*.sh and *nand*.sh
+
+These can be run in the local directory as follows:
+$ ./init_fw_update_test_nand.sh
+$ ./run_fw_update_test_nand.sh
+
+NB These create simulation files in the current directory, so only one
+instance can be run in a directory.
+
+The number of iterations can be set by adding a numerical parameter
+
+$ ./init_fw_update_test_nand.sh
+$ ./run_fw_update_test_nand.sh 5000
+
+Since the test creates snapshot files between each iteration the test is
+relatively slow if run against a hard disk. Far better to run against a ram
+disk
+
+$ mkdir xxx
+$ mount -t tmpfs none xxx
+$ cd xxx
+$ cp ../*sh .
+$ ln -s ../yaffs_test yaffs_test
+$ ./init_fw_update_test_nand.sh
+$ ./run_fw_update_test_nand.sh
+
+The above is also wrapped in a script called manage_nor_test.sh which
+creates all the above. The managed_nor_test.sh script accepts an optional
+parameter to specify an instance name. Named instances will create named
+directories.
+
+If you want to run multuiple instances then it is easy to do so with 
+xterm as follows:
+
+$ xterm  -e "`pwd`/manage_nor_test.sh  1"&
+$ xterm  -e "`pwd`/manage_nor_test.sh  2"&
+$ xterm  -e "`pwd`/manage_nor_test.sh  3"&
+...
+

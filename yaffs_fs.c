@@ -56,6 +56,7 @@ extern const char *yaffs_guts_c_version;
 #include <linux/interrupt.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
+#include <linux/exportfs.h>
 
 #ifdef YAFFS_COMPILE_BACKGROUND
 #include <linux/kthread.h>
@@ -286,6 +287,7 @@ static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 #else
 static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 #endif
+static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin);
 
 static struct address_space_operations yaffs_file_address_operations = {
 	.readpage = yaffs_readpage,
@@ -378,6 +380,7 @@ static const struct file_operations yaffs_dir_operations = {
 	.read = generic_read_dir,
 	.readdir = yaffs_readdir,
 	.fsync = yaffs_sync_object,
+	.llseek = yaffs_dir_llseek,
 };
 
 static const struct super_operations yaffs_super_ops = {
@@ -414,6 +417,72 @@ static void yaffs_GrossUnlock(yaffs_Device *dev)
 	up(&(yaffs_DeviceToContext(dev)->grossLock));
 }
 
+
+
+static struct inode *
+yaffs2_nfs_get_inode(struct super_block *sb, uint64_t ino, uint32_t generation)
+{
+	return yaffs_iget(sb, ino);
+}
+
+static struct dentry *
+yaffs2_fh_to_dentry(struct super_block *sb, struct fid *fid, int fh_len, int fh_type)
+{
+	return generic_fh_to_dentry(sb, fid, fh_len, fh_type, yaffs2_nfs_get_inode) ;
+}
+
+static struct dentry *
+ yaffs2_fh_to_parent(struct super_block *sb, struct fid *fid, int fh_len, int fh_type)
+{
+	return generic_fh_to_parent(sb, fid, fh_len, fh_type, yaffs2_nfs_get_inode);
+}
+
+struct dentry *yaffs2_get_parent(struct dentry *dentry)
+{
+
+	struct super_block *sb = dentry->d_inode->i_sb;
+	struct dentry *parent = ERR_PTR(-ENOENT);
+	struct inode *inode;
+	unsigned long parent_ino;
+	yaffs_Object *d_obj;
+	yaffs_Object *parent_obj;
+
+	d_obj = yaffs_InodeToObject(dentry->d_inode);
+
+	if (d_obj) {
+		parent_obj = d_obj->parent;
+		if (parent_obj) {
+			parent_ino = yaffs_GetObjectInode(parent_obj);
+			inode = yaffs_iget(sb, parent_ino);
+
+			if (IS_ERR(inode)) {
+				parent = ERR_CAST(inode);
+			} else {
+				parent = d_obtain_alias(inode);
+				if (!IS_ERR(parent)) {
+					parent = ERR_PTR(-ENOMEM);
+					iput(inode);
+				}
+			}
+		}
+	}
+
+	return parent;
+}
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,9))
+/* Just declare a zero structure as a NULL value implies
+ * using the default functions of expfs.
+ */
+
+static struct export_operations yaffs_export_ops =
+{
+	.fh_to_dentry = yaffs2_fh_to_dentry,
+	.fh_to_parent = yaffs2_fh_to_parent,
+	.get_parent = yaffs2_get_parent,
+} ;
+
+#endif
 
 /*-----------------------------------------------------------------*/
 /* Directory search context allows us to unlock access to yaffs during
@@ -602,7 +671,8 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry)
 
 	yaffs_Device *dev = yaffs_InodeToObject(dir)->myDev;
 
-	yaffs_GrossLock(dev);
+	if(current != yaffs_DeviceToContext(dev)->readdirProcess)
+		yaffs_GrossLock(dev);
 
 	T(YAFFS_TRACE_OS,
 		("yaffs_lookup for %d:%s\n",
@@ -614,7 +684,8 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry)
 	obj = yaffs_GetEquivalentObject(obj);	/* in case it was a hardlink */
 
 	/* Can't hold gross lock when calling yaffs_get_inode() */
-	yaffs_GrossUnlock(dev);
+	if(current != yaffs_DeviceToContext(dev)->readdirProcess)
+		yaffs_GrossUnlock(dev);
 
 	if (obj) {
 		T(YAFFS_TRACE_OS,
@@ -1287,6 +1358,33 @@ static void yaffs_release_space(struct file *f)
 	yaffs_GrossUnlock(dev);
 }
 
+
+static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin)
+{
+	long long retval;
+
+	lock_kernel();
+
+	switch (origin){
+	case 2:
+		offset += i_size_read(file->f_path.dentry->d_inode);
+		break;
+	case 1:
+		offset += file->f_pos;
+	}
+	retval = -EINVAL;
+
+	if (offset >= 0){
+		if (offset != file->f_pos)
+			file->f_pos = offset;
+
+		retval = offset;
+	}
+	unlock_kernel();
+	return retval;
+}
+
+
 static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 {
 	yaffs_Object *obj;
@@ -1303,6 +1401,8 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 	dev = obj->myDev;
 
 	yaffs_GrossLock(dev);
+
+	yaffs_DeviceToContext(dev)->readdirProcess = current;
 
 	offset = f->f_pos;
 
@@ -1342,12 +1442,13 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 
 	/* If the directory has changed since the open or last call to
 	   readdir, rewind to after the 2 canned entries. */
-
+#if 0 /* For exportfs patch */
 	if (f->f_version != inode->i_version) {
 		offset = 2;
 		f->f_pos = offset;
 		f->f_version = inode->i_version;
 	}
+#endif
 
 	while(sc->nextReturn){
 		curoffs++;
@@ -1381,12 +1482,16 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 	}
 
 unlock_out:
+	yaffs_DeviceToContext(dev)->readdirProcess = NULL;
+
 	yaffs_GrossUnlock(dev);
 out:
         yaffs_EndSearch(sc);
 
 	return retVal;
 }
+
+
 
 /*
  * File creation. Allocate an inode, and we're done..
@@ -1478,6 +1583,7 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 			("yaffs_mknod created object %d count = %d\n",
 			obj->objectId, atomic_read(&inode->i_count)));
 		error = 0;
+		yaffs_FillInodeFromObject(dir,parent);
 	} else {
 		T(YAFFS_TRACE_OS,
 			("yaffs_mknod failed making object\n"));
@@ -1511,16 +1617,17 @@ static int yaffs_unlink(struct inode *dir, struct dentry *dentry)
 	int retVal;
 
 	yaffs_Device *dev;
+	yaffs_Object *obj;
 
 	T(YAFFS_TRACE_OS,
 		("yaffs_unlink %d:%s\n", (int)(dir->i_ino),
 		dentry->d_name.name));
-
-	dev = yaffs_InodeToObject(dir)->myDev;
+	obj = yaffs_InodeToObject(dir);
+	dev = obj->myDev;
 
 	yaffs_GrossLock(dev);
 
-	retVal = yaffs_Unlink(yaffs_InodeToObject(dir), dentry->d_name.name);
+	retVal = yaffs_Unlink(obj, dentry->d_name.name);
 
 	if (retVal == YAFFS_OK) {
 		dentry->d_inode->i_nlink--;
@@ -2005,13 +2112,15 @@ static void yaffs_read_inode(struct inode *inode)
 	T(YAFFS_TRACE_OS,
 		("yaffs_read_inode for %d\n", (int)inode->i_ino));
 
-	yaffs_GrossLock(dev);
+	if(current != yaffs_DeviceToContext(dev)->readdirProcess)
+		yaffs_GrossLock(dev);
 
 	obj = yaffs_FindObjectByNumber(dev, inode->i_ino);
 
 	yaffs_FillInodeFromObject(inode, obj);
 
-	yaffs_GrossUnlock(dev);
+	if(current != yaffs_DeviceToContext(dev)->readdirProcess)
+		yaffs_GrossUnlock(dev);
 }
 
 #endif
@@ -2195,6 +2304,10 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	sb->s_magic = YAFFS_MAGIC;
 	sb->s_op = &yaffs_super_ops;
 	sb->s_flags |= MS_NOATIME;
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,9))
+	sb->s_export_op = &yaffs_export_ops;
+#endif
 
 	if (!sb)
 		printk(KERN_INFO "yaffs: sb is NULL\n");

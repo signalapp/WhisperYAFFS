@@ -32,6 +32,8 @@ struct yaffs_LinuxContext {
 	struct mtd_info *mtd;
 	struct ylist_head searchContexts;
 	void (*putSuperFunc)(struct super_block *sb);
+
+	struct task_struct *readdirProcess;
 };
 
 #define yaffs_DeviceToContext(dev) ((struct yaffs_LinuxContext *)((dev)->context))

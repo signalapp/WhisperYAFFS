@@ -11,7 +11,7 @@ echo $plot_str
  
 while true; do
 sleep 1
-tail -100 $the_log_file > trunc_data
+tail -500 $the_log_file > trunc_data
 echo replot
 done
 

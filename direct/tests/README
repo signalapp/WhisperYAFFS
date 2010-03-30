@@ -55,3 +55,6 @@ $ xterm  -e "`pwd`/manage_nor_test.sh  2"&
 $ xterm  -e "`pwd`/manage_nor_test.sh  3"&
 ...
 
+Then there's launch_tests.sh which sets up a tmpfs directory and launches 3
+nor simulations and 3 nand simulations.
+

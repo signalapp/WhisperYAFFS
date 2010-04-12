@@ -1937,17 +1937,23 @@ static int yaffs_do_sync_fs(struct super_block *sb, int do_checkpoint)
 {
 
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
-	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, 
-		("yaffs_do_sync_fs: %s %s\n", 
-		sb->s_dirt ? "dirty" : "clean",
-		do_checkpoint ? "with checkpoint" : "no checkpoint"));
+	unsigned int oneshot_checkpoint = (yaffs_auto_checkpoint & 4);
 
-	if (sb->s_dirt) {
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, 
+		("yaffs_do_sync_fs: %s %s%s\n",
+		sb->s_dirt ? "dirty" : "clean",
+		do_checkpoint ? "with checkpoint" : "no checkpoint",
+		oneshot_checkpoint ? " one-shot" : "" ));
+
+	if (sb->s_dirt || oneshot_checkpoint) {
 		yaffs_GrossLock(dev);
 		yaffs_FlushSuperBlock(sb,do_checkpoint);
 		yaffs_GrossUnlock(dev);
 
 		sb->s_dirt = 0;
+
+		if(oneshot_checkpoint)
+			yaffs_auto_checkpoint &= ~4;
 	}
 	return 0;
 }

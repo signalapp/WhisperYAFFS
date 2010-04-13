@@ -41,6 +41,11 @@ extern const char *yaffs_guts_c_version;
 #define YAFFS_COMPILE_BACKGROUND
 #endif
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28))
+#define YAFFS_COMPILE_EXPORTFS
+#endif
+
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
 #include <linux/config.h>
 #endif
@@ -56,7 +61,10 @@ extern const char *yaffs_guts_c_version;
 #include <linux/interrupt.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
+
+#ifdef YAFFS_COMPILE_EXPORTFS
 #include <linux/exportfs.h>
+#endif
 
 #ifdef YAFFS_COMPILE_BACKGROUND
 #include <linux/kthread.h>
@@ -417,12 +425,12 @@ static void yaffs_GrossUnlock(yaffs_Device *dev)
 	up(&(yaffs_DeviceToContext(dev)->grossLock));
 }
 
-
+#ifdef YAFFS_COMPILE_EXPORTFS
 
 static struct inode *
 yaffs2_nfs_get_inode(struct super_block *sb, uint64_t ino, uint32_t generation)
 {
-	return yaffs_iget(sb, ino);
+	return Y_IGET(sb, ino);
 }
 
 static struct dentry *
@@ -453,7 +461,7 @@ struct dentry *yaffs2_get_parent(struct dentry *dentry)
 		parent_obj = d_obj->parent;
 		if (parent_obj) {
 			parent_ino = yaffs_GetObjectInode(parent_obj);
-			inode = yaffs_iget(sb, parent_ino);
+			inode = Y_IGET(sb, parent_ino);
 
 			if (IS_ERR(inode)) {
 				parent = ERR_CAST(inode);
@@ -470,7 +478,6 @@ struct dentry *yaffs2_get_parent(struct dentry *dentry)
 	return parent;
 }
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,9))
 /* Just declare a zero structure as a NULL value implies
  * using the default functions of expfs.
  */
@@ -1442,13 +1449,11 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 
 	/* If the directory has changed since the open or last call to
 	   readdir, rewind to after the 2 canned entries. */
-#if 0 /* For exportfs patch */
 	if (f->f_version != inode->i_version) {
 		offset = 2;
 		f->f_pos = offset;
 		f->f_version = inode->i_version;
 	}
-#endif
 
 	while(sc->nextReturn){
 		curoffs++;
@@ -2311,7 +2316,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	sb->s_op = &yaffs_super_ops;
 	sb->s_flags |= MS_NOATIME;
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,9))
+#ifdef YAFFS_COMPILE_EXPORTFS
 	sb->s_export_op = &yaffs_export_ops;
 #endif
 

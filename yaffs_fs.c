@@ -69,6 +69,7 @@ extern const char *yaffs_guts_c_version;
 #ifdef YAFFS_COMPILE_BACKGROUND
 #include <linux/kthread.h>
 #include <linux/delay.h>
+#include <linux/freezer.h>
 #endif
 
 
@@ -1976,26 +1977,84 @@ static int yaffs_do_sync_fs(struct super_block *sb, int do_checkpoint)
  */
 
 #ifdef YAFFS_COMPILE_BACKGROUND
+
+void yaffs_background_waker(unsigned long data)
+{
+	wake_up_process((struct task_struct *)data);
+}
+
 static int yaffs_BackgroundThread(void *data)
 {
 	yaffs_Device *dev = (yaffs_Device *)data;
 	struct yaffs_LinuxContext *context = yaffs_DeviceToContext(dev);
+	unsigned long now = jiffies;
+	unsigned long next_dir_update = now;
+	unsigned long next_gc = now;
+	unsigned long expires;
+
+	int gcResult;
+	unsigned int erasedChunks;
+	struct timer_list timer;
 
 	T(YAFFS_TRACE_BACKGROUND,
 		("yaffs_background starting for dev %p\n",
 		(void *)dev));
-	
+
+	set_freezable();
+
 	while(context->bgRunning){
 		T(YAFFS_TRACE_BACKGROUND,
 			("yaffs_background\n"));
 
 		if(kthread_should_stop())
 			break;
+
+		if(try_to_freeze())
+			continue;
+
 		yaffs_GrossLock(dev);
-		yaffs_UpdateDirtyDirectories(dev);
+
+		now = jiffies;
+
+		if(time_after(now, next_dir_update) &&
+			!dev->isCheckpointed){
+			yaffs_UpdateDirtyDirectories(dev);
+			next_dir_update = now + HZ;
+		}
+
+		if(time_after(now,next_gc) &&
+			! dev->isCheckpointed){
+			gcResult = yaffs_BackgroundGarbageCollect(dev);
+			erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
+			if(erasedChunks < dev->nFreeChunks/4)
+				next_gc = now + HZ/50+1;
+			else if(erasedChunks < dev->nFreeChunks/2)
+				next_gc = now + HZ/20+1;
+			else
+				next_gc = now + HZ * 2;
+		}
 		yaffs_GrossUnlock(dev);
-		msleep(500);
+#if 1
+		expires = next_dir_update;
+		if (time_before(next_gc,expires))
+			expires = next_gc;
+		if(time_before(expires,now))
+			expires = now + HZ;
+
+		init_timer(&timer);
+		timer.expires = expires+1;
+		timer.data = (unsigned long) current;
+		timer.function = yaffs_background_waker;
+
+                set_current_state(TASK_INTERRUPTIBLE);
+		add_timer(&timer);
+		schedule();
+		del_timer_sync(&timer);
+#else
+		msleep(10);
+#endif
 	}
+
 	return 0;
 }
 
@@ -2173,6 +2232,10 @@ static void yaffs_put_super(struct super_block *sb)
 
 	T(YAFFS_TRACE_OS, ("yaffs_put_super\n"));
 
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_BACKGROUND, ("Shutting down yaffs background thread\n"));
+	yaffs_BackgroundStop(dev);
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_BACKGROUND, ("yaffs background thread shut down\n"));
+
 	yaffs_GrossLock(dev);
 
 	yaffs_FlushSuperBlock(sb,1);
@@ -2180,7 +2243,6 @@ static void yaffs_put_super(struct super_block *sb)
 	if (yaffs_DeviceToContext(dev)->putSuperFunc)
 		yaffs_DeviceToContext(dev)->putSuperFunc(sb);
 
-	yaffs_BackgroundStop(dev);
 
 	yaffs_Deinitialise(dev);
 
@@ -2545,7 +2607,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 #ifdef CONFIG_YAFFS_DISABLE_BLOCK_REFRESHING
 	param->refreshPeriod = 0;
 #else
-	param->refreshPeriod = 10000;
+	param->refreshPeriod = 100;
 #endif
 
 	if(options.empty_lost_and_found_overridden)
@@ -3133,6 +3195,7 @@ static void __exit exit_yaffs_fs(void)
 			       " removing. \n"));
 
 	remove_proc_entry("yaffs", YPROC_ROOT);
+	remove_proc_entry("yaffs_debug", YPROC_ROOT);
 
 	fsinst = fs_to_install;
 

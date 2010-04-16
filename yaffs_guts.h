@@ -689,10 +689,6 @@ struct yaffs_DeviceStruct {
 	int nFreeTnodes;
 	yaffs_TnodeList *allocatedTnodeList;
 
-	int isDoingGC;
-	int gcBlock;
-	int gcChunk;
-
 	int nObjectsCreated;
 	yaffs_Object *freeObjects;
 	int nFreeObjects;
@@ -706,12 +702,18 @@ struct yaffs_DeviceStruct {
 
 	int nFreeChunks;
 
-	int currentDirtyChecker;	/* Used to find current dirtiest block */
-
+	/* Garbage collection control */
 	__u32 *gcCleanupList;	/* objects to delete at the end of a GC. */
-	int nonAggressiveSkip;	/* GC state/mode */
 
-	int hasPendingPrioritisedGCs; /* We think this device might have pending prioritised gcs */
+	unsigned hasPendingPrioritisedGCs; /* We think this device might have pending prioritised gcs */
+	unsigned gcDisable;
+	unsigned gcBlockFinder;
+	unsigned gcDirtiest;
+	unsigned gcPagesInUse;
+	unsigned gcNotDone;
+	unsigned gcBlock;
+	unsigned gcChunk;
+	unsigned gcSkip;
 
 	/* Special directories */
 	yaffs_Object *rootDir;
@@ -746,6 +748,7 @@ struct yaffs_DeviceStruct {
 	/* yaffs2 runtime stuff */
 	unsigned sequenceNumber;	/* Sequence number of currently allocating block */
 	unsigned oldestDirtySequence;
+	unsigned oldestDirtyBlock;
 
 	/* Block refreshing */
 	int refreshSkip;	/* A skip down counter. Refresh happens when this gets to zero. */
@@ -892,9 +895,9 @@ void yfsd_WinFileTimeNow(__u32 target[2]);
 
 void yaffs_HandleDeferedFree(yaffs_Object *obj);
 
-
 void yaffs_UpdateDirtyDirectories(yaffs_Device *dev);
 
+int yaffs_BackgroundGarbageCollect(yaffs_Device *dev);
 
 /* Debug dump  */
 int yaffs_DumpObject(yaffs_Object *obj);

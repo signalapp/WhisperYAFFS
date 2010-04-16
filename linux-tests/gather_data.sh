@@ -10,5 +10,5 @@ str=$(cat /proc/yaffs_debug)
 echo "$i, $str" 
 echo "$i, $str"  >> $the_file
 let i=$i+1
-sleep 1
+sleep 0.5
 done

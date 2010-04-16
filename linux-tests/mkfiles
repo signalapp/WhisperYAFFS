@@ -2,12 +2,12 @@
 
 TREE_BASE=/mnt/dirtree
 
-for (( f=0; f<50; f++ ))
+for (( f=0; f<500; f++ ))
 do
-	for (( d=0; d<50; d++ ))
+	for (( d=0; d<10; d++ ))
 	do
 		mkdir -p $TREE_BASE/dir$d
-		dd bs=1024 count=20 if=/dev/zero of=$TREE_BASE/dir$d/file$f
+		dd bs=1024 count=5 if=/dev/zero of=$TREE_BASE/dir$d/file$f
 	done
 done
 

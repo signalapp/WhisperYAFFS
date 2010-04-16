@@ -34,7 +34,9 @@ const char *yaffs_guts_c_version =
 #include "yaffs_packedtags2.h"
 
 
-#define YAFFS_PASSIVE_GC_CHUNKS 2
+/* Note YAFFS_GC_GOOD_ENOUGH must be <= YAFFS_GC_PASSIVE_THRESHOLD */
+#define YAFFS_GC_GOOD_ENOUGH 2
+#define YAFFS_GC_PASSIVE_THRESHOLD 4
 #define YAFFS_SMALL_HOLE_THRESHOLD 3
 
 #include "yaffs_ecc.h"
@@ -1058,41 +1060,41 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
  * yaffs_FindOldestDirtySequence()
  * Calculate the oldest dirty sequence number if we don't know it.
  */
-static int yaffs_CalcOldestDirtySequence(yaffs_Device *dev)
+static void yaffs_CalcOldestDirtySequence(yaffs_Device *dev)
 {
 	int i;
-	__u32 seq;
+	unsigned seq;
+	unsigned blockNo = 0;
 	yaffs_BlockInfo *b;
 
 	if(!dev->param.isYaffs2)
-		return 0;
+		return;
 
 	/* Find the oldest dirty sequence number. */
-	seq = dev->sequenceNumber;
+	seq = dev->sequenceNumber + 1;
 	b = dev->blockInfo;
 	for (i = dev->internalStartBlock; i <= dev->internalEndBlock; i++) {
 		if (b->blockState == YAFFS_BLOCK_STATE_FULL &&
-		    (b->pagesInUse - b->softDeletions) < dev->param.nChunksPerBlock &&
-		    b->sequenceNumber < seq) 
-				seq = b->sequenceNumber;
+			(b->pagesInUse - b->softDeletions) < dev->param.nChunksPerBlock &&
+			b->sequenceNumber < seq) {
+			seq = b->sequenceNumber;
+			blockNo = i;
+		}
 		b++;
 	}
-	return seq;
+
+	if(blockNo){
+		dev->oldestDirtySequence = seq;
+		dev->oldestDirtyBlock = blockNo;
+	}
+
 }
 
 
 static void yaffs_FindOldestDirtySequence(yaffs_Device *dev)
 {
 	if(dev->param.isYaffs2 && !dev->oldestDirtySequence)
-		dev->oldestDirtySequence = 
-			yaffs_CalcOldestDirtySequence(dev);
-
-#if 0
-	if(!yaffs_SkipVerification(dev) &&
-		dev->oldestDirtySequence != yaffs_CalcOldestDirtySequence(dev))
-		YBUG();
-
-#endif
+		yaffs_CalcOldestDirtySequence(dev);
 }
 
 /*
@@ -1107,8 +1109,10 @@ static void yaffs_ClearOldestDirtySequence(yaffs_Device *dev, yaffs_BlockInfo *b
 	if(!dev->param.isYaffs2)
 		return;
 
-	if(!bi || bi->sequenceNumber == dev->oldestDirtySequence)
+	if(!bi || bi->sequenceNumber == dev->oldestDirtySequence){
 		dev->oldestDirtySequence = 0;
+		dev->oldestDirtyBlock = 0;
+	}
 }
 
 /*
@@ -1116,11 +1120,13 @@ static void yaffs_ClearOldestDirtySequence(yaffs_Device *dev, yaffs_BlockInfo *b
  * Update the oldest dirty sequence number whenever we dirty a block.
  * Only do this if the oldestDirtySequence is actually being tracked.
  */
-static void yaffs_UpdateOldestDirtySequence(yaffs_Device *dev, yaffs_BlockInfo *bi)
+static void yaffs_UpdateOldestDirtySequence(yaffs_Device *dev, unsigned blockNo, yaffs_BlockInfo *bi)
 {
 	if(dev->param.isYaffs2 && dev->oldestDirtySequence){
-		if(dev->oldestDirtySequence > bi->sequenceNumber)
+		if(dev->oldestDirtySequence > bi->sequenceNumber){
 			dev->oldestDirtySequence = bi->sequenceNumber;
+			dev->oldestDirtyBlock = blockNo;
+		}
 	}
 }
  
@@ -1799,14 +1805,16 @@ static int yaffs_DeleteWorker(yaffs_Object *in, yaffs_Tnode *tn, __u32 level,
 static void yaffs_SoftDeleteChunk(yaffs_Device *dev, int chunk)
 {
 	yaffs_BlockInfo *theBlock;
+	unsigned blockNo;
 
 	T(YAFFS_TRACE_DELETION, (TSTR("soft delete chunk %d" TENDSTR), chunk));
 
-	theBlock = yaffs_GetBlockInfo(dev, chunk / dev->param.nChunksPerBlock);
+	blockNo =  chunk / dev->param.nChunksPerBlock;
+	theBlock = yaffs_GetBlockInfo(dev, blockNo);
 	if (theBlock) {
 		theBlock->softDeletions++;
 		dev->nFreeChunks++;
-		yaffs_UpdateOldestDirtySequence(dev,theBlock);
+		yaffs_UpdateOldestDirtySequence(dev, blockNo, theBlock);
 	}
 }
 
@@ -2667,12 +2675,12 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName,
 			 * Note we must disable gc otherwise it can mess up the shadowing.
 			 *
 			 */
-			dev->isDoingGC=1;
+			dev->gcDisable=1;
 			yaffs_ChangeObjectName(obj, newDir, newName, force,
 						existingTarget->objectId);
 			existingTarget->isShadowed = 1;
 			yaffs_UnlinkObject(existingTarget);
-			dev->isDoingGC=0;
+			dev->gcDisable=0;
 		}
 
 		result = yaffs_ChangeObjectName(obj, newDir, newName, 1, 0);
@@ -2789,10 +2797,8 @@ static __u32 yaffs_FindRefreshBlock(yaffs_Device *dev)
         if(dev->refreshSkip > dev->param.refreshPeriod)
                 dev->refreshSkip = dev->param.refreshPeriod;
 
-	if(dev->refreshSkip > 0){
-	        dev->refreshSkip--;
+	if(dev->refreshSkip > 0)
 	        return oldest;
-	}
 
 	/*
 	 * Refresh skip is now zero.
@@ -2824,106 +2830,6 @@ static __u32 yaffs_FindRefreshBlock(yaffs_Device *dev)
 	return oldest;
 }
 
-/*
- * FindDiretiestBlock is used to select the dirtiest block (or close enough)
- * for garbage collection.
- */
-
-static int yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
-					int aggressive)
-{
-	int b = dev->currentDirtyChecker;
-
-	int i;
-	int iterations;
-	int dirtiest = -1;
-	int pagesInUse = 0;
-	int prioritised = 0;
-	yaffs_BlockInfo *bi;
-	int pendingPrioritisedExist = 0;
-
-	/* First let's see if we need to grab a prioritised block */
-	if (dev->hasPendingPrioritisedGCs) {
-		bi = dev->blockInfo;
-		for (i = dev->internalStartBlock; i < dev->internalEndBlock && !prioritised; i++) {
-
-			if (bi->gcPrioritise) {
-				pendingPrioritisedExist = 1;
-				if (bi->blockState == YAFFS_BLOCK_STATE_FULL &&
-				   yaffs_BlockNotDisqualifiedFromGC(dev, bi)) {
-					pagesInUse = (bi->pagesInUse - bi->softDeletions);
-					dirtiest = i;
-					prioritised = 1;
-					aggressive = 1; /* Fool the non-aggressive skip logiv below */
-				}
-			}
-			bi++;
-		}
-
-		if (!pendingPrioritisedExist) /* None found, so we can clear this */
-			dev->hasPendingPrioritisedGCs = 0;
-	}
-
-	/* If we're doing aggressive GC then we are happy to take a less-dirty block, and
-	 * search harder.
-	 * else (we're doing a leasurely gc), then we only bother to do this if the
-	 * block has only a few pages in use.
-	 */
-
-	dev->nonAggressiveSkip--;
-
-	if (!aggressive && (dev->nonAggressiveSkip > 0))
-		return -1;
-
-	if (!prioritised)
-		pagesInUse =
-			(aggressive) ? dev->param.nChunksPerBlock : YAFFS_PASSIVE_GC_CHUNKS + 1;
-
-	if (aggressive)
-		iterations =
-		    dev->internalEndBlock - dev->internalStartBlock + 1;
-	else {
-		iterations =
-		    dev->internalEndBlock - dev->internalStartBlock + 1;
-		iterations = iterations / 16;
-		if (iterations > 200)
-			iterations = 200;
-	}
-
-	for (i = 0; i <= iterations && pagesInUse > 0 && !prioritised; i++) {
-		b++;
-		if (b < dev->internalStartBlock || b > dev->internalEndBlock)
-			b = dev->internalStartBlock;
-
-		if (b < dev->internalStartBlock || b > dev->internalEndBlock) {
-			T(YAFFS_TRACE_ERROR,
-			  (TSTR("**>> Block %d is not valid" TENDSTR), b));
-			YBUG();
-		}
-
-		bi = yaffs_GetBlockInfo(dev, b);
-
-		if (bi->blockState == YAFFS_BLOCK_STATE_FULL &&
-			(bi->pagesInUse - bi->softDeletions) < pagesInUse &&
-				yaffs_BlockNotDisqualifiedFromGC(dev, bi)) {
-			dirtiest = b;
-			pagesInUse = (bi->pagesInUse - bi->softDeletions);
-		}
-	}
-
-	dev->currentDirtyChecker = b;
-
-	if (dirtiest > 0) {
-		T(YAFFS_TRACE_GC,
-		  (TSTR("GC Selected block %d with %d free, prioritised:%d" TENDSTR), dirtiest,
-		   dev->param.nChunksPerBlock - pagesInUse, prioritised));
-	}
-
-	if (dirtiest > 0)
-		dev->nonAggressiveSkip = 4;
-
-	return dirtiest;
-}
 
 static void yaffs_BlockBecameDirty(yaffs_Device *dev, int blockNo)
 {
@@ -2945,7 +2851,13 @@ static void yaffs_BlockBecameDirty(yaffs_Device *dev, int blockNo)
 
 	/* If this is the block being garbage collected then stop gc'ing this block */
 	if(blockNo == dev->gcBlock)
-		dev->gcBlock = -1;
+		dev->gcBlock = 0;
+
+	/* If this block is currently the best candidate for gc then drop as a candidate */
+	if(blockNo == dev->gcDirtiest){
+		dev->gcDirtiest = 0;
+		dev->gcPagesInUse = 0;
+	}
 
 	if (!bi->needsRetiring) {
 		yaffs_InvalidateCheckpoint(dev);
@@ -3219,7 +3131,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 	
 	bi->hasShrinkHeader = 0;	/* clear the flag so that the block can erase */
 
-	dev->isDoingGC = 1;
+	dev->gcDisable = 1;
 
 	if (isCheckpointBlock ||
 			!yaffs_StillSomeChunkBits(dev, block)) {
@@ -3234,7 +3146,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 
 		yaffs_VerifyBlock(dev, bi, block);
 
-		maxCopies = (wholeBlock) ? dev->param.nChunksPerBlock : 10;
+		maxCopies = (wholeBlock) ? dev->param.nChunksPerBlock : 5;
 		oldChunk = block * dev->param.nChunksPerBlock + dev->gcChunk;
 
 		for (/* init already done */;
@@ -3440,13 +3352,152 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 			   ("gc did not increase free chunks before %d after %d"
 			    TENDSTR), chunksBefore, chunksAfter));
 		}
-		dev->gcBlock = -1;
+		dev->gcBlock = 0;
 		dev->gcChunk = 0;
 	}
 
-	dev->isDoingGC = 0;
+	dev->gcDisable = 0;
 
 	return retVal;
+}
+
+/*
+ * FindBlockForgarbageCollection is used to select the dirtiest block (or close enough)
+ * for garbage collection.
+ */
+
+static unsigned yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
+					int aggressive,
+					int background)
+{
+	int i;
+	int iterations;
+	unsigned selected = 0;
+	int prioritised = 0;
+	int prioritisedExists = 0;
+	yaffs_BlockInfo *bi;
+	int threshold;
+
+	/* First let's see if we need to grab a prioritised block */
+	if (dev->hasPendingPrioritisedGCs && !aggressive) {
+		dev->gcDirtiest = 0;
+		bi = dev->blockInfo;
+		for (i = dev->internalStartBlock;
+			i <= dev->internalEndBlock && !selected;
+			i++) {
+
+			if (bi->gcPrioritise) {
+				prioritisedExists = 1;
+				if (bi->blockState == YAFFS_BLOCK_STATE_FULL &&
+				   yaffs_BlockNotDisqualifiedFromGC(dev, bi)) {
+					selected = i;
+					prioritised = 1;
+				}
+			}
+			bi++;
+		}
+
+		/*
+		 * If there is a prioritised block and none was selected then
+		 * this happened because there is at least one old dirty block gumming
+		 * up the works. Let's gc the oldest dirty block.
+		 */
+
+		if(prioritisedExists &&
+			!selected &&
+			dev->oldestDirtyBlock > 0)
+			selected = dev->oldestDirtyBlock;
+
+		if (!prioritisedExists) /* None found, so we can clear this */
+			dev->hasPendingPrioritisedGCs = 0;
+	}
+
+	/* If we're doing aggressive GC then we are happy to take a less-dirty block, and
+	 * search harder.
+	 * else (we're doing a leasurely gc), then we only bother to do this if the
+	 * block has only a few pages in use.
+	 */
+
+	if (!selected){
+		int pagesUsed;
+		int nBlocks = dev->internalEndBlock - dev->internalStartBlock + 1;
+		if (aggressive){
+			threshold = dev->param.nChunksPerBlock;
+			iterations = nBlocks;
+		} else {
+			int maxThreshold = dev->param.nChunksPerBlock/2;
+			threshold = background ?
+				(dev->gcNotDone + 2) * 2 : 0;
+			threshold = max(threshold, YAFFS_GC_PASSIVE_THRESHOLD);
+			threshold = min(threshold, maxThreshold);
+
+			iterations = nBlocks / 16 + 1;
+			if (iterations > 100)
+				iterations = 100;
+		}
+
+		for (i = 0;
+			i < iterations &&
+			(dev->gcDirtiest < 1 ||
+				dev->gcPagesInUse > YAFFS_GC_GOOD_ENOUGH);
+			i++) {
+			dev->gcBlockFinder++;
+			if (dev->gcBlockFinder < dev->internalStartBlock ||
+				dev->gcBlockFinder > dev->internalEndBlock)
+				dev->gcBlockFinder = dev->internalStartBlock;
+
+			bi = yaffs_GetBlockInfo(dev, dev->gcBlockFinder);
+
+			pagesUsed = bi->pagesInUse - bi->softDeletions;
+
+			if (bi->blockState == YAFFS_BLOCK_STATE_FULL &&
+				pagesUsed < dev->param.nChunksPerBlock &&
+				(dev->gcDirtiest < 1 || pagesUsed < dev->gcPagesInUse) &&
+				yaffs_BlockNotDisqualifiedFromGC(dev, bi)) {
+				dev->gcDirtiest = dev->gcBlockFinder;
+				dev->gcPagesInUse = pagesUsed;
+			}
+		}
+
+		if(dev->gcDirtiest > 0 && dev->gcPagesInUse <= threshold)
+			selected = dev->gcDirtiest;
+	}
+
+	if(!selected && dev->param.isYaffs2 && dev->gcNotDone >= ( background ? 10 : 20)){
+		yaffs_FindOldestDirtySequence(dev);
+		if(dev->oldestDirtyBlock > 0) {
+			selected = dev->oldestDirtyBlock;
+			dev->gcDirtiest = selected;
+			bi = yaffs_GetBlockInfo(dev, selected);
+			dev->gcPagesInUse =  bi->pagesInUse - bi->softDeletions;
+		} else
+			dev->gcNotDone = 0;
+	}
+
+	if(selected){
+		T(YAFFS_TRACE_GC,
+		  (TSTR("GC Selected block %d with %d free, prioritised:%d" TENDSTR),
+		  selected,
+		  dev->param.nChunksPerBlock - dev->gcPagesInUse,
+		  prioritised));
+
+		dev->gcDirtiest = 0;
+		dev->gcPagesInUse = 0;
+		dev->gcNotDone = 0;
+		if(dev->refreshSkip > 0)
+			dev->refreshSkip--;
+	} else{
+		dev->gcNotDone++;
+		T(YAFFS_TRACE_GC,
+		  (TSTR("GC none: finder %d skip %d threshold %d dirtiest %d using %d oldest %d%s" TENDSTR),
+		  dev->gcBlockFinder, dev->gcNotDone,
+		  threshold,
+		  dev->gcDirtiest, dev->gcPagesInUse,
+		  dev->oldestDirtyBlock,
+		  background ? " bg" : ""));
+	}
+
+	return selected;
 }
 
 /* New garbage collector
@@ -3458,12 +3509,14 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
  * The idea is to help clear out space in a more spread-out manner.
  * Dunno if it really does anything useful.
  */
-static int yaffs_CheckGarbageCollection(yaffs_Device *dev)
+static int yaffs_CheckGarbageCollection(yaffs_Device *dev, int background)
 {
-	int block;
-	int aggressive;
+	int aggressive = 0;
 	int gcOk = YAFFS_OK;
 	int maxTries = 0;
+
+	int minErased;
+	int erasedChunks;
 
 	int checkpointBlockAdjust;
 
@@ -3471,13 +3524,13 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 		(dev->param.gcControl(dev) & 1) == 0)
 		return YAFFS_OK;
 
-	if (dev->isDoingGC) {
+	if (dev->gcDisable) {
 		/* Bail out so we don't get recursive gc */
 		return YAFFS_OK;
 	}
 
 	/* This loop should pass the first time.
-	 * We'll only see looping here if the erase of the collected block fails.
+	 * We'll only see looping here if the collection does not increase space.
 	 */
 
 	do {
@@ -3487,11 +3540,26 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 		if (checkpointBlockAdjust < 0)
 			checkpointBlockAdjust = 0;
 
+		minErased  = dev->param.nReservedBlocks + checkpointBlockAdjust + 1;
+		erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
+
 		/* If we need a block soon then do aggressive gc.*/
-		if (dev->nErasedBlocks < (dev->param.nReservedBlocks + checkpointBlockAdjust + 2))
+		if (dev->nErasedBlocks < minErased)
 			aggressive = 1;
-		else
-			aggressive = 0;
+		else {
+			if(dev->gcSkip > 20)
+				dev->gcSkip = 20;
+			if(erasedChunks < dev->nFreeChunks/2 ||
+				dev->gcSkip < 1 ||
+				background)
+				aggressive = 0;
+			else {
+				dev->gcSkip--;
+				break;
+			}
+		}
+
+		dev->gcSkip = 5;
 
                 /* If we don't already have a block being gc'd then see if we should start another */
 
@@ -3500,13 +3568,11 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 			dev->gcChunk = 0;
 		}
 		if (dev->gcBlock < 1) {
-			dev->gcBlock = yaffs_FindBlockForGarbageCollection(dev, aggressive);
+			dev->gcBlock = yaffs_FindBlockForGarbageCollection(dev, aggressive, background);
 			dev->gcChunk = 0;
 		}
 
-		block = dev->gcBlock;
-
-		if (block > 0) {
+		if (dev->gcBlock > 0) {
 			dev->garbageCollections++;
 			if (!aggressive)
 				dev->passiveGarbageCollections++;
@@ -3516,20 +3582,35 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev)
 			   ("yaffs: GC erasedBlocks %d aggressive %d" TENDSTR),
 			   dev->nErasedBlocks, aggressive));
 
-			gcOk = yaffs_GarbageCollectBlock(dev, block, aggressive);
+			gcOk = yaffs_GarbageCollectBlock(dev, dev->gcBlock, aggressive);
 		}
 
-		if (dev->nErasedBlocks < (dev->param.nReservedBlocks) && block > 0) {
+		if (dev->nErasedBlocks < (dev->param.nReservedBlocks) && dev->gcBlock > 0) {
 			T(YAFFS_TRACE_GC,
 			  (TSTR
 			   ("yaffs: GC !!!no reclaim!!! erasedBlocks %d after try %d block %d"
-			    TENDSTR), dev->nErasedBlocks, maxTries, block));
+			    TENDSTR), dev->nErasedBlocks, maxTries, dev->gcBlock));
 		}
 	} while ((dev->nErasedBlocks < dev->param.nReservedBlocks) &&
-		 (block > 0) &&
+		 (dev->gcBlock > 0) &&
 		 (maxTries < 2));
 
 	return aggressive ? gcOk : YAFFS_OK;
+}
+
+/*
+ * yaffs_BackgroundGarbageCollect()
+ * Garbage collects. Intended to be called from a background thread.
+ * Returns non-zero if at least half the free chunks are erased.
+ */
+int yaffs_BackgroundGarbageCollect(yaffs_Device *dev)
+{
+	int erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
+
+	T(YAFFS_TRACE_BACKGROUND, (TSTR("Background gc" TENDSTR)));
+
+	yaffs_CheckGarbageCollection(dev, 1);
+	return erasedChunks > dev->nFreeChunks/2;
 }
 
 /*-------------------------  TAGS --------------------------------*/
@@ -3835,7 +3916,7 @@ void yaffs_DeleteChunk(yaffs_Device *dev, int chunkId, int markNAND, int lyn)
 
 	bi = yaffs_GetBlockInfo(dev, block);
 	
-	yaffs_UpdateOldestDirtySequence(dev,bi);
+	yaffs_UpdateOldestDirtySequence(dev, block, bi);
 
 	T(YAFFS_TRACE_DELETION,
 	  (TSTR("line %d delete of chunk %d" TENDSTR), lyn, chunkId));
@@ -3894,7 +3975,7 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object *in, int chunkInInode,
 
 	yaffs_Device *dev = in->myDev;
 
-	yaffs_CheckGarbageCollection(dev);
+	yaffs_CheckGarbageCollection(dev,0);
 
 	/* Get the previous chunk at this location in the file if it exists.
 	 * If it does not exist then put a zero into the tree. This creates
@@ -3969,7 +4050,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 		in == dev->rootDir || /* The rootDir should also be saved */
 		force) {
 
-		yaffs_CheckGarbageCollection(dev);
+		yaffs_CheckGarbageCollection(dev,0);
 		yaffs_CheckObjectDetailsLoaded(in);
 
 		buffer = yaffs_GetTempBuffer(in->myDev, __LINE__);
@@ -5379,7 +5460,7 @@ int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
 	yaffs_FlushFilesChunkCache(in);
 	yaffs_InvalidateWholeChunkCache(in);
 
-	yaffs_CheckGarbageCollection(dev);
+	yaffs_CheckGarbageCollection(dev,0);
 
 	if (in->variantType != YAFFS_OBJECT_TYPE_FILE)
 		return YAFFS_FAIL;
@@ -7695,7 +7776,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	dev->chunkOffset = 0;
 	dev->nFreeChunks = 0;
 
-	dev->gcBlock = -1;
+	dev->gcBlock = 0;
 
 	if (dev->param.startBlock == 0) {
 		dev->internalStartBlock = dev->param.startBlock + 1;
@@ -7826,7 +7907,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	/* More device initialisation */
 	dev->garbageCollections = 0;
 	dev->passiveGarbageCollections = 0;
-	dev->currentDirtyChecker = 0;
+	dev->gcBlockFinder = 0;
 	dev->bufferedBlock = -1;
 	dev->doingBufferedBlockRewrite = 0;
 	dev->nDeletedFiles = 0;
@@ -7838,10 +7919,11 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	dev->tagsEccUnfixed = 0;
 	dev->nErasureFailures = 0;
 	dev->nErasedBlocks = 0;
-	dev->isDoingGC = 0;
+	dev->gcDisable= 0;
 	dev->hasPendingPrioritisedGCs = 1; /* Assume the worst for now, will get fixed on first GC */
 	YINIT_LIST_HEAD(&dev->dirtyDirectories);
 	dev->oldestDirtySequence = 0;
+	dev->oldestDirtyBlock = 0;
 
 	/* Initialise temporary buffers and caches. */
 	if (!yaffs_InitialiseTempBuffers(dev))

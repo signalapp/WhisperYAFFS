@@ -182,7 +182,7 @@ int yaffs_StartUp(void)
 	flashDev.param.isYaffs2 = 1;
 	flashDev.param.useNANDECC=1;
 	flashDev.param.wideTnodesDisabled=0;
-	flashDev.param.refreshPeriod = 10000;
+	flashDev.param.refreshPeriod = 1000;
 	flashDev.param.nShortOpCaches = 10; // Use caches
 	flashDev.context = (void *) 2;	// Used to identify the device in fstat.
 	flashDev.param.writeChunkWithTagsToNAND = yflash2_WriteChunkWithTagsToNAND;

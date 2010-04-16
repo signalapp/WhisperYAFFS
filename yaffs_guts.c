@@ -3428,8 +3428,10 @@ static unsigned yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
 			int maxThreshold = dev->param.nChunksPerBlock/2;
 			threshold = background ?
 				(dev->gcNotDone + 2) * 2 : 0;
-			threshold = max(threshold, YAFFS_GC_PASSIVE_THRESHOLD);
-			threshold = min(threshold, maxThreshold);
+			if(threshold <YAFFS_GC_PASSIVE_THRESHOLD)
+				threshold = YAFFS_GC_PASSIVE_THRESHOLD;
+			if(threshold > maxThreshold)
+				threshold = maxThreshold;
 
 			iterations = nBlocks / 16 + 1;
 			if (iterations > 100)

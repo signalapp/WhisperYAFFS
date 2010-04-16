@@ -1939,21 +1939,42 @@ static void yaffs_FlushSuperBlock(struct super_block *sb, int do_checkpoint)
 		yaffs_CheckpointSave(dev);
 }
 
-static int yaffs_do_sync_fs(struct super_block *sb, int do_checkpoint)
+
+static unsigned yaffs_bg_gc_urgency(yaffs_Device *dev)
+{
+	unsigned erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
+	struct yaffs_LinuxContext *context = yaffs_DeviceToContext(dev);
+
+	if(!context->bgRunning)
+		return 0;
+	else if(erasedChunks > dev->nFreeChunks/2)
+		return 0;
+	else if(erasedChunks > dev->nFreeChunks/4)
+		return 1;
+	else
+		return 2;
+}
+
+static int yaffs_do_sync_fs(struct super_block *sb,
+				int request_checkpoint)
 {
 
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
 	unsigned int oneshot_checkpoint = (yaffs_auto_checkpoint & 4);
 
+	if(!oneshot_checkpoint &&
+		yaffs_bg_gc_urgency(dev) > 0)
+		request_checkpoint = 0;
+
 	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, 
 		("yaffs_do_sync_fs: %s %s%s\n",
 		sb->s_dirt ? "dirty" : "clean",
-		do_checkpoint ? "with checkpoint" : "no checkpoint",
+		request_checkpoint ? "checkpoint requested" : "no checkpoint",
 		oneshot_checkpoint ? " one-shot" : "" ));
 
 	if (sb->s_dirt || oneshot_checkpoint) {
 		yaffs_GrossLock(dev);
-		yaffs_FlushSuperBlock(sb,do_checkpoint);
+		yaffs_FlushSuperBlock(sb, request_checkpoint || oneshot_checkpoint);
 		yaffs_GrossUnlock(dev);
 
 		sb->s_dirt = 0;
@@ -1961,6 +1982,7 @@ static int yaffs_do_sync_fs(struct super_block *sb, int do_checkpoint)
 		if(oneshot_checkpoint)
 			yaffs_auto_checkpoint &= ~4;
 	}
+
 	return 0;
 }
 
@@ -1991,9 +2013,9 @@ static int yaffs_BackgroundThread(void *data)
 	unsigned long next_dir_update = now;
 	unsigned long next_gc = now;
 	unsigned long expires;
+	unsigned int urgency;
 
 	int gcResult;
-	unsigned int erasedChunks;
 	struct timer_list timer;
 
 	T(YAFFS_TRACE_BACKGROUND,
@@ -2025,10 +2047,10 @@ static int yaffs_BackgroundThread(void *data)
 		if(time_after(now,next_gc) &&
 			! dev->isCheckpointed){
 			gcResult = yaffs_BackgroundGarbageCollect(dev);
-			erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
-			if(erasedChunks < dev->nFreeChunks/4)
+			urgency = yaffs_bg_gc_urgency(dev);
+			if(urgency > 1)
 				next_gc = now + HZ/50+1;
-			else if(erasedChunks < dev->nFreeChunks/2)
+			else if(urgency > 0)
 				next_gc = now + HZ/20+1;
 			else
 				next_gc = now + HZ * 2;
@@ -2110,9 +2132,13 @@ static void yaffs_write_super(struct super_block *sb)
 static int yaffs_write_super(struct super_block *sb)
 #endif
 {
+	unsigned request_checkpoint = (yaffs_auto_checkpoint >= 2);
 
-	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_write_super\n"));
-	yaffs_do_sync_fs(sb, yaffs_auto_checkpoint >= 2);
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC,
+		("yaffs_write_super%s\n",
+		request_checkpoint ? " checkpt" : ""));
+
+	yaffs_do_sync_fs(sb, request_checkpoint);
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 18))
 	return 0;
@@ -2126,9 +2152,13 @@ static int yaffs_sync_fs(struct super_block *sb, int wait)
 static int yaffs_sync_fs(struct super_block *sb)
 #endif
 {
-	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, ("yaffs_sync_fs\n"));
+	unsigned request_checkpoint = (yaffs_auto_checkpoint >= 1);
 
-	yaffs_do_sync_fs(sb,yaffs_auto_checkpoint >= 1);
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC,
+		("yaffs_sync_fs%s\n",
+		request_checkpoint ? " checkpt" : ""));
+
+	yaffs_do_sync_fs(sb, request_checkpoint);
 
 	return 0;
 }

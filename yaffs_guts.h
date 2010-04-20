@@ -763,8 +763,10 @@ struct yaffs_DeviceStruct {
 	__u32 nBlockErasures;
 	__u32 nErasureFailures;
 	__u32 nGCCopies;
-	__u32 garbageCollections;
-	__u32 passiveGarbageCollections;
+	__u32 allGCs;
+	__u32 passiveGCs;
+	__u32 oldestDirtyGCs;
+	__u32 backgroundGCs;
 	__u32 nRetriedWrites;
 	__u32 nRetiredBlocks;
 	__u32 eccFixed;
@@ -897,7 +899,7 @@ void yaffs_HandleDeferedFree(yaffs_Object *obj);
 
 void yaffs_UpdateDirtyDirectories(yaffs_Device *dev);
 
-int yaffs_BackgroundGarbageCollect(yaffs_Device *dev);
+int yaffs_BackgroundGarbageCollect(yaffs_Device *dev, unsigned urgency);
 
 /* Debug dump  */
 int yaffs_DumpObject(yaffs_Object *obj);

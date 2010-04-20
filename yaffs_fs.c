@@ -1944,8 +1944,14 @@ static unsigned yaffs_bg_gc_urgency(yaffs_Device *dev)
 {
 	unsigned erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
 	struct yaffs_LinuxContext *context = yaffs_DeviceToContext(dev);
+	unsigned scatteredFree = 0; /* Free chunks not in an erased block */
+
+	if(erasedChunks < dev->nFreeChunks)
+		scatteredFree = (dev->nFreeChunks - erasedChunks);
 
 	if(!context->bgRunning)
+		return 0;
+	else if(scatteredFree < (dev->param.nChunksPerBlock * 2))
 		return 0;
 	else if(erasedChunks > dev->nFreeChunks/2)
 		return 0;
@@ -1961,27 +1967,28 @@ static int yaffs_do_sync_fs(struct super_block *sb,
 
 	yaffs_Device *dev = yaffs_SuperToDevice(sb);
 	unsigned int oneshot_checkpoint = (yaffs_auto_checkpoint & 4);
+	unsigned gc_urgent = yaffs_bg_gc_urgency(dev);
+	int do_checkpoint;
 
-	if(!oneshot_checkpoint &&
-		yaffs_bg_gc_urgency(dev) > 0)
-		request_checkpoint = 0;
-
-	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC, 
-		("yaffs_do_sync_fs: %s %s%s\n",
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC | YAFFS_TRACE_BACKGROUND,
+		("yaffs_do_sync_fs: gc-urgency %d %s %s%s\n",
+		gc_urgent,
 		sb->s_dirt ? "dirty" : "clean",
 		request_checkpoint ? "checkpoint requested" : "no checkpoint",
 		oneshot_checkpoint ? " one-shot" : "" ));
 
-	if (sb->s_dirt || oneshot_checkpoint) {
-		yaffs_GrossLock(dev);
-		yaffs_FlushSuperBlock(sb, request_checkpoint || oneshot_checkpoint);
-		yaffs_GrossUnlock(dev);
+	yaffs_GrossLock(dev);
+	do_checkpoint = ((request_checkpoint && !gc_urgent) ||
+			oneshot_checkpoint) &&
+			!dev->isCheckpointed;
 
+	if (sb->s_dirt || do_checkpoint) {
+		yaffs_FlushSuperBlock(sb, !dev->isCheckpointed && do_checkpoint);
 		sb->s_dirt = 0;
-
 		if(oneshot_checkpoint)
 			yaffs_auto_checkpoint &= ~4;
 	}
+	yaffs_GrossUnlock(dev);
 
 	return 0;
 }
@@ -2038,22 +2045,26 @@ static int yaffs_BackgroundThread(void *data)
 
 		now = jiffies;
 
-		if(time_after(now, next_dir_update) &&
-			!dev->isCheckpointed){
+		if(time_after(now, next_dir_update)){
 			yaffs_UpdateDirtyDirectories(dev);
 			next_dir_update = now + HZ;
 		}
 
-		if(time_after(now,next_gc) &&
-			! dev->isCheckpointed){
-			gcResult = yaffs_BackgroundGarbageCollect(dev);
-			urgency = yaffs_bg_gc_urgency(dev);
-			if(urgency > 1)
-				next_gc = now + HZ/50+1;
-			else if(urgency > 0)
-				next_gc = now + HZ/20+1;
-			else
-				next_gc = now + HZ * 2;
+		if(time_after(now,next_gc)){
+			if(!dev->isCheckpointed){
+				urgency = yaffs_bg_gc_urgency(dev);
+				gcResult = yaffs_BackgroundGarbageCollect(dev, urgency);
+				if(urgency > 1)
+					next_gc = now + HZ/20+1;
+				else if(urgency > 0)
+					next_gc = now + HZ/10+1;
+				else
+					next_gc = now + HZ * 2;
+			} else /*
+				* gc not running so set to next_dir_update
+				* to cut down on wake ups
+				*/
+				next_gc = next_dir_update;
 		}
 		yaffs_GrossUnlock(dev);
 #if 1
@@ -2134,7 +2145,7 @@ static int yaffs_write_super(struct super_block *sb)
 {
 	unsigned request_checkpoint = (yaffs_auto_checkpoint >= 2);
 
-	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC,
+	T(YAFFS_TRACE_OS | YAFFS_TRACE_SYNC | YAFFS_TRACE_BACKGROUND,
 		("yaffs_write_super%s\n",
 		request_checkpoint ? " checkpt" : ""));
 
@@ -2898,8 +2909,10 @@ static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "nPageReads......... %u\n", dev->nPageReads);
 	buf += sprintf(buf, "nBlockErasures..... %u\n", dev->nBlockErasures);
 	buf += sprintf(buf, "nGCCopies.......... %u\n", dev->nGCCopies);
-	buf += sprintf(buf, "garbageCollections. %u\n", dev->garbageCollections);
-	buf += sprintf(buf, "passiveGCs......... %u\n", dev->passiveGarbageCollections);
+	buf += sprintf(buf, "allGCs............. %u\n", dev->allGCs);
+	buf += sprintf(buf, "passiveGCs......... %u\n", dev->passiveGCs);
+	buf += sprintf(buf, "oldestDirtyGCs..... %u\n", dev->oldestDirtyGCs);
+	buf += sprintf(buf, "backgroundGCs...... %u\n", dev->backgroundGCs);
 	buf += sprintf(buf, "nRetriedWrites..... %u\n", dev->nRetriedWrites);
 	buf += sprintf(buf, "nRetireBlocks...... %u\n", dev->nRetiredBlocks);
 	buf += sprintf(buf, "eccFixed........... %u\n", dev->eccFixed);
@@ -2992,8 +3005,9 @@ static int yaffs_debug_proc_read(char *page,
 		nTnodes = dev->nTnodesCreated - dev->nFreeTnodes;
 		
 		
-		buf += sprintf(buf,"%d, %d, %d, %d, %d\n", 
+		buf += sprintf(buf,"%d, %d, %d, %u, %u, %d, %d\n",
 				n, dev->nFreeChunks, erasedChunks,
+				dev->backgroundGCs, dev->oldestDirtyGCs,
 				nObjects, nTnodes);
 	}
 	up(&yaffs_context_lock);

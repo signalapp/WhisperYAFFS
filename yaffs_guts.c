@@ -3465,11 +3465,18 @@ static unsigned yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
 			selected = dev->gcDirtiest;
 	}
 
-	if(!selected && dev->param.isYaffs2 && dev->gcNotDone >= ( background ? 10 : 20)){
+	/*
+	 * If nothing has been selected for a while, try selecting the oldest dirty
+	 * because that's gumming up the works.
+	 */
+
+	if(!selected && dev->param.isYaffs2 &&
+		dev->gcNotDone >= ( background ? 10 : 20)){
 		yaffs_FindOldestDirtySequence(dev);
 		if(dev->oldestDirtyBlock > 0) {
 			selected = dev->oldestDirtyBlock;
 			dev->gcDirtiest = selected;
+			dev->oldestDirtyGCs++;
 			bi = yaffs_GetBlockInfo(dev, selected);
 			dev->gcPagesInUse =  bi->pagesInUse - bi->softDeletions;
 		} else
@@ -3483,6 +3490,8 @@ static unsigned yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
 		  dev->param.nChunksPerBlock - dev->gcPagesInUse,
 		  prioritised));
 
+		if(background)
+			dev->backgroundGCs++;
 		dev->gcDirtiest = 0;
 		dev->gcPagesInUse = 0;
 		dev->gcNotDone = 0;
@@ -3575,9 +3584,9 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev, int background)
 		}
 
 		if (dev->gcBlock > 0) {
-			dev->garbageCollections++;
+			dev->allGCs++;
 			if (!aggressive)
-				dev->passiveGarbageCollections++;
+				dev->passiveGCs++;
 
 			T(YAFFS_TRACE_GC,
 			  (TSTR
@@ -3605,11 +3614,11 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev, int background)
  * Garbage collects. Intended to be called from a background thread.
  * Returns non-zero if at least half the free chunks are erased.
  */
-int yaffs_BackgroundGarbageCollect(yaffs_Device *dev)
+int yaffs_BackgroundGarbageCollect(yaffs_Device *dev, unsigned urgency)
 {
 	int erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
 
-	T(YAFFS_TRACE_BACKGROUND, (TSTR("Background gc" TENDSTR)));
+	T(YAFFS_TRACE_BACKGROUND, (TSTR("Background gc %u" TENDSTR),urgency));
 
 	yaffs_CheckGarbageCollection(dev, 1);
 	return erasedChunks > dev->nFreeChunks/2;
@@ -7907,8 +7916,10 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	/* OK, we've finished verifying the device, lets continue with initialisation */
 
 	/* More device initialisation */
-	dev->garbageCollections = 0;
-	dev->passiveGarbageCollections = 0;
+	dev->allGCs = 0;
+	dev->passiveGCs = 0;
+	dev->oldestDirtyGCs = 0;
+	dev->backgroundGCs = 0;
 	dev->gcBlockFinder = 0;
 	dev->bufferedBlock = -1;
 	dev->doingBufferedBlockRewrite = 0;

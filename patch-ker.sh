@@ -2,7 +2,7 @@
 #
 # YAFFS: Yet another FFS. A NAND-flash specific file system.
 #
-# Copyright (C) 2002-2006 Aleph One Ltd.
+# Copyright (C) 2002-2010 Aleph One Ltd.
 #
 # Created by Charles Manning <charles@aleph1.co.uk>
 #
@@ -16,7 +16,6 @@
 #
 #  Somewhat "inspired by" the mtd patchin script
 #
-#  $Id: patch-ker.sh,v 1.5 2009-01-22 00:44:46 charles Exp $
 
 VERSION=0
 PATCHLEVEL=0

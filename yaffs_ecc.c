@@ -1,7 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2007 Aleph One Ltd.
+ * Copyright (C) 2002-2010 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -27,9 +27,6 @@
  * Bit 0 of each entry indicates whether the entry has an odd or even parity, and therefore
  * this bytes influence on the line parity.
  */
-
-const char *yaffs_ecc_c_version =
-	"$Id: yaffs_ecc.c,v 1.11 2009-03-06 17:20:50 wookey Exp $";
 
 #include "yportenv.h"
 

@@ -1,7 +1,7 @@
 /*
  * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2007 Aleph One Ltd.
+ * Copyright (C) 2002-2010 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -89,14 +89,9 @@
 #define yaffs_strcmp(a, b) strcmp(a, b)
 
 #define TENDSTR "\n"
-#define TSTR(x) KERN_WARNING x
+#define TSTR(x) KERN_DEBUG x
 #define TCONT(x) x
 #define TOUT(p) printk p
-
-#define yaffs_trace(mask, fmt, args...) \
-	do { if ((mask) & (yaffs_traceMask| YAFFS_TRACE_ALWAYS)) \
-		printk(KERN_WARNING "yaffs: " fmt, ## args); \
-	} while (0)
 
 #define compile_time_assertion(assertion) \
 	({ int x = __builtin_choose_expr(assertion, 0, (void)0); (void) x; })

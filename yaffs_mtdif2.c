@@ -1,7 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2007 Aleph One Ltd.
+ * Copyright (C) 2002-2010 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -12,9 +12,6 @@
  */
 
 /* mtd interface for YAFFS2 */
-
-const char *yaffs_mtdif2_c_version =
-	"$Id: yaffs_mtdif2.c,v 1.27 2010-02-18 01:18:04 charles Exp $";
 
 #include "yportenv.h"
 #include "yaffs_trace.h"

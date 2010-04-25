@@ -6771,7 +6771,7 @@ static int yaffs_ScanBackwards(yaffs_Device *dev)
 							 * the current allocation block.
 							 */
 
-							 T(YAFFS_TRACE_ALWAYS,
+							 T(YAFFS_TRACE_SCAN,
 							 (TSTR("Partially written block %d detected" TENDSTR),
 							 blk));
 						}

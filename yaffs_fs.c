@@ -1064,9 +1064,8 @@ static int yaffs_write_end(struct file *filp, struct address_space *mapping,
 	addr = kva + offset_into_page;
 
 	T(YAFFS_TRACE_OS,
-		("yaffs_write_end addr %x pos %x nBytes %d\n",
-		(unsigned) addr,
-		(int)pos, copied));
+		("yaffs_write_end addr %p pos %x nBytes %d\n",
+		addr,(unsigned)pos, copied));
 
 	ret = yaffs_file_write(filp, addr, copied, &pos);
 
@@ -2094,12 +2093,12 @@ static int yaffs_BackgroundThread(void *data)
 static int yaffs_BackgroundStart(yaffs_Device *dev)
 {
 	int retval = 0;
-
 	struct yaffs_LinuxContext *context = yaffs_DeviceToContext(dev);
 
 	context->bgRunning = 1;
 
-	context->bgThread = kthread_run(yaffs_BackgroundThread,(void *)dev,"yaffs_%x",(unsigned)dev);
+	context->bgThread = kthread_run(yaffs_BackgroundThread,
+	                        (void *)dev,"yaffs-bg");
 
 	if(IS_ERR(context->bgThread)){
 		retval = PTR_ERR(context->bgThread);

@@ -13,3 +13,10 @@ ln -s $STARTDIR/yaffs_test yaffs_test
 ./init_fw_update_test_nand.sh
 ./run_fw_update_test_nand.sh
 
+
+echo "!!!!!!!!!!!"
+echo "Tests done"
+while true
+do
+	sleep 10
+done

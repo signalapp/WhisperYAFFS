@@ -43,7 +43,8 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 	if (tags &&
 	   tags->eccResult > YAFFS_ECC_RESULT_NO_ERROR) {
 
-		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, chunkInNAND/dev->param.nChunksPerBlock);
+		yaffs_BlockInfo *bi;
+		bi = yaffs_GetBlockInfo(dev, chunkInNAND/dev->param.nChunksPerBlock);
 		yaffs_HandleChunkError(dev, bi);
 	}
 

@@ -1,4 +1,4 @@
-# Main Makefile for YAFFS
+# Main Makefile for out-of-tree yaffs2.ko building
 #
 #
 # YAFFS: Yet Another Flash File System. A NAND-flash specific file system.

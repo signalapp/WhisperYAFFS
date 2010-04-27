@@ -33,6 +33,7 @@
 /* Note YAFFS_GC_GOOD_ENOUGH must be <= YAFFS_GC_PASSIVE_THRESHOLD */
 #define YAFFS_GC_GOOD_ENOUGH 2
 #define YAFFS_GC_PASSIVE_THRESHOLD 4
+
 #define YAFFS_SMALL_HOLE_THRESHOLD 3
 
 #include "yaffs_ecc.h"
@@ -179,7 +180,7 @@ static __u32 ShiftsGE(__u32 x)
 
 static __u32 Shifts(__u32 x)
 {
-	int nShifts;
+	__u32 nShifts;
 
 	nShifts =  0;
 
@@ -5132,8 +5133,6 @@ int yaffs_DoWriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
 	dev = in->myDev;
 
 	while (n > 0 && chunkWritten >= 0) {
-		/* chunk = offset / dev->nDataBytesPerChunk + 1; */
-		/* start = offset % dev->nDataBytesPerChunk; */
 		yaffs_AddrToChunk(dev, offset, &chunk, &start);
 
 		if (chunk * dev->nDataBytesPerChunk + start != offset ||
@@ -5143,7 +5142,7 @@ int yaffs_DoWriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
 			   TENDSTR),
 			   (int)offset, chunk, start));
 		}
-		chunk++;
+		chunk++; /* File pos to chunk in file offset */
 
 		/* OK now check for the curveball where the start and end are in
 		 * the same chunk.

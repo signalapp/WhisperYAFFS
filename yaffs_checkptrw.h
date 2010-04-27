@@ -32,4 +32,3 @@ int yaffs_CheckpointInvalidateStream(yaffs_Device *dev);
 
 
 #endif
-

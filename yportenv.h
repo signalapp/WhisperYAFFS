@@ -155,7 +155,11 @@
 
 
 #ifndef YBUG
-#define YBUG() do {T(YAFFS_TRACE_BUG, (TSTR("==>> yaffs bug: " __FILE__ " %d" TENDSTR), __LINE__)); } while (0)
+#define YBUG() do {\
+	T(YAFFS_TRACE_BUG,\
+		(TSTR("==>> yaffs bug: " __FILE__ " %d" TENDSTR),\
+		__LINE__));\
+} while (0)
 #endif
 
 #endif

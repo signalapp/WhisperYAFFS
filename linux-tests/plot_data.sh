@@ -21,7 +21,7 @@ i=0;
 rm -f $log_file
 
 while true; do
-str=$(cat /proc/yaffs_debug)
+str=$(cat /proc/yaffs_stats)
 echo "$i, $str" 
 echo "$i, $str"  >> $log_file
 let i=$i+1

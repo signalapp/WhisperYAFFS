@@ -36,6 +36,14 @@
 
 #define YAFFS_SMALL_HOLE_THRESHOLD 3
 
+/*
+ * Checkpoints are really no benefit on very small partitions.
+ *
+ * To save space on small partitions don't bother with checkpoints unless
+ * the partition is at least this big.
+ */
+#define YAFFS_CHECKPOINT_MIN_BLOCKS 60
+
 #include "yaffs_ecc.h"
 
 
@@ -2953,10 +2961,17 @@ static int yaffs_FindBlockForAllocation(yaffs_Device *dev)
 
 
 
+static int yaffs_CheckpointRequired(yaffs_Device *dev)
+{
+	int nblocks = dev->internalEndBlock - dev->internalStartBlock + 1 ;
+	return dev->param.isYaffs2 &&
+		!dev->param.skipCheckpointWrite &&
+		(nblocks >= YAFFS_CHECKPOINT_MIN_BLOCKS);
+}
 static int yaffs_CalcCheckpointBlocksRequired(yaffs_Device *dev)
 {
 	if (!dev->nCheckpointBlocksRequired &&
-	   dev->param.isYaffs2) {
+		yaffs_CheckpointRequired(dev)){
 		/* Not a valid value so recalculate */
 		int nBytes = 0;
 		int nBlocks;
@@ -4877,7 +4892,7 @@ static int yaffs_WriteCheckpointData(yaffs_Device *dev)
 {
 	int ok = 1;
 
-	if (dev->param.skipCheckpointWrite || !dev->param.isYaffs2) {
+	if (!yaffs_CheckpointRequired(dev)) {
 		T(YAFFS_TRACE_CHECKPOINT, (TSTR("skipping checkpoint write" TENDSTR)));
 		ok = 0;
 	}

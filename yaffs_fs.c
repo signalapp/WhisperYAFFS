@@ -2648,7 +2648,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 #ifdef CONFIG_YAFFS_DISABLE_BLOCK_REFRESHING
 	param->refreshPeriod = 0;
 #else
-	param->refreshPeriod = 100;
+	param->refreshPeriod = 500;
 #endif
 
 	if(options.empty_lost_and_found_overridden)
@@ -3177,6 +3177,14 @@ static int __init init_yaffs_fs(void)
 
 	T(YAFFS_TRACE_ALWAYS,
 	  (TSTR("yaffs built " __DATE__ " " __TIME__ " Installing. \n")));
+
+#ifdef CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED
+	T(YAFFS_TRACE_ALWAYS,
+	  (TSTR(" \n\n\n\nYAFFS-WARNING CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED selected.\n\n\n\n")));
+#endif
+
+
+
 
 	init_MUTEX(&yaffs_context_lock);
 

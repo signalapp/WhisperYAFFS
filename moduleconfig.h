@@ -38,9 +38,10 @@
 /*          CONFIG_YAFFS_DOES_ECC is set */
 /* #define CONFIG_YAFFS_ECC_WRONG_ORDER */
 
-/* Default: Selected */
-/* Meaning: Disables testing whether chunks are erased before writing to them*/
-#define CONFIG_YAFFS_DISABLE_CHUNK_ERASED_CHECK
+/* Default: Not selected */
+/* Meaning: Always test whether chunks are erased before writing to them.
+	    Use during mtd debugging and init. */
+/* #define CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED */
 
 /* Default: Not Selected */
 /* Meaning: At mount automatically empty all files from lost and found. */

@@ -7,10 +7,14 @@
 log_file=data
 gather_delay=1
 
+done_file=plot_done
+
 # Plot settings
 trunc_file=trunc_data
 plot_samples=1000
 plot_delay=2
+
+
 
 
 
@@ -20,7 +24,7 @@ gather_data() {
 i=0;
 rm -f $log_file
 
-while true; do
+while [ ! -e $done_file ] ; do
 str=$(cat /proc/yaffs_stats)
 echo "$i, $str" 
 echo "$i, $str"  >> $log_file
@@ -44,7 +48,7 @@ echo "set title 'yaffs free space and erased space'"
 
 echo $plot_str
  
-while true; do
+while [ ! -e $done_file ]; do
 sleep $plot_delay
 tail -$plot_samples $log_file > $trunc_file
 echo replot
@@ -52,9 +56,15 @@ done
 }
 
 
+rm -f $done_file
+trap "touch $done_file" INT
 
 echo "Start gathering task in background"
 gather_data &
 echo "Run plotting task"
 drive_gnuplot | gnuplot
+
+wait
+
+echo "All done"
 

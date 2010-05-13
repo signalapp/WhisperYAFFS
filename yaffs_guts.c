@@ -5624,7 +5624,7 @@ static int yaffs_UnlinkFileIfNeeded(yaffs_Object *in)
 int yaffs_DeleteFile(yaffs_Object *in)
 {
 	int retVal = YAFFS_OK;
-	int deleted = in->deleted;
+	int deleted; /* Need to cache value on stack if in is freed */
 	yaffs_Device *dev = in->myDev;
 
 	if (dev->param.disableSoftDelete || dev->param.isYaffs2)
@@ -5636,6 +5636,8 @@ int yaffs_DeleteFile(yaffs_Object *in)
 		 */
 		if (!in->unlinked)
 			retVal = yaffs_UnlinkFileIfNeeded(in);
+
+		deleted = in->deleted;
 
 		if (retVal == YAFFS_OK && in->unlinked && !in->deleted) {
 			in->deleted = 1;

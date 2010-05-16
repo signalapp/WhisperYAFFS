@@ -16,10 +16,16 @@ do
 
    seed=$RANDOM   
    j=$(( $i % 10 ))
+
    rm seed-nor-*$j
    echo $seed>seed-nor-for-run-$i
+
+
    rm emfile-nor-*$j
    cp emfile-nor emfile-nor-$i
+
+   rm log-nor-*$j
+
    echo "#########"
    echo "#########"
    echo "#########"
@@ -27,5 +33,6 @@ do
    echo "#########"
    echo "#########"
    echo "#########"
-   ./yaffs_test -u -f -p -s$seed -t0 M18-1
+   ./yaffs_test -u -f -p -s$seed -t0 M18-1 >log-nor-$i
 done
+

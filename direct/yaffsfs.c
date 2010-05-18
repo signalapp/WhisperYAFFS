@@ -56,7 +56,6 @@ typedef struct {
 typedef struct{
 	__u8 	readOnly:1;	// this handle is read only
 	__u8 	append:1;	// append only
-	__u8	exclusive:1;	// exclusive
 	int	inodeId:13;	// the object
 	int	useCount:16;	// Use count for this handle
 	__u32 position;		// current position in file
@@ -508,16 +507,19 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 	YCHAR *name;
 	int handle = -1;
 	yaffsfs_Handle *h = NULL;
-	int alreadyOpen = 0;
-	int alreadyExclusive = 0;
 	int openDenied = 0;
 	int symDepth = 0;
 	int errorReported = 0;
 
-	int i;
+	/* O_EXCL only has meaning if O_CREAT is specified */
+	if(!(oflag & O_CREAT))
+		oflag &= ~(O_EXCL);
 
+	/* O_TRUNC has no meaning if (O_CREAT | O_EXCL) is specified */
+	if( (oflag & O_CREAT) & (oflag & O_EXCL))
+		oflag &= ~(O_TRUNC);
 
-	// todo sanity check oflag (eg. can't have O_TRUNC without WRONLY or RDWR
+	/* Todo: Are there any more flag combos to sanitise ? */
 
 
 	yaffsfs_Lock();
@@ -542,23 +544,11 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 			obj = NULL;
 
 		if(obj){
-			// Check if the object is already in use
-			alreadyOpen = alreadyExclusive = 0;
 
-			for(i = 0; i < YAFFSFS_N_HANDLES; i++){
-				if(i != handle &&
-				   yaffsfs_handle[i].useCount > 0 &&
-				    obj == yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj){
-				 	alreadyOpen = 1;
-					if(yaffsfs_handle[i].exclusive)
-						alreadyExclusive = 1;
-				 }
-			}
+			/* The file already exists */
 
-			if(((oflag & O_EXCL) && alreadyOpen) || alreadyExclusive)
-				openDenied = 1;
-
-			// Open should fail if O_CREAT and O_EXCL are specified
+			// Open should fail if O_CREAT and O_EXCL are specified since
+			// the file exists
 			if((oflag & O_EXCL) && (oflag & O_CREAT)){
 				openDenied = 1;
 				yaffsfs_SetError(-EEXIST);
@@ -605,7 +595,6 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 			h->inodeId = inodeId;
 			h->readOnly = (oflag & (O_WRONLY | O_RDWR)) ? 0 : 1;
 			h->append =  (oflag & O_APPEND) ? 1 : 0;
-			h->exclusive = (oflag & O_EXCL) ? 1 : 0;
 			h->position = 0;
 
 			/* Hook inode to object */

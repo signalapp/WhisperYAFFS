@@ -85,6 +85,7 @@ maybe_remount(){
 }
 
 
+
 make_space_slow(){
    
    update_df_percent
@@ -99,7 +100,7 @@ make_space_slow(){
    while [ $df_percent -ge $low_water ] ; do
 
       DELETE_FILE=`ls $TEST_DIR | head -n 1`
-      rm "$TEST_DIR/$DELETE_FILE"
+      rm -rf "$TEST_DIR/$DELETE_FILE"
 
       update_df_percent
       maybe_sleep
@@ -119,7 +120,7 @@ make_space_fast(){
    while [ $df_percent -ge $low_water ] ; do
 
       let file_prefix=$RANDOM%100
-      rm -f $TEST_DIR/dummy $TEST_DIR/$file_prefix*
+      rm -rf $TEST_DIR/dummy $TEST_DIR/$file_prefix*
 
       update_df_percent
       maybe_sleep
@@ -179,29 +180,45 @@ create_files(){
    
 	   calc_high_water
 	   
-	   md5sum $TEST_DIR/* > $SUM_FILE
+	   rm -f $SUM_FILE
+	   
+	   for i in $(find $TEST_DIR) ; do
+	   	[ -f $i ] && md5sum $i >> $SUM_FILE
+	   done
 
 	   echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	   echo "!!!!! Fill from $df_percent percent to $high_water percent"
 	   echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	   let chunks=$RANDOM%100
-	   let fsize=$RANDOM*$chunks+1
-	   echo "!!!!!! File size is $fsize"
 
 	
 	   update_df_percent
 	   
-	   let skip=0
+	   let skip_file_create=0
+	   let skip_dir_create=0
 
 	   while [ $df_percent -le $high_water ] ; do
 	   
-	        if [ $skip -lt 1 ] ; then
+	        if [ $skip_file_create -lt 1 ] ; then
+			let fsize=$RANDOM*$chunks+1
+			echo "!!!!!! File size is $fsize"
 	     		dd if=/dev/urandom of=$REF_FILE bs=$fsize count=1
 	   		REF_SUM=$(md5sum $REF_FILE | cut -f1 -d" " )
-	   		let skip=500
+	   		let skip_file_create=$RANDOM%50
+	   	else
+	   		let skip_file_create=$skip_file_create-1
+	        fi
+
+	        if [ $skip_dir_create -lt 1 ] ; then
+	        	dir_name=$TEST_DIR/$RANDOM-dir
+	        	mkdir -p $dir_name
+	        	echo "Creating in directory $dir_name"
+	   		let skip_dir_create=$RANDOM%100
+	   	else
+	   		let skip_dir_create=$skip_dir_create-1
 	        fi
 	   
-		FNAME=$TEST_DIR/$RANDOM-$RANDOM-$RANDOM
+		FNAME=$dir_name/$RANDOM-$RANDOM-$RANDOM
 		cp $REF_FILE $FNAME
 		FILE_SUM=$(md5sum $FNAME | cut -f1 -d" ")
 		md5sum $FNAME >> $SUM_FILE
@@ -236,8 +253,8 @@ fill_disk(){
 		
 }
 
+rm -rf $TEST_DIR/*
 mkdir -p $TEST_DIR
-rm -f $TEST_DIR/*
 touch $TEST_DIR/dont-want-empty-dir
 create_files
 
@@ -254,7 +271,7 @@ while true ; do
 	fi
 
 	let x=$RANDOM%100
-	if [ $x -lt 10 ] ; then 
+	if [ $x -lt 5 ] ; then 
 		fill_disk
 	fi
 

@@ -58,6 +58,18 @@ def yaffs_link_test(dir):
     yaffs_ls(dir)
     yaffs_unlink(fnameb)
 
+def yaffs_o_excl_test(dir):
+    fname = dir + '/aaa'
+    yaffs_unlink(fname)
+    fd = yaffs_open(fname, 66, 0666)
+    yaffs_close(fd)
+    print "Created ", fname, " result ", fd
+    fdx = yaffs_open(fname, 0301, 0666)
+    print "Attempt to create with O_EXCL existing file returned ", fdx
+    yaffs_unlink(fname)
+    fdx = yaffs_open(fname, 0301, 0666)
+    print "Attempt to create with O_EXCL non-existing file returned ", fdx
+
     
 root = "/yaffs2"
 

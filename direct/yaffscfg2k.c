@@ -97,14 +97,7 @@ void yaffsfs_LocalInitialisation(void)
 	// Define locking semaphore.
 }
 
-// Configuration for:
-// /ram  2MB ramdisk
-// /boot 2MB boot disk (flash)
-// /flash 14MB flash disk (flash)
-// NB Though /boot and /flash occupy the same physical device they
-// are still disticnt "yaffs_Devices. You may think of these as "partitions"
-// using non-overlapping areas in the same device.
-// 
+// Configuration
 
 #include "yaffs_ramdisk.h"
 #include "yaffs_flashif.h"
@@ -112,7 +105,6 @@ void yaffsfs_LocalInitialisation(void)
 #include "yaffs_nandemul2k.h"
 
 static yaffs_Device ram1Dev;
-static yaffs_Device nand2;
 static yaffs_Device flashDev;
 static yaffs_Device ram2kDev;
 static yaffs_Device m18_1Dev;
@@ -123,7 +115,7 @@ static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 	{ "/M18-1", &m18_1Dev},
 	{ "/yaffs2", &flashDev},
 	{ "/ram2k", &ram2kDev},
-	{(void *)0,(void *)0} /* Null entry to terminate list */
+	{ NULL, NULL } /* Null entry to terminate list */
 };
 
 
@@ -166,9 +158,7 @@ int yaffs_StartUp(void)
 	m18_1Dev.param.deinitialiseNAND = ynorif1_DeinitialiseNAND;
 
 
-	// /yaffs2 
-	// Set this puppy up to use
-	// the file emulation space as
+	// /yaffs2  yaffs2 file emulation
 	// 2kpage/64chunk per block
 	//
 	memset(&flashDev,0,sizeof(flashDev));

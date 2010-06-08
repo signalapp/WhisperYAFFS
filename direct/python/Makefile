@@ -46,7 +46,8 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
           yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
           yaffs_nameval.c yaffs_nameval.h \
-          yaffs_qsort.c yaffs_qsort.h yaffs_trace.h
+          yaffs_qsort.c yaffs_qsort.h yaffs_trace.h \
+          yaffs_allocator.c yaffs_allocator.h
 
 YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffs_fileem2k.h yaffsfs.h yaffs_malloc.h yaffs_ramdisk.h ydirectenv.h \

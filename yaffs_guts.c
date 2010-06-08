@@ -30,7 +30,7 @@
 #include "yaffs_packedtags2.h"
 
 #include "yaffs_nameval.h"
-
+#include "yaffs_allocator.h"
 
 /* Note YAFFS_GC_GOOD_ENOUGH must be <= YAFFS_GC_PASSIVE_THRESHOLD */
 #define YAFFS_GC_GOOD_ENOUGH 2
@@ -1292,141 +1292,16 @@ static void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name)
  * in the tnode.
  */
 
-/* yaffs_CreateTnodes creates a bunch more tnodes and
- * adds them to the tnode free list.
- * Don't use this function directly
- */
-static Y_INLINE int yaffs_CalcTnodeSize(yaffs_Device *dev)
-{
-	int tnodeSize;
-	/* Calculate the tnode size in bytes for variable width tnode support.
-	 * Must be a multiple of 32-bits  */
-	tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
-
-	if (tnodeSize < sizeof(yaffs_Tnode))
-		tnodeSize = sizeof(yaffs_Tnode);
-	return tnodeSize;
-}
-
-static int yaffs_CreateTnodes(yaffs_Device *dev, int nTnodes)
-{
-	int i;
-	int tnodeSize = yaffs_CalcTnodeSize(dev);
-	yaffs_Tnode *newTnodes;
-	__u8 *mem;
-	yaffs_Tnode *curr;
-	yaffs_Tnode *next;
-	yaffs_TnodeList *tnl;
-
-	if (nTnodes < 1)
-		return YAFFS_OK;
-
-
-	/* make these things */
-
-	newTnodes = YMALLOC(nTnodes * tnodeSize);
-	mem = (__u8 *)newTnodes;
-
-	if (!newTnodes) {
-		T(YAFFS_TRACE_ERROR,
-			(TSTR("yaffs: Could not allocate Tnodes" TENDSTR)));
-		return YAFFS_FAIL;
-	}
-
-	/* Hook them into the free list */
-#if 0
-	for (i = 0; i < nTnodes - 1; i++) {
-		newTnodes[i].internal[0] = &newTnodes[i + 1];
-#ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
-		newTnodes[i].internal[YAFFS_NTNODES_INTERNAL] = (void *)1;
-#endif
-	}
-
-	newTnodes[nTnodes - 1].internal[0] = dev->freeTnodes;
-#ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
-	newTnodes[nTnodes - 1].internal[YAFFS_NTNODES_INTERNAL] = (void *)1;
-#endif
-	dev->freeTnodes = newTnodes;
-#else
-	/* New hookup for wide tnodes */
-	for (i = 0; i < nTnodes - 1; i++) {
-		curr = (yaffs_Tnode *) &mem[i * tnodeSize];
-		next = (yaffs_Tnode *) &mem[(i+1) * tnodeSize];
-		curr->internal[0] = next;
-	}
-
-	curr = (yaffs_Tnode *) &mem[(nTnodes - 1) * tnodeSize];
-	curr->internal[0] = dev->freeTnodes;
-	dev->freeTnodes = (yaffs_Tnode *)mem;
-
-#endif
-
-
-	dev->nFreeTnodes += nTnodes;
-	dev->nTnodesCreated += nTnodes;
-
-	/* Now add this bunch of tnodes to a list for freeing up.
-	 * NB If we can't add this to the management list it isn't fatal
-	 * but it just means we can't free this bunch of tnodes later.
-	 */
-
-	tnl = YMALLOC(sizeof(yaffs_TnodeList));
-	if (!tnl) {
-		T(YAFFS_TRACE_ERROR,
-		  (TSTR
-		   ("yaffs: Could not add tnodes to management list" TENDSTR)));
-		   return YAFFS_FAIL;
-	} else {
-		tnl->tnodes = newTnodes;
-		tnl->next = dev->allocatedTnodeList;
-		dev->allocatedTnodeList = tnl;
-	}
-
-	T(YAFFS_TRACE_ALLOCATE, (TSTR("yaffs: Tnodes added" TENDSTR)));
-
-	return YAFFS_OK;
-}
-
-/* GetTnode gets us a clean tnode. Tries to make allocate more if we run out */
-
-static yaffs_Tnode *yaffs_GetTnodeRaw(yaffs_Device *dev)
-{
-	yaffs_Tnode *tn = NULL;
-
-#ifdef CONFIG_YAFFS_VALGRIND_TEST
-	tn = YMALLOC(yaffs_CalcTnodeSize(dev));
-	if(tn)
-		dev->nTnodesCreated++;
-#else
-	/* If there are none left make more */
-	if (!dev->freeTnodes)
-		yaffs_CreateTnodes(dev, YAFFS_ALLOCATION_NTNODES);
-
-	if (dev->freeTnodes) {
-		tn = dev->freeTnodes;
-#ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
-		if (tn->internal[YAFFS_NTNODES_INTERNAL] != (void *)1) {
-			/* Hoosterman, this thing looks like it isn't in the list */
-			T(YAFFS_TRACE_ALWAYS,
-			  (TSTR("yaffs: Tnode list bug 1" TENDSTR)));
-		}
-#endif
-		dev->freeTnodes = dev->freeTnodes->internal[0];
-		dev->nFreeTnodes--;
-	}
-#endif
-	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
-
-	return tn;
-}
 
 static yaffs_Tnode *yaffs_GetTnode(yaffs_Device *dev)
 {
-	yaffs_Tnode *tn = yaffs_GetTnodeRaw(dev);
-	int tnodeSize = yaffs_CalcTnodeSize(dev);
+	yaffs_Tnode *tn = yaffs_AllocateRawTnode(dev);
+	if (tn){
+		memset(tn, 0, dev->tnodeSize);
+		dev->nTnodes++;
+	}
 
-	if (tn)
-		memset(tn, 0, tnodeSize);
+	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
 
 	return tn;
 }
@@ -1434,52 +1309,16 @@ static yaffs_Tnode *yaffs_GetTnode(yaffs_Device *dev)
 /* FreeTnode frees up a tnode and puts it back on the free list */
 static void yaffs_FreeTnode(yaffs_Device *dev, yaffs_Tnode *tn)
 {
-	if (tn) {
-#ifdef CONFIG_YAFFS_VALGRIND_TEST
-		YFREE(tn);
-		dev->nTnodesCreated--;
-#else
-#ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
-		if (tn->internal[YAFFS_NTNODES_INTERNAL] != 0) {
-			/* Hoosterman, this thing looks like it is already in the list */
-			T(YAFFS_TRACE_ALWAYS,
-			  (TSTR("yaffs: Tnode list bug 2" TENDSTR)));
-		}
-		tn->internal[YAFFS_NTNODES_INTERNAL] = (void *)1;
-#endif
-		tn->internal[0] = dev->freeTnodes;
-		dev->freeTnodes = tn;
-		dev->nFreeTnodes++;
-#endif
-	}
+	yaffs_FreeRawTnode(dev,tn);
+	dev->nTnodes--;
 	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
 }
 
-static void yaffs_DeinitialiseTnodes(yaffs_Device *dev)
+static void yaffs_DeinitialiseTnodesAndObjects(yaffs_Device *dev)
 {
-	/* Free the list of allocated tnodes */
-	yaffs_TnodeList *tmp;
-
-	while (dev->allocatedTnodeList) {
-		tmp = dev->allocatedTnodeList->next;
-
-		YFREE(dev->allocatedTnodeList->tnodes);
-		YFREE(dev->allocatedTnodeList);
-		dev->allocatedTnodeList = tmp;
-
-	}
-
-	dev->freeTnodes = NULL;
-	dev->nFreeTnodes = 0;
-	dev->nTnodesCreated = 0;
-}
-
-static void yaffs_InitialiseTnodes(yaffs_Device *dev)
-{
-	dev->allocatedTnodeList = NULL;
-	dev->freeTnodes = NULL;
-	dev->nFreeTnodes = 0;
-	dev->nTnodesCreated = 0;
+	yaffs_DeinitialiseRawTnodesAndObjects(dev);
+	dev->nObjects = 0;
+	dev->nTnodes = 0;
 }
 
 
@@ -1963,7 +1802,7 @@ static yaffs_Tnode *yaffs_PruneWorker(yaffs_Device *dev, yaffs_Tnode *tn,
 					hasData++;
 			}
 		} else {
-			int tnodeSize_u32 = yaffs_CalcTnodeSize(dev)/sizeof(__u32);
+			int tnodeSize_u32 = dev->tnodeSize/sizeof(__u32);
 			__u32 *map = (__u32 *)tn;
 
                         for(i = 0; !hasData && i < tnodeSize_u32; i++){
@@ -2028,96 +1867,32 @@ static int yaffs_PruneFileStructure(yaffs_Device *dev,
 
 /*-------------------- End of File Structure functions.-------------------*/
 
-/* yaffs_CreateFreeObjects creates a bunch more objects and
- * adds them to the object free list.
- */
-static int yaffs_CreateFreeObjects(yaffs_Device *dev, int nObjects)
-{
-	int i;
-	yaffs_Object *newObjects;
-	yaffs_ObjectList *list;
-
-	if (nObjects < 1)
-		return YAFFS_OK;
-
-	/* make these things */
-	newObjects = YMALLOC(nObjects * sizeof(yaffs_Object));
-	list = YMALLOC(sizeof(yaffs_ObjectList));
-
-	if (!newObjects || !list) {
-		if (newObjects){
-			YFREE(newObjects);
-			newObjects = NULL;
-		}
-		if (list){
-			YFREE(list);
-			list = NULL;
-		}
-		T(YAFFS_TRACE_ALLOCATE,
-		  (TSTR("yaffs: Could not allocate more objects" TENDSTR)));
-		return YAFFS_FAIL;
-	}
-
-	/* Hook them into the free list */
-	for (i = 0; i < nObjects - 1; i++) {
-		newObjects[i].siblings.next =
-				(struct ylist_head *)(&newObjects[i + 1]);
-	}
-
-	newObjects[nObjects - 1].siblings.next = (void *)dev->freeObjects;
-	dev->freeObjects = newObjects;
-	dev->nFreeObjects += nObjects;
-	dev->nObjectsCreated += nObjects;
-
-	/* Now add this bunch of Objects to a list for freeing up. */
-
-	list->objects = newObjects;
-	list->next = dev->allocatedObjectList;
-	dev->allocatedObjectList = list;
-
-	return YAFFS_OK;
-}
-
 
 /* AllocateEmptyObject gets us a clean Object. Tries to make allocate more if we run out */
 static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device *dev)
 {
-	yaffs_Object *tn = NULL;
+	yaffs_Object *obj = yaffs_AllocateRawObject(dev);
 
-#ifdef CONFIG_YAFFS_VALGRIND_TEST
-	tn = YMALLOC(sizeof(yaffs_Object));
-	if(tn)
-		dev->nObjectsCreated++;
-#else
-	/* If there are none left make more */
-	if (!dev->freeObjects)
-		yaffs_CreateFreeObjects(dev, YAFFS_ALLOCATION_NOBJECTS);
+	if (obj) {
+		dev->nObjects++;
 
-	if (dev->freeObjects) {
-		tn = dev->freeObjects;
-		dev->freeObjects =
-			(yaffs_Object *) (dev->freeObjects->siblings.next);
-		dev->nFreeObjects--;
-	}
-#endif
-	if (tn) {
 		/* Now sweeten it up... */
 
-		memset(tn, 0, sizeof(yaffs_Object));
-		tn->beingCreated = 1;
+		memset(obj, 0, sizeof(yaffs_Object));
+		obj->beingCreated = 1;
 
-		tn->myDev = dev;
-		tn->hdrChunk = 0;
-		tn->variantType = YAFFS_OBJECT_TYPE_UNKNOWN;
-		YINIT_LIST_HEAD(&(tn->hardLinks));
-		YINIT_LIST_HEAD(&(tn->hashLink));
-		YINIT_LIST_HEAD(&tn->siblings);
+		obj->myDev = dev;
+		obj->hdrChunk = 0;
+		obj->variantType = YAFFS_OBJECT_TYPE_UNKNOWN;
+		YINIT_LIST_HEAD(&(obj->hardLinks));
+		YINIT_LIST_HEAD(&(obj->hashLink));
+		YINIT_LIST_HEAD(&obj->siblings);
 
 
 		/* Now make the directory sane */
 		if (dev->rootDir) {
-			tn->parent = dev->rootDir;
-			ylist_add(&(tn->siblings), &dev->rootDir->variant.directoryVariant.children);
+			obj->parent = dev->rootDir;
+			ylist_add(&(obj->siblings), &dev->rootDir->variant.directoryVariant.children);
 		}
 
 		/* Add it to the lost and found directory.
@@ -2125,14 +1900,14 @@ static yaffs_Object *yaffs_AllocateEmptyObject(yaffs_Device *dev)
 		 * check if lostNFound exists first
 		 */
 		if (dev->lostNFoundDir)
-			yaffs_AddObjectToDirectory(dev->lostNFoundDir, tn);
+			yaffs_AddObjectToDirectory(dev->lostNFoundDir, obj);
 
-		tn->beingCreated = 0;
+		obj->beingCreated = 0;
 	}
 
 	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
 
-	return tn;
+	return obj;
 }
 
 static yaffs_Object *yaffs_CreateFakeDirectory(yaffs_Device *dev, int number,
@@ -2156,54 +1931,46 @@ static yaffs_Object *yaffs_CreateFakeDirectory(yaffs_Device *dev, int number,
 
 }
 
-static void yaffs_UnhashObject(yaffs_Object *tn)
+static void yaffs_UnhashObject(yaffs_Object *obj)
 {
 	int bucket;
-	yaffs_Device *dev = tn->myDev;
+	yaffs_Device *dev = obj->myDev;
 
 	/* If it is still linked into the bucket list, free from the list */
-	if (!ylist_empty(&tn->hashLink)) {
-		ylist_del_init(&tn->hashLink);
-		bucket = yaffs_HashFunction(tn->objectId);
+	if (!ylist_empty(&obj->hashLink)) {
+		ylist_del_init(&obj->hashLink);
+		bucket = yaffs_HashFunction(obj->objectId);
 		dev->objectBucket[bucket].count--;
 	}
 }
 
 /*  FreeObject frees up a Object and puts it back on the free list */
-static void yaffs_FreeObject(yaffs_Object *tn)
+static void yaffs_FreeObject(yaffs_Object *obj)
 {
-	yaffs_Device *dev = tn->myDev;
+	yaffs_Device *dev = obj->myDev;
 
-	T(YAFFS_TRACE_OS, (TSTR("FreeObject %p inode %p"TENDSTR), tn, tn->myInode));
+	T(YAFFS_TRACE_OS, (TSTR("FreeObject %p inode %p"TENDSTR), obj, obj->myInode));
 
-	if (!tn)
+	if (!obj)
 		YBUG();
-	if (tn->parent)
+	if (obj->parent)
 		YBUG();
-	if (!ylist_empty(&tn->siblings))
+	if (!ylist_empty(&obj->siblings))
 		YBUG();
 
 
-	if (tn->myInode) {
+	if (obj->myInode) {
 		/* We're still hooked up to a cached inode.
 		 * Don't delete now, but mark for later deletion
 		 */
-		tn->deferedFree = 1;
+		obj->deferedFree = 1;
 		return;
 	}
 
-	yaffs_UnhashObject(tn);
-
-#ifdef CONFIG_YAFFS_VALGRIND_TEST
-	YFREE(tn);
-	dev->nObjectsCreated--;
-	tn = NULL;
-#else
-	/* Link into the free list. */
-	tn->siblings.next = (struct ylist_head *)(dev->freeObjects);
-	dev->freeObjects = tn;
-	dev->nFreeObjects++;
-#endif
+	yaffs_UnhashObject(obj);
+	
+	yaffs_FreeRawObject(dev,obj);
+	dev->nObjects--;
 	dev->nCheckpointBlocksRequired = 0; /* force recalculation*/
 }
 
@@ -2214,33 +1981,14 @@ void yaffs_HandleDeferedFree(yaffs_Object *obj)
 		yaffs_FreeObject(obj);
 }
 
-
-static void yaffs_DeinitialiseObjects(yaffs_Device *dev)
-{
-	/* Free the list of allocated Objects */
-
-	yaffs_ObjectList *tmp;
-
-	while (dev->allocatedObjectList) {
-		tmp = dev->allocatedObjectList->next;
-		YFREE(dev->allocatedObjectList->objects);
-		YFREE(dev->allocatedObjectList);
-
-		dev->allocatedObjectList = tmp;
-	}
-
-	dev->freeObjects = NULL;
-	dev->nFreeObjects = 0;
-	dev->nObjectsCreated = 0;
-}
-
-static void yaffs_InitialiseObjects(yaffs_Device *dev)
+static void yaffs_InitialiseTnodesAndObjects(yaffs_Device *dev)
 {
 	int i;
 
-	dev->allocatedObjectList = NULL;
-	dev->freeObjects = NULL;
-	dev->nFreeObjects = 0;
+	dev->nObjects = 0;
+	dev->nTnodes = 0;
+
+	yaffs_InitialiseRawTnodesAndObjects(dev);
 
 	for (i = 0; i < YAFFS_NOBJECT_BUCKETS; i++) {
 		YINIT_LIST_HEAD(&dev->objectBucket[i].list);
@@ -2992,14 +2740,13 @@ static int yaffs_CalcCheckpointBlocksRequired(yaffs_Device *dev)
 		int nBytes = 0;
 		int nBlocks;
 		int devBlocks = (dev->param.endBlock - dev->param.startBlock + 1);
-		int tnodeSize = yaffs_CalcTnodeSize(dev);
 
 		nBytes += sizeof(yaffs_CheckpointValidity);
 		nBytes += sizeof(yaffs_CheckpointDevice);
 		nBytes += devBlocks * sizeof(yaffs_BlockInfo);
 		nBytes += devBlocks * dev->chunkBitmapStride;
-		nBytes += (sizeof(yaffs_CheckpointObject) + sizeof(__u32)) * (dev->nObjectsCreated - dev->nFreeObjects);
-		nBytes += (tnodeSize + sizeof(__u32)) * (dev->nTnodesCreated - dev->nFreeTnodes);
+		nBytes += (sizeof(yaffs_CheckpointObject) + sizeof(__u32)) * (dev->nObjects);
+		nBytes += (dev->tnodeSize + sizeof(__u32)) * (dev->nTnodes);
 		nBytes += sizeof(yaffs_CheckpointValidity);
 		nBytes += sizeof(__u32); /* checksum*/
 
@@ -4700,7 +4447,6 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object *in, yaffs_Tnode *tn,
 	int i;
 	yaffs_Device *dev = in->myDev;
 	int ok = 1;
-	int tnodeSize = yaffs_CalcTnodeSize(dev);
 
 	if (tn) {
 		if (level > 0) {
@@ -4717,7 +4463,7 @@ static int yaffs_CheckpointTnodeWorker(yaffs_Object *in, yaffs_Tnode *tn,
 			__u32 baseOffset = chunkOffset <<  YAFFS_TNODES_LEVEL0_BITS;
 			ok = (yaffs_CheckpointWrite(dev, &baseOffset, sizeof(baseOffset)) == sizeof(baseOffset));
 			if (ok)
-				ok = (yaffs_CheckpointWrite(dev, tn, tnodeSize) == tnodeSize);
+				ok = (yaffs_CheckpointWrite(dev, tn, dev->tnodeSize) == dev->tnodeSize);
 		}
 	}
 
@@ -4751,7 +4497,6 @@ static int yaffs_ReadCheckpointTnodes(yaffs_Object *obj)
 	yaffs_FileStructure *fileStructPtr = &obj->variant.fileVariant;
 	yaffs_Tnode *tn;
 	int nread = 0;
-	int tnodeSize = yaffs_CalcTnodeSize(dev);
 
 	ok = (yaffs_CheckpointRead(dev, &baseChunk, sizeof(baseChunk)) == sizeof(baseChunk));
 
@@ -4760,10 +4505,10 @@ static int yaffs_ReadCheckpointTnodes(yaffs_Object *obj)
 		/* Read level 0 tnode */
 
 
-		tn = yaffs_GetTnodeRaw(dev);
-		if (tn)
-			ok = (yaffs_CheckpointRead(dev, tn, tnodeSize) == tnodeSize);
-		else
+		tn = yaffs_GetTnode(dev);
+		if (tn){
+			ok = (yaffs_CheckpointRead(dev, tn, dev->tnodeSize) == dev->tnodeSize);
+		} else
 			ok = 0;
 
 		if (tn && ok)
@@ -8030,6 +7775,9 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	else
 		dev->chunkGroupBits = bits - dev->tnodeWidth;
 
+	dev->tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+	if(dev->tnodeSize < sizeof(yaffs_Tnode))
+		dev->tnodeSize = sizeof(yaffs_Tnode);
 
 	dev->chunkGroupSize = 1 << dev->chunkGroupBits;
 
@@ -8119,8 +7867,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 	if (!init_failed && !yaffs_InitialiseBlocks(dev))
 		init_failed = 1;
 
-	yaffs_InitialiseTnodes(dev);
-	yaffs_InitialiseObjects(dev);
+	yaffs_InitialiseTnodesAndObjects(dev);
 
 	if (!init_failed && !yaffs_CreateInitialDirectories(dev))
 		init_failed = 1;
@@ -8139,9 +7886,8 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 				 * and scan backwards.
 				 */
 				yaffs_DeinitialiseBlocks(dev);
-				yaffs_DeinitialiseTnodes(dev);
-				yaffs_DeinitialiseObjects(dev);
 
+				yaffs_DeinitialiseTnodesAndObjects(dev);
 
 				dev->nErasedBlocks = 0;
 				dev->nFreeChunks = 0;
@@ -8154,8 +7900,7 @@ int yaffs_GutsInitialise(yaffs_Device *dev)
 				if (!init_failed && !yaffs_InitialiseBlocks(dev))
 					init_failed = 1;
 
-				yaffs_InitialiseTnodes(dev);
-				yaffs_InitialiseObjects(dev);
+				yaffs_InitialiseTnodesAndObjects(dev);
 
 				if (!init_failed && !yaffs_CreateInitialDirectories(dev))
 					init_failed = 1;
@@ -8209,8 +7954,7 @@ void yaffs_Deinitialise(yaffs_Device *dev)
 		int i;
 
 		yaffs_DeinitialiseBlocks(dev);
-		yaffs_DeinitialiseTnodes(dev);
-		yaffs_DeinitialiseObjects(dev);
+		yaffs_DeinitialiseTnodesAndObjects(dev);
 		if (dev->param.nShortOpCaches > 0 &&
 		    dev->srCache) {
 

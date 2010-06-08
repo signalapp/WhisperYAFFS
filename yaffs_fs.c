@@ -2242,7 +2242,7 @@ static int yaffs_BackgroundStart(yaffs_Device *dev)
 	context->bgRunning = 1;
 
 	context->bgThread = kthread_run(yaffs_BackgroundThread,
-	                        (void *)dev,"yaffs-bg");
+	                        (void *)dev,"yaffs-bg-%d",context->mount_id);
 
 	if(IS_ERR(context->bgThread)){
 		retval = PTR_ERR(context->bgThread);
@@ -2559,6 +2559,11 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	yaffs_DeviceParam *param;
 
 	yaffs_options options;
+	
+	unsigned mount_id;
+	int found;
+	struct yaffs_LinuxContext *context_iterator;
+	struct ylist_head *l;
 
 	sb->s_magic = YAFFS_MAGIC;
 	sb->s_op = &yaffs_super_ops;
@@ -2861,8 +2866,19 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	param->skipCheckpointRead = options.skip_checkpoint_read;
 	param->skipCheckpointWrite = options.skip_checkpoint_write;
 
-	/* we assume this is protected by lock_kernel() in mount/umount */
 	down(&yaffs_context_lock);
+	/* Get a mount id */
+	found = 0;
+	for(mount_id=0; ! found; mount_id++){
+		found = 1;
+		ylist_for_each(l,&yaffs_context_list){
+			context_iterator = ylist_entry(l,struct yaffs_LinuxContext,contextList);
+			if(context_iterator->mount_id == mount_id)
+				found = 0;
+		}
+	}
+	context->mount_id = mount_id;
+	
 	ylist_add_tail(&(yaffs_DeviceToContext(dev)->contextList), &yaffs_context_list);
 	up(&yaffs_context_lock);
 
@@ -3048,10 +3064,8 @@ static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "nErasedBlocks...... %d\n", dev->nErasedBlocks);
 	buf += sprintf(buf, "blocksInCheckpoint. %d\n", dev->blocksInCheckpoint);
 	buf += sprintf(buf, "\n");
-	buf += sprintf(buf, "nTnodesCreated..... %d\n", dev->nTnodesCreated);
-	buf += sprintf(buf, "nFreeTnodes........ %d\n", dev->nFreeTnodes);
-	buf += sprintf(buf, "nObjectsCreated.... %d\n", dev->nObjectsCreated);
-	buf += sprintf(buf, "nFreeObjects....... %d\n", dev->nFreeObjects);
+	buf += sprintf(buf, "nTnodes............ %d\n", dev->nTnodes);
+	buf += sprintf(buf, "nObjects........... %d\n", dev->nObjects);
 	buf += sprintf(buf, "nFreeChunks........ %d\n", dev->nFreeChunks);
 	buf += sprintf(buf, "\n");
 	buf += sprintf(buf, "nPageWrites........ %u\n", dev->nPageWrites);
@@ -3144,18 +3158,13 @@ static int yaffs_stats_proc_read(char *page,
 		yaffs_Device *dev = dc->dev;
 
 		int erasedChunks;
-		int nObjects;
-		int nTnodes;
 
 		erasedChunks = dev->nErasedBlocks * dev->param.nChunksPerBlock;
-		nObjects = dev->nObjectsCreated -dev->nFreeObjects;
-		nTnodes = dev->nTnodesCreated - dev->nFreeTnodes;
 		
-		
-		buf += sprintf(buf,"%d, %d, %d, %u, %u, %d, %d\n",
+		buf += sprintf(buf,"%d, %d, %d, %u, %u, %u, %u\n",
 				n, dev->nFreeChunks, erasedChunks,
 				dev->backgroundGCs, dev->oldestDirtyGCs,
-				nObjects, nTnodes);
+				dev->nObjects, dev->nTnodes);
 	}
 	up(&yaffs_context_lock);
 

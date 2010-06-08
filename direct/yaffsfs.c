@@ -1846,7 +1846,7 @@ int yaffs_inodecount(const YCHAR *path)
 	yaffsfs_Lock();
 	dev = yaffsfs_FindDevice(path,&dummy);
 	if(dev  && dev->isMounted) {
-	   int nObjects = dev->nObjectsCreated - dev->nFreeObjects;
+	   int nObjects = dev->nObjects;
 	   if(nObjects > dev->nHardLinks)
 		retVal = nObjects - dev->nHardLinks;
 	}

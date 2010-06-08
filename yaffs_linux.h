@@ -34,6 +34,7 @@ struct yaffs_LinuxContext {
 	void (*putSuperFunc)(struct super_block *sb);
 
 	struct task_struct *readdirProcess;
+	unsigned mount_id;
 };
 
 #define yaffs_DeviceToContext(dev) ((struct yaffs_LinuxContext *)((dev)->context))

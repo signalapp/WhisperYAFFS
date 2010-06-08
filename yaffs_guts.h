@@ -361,12 +361,6 @@ union yaffs_Tnode_union {
 
 typedef union yaffs_Tnode_union yaffs_Tnode;
 
-struct yaffs_TnodeList_struct {
-	struct yaffs_TnodeList_struct *next;
-	yaffs_Tnode *tnodes;
-};
-
-typedef struct yaffs_TnodeList_struct yaffs_TnodeList;
 
 /*------------------------  Object -----------------------------*/
 /* An object can be one of:
@@ -478,13 +472,6 @@ struct yaffs_ObjectStruct {
 };
 
 typedef struct yaffs_ObjectStruct yaffs_Object;
-
-struct yaffs_ObjectList_struct {
-	yaffs_Object *objects;
-	struct yaffs_ObjectList_struct *next;
-};
-
-typedef struct yaffs_ObjectList_struct yaffs_ObjectList;
 
 typedef struct {
 	struct ylist_head list;
@@ -635,6 +622,7 @@ struct yaffs_DeviceStruct {
 	/* Stuff to support wide tnodes */
 	__u32 tnodeWidth;
 	__u32 tnodeMask;
+	__u32 tnodeSize;
 
 	/* Stuff for figuring out file offset to chunk conversions */
 	__u32 chunkShift; /* Shift value */
@@ -686,18 +674,12 @@ struct yaffs_DeviceStruct {
 	__u32 allocationPage;
 	int allocationBlockFinder;	/* Used to search for next allocation block */
 
-	int nTnodesCreated;
-	yaffs_Tnode *freeTnodes;
-	int nFreeTnodes;
-	yaffs_TnodeList *allocatedTnodeList;
-
-	int nObjectsCreated;
-	yaffs_Object *freeObjects;
-	int nFreeObjects;
+	/* Object and Tnode memory management */
+	void *allocator;
+	int nObjects;
+	int nTnodes;
 
 	int nHardLinks;
-
-	yaffs_ObjectList *allocatedObjectList;
 
 	yaffs_ObjectBucket objectBucket[YAFFS_NOBJECT_BUCKETS];
 	__u32 bucketFinder;

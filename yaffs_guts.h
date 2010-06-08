@@ -564,6 +564,8 @@ struct yaffs_DeviceParamStruct {
 	__u8 skipCheckpointRead;
 	__u8 skipCheckpointWrite;
 
+	int enableXattr;	/* Enable xattribs */
+
 	/* NAND access functions (Must be set before calling YAFFS)*/
 
 	int (*writeChunkToNAND) (struct yaffs_DeviceStruct *dev,
@@ -885,6 +887,12 @@ YCHAR *yaffs_GetSymlinkAlias(yaffs_Object *obj);
 /* Special inodes (fifos, sockets and devices) */
 yaffs_Object *yaffs_MknodSpecial(yaffs_Object *parent, const YCHAR *name,
 				 __u32 mode, __u32 uid, __u32 gid, __u32 rdev);
+
+
+int yaffs_SetXAttribute(yaffs_Object *obj, const char *name, const void * value, int size, int flags);
+int yaffs_GetXAttribute(yaffs_Object *obj, const char *name, void *value, int size);
+int yaffs_ListXAttributes(yaffs_Object *obj, char *buffer, int size);
+int yaffs_RemoveXAttribute(yaffs_Object *obj, const char *name);
 
 /* Special directories */
 yaffs_Object *yaffs_Root(yaffs_Device *dev);

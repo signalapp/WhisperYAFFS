@@ -29,6 +29,8 @@
 #include "yaffs_nand.h"
 #include "yaffs_packedtags2.h"
 
+#include "yaffs_nameval.h"
+
 
 /* Note YAFFS_GC_GOOD_ENOUGH must be <= YAFFS_GC_PASSIVE_THRESHOLD */
 #define YAFFS_GC_GOOD_ENOUGH 2
@@ -46,6 +48,15 @@
 
 #include "yaffs_ecc.h"
 
+/* Private structure for doing xattr modifications */
+typedef struct {
+	int set; /* If 0 then this is a deletion */
+	const char *name;
+	const void *data;
+	int size;
+	int flags;
+	int result;
+} yaffs_XAttrMod;
 
 /* Robustification (if it ever comes about...) */
 static void yaffs_RetireBlock(yaffs_Device *dev, int blockInNAND);
@@ -76,7 +87,9 @@ static yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev, int number,
 static void yaffs_AddObjectToDirectory(yaffs_Object *directory,
 				yaffs_Object *obj);
 static int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name,
-				int force, int isShrink, int shadows);
+				int force, int isShrink, int shadows, yaffs_XAttrMod *xop);
+static int yaffs_ApplyXMod(yaffs_Device *dev, char *buffer, yaffs_XAttrMod *xmod);
+
 static void yaffs_RemoveObjectFromDirectory(yaffs_Object *obj);
 static int yaffs_CheckStructures(void);
 static int yaffs_DoGenericObjectDeletion(yaffs_Object *in);
@@ -2519,7 +2532,7 @@ static yaffs_Object *yaffs_MknodObject(yaffs_ObjectType type,
 			break;
 		}
 
-		if (yaffs_UpdateObjectHeader(in, name, 0, 0, 0) < 0) {
+		if (yaffs_UpdateObjectHeader(in, name, 0, 0, 0, NULL) < 0) {
 			/* Could not create the object header, fail the creation */
 			yaffs_DeleteObject(in);
 			in = NULL;
@@ -2627,7 +2640,7 @@ static int yaffs_ChangeObjectName(yaffs_Object *obj, yaffs_Object *newDir,
 			obj->unlinked = 1;
 
 		/* If it is a deletion then we mark it as a shrink for gc purposes. */
-		if (yaffs_UpdateObjectHeader(obj, newName, 0, deleteOp, shadows) >= 0)
+		if (yaffs_UpdateObjectHeader(obj, newName, 0, deleteOp, shadows, NULL) >= 0)
 			return YAFFS_OK;
 	}
 
@@ -4048,7 +4061,7 @@ static int yaffs_WriteChunkDataToObject(yaffs_Object *in, int chunkInInode,
  * If name is not NULL, then that new name is used.
  */
 int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
-			     int isShrink, int shadows)
+			     int isShrink, int shadows, yaffs_XAttrMod *xmod)
 {
 
 	yaffs_BlockInfo *bi;
@@ -4074,7 +4087,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 
 	if (!in->fake ||
 		in == dev->rootDir || /* The rootDir should also be saved */
-		force) {
+		force  || xmod) {
 
 		yaffs_CheckGarbageCollection(dev,0);
 		yaffs_CheckObjectDetailsLoaded(in);
@@ -4091,9 +4104,9 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 			yaffs_VerifyObjectHeader(in, oh, &oldTags, 0);
 
 			memcpy(oldName, oh->name, sizeof(oh->name));
-		}
-
-		memset(buffer, 0xFF, dev->nDataBytesPerChunk);
+			memset(buffer, 0xFF, sizeof(yaffs_ObjectHeader));
+		} else
+			memset(buffer, 0xFF, dev->nDataBytesPerChunk);
 
 		oh->type = in->variantType;
 		oh->yst_mode = in->yst_mode;
@@ -4160,6 +4173,11 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 			oh->alias[YAFFS_MAX_ALIAS_LENGTH] = 0;
 			break;
 		}
+
+		/* process any xattrib modifications */
+		if(xmod)
+			yaffs_ApplyXMod(dev, (char *)buffer, xmod);
+
 
 		/* Tags */
 		yaffs_InitialiseTags(&newTags);
@@ -5469,7 +5487,7 @@ static int yaffs_HandleHole(yaffs_Object *obj, loff_t newSize)
 		obj->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
 		obj->parent->objectId != YAFFS_OBJECTID_DELETED){
 		/* Write a hole start header with the old file size */
-		yaffs_UpdateObjectHeader(obj, NULL, 0,1,0);
+		yaffs_UpdateObjectHeader(obj, NULL, 0, 1, 0, NULL);
 	}
 
 	return result;
@@ -5509,7 +5527,7 @@ int yaffs_ResizeFile(yaffs_Object *in, loff_t newSize)
 	    !in->isShadowed &&
 	    in->parent->objectId != YAFFS_OBJECTID_UNLINKED &&
 	    in->parent->objectId != YAFFS_OBJECTID_DELETED)
-		yaffs_UpdateObjectHeader(in, NULL, 0,0,0);
+		yaffs_UpdateObjectHeader(in, NULL, 0, 0, 0, NULL);
 
 
 	return YAFFS_OK;
@@ -5553,7 +5571,7 @@ int yaffs_FlushFile(yaffs_Object *in, int updateTime, int dataSync)
 #endif
 			}
 
-			retVal = (yaffs_UpdateObjectHeader(in, NULL, 0, 0, 0) >=
+			retVal = (yaffs_UpdateObjectHeader(in, NULL, 0, 0, 0, NULL) >=
 				0) ? YAFFS_OK : YAFFS_FAIL;
 		}
 	} else {
@@ -6478,7 +6496,7 @@ static int yaffs_Scan(yaffs_Device *dev)
 			obj = yaffs_FindObjectByNumber(dev, fixer->objectId);
 
 			if (obj)
-				yaffs_UpdateObjectHeader(obj, NULL, 1, 0, 0);
+				yaffs_UpdateObjectHeader(obj, NULL, 1, 0, 0, NULL);
 
 			YFREE(fixer);
 		}
@@ -7312,7 +7330,7 @@ static void yaffs_UpdateParent(yaffs_Object *obj)
 		}
 
 	} else
-		yaffs_UpdateObjectHeader(obj,NULL,0,0,0);
+		yaffs_UpdateObjectHeader(obj, NULL, 0, 0, 0, NULL);
 }
 
 void yaffs_UpdateDirtyDirectories(yaffs_Device *dev)
@@ -7335,7 +7353,7 @@ void yaffs_UpdateDirtyDirectories(yaffs_Device *dev)
 		T(YAFFS_TRACE_BACKGROUND, (TSTR("Update directory %d" TENDSTR), obj->objectId));
 
 		if(obj->dirty)
-			yaffs_UpdateObjectHeader(obj,NULL,0,0,0);
+			yaffs_UpdateObjectHeader(obj, NULL, 0, 0, 0, NULL);
 	}
 }
 
@@ -7666,7 +7684,7 @@ int yaffs_SetAttributes(yaffs_Object *obj, struct iattr *attr)
 	if (valid & ATTR_SIZE)
 		yaffs_ResizeFile(obj, attr->ia_size);
 
-	yaffs_UpdateObjectHeader(obj, NULL, 1, 0, 0);
+	yaffs_UpdateObjectHeader(obj, NULL, 1, 0, 0, NULL);
 
 	return YAFFS_OK;
 
@@ -7698,6 +7716,104 @@ int yaffs_GetAttributes(yaffs_Object *obj, struct iattr *attr)
 }
 
 #endif
+
+
+static int yaffs_DoXMod(yaffs_Object *obj, int set, const char *name, const void *value, int size, int flags)
+{
+	yaffs_XAttrMod xmod;
+
+	int result;
+
+	xmod.set = set;
+	xmod.name = name;
+	xmod.data = value;
+	xmod.size =  size;
+	xmod.flags = flags;
+	xmod.result = -ENOSPC;
+
+	result = yaffs_UpdateObjectHeader(obj, NULL, 0, 0, 0, &xmod);
+
+	if(result > 0)
+		return xmod.result;
+	else
+		return -ENOSPC;
+}
+
+static int yaffs_ApplyXMod(yaffs_Device *dev, char *buffer, yaffs_XAttrMod *xmod)
+{
+	int retval = 0;
+	int x_offs = sizeof(yaffs_ObjectHeader);
+	int x_size = dev->nDataBytesPerChunk - sizeof(yaffs_ObjectHeader);
+
+	char * x_buffer = buffer + x_offs;
+
+	if(xmod->set)
+		retval = nval_set(x_buffer, x_size, xmod->name, xmod->data, xmod->size, xmod->flags);
+	else
+		retval = nval_del(x_buffer, x_size, xmod->name);
+
+	xmod->result = retval;
+
+	return retval;
+}
+
+static int yaffs_DoXFetch(yaffs_Object *obj, const char *name, void *value, int size)
+{
+	char *buffer = NULL;
+	int result;
+	yaffs_ExtendedTags tags;
+	yaffs_Device *dev = obj->myDev;
+	int x_offs = sizeof(yaffs_ObjectHeader);
+	int x_size = dev->nDataBytesPerChunk - sizeof(yaffs_ObjectHeader);
+
+	__u8 * x_buffer;
+
+	int retval = 0;
+
+	if(obj->hdrChunk < 1)
+		return -ENOENT;
+
+	buffer = yaffs_GetTempBuffer(dev, __LINE__);
+	if(!buffer)
+		return -ENOMEM;
+
+	result = yaffs_ReadChunkWithTagsFromNAND(dev,obj->hdrChunk, buffer, &tags);
+
+	if(result != YAFFS_OK)
+		retval = -ENOENT;
+	else{
+		x_buffer =  buffer + x_offs;
+
+		if(name)
+			retval = nval_get(x_buffer, x_size, name, value, size);
+		else
+			retval = nval_list(x_buffer, x_size, value,size);
+	}
+	yaffs_ReleaseTempBuffer(dev,buffer,__LINE__);
+	return retval;
+}
+
+int yaffs_SetXAttribute(yaffs_Object *obj, const char *name, const void * value, int size, int flags)
+{
+	return yaffs_DoXMod(obj, 1, name, value, size, flags);
+}
+
+int yaffs_RemoveXAttribute(yaffs_Object *obj, const char *name)
+{
+	return yaffs_DoXMod(obj, 0, name, NULL, 0, 0);
+}
+
+int yaffs_GetXAttribute(yaffs_Object *obj, const char *name, void *value, int size)
+{
+	return yaffs_DoXFetch(obj, name, value, size);
+}
+
+int yaffs_ListXAttributes(yaffs_Object *obj, char *buffer, int size)
+{
+	return yaffs_DoXFetch(obj, NULL, buffer,size);
+}
+
+
 
 #if 0
 int yaffs_DumpObject(yaffs_Object *obj)

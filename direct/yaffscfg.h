@@ -28,7 +28,7 @@
 #define YAFFSFS_N_HANDLES 100
 
 
-typedef struct {
+typedef struct yaffsfs_DeviceConfigurationStruct {
 	const YCHAR *prefix;
 	struct yaffs_DeviceStruct *dev;
 } yaffsfs_DeviceConfiguration;

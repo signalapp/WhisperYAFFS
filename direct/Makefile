@@ -33,6 +33,7 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
 		 yaffs_checkptrw.o  yaffs_qsort.o\
+		 yaffs_nameval.o \
 		 yaffs_norif1.o  ynorsim.o
 #		 yaffs_checkptrwtest.o\
 
@@ -48,6 +49,7 @@ SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsin
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
           yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
+          yaffs_nameval.h yaffs_nameval.c \
           yaffs_qsort.c yaffs_qsort.h yaffs_trace.h
 
 #all: directtest2k boottest

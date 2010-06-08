@@ -1180,6 +1180,182 @@ int yaffs_fstat(int fd, struct yaffs_stat *buf)
 	return retVal;
 }
 
+
+/* xattrib functions */
+
+
+int yaffs_setxattr(const YCHAR *path, const char *name, const void *data, int size, int flags)
+{
+	yaffs_Object *obj;
+
+	int retVal = -1;
+
+	yaffsfs_Lock();
+	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FollowLink(obj,0);
+
+	if(obj)
+		retVal = yaffs_SetXAttribute(obj,name,data,size,flags);
+	else
+		/* todo error not found */
+		yaffsfs_SetError(-ENOENT);
+
+	yaffsfs_Unlock();
+
+	return retVal;
+
+}
+
+int yaffs_fsetxattr(int fd, const char *name, const void *data, int size, int flags)
+{
+	yaffs_Object *obj;
+
+	int retVal = -1;
+
+	yaffsfs_Lock();
+	obj = yaffsfs_GetHandleObject(fd);
+
+	if(obj)
+		retVal = yaffs_SetXAttribute(obj,name,data,size,flags);
+	else
+		/* bad handle */
+		yaffsfs_SetError(-EBADF);
+
+	yaffsfs_Unlock();
+
+	return retVal;
+}
+
+int yaffs_getxattr(const YCHAR *path, const char *name, void *data, int size)
+{
+	yaffs_Object *obj;
+
+	int retVal = -1;
+
+	yaffsfs_Lock();
+	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FollowLink(obj,0);
+
+	if(obj)
+		retVal = yaffs_GetXAttribute(obj,name,data,size);
+	else
+		/* todo error not found */
+		yaffsfs_SetError(-ENOENT);
+
+	yaffsfs_Unlock();
+
+	return retVal;
+
+}
+
+int yaffs_fgetxattr(int fd, const char *name, void *data, int size)
+{
+	yaffs_Object *obj;
+
+	int retVal = -1;
+
+	yaffsfs_Lock();
+	obj = yaffsfs_GetHandleObject(fd);
+
+	if(obj)
+		retVal = yaffs_GetXAttribute(obj,name,data,size);
+	else
+		/* bad handle */
+		yaffsfs_SetError(-EBADF);
+
+	yaffsfs_Unlock();
+
+	return retVal;
+}
+
+int yaffs_listxattr(const YCHAR *path, char *data, int size)
+{
+	yaffs_Object *obj;
+
+	int retVal = -1;
+
+	yaffsfs_Lock();
+	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FollowLink(obj,0);
+
+	if(obj)
+		retVal = yaffs_ListXAttributes(obj, data,size);
+	else
+		/* todo error not found */
+		yaffsfs_SetError(-ENOENT);
+
+	yaffsfs_Unlock();
+
+	return retVal;
+
+}
+
+int yaffs_flistxattr(int fd, char *data, int size)
+{
+	yaffs_Object *obj;
+
+	int retVal = -1;
+
+	yaffsfs_Lock();
+	obj = yaffsfs_GetHandleObject(fd);
+
+	if(obj)
+		retVal = yaffs_ListXAttributes(obj,data,size);
+	else
+		/* bad handle */
+		yaffsfs_SetError(-EBADF);
+
+	yaffsfs_Unlock();
+
+	return retVal;
+}
+
+int yaffs_removexattr(const YCHAR *path, const char *name)
+{
+	yaffs_Object *obj;
+
+	int retVal = -1;
+
+	yaffsfs_Lock();
+	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FollowLink(obj,0);
+
+	if(obj)
+		retVal = yaffs_RemoveXAttribute(obj,name);
+	else
+		/* todo error not found */
+		yaffsfs_SetError(-ENOENT);
+
+	yaffsfs_Unlock();
+
+	return retVal;
+
+}
+
+int yaffs_fremovexattr(int fd, const char *name)
+{
+	yaffs_Object *obj;
+
+	int retVal = -1;
+
+	yaffsfs_Lock();
+	obj = yaffsfs_GetHandleObject(fd);
+
+	if(obj)
+		retVal = yaffs_RemoveXAttribute(obj,name);
+	else
+		/* bad handle */
+		yaffsfs_SetError(-EBADF);
+
+	yaffsfs_Unlock();
+
+	return retVal;
+}
+
 #ifdef CONFIG_YAFFS_WINCE
 int yaffs_get_wince_times(int fd, unsigned *wctime, unsigned *watime, unsigned *wmtime)
 {

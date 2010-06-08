@@ -24,6 +24,7 @@ ifneq ($(KERNELRELEASE),)
 	yaffs2-objs += yaffs_packedtags2.o yaffs_qsort.o
 	yaffs2-objs += yaffs_tagscompat.o yaffs_tagsvalidity.o
 	yaffs2-objs += yaffs_checkptrw.o yaffs_nand.o
+	yaffs2-objs += yaffs_checkptrw.o yaffs_nand.o yaffs_nameval.o
 
 else
 	KERNELDIR ?= /lib/modules/$(shell uname -r)/build

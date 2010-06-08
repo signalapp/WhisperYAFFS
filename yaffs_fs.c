@@ -264,6 +264,15 @@ static int yaffs_writepage(struct page *page, struct writeback_control *wbc);
 static int yaffs_writepage(struct page *page);
 #endif
 
+#ifdef CONFIG_YAFFS_XATTR
+int yaffs_setxattr(struct dentry *dentry, const char *name,
+			const void *value, size_t size, int flags);
+ssize_t yaffs_getxattr(struct dentry *dentry, const char *name, void *buff,
+			size_t size);
+int yaffs_removexattr(struct dentry *dentry, const char *name);
+ssize_t yaffs_listxattr(struct dentry *dentry, char *buff, size_t size);
+#endif
+
 
 #if (YAFFS_USE_WRITE_BEGIN_END != 0)
 static int yaffs_write_begin(struct file *filp, struct address_space *mapping,
@@ -355,12 +364,24 @@ static void zero_user_segment(struct page *page, unsigned start, unsigned end)
 
 static const struct inode_operations yaffs_file_inode_operations = {
 	.setattr = yaffs_setattr,
+#ifdef CONFIG_YAFFS_XATTR
+	.setxattr = yaffs_setxattr,
+	.getxattr = yaffs_getxattr,
+	.listxattr = yaffs_listxattr,
+	.removexattr = yaffs_removexattr,
+#endif
 };
 
 static const struct inode_operations yaffs_symlink_inode_operations = {
 	.readlink = yaffs_readlink,
 	.follow_link = yaffs_follow_link,
 	.setattr = yaffs_setattr,
+#ifdef CONFIG_YAFFS_XATTR
+	.setxattr = yaffs_setxattr,
+	.getxattr = yaffs_getxattr,
+	.listxattr = yaffs_listxattr,
+	.removexattr = yaffs_removexattr,
+#endif
 };
 
 static const struct inode_operations yaffs_dir_inode_operations = {
@@ -374,6 +395,12 @@ static const struct inode_operations yaffs_dir_inode_operations = {
 	.mknod = yaffs_mknod,
 	.rename = yaffs_rename,
 	.setattr = yaffs_setattr,
+#ifdef CONFIG_YAFFS_XATTR
+	.setxattr = yaffs_setxattr,
+	.getxattr = yaffs_getxattr,
+	.listxattr = yaffs_listxattr,
+	.removexattr = yaffs_removexattr,
+#endif
 };
 
 static const struct file_operations yaffs_dir_operations = {
@@ -1836,6 +1863,124 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 	return error;
 }
 
+#ifdef CONFIG_YAFFS_XATTR
+int yaffs_setxattr(struct dentry *dentry, const char *name,
+			const void *value, size_t size, int flags)
+{
+	struct inode *inode = dentry->d_inode;
+	int error = 0;
+	yaffs_Device *dev;
+	yaffs_Object *obj = yaffs_InodeToObject(inode);
+
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_setxattr of object %d\n"),
+		obj->objectId));
+
+
+	if (error == 0) {
+		int result;
+		dev = obj->myDev;
+		yaffs_GrossLock(dev);
+		result = yaffs_SetXAttribute(obj, name, value, size, flags);
+		if(result == YAFFS_OK)
+			error = 0;
+		else if(result < 0)
+			error = result;
+		yaffs_GrossUnlock(dev);
+
+	}
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_setxattr done returning %d\n"),error));
+
+	return error;
+}
+
+
+ssize_t yaffs_getxattr(struct dentry *dentry, const char *name, void *buff,
+			size_t size)
+{
+	struct inode *inode = dentry->d_inode;
+	int error = 0;
+	yaffs_Device *dev;
+	yaffs_Object *obj = yaffs_InodeToObject(inode);
+
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_getxattr of object %d\n"),
+		obj->objectId));
+
+
+	if (error == 0) {
+		dev = obj->myDev;
+		yaffs_GrossLock(dev);
+		error = yaffs_GetXAttribute(obj, name, buff, size);
+		yaffs_GrossUnlock(dev);
+
+	}
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_getxattr done returning %d\n"),error));
+
+	return error;
+}
+
+int yaffs_removexattr(struct dentry *dentry, const char *name)
+{
+	struct inode *inode = dentry->d_inode;
+	int error = 0;
+	yaffs_Device *dev;
+	yaffs_Object *obj = yaffs_InodeToObject(inode);
+
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_removexattr of object %d\n"),
+		obj->objectId));
+
+
+	if (error == 0) {
+		int result;
+		dev = obj->myDev;
+		yaffs_GrossLock(dev);
+		result = yaffs_RemoveXAttribute(obj, name);
+		if(result == YAFFS_OK)
+			error = 0;
+		else if(result < 0)
+			error = result;
+		yaffs_GrossUnlock(dev);
+
+	}
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_removexattr done returning %d\n"),error));
+
+	return error;
+}
+
+ssize_t yaffs_listxattr(struct dentry *dentry, char *buff, size_t size)
+{
+	struct inode *inode = dentry->d_inode;
+	int error = 0;
+	yaffs_Device *dev;
+	yaffs_Object *obj = yaffs_InodeToObject(inode);
+
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_listxattr of object %d\n"),
+		obj->objectId));
+
+
+	if (error == 0) {
+		int result;
+		dev = obj->myDev;
+		yaffs_GrossLock(dev);
+		error = yaffs_ListXAttributes(obj, buff, size);
+		yaffs_GrossUnlock(dev);
+
+	}
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_listxattr done returning %d\n"),error));
+
+	return error;
+}
+
+#endif
+
+
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 static int yaffs_statfs(struct dentry *dentry, struct kstatfs *buf)
 {
@@ -2625,6 +2770,9 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 
 #ifdef CONFIG_YAFFS_DISABLE_LAZY_LOAD
 	param->disableLazyLoad = 1;
+#endif
+#ifdef CONFIG_YAFFS_XATTR
+	param->enableXattr = 1;
 #endif
 	if(options.lazy_loading_overridden)
 		param->disableLazyLoad = !options.lazy_loading_enabled;

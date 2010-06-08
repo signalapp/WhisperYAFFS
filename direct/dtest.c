@@ -2487,6 +2487,96 @@ void rmdir_test(const char *mountpt)
 	yaffs_rmdir(name);
 	yaffs_unmount(mountpt);
 }
+
+
+
+static void print_xattrib_val(const char *path, const char *name)
+{
+	char buffer[100];
+	int n;
+
+	n = yaffs_getxattr(path,name,buffer,sizeof(buffer));
+	if(n >= 0){
+		__u8 *b = (__u8 *)buffer;
+
+		printf("%d bytes:",n);
+		while(n > 0){
+			printf("[%02X]",*b);
+			b++;
+			n--;
+		}
+		printf("\n");
+	} else
+		printf(" Novalue result %d\n",n);
+}
+
+static void list_xattr(const char *path)
+{
+	char list[1000];
+	int n=0;
+	int list_len;
+	int len;
+
+	list_len = yaffs_listxattr(path,list,sizeof(list));
+	printf("xattribs for %s, result is %d\n",path,list_len);
+	while(n < list_len){
+		len = strlen(list + n);
+		printf("\"%s\" value ",list+n);
+		print_xattrib_val(path,list + n);
+		n += (len + 1);
+	}
+	printf("end\n");
+}
+void basic_xattr_test(const char *mountpt)
+{
+	char name[100];
+	int h;
+	int result;
+	int val1;
+	int valread;
+
+	yaffs_StartUp();
+
+	yaffs_mount(mountpt);
+
+	strcpy(name,mountpt);
+	strcat(name,"/");
+	strcat(name,"xfile");
+
+	yaffs_unlink(name);
+	h = yaffs_open(name,O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	yaffs_close(h);
+
+	printf("Start\n");
+	list_xattr(name);
+
+	printf("Add an attribute\n");
+	val1 = 0x123456;
+	result = yaffs_setxattr(name,"foo",&val1,sizeof(val1),0);
+	printf("wrote attribute foo: result %d\n",result);
+	list_xattr(name);
+	printf("Add an attribute\n");
+	val1 = 0x7890;
+	result = yaffs_setxattr(name,"bar",&val1,sizeof(val1),0);
+	printf("wrote attribute bar: result %d\n",result);
+	list_xattr(name);
+
+	printf("Get non-existanrt attribute\n");
+	print_xattrib_val(name,"not here");
+
+	printf("Delete non existing attribute\n");
+	yaffs_removexattr(name,"not here");
+	list_xattr(name);
+
+	printf("Remove foo\n");
+	yaffs_removexattr(name,"foo");
+	list_xattr(name);
+
+	printf("Remove bar\n");
+	yaffs_removexattr(name,"bar");
+	list_xattr(name);
+
+}
 	
 
 int random_seed;
@@ -2511,7 +2601,7 @@ int main(int argc, char *argv[])
 	
 	//fill_empty_files_test("/yaffs2/");
 	//resize_stress_test("/yaffs2");
-	overwrite_test("/yaffs2");
+	//overwrite_test("/yaffs2");
 	
 	//long_name_test("/yaffs2");
 	//link_test0("/yaffs2");
@@ -2550,6 +2640,8 @@ int main(int argc, char *argv[])
 	 
 	 //check_resize_gc_bug("/flash");
 	 
+	 basic_xattr_test("/yaffs2");
+
 	 return 0;
 	
 }

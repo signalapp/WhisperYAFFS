@@ -181,6 +181,7 @@ int yaffs_StartUp(void)
 	flashDev.param.initialiseNAND = yflash2_InitialiseNAND;
 	flashDev.param.markNANDBlockBad = yflash2_MarkNANDBlockBad;
 	flashDev.param.queryNANDBlock = yflash2_QueryNANDBlock;
+	flashDev.param.enableXattr = 1;
 
 
 	yaffs_initialise(yaffsfs_config);

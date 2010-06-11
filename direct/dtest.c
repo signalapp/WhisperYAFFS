@@ -2492,7 +2492,7 @@ void rmdir_test(const char *mountpt)
 
 static void print_xattrib_val(const char *path, const char *name)
 {
-	char buffer[100];
+	char buffer[1000];
 	int n;
 
 	n = yaffs_getxattr(path,name,buffer,sizeof(buffer));
@@ -2500,6 +2500,8 @@ static void print_xattrib_val(const char *path, const char *name)
 		__u8 *b = (__u8 *)buffer;
 
 		printf("%d bytes:",n);
+		if(n > 10)
+			n = 10;
 		while(n > 0){
 			printf("[%02X]",*b);
 			b++;
@@ -2527,6 +2529,7 @@ static void list_xattr(const char *path)
 	}
 	printf("end\n");
 }
+
 void basic_xattr_test(const char *mountpt)
 {
 	char name[100];
@@ -2574,6 +2577,49 @@ void basic_xattr_test(const char *mountpt)
 
 	printf("Remove bar\n");
 	yaffs_removexattr(name,"bar");
+	list_xattr(name);
+
+}
+
+void big_xattr_test(const char *mountpt)
+{
+	char name[100];
+	int h;
+	int result;
+	char val[1000];
+	char valread[1000];
+
+	yaffs_StartUp();
+
+	yaffs_mount(mountpt);
+
+	strcpy(name,mountpt);
+	strcat(name,"/");
+	strcat(name,"xfile");
+
+	yaffs_unlink(name);
+	h = yaffs_open(name,O_CREAT | O_TRUNC | O_RDWR, S_IREAD | S_IWRITE);
+	yaffs_close(h);
+
+	printf("Start\n");
+	list_xattr(name);
+
+	printf("Add a large  attribute\n");
+	memset(val,0x1,sizeof(val));
+	result = yaffs_setxattr(name,"aaa",val,200,0);
+	printf("wrote attribute aaa: result %d\n",result);
+	list_xattr(name);
+
+	printf("Add a large  attribute\n");
+	memset(val,0x2,sizeof(val));
+	result = yaffs_setxattr(name,"bbb",val,1000,0);
+	printf("wrote attribute bbb: result %d\n",result);
+	list_xattr(name);
+
+	printf("Replace attribute\n");
+	memset(val,0x3,sizeof(val));
+	result = yaffs_setxattr(name,"aaa",val,1000,0);
+	printf("wrote attribute aaa: result %d\n",result);
 	list_xattr(name);
 
 }
@@ -2641,6 +2687,7 @@ int main(int argc, char *argv[])
 	 //check_resize_gc_bug("/flash");
 	 
 	 basic_xattr_test("/yaffs2");
+	 big_xattr_test("/yaffs2");
 
 	 return 0;
 	

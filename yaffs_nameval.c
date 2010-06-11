@@ -28,21 +28,27 @@
 
 #include "yportenv.h"
  
-static int nval_find(const char *xb, int xb_size, const char *name)
+static int nval_find(const char *xb, int xb_size, const char *name,
+		int *exist_size)
 {
 	int pos=0;
 	int size;
 
 	memcpy(&size,xb,sizeof(int));
 	while(size > 0 && (size < xb_size) && (pos + size < xb_size)){
-		if(strncmp(xb+pos+sizeof(int),name,size) == 0)
+		if(strncmp(xb+pos+sizeof(int),name,size) == 0){
+			if(exist_size)
+				*exist_size = size;
 			return pos;
+		}
 		pos += size;
 		if(pos < xb_size -sizeof(int))
 			memcpy(&size,xb + pos,sizeof(int));
 		else
 			size = 0;
 	}
+	if(exist_size)
+		*exist_size = 0;
 	return -1;
 }
 
@@ -64,7 +70,7 @@ static int nval_used(const char *xb, int xb_size)
 
 int nval_del(char *xb, int xb_size, const char *name)
 {
-	int pos  = nval_find(xb, xb_size, name);
+	int pos  = nval_find(xb, xb_size, name, NULL);
 	int size;
 	
 	if(pos >= 0 && pos < xb_size){
@@ -79,37 +85,46 @@ int nval_del(char *xb, int xb_size, const char *name)
 
 int nval_set(char *xb, int xb_size, const char *name, const char *buf, int bsize, int flags)
 {
-	int pos = nval_find(xb,xb_size,name);
+	int pos;
 	int namelen = strnlen(name,xb_size);
 	int reclen;
+	int size_exist = 0;
+	int space;
+	int start;
+
+	pos = nval_find(xb,xb_size,name, &size_exist);
 
 	if(flags & NVAL_CREATE && pos >= 0)
 		return -EEXIST;
 	if(flags & NVAL_REPLACE && pos < 0)
 		return -ENOENT;
 
-	nval_del(xb,xb_size,name);
+	start = nval_used(xb,xb_size);
+	space = xb_size - start + size_exist;
 
-	pos = nval_used(xb, xb_size);
-	
-	if(pos < xb_size && bsize < xb_size && namelen < xb_size){
-		reclen = (sizeof(int) + namelen + 1 + bsize);
-		if( pos + reclen < xb_size){
-			memcpy(xb + pos,&reclen,sizeof(int));
-			pos +=sizeof(int);
-			strncpy(xb + pos, name, reclen);
-			pos+= (namelen+1);
-			memcpy(xb + pos,buf,bsize);
-			pos+= bsize;
-			return 0;
-		}
+	reclen = (sizeof(int) + namelen + 1 + bsize);
+
+	if(reclen > space)
+		return -ENOSPC;
+
+	if(pos >= 0){
+		nval_del(xb,xb_size,name);
+		start = nval_used(xb, xb_size);
 	}
-	return -ENOSPC;
+
+	pos = start;
+
+	memcpy(xb + pos,&reclen,sizeof(int));
+	pos +=sizeof(int);
+	strncpy(xb + pos, name, reclen);
+	pos+= (namelen+1);
+	memcpy(xb + pos,buf,bsize);
+	return 0;
 }
 
 int nval_get(const char *xb, int xb_size, const char *name, char *buf, int bsize)
 {
-	int pos = nval_find(xb,xb_size,name);
+	int pos = nval_find(xb,xb_size,name,NULL);
 	int size;
 	
 	if(pos >= 0 && pos< xb_size){

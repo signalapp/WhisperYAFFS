@@ -1184,7 +1184,7 @@ int yaffs_fstat(int fd, struct yaffs_stat *buf)
 /* xattrib functions */
 
 
-int yaffs_setxattr(const YCHAR *path, const char *name, const void *data, int size, int flags)
+static int yaffs_do_setxattr(const YCHAR *path, const char *name, const void *data, int size, int flags, int follow)
 {
 	yaffs_Object *obj;
 
@@ -1193,11 +1193,16 @@ int yaffs_setxattr(const YCHAR *path, const char *name, const void *data, int si
 	yaffsfs_Lock();
 	obj = yaffsfs_FindObject(NULL,path,0);
 
-	obj = yaffsfs_FollowLink(obj,0);
+	if(follow)
+		obj = yaffsfs_FollowLink(obj,0);
 
-	if(obj)
+	if(obj) {
 		retVal = yaffs_SetXAttribute(obj,name,data,size,flags);
-	else
+		if(retVal< 0){
+			yaffsfs_SetError(retVal);
+			retVal = -1;
+		}
+	} else
 		/* todo error not found */
 		yaffsfs_SetError(-ENOENT);
 
@@ -1206,6 +1211,18 @@ int yaffs_setxattr(const YCHAR *path, const char *name, const void *data, int si
 	return retVal;
 
 }
+
+int yaffs_setxattr(const YCHAR *path, const char *name, const void *data, int size, int flags)
+{
+	return yaffs_do_setxattr(path, name, data, size, flags, 1);
+}
+
+int yaffs_lsetxattr(const YCHAR *path, const char *name, const void *data, int size, int flags)
+{
+	return yaffs_do_setxattr(path, name, data, size, flags, 0);
+}
+
+
 
 int yaffs_fsetxattr(int fd, const char *name, const void *data, int size, int flags)
 {
@@ -1216,9 +1233,13 @@ int yaffs_fsetxattr(int fd, const char *name, const void *data, int size, int fl
 	yaffsfs_Lock();
 	obj = yaffsfs_GetHandleObject(fd);
 
-	if(obj)
+	if(obj) {
 		retVal = yaffs_SetXAttribute(obj,name,data,size,flags);
-	else
+		if(retVal< 0){
+			yaffsfs_SetError(retVal);
+			retVal = -1;
+		}
+	} else
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 
@@ -1227,7 +1248,7 @@ int yaffs_fsetxattr(int fd, const char *name, const void *data, int size, int fl
 	return retVal;
 }
 
-int yaffs_getxattr(const YCHAR *path, const char *name, void *data, int size)
+static int yaffs_do_getxattr(const YCHAR *path, const char *name, void *data, int size, int follow)
 {
 	yaffs_Object *obj;
 
@@ -1236,11 +1257,16 @@ int yaffs_getxattr(const YCHAR *path, const char *name, void *data, int size)
 	yaffsfs_Lock();
 	obj = yaffsfs_FindObject(NULL,path,0);
 
-	obj = yaffsfs_FollowLink(obj,0);
+	if(follow)
+		obj = yaffsfs_FollowLink(obj,0);
 
-	if(obj)
+	if(obj) {
 		retVal = yaffs_GetXAttribute(obj,name,data,size);
-	else
+		if(retVal< 0){
+			yaffsfs_SetError(retVal);
+			retVal = -1;
+		}
+	} else
 		/* todo error not found */
 		yaffsfs_SetError(-ENOENT);
 
@@ -1249,6 +1275,17 @@ int yaffs_getxattr(const YCHAR *path, const char *name, void *data, int size)
 	return retVal;
 
 }
+
+int yaffs_getxattr(const YCHAR *path, const char *name, void *data, int size)
+{
+	return yaffs_do_getxattr( path, name, data, size, 1);
+}
+int yaffs_lgetxattr(const YCHAR *path, const char *name, void *data, int size)
+{
+	return yaffs_do_getxattr( path, name, data, size, 0);
+}
+
+
 
 int yaffs_fgetxattr(int fd, const char *name, void *data, int size)
 {
@@ -1259,9 +1296,13 @@ int yaffs_fgetxattr(int fd, const char *name, void *data, int size)
 	yaffsfs_Lock();
 	obj = yaffsfs_GetHandleObject(fd);
 
-	if(obj)
+	if(obj) {
 		retVal = yaffs_GetXAttribute(obj,name,data,size);
-	else
+		if(retVal< 0){
+			yaffsfs_SetError(retVal);
+			retVal = -1;
+		}
+	} else
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 
@@ -1270,7 +1311,7 @@ int yaffs_fgetxattr(int fd, const char *name, void *data, int size)
 	return retVal;
 }
 
-int yaffs_listxattr(const YCHAR *path, char *data, int size)
+static int yaffs_do_listxattr(const YCHAR *path, char *data, int size, int follow)
 {
 	yaffs_Object *obj;
 
@@ -1279,11 +1320,16 @@ int yaffs_listxattr(const YCHAR *path, char *data, int size)
 	yaffsfs_Lock();
 	obj = yaffsfs_FindObject(NULL,path,0);
 
-	obj = yaffsfs_FollowLink(obj,0);
+	if(follow)
+		obj = yaffsfs_FollowLink(obj,0);
 
-	if(obj)
+	if(obj) {
 		retVal = yaffs_ListXAttributes(obj, data,size);
-	else
+		if(retVal< 0){
+			yaffsfs_SetError(retVal);
+			retVal = -1;
+		}
+	} else
 		/* todo error not found */
 		yaffsfs_SetError(-ENOENT);
 
@@ -1291,6 +1337,16 @@ int yaffs_listxattr(const YCHAR *path, char *data, int size)
 
 	return retVal;
 
+}
+
+int yaffs_listxattr(const YCHAR *path, char *data, int size)
+{
+	return yaffs_do_listxattr(path, data, size, 1);
+}
+
+int yaffs_llistxattr(const YCHAR *path, char *data, int size)
+{
+	return yaffs_do_listxattr(path, data, size, 0);
 }
 
 int yaffs_flistxattr(int fd, char *data, int size)
@@ -1302,9 +1358,13 @@ int yaffs_flistxattr(int fd, char *data, int size)
 	yaffsfs_Lock();
 	obj = yaffsfs_GetHandleObject(fd);
 
-	if(obj)
+	if(obj) {
 		retVal = yaffs_ListXAttributes(obj,data,size);
-	else
+		if(retVal< 0){
+			yaffsfs_SetError(retVal);
+			retVal = -1;
+		}
+	} else
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 
@@ -1313,7 +1373,7 @@ int yaffs_flistxattr(int fd, char *data, int size)
 	return retVal;
 }
 
-int yaffs_removexattr(const YCHAR *path, const char *name)
+static int yaffs_do_removexattr(const YCHAR *path, const char *name, int follow)
 {
 	yaffs_Object *obj;
 
@@ -1322,11 +1382,16 @@ int yaffs_removexattr(const YCHAR *path, const char *name)
 	yaffsfs_Lock();
 	obj = yaffsfs_FindObject(NULL,path,0);
 
-	obj = yaffsfs_FollowLink(obj,0);
+	if(follow)
+		obj = yaffsfs_FollowLink(obj,0);
 
-	if(obj)
+	if(obj) {
 		retVal = yaffs_RemoveXAttribute(obj,name);
-	else
+		if(retVal< 0){
+			yaffsfs_SetError(retVal);
+			retVal = -1;
+		}
+	} else
 		/* todo error not found */
 		yaffsfs_SetError(-ENOENT);
 
@@ -1334,6 +1399,16 @@ int yaffs_removexattr(const YCHAR *path, const char *name)
 
 	return retVal;
 
+}
+
+int yaffs_removexattr(const YCHAR *path, const char *name)
+{
+	return yaffs_do_removexattr(path, name, 1);
+}
+
+int yaffs_lremovexattr(const YCHAR *path, const char *name)
+{
+	return yaffs_do_removexattr(path, name, 0);
 }
 
 int yaffs_fremovexattr(int fd, const char *name)
@@ -1345,9 +1420,13 @@ int yaffs_fremovexattr(int fd, const char *name)
 	yaffsfs_Lock();
 	obj = yaffsfs_GetHandleObject(fd);
 
-	if(obj)
+	if(obj){
 		retVal = yaffs_RemoveXAttribute(obj,name);
-	else
+		if(retVal< 0){
+			yaffsfs_SetError(retVal);
+			retVal = -1;
+		}
+	}else
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 

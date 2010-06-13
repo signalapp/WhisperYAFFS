@@ -247,15 +247,19 @@ int yaffs_lstat(const YCHAR *path, struct yaffs_stat *buf) ;
 int yaffs_fstat(int fd, struct yaffs_stat *buf) ;
 
 int yaffs_setxattr(const char *path, const char *name, const void *data, int size, int flags);
+int yaffs_lsetxattr(const char *path, const char *name, const void *data, int size, int flags);
 int yaffs_fsetxattr(int fd, const char *name, const void *data, int size, int flags);
 
 int yaffs_getxattr(const char *path, const char *name, void *data, int size);
+int yaffs_lgetxattr(const char *path, const char *name, void *data, int size);
 int yaffs_fgetxattr(int fd, const char *name, void *data, int size);
 
 int yaffs_removexattr(const char *path, const char *name);
+int yaffs_lremovexattr(const char *path, const char *name);
 int yaffs_fremovexattr(int fd, const char *name);
 
 int yaffs_listxattr(const char *path, char *list, int size);
+int yaffs_llistxattr(const char *path, char *list, int size);
 int yaffs_flistxattr(int fd, char *list, int size);
 
 

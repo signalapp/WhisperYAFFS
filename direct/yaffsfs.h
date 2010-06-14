@@ -165,6 +165,14 @@
 #define	S_IEXEC	0000100
 #endif
 
+#ifndef XATTR_CREATE
+#define XATTR_CREATE 1
+#endif
+
+#ifndef XATTR_REPLACE
+#define XATTR_REPLACE 2
+#endif
+
 #ifndef R_OK
 #define R_OK	4
 #define W_OK	2

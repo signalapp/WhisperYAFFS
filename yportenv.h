@@ -47,6 +47,7 @@
 #include <linux/string.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
+#include <linux/xattr.h>
 
 #define YCHAR char
 #define YUCHAR unsigned char

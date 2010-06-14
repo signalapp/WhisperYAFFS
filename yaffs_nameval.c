@@ -94,9 +94,9 @@ int nval_set(char *xb, int xb_size, const char *name, const char *buf, int bsize
 
 	pos = nval_find(xb,xb_size,name, &size_exist);
 
-	if(flags & NVAL_CREATE && pos >= 0)
+	if(flags & XATTR_CREATE && pos >= 0)
 		return -EEXIST;
-	if(flags & NVAL_REPLACE && pos < 0)
+	if(flags & XATTR_REPLACE && pos < 0)
 		return -ENOENT;
 
 	start = nval_used(xb,xb_size);

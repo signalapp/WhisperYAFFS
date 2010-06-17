@@ -1976,7 +1976,6 @@ ssize_t yaffs_listxattr(struct dentry *dentry, char *buff, size_t size)
 
 
 	if (error == 0) {
-		int result;
 		dev = obj->myDev;
 		yaffs_GrossLock(dev);
 		error = yaffs_ListXAttributes(obj, buff, size);

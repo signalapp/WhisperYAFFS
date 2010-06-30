@@ -10,3 +10,7 @@ yaffs-y += yaffs_tagscompat.o yaffs_tagsvalidity.o
 yaffs-y += yaffs_mtdif.o yaffs_mtdif1.o yaffs_mtdif2.o
 yaffs-y += yaffs_nameval.o
 yaffs-y += yaffs_linux_allocator.o
+yaffs-y += yaffs_yaffs1.o
+yaffs-y += yaffs_yaffs2.o
+yaffs-y += yaffs_bitmap.o
+

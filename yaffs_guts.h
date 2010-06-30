@@ -805,6 +805,23 @@ typedef struct {
 } yaffs_CheckpointValidity;
 
 
+struct yaffs_ShadowFixerStruct {
+	int objectId;
+	int shadowedId;
+	struct yaffs_ShadowFixerStruct *next;
+};
+
+/* Structure for doing xattr modifications */
+typedef struct {
+	int set; /* If 0 then this is a deletion */
+	const char *name;
+	const void *data;
+	int size;
+	int flags;
+	int result;
+}yaffs_XAttrMod;
+
+
 /*----------------------- YAFFS Functions -----------------------*/
 
 int yaffs_GutsInitialise(yaffs_Device *dev);
@@ -896,7 +913,7 @@ int yaffs_DumpObject(yaffs_Object *obj);
 
 void yaffs_GutsTest(yaffs_Device *dev);
 
-/* A few useful functions */
+/* A few useful functions to be used within the core files*/
 void yaffs_InitialiseTags(yaffs_ExtendedTags *tags);
 void yaffs_DeleteChunk(yaffs_Device *dev, int chunkId, int markNAND, int lyn);
 int yaffs_CheckFF(__u8 *buffer, int nBytes);
@@ -905,5 +922,33 @@ void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi);
 __u8 *yaffs_GetTempBuffer(yaffs_Device *dev, int lineNo);
 void yaffs_ReleaseTempBuffer(yaffs_Device *dev, __u8 *buffer, int lineNo);
 
-
+yaffs_Object *yaffs_FindOrCreateObjectByNumber(yaffs_Device *dev,
+					        int number,
+					        yaffs_ObjectType type);
+int yaffs_PutChunkIntoFile(yaffs_Object *in, int chunkInInode,
+			        int chunkInNAND, int inScan);
+void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name);
+void yaffs_AddObjectToDirectory(yaffs_Object *directory,
+					yaffs_Object *obj);
+YCHAR *yaffs_CloneString(const YCHAR *str);
+void yaffs_HardlinkFixup(yaffs_Device *dev, yaffs_Object *hardList);
+void yaffs_BlockBecameDirty(yaffs_Device *dev, int blockNo);
+int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name,
+				int force, int isShrink, int shadows,
+                                yaffs_XAttrMod *xop);
+void yaffs_HandleShadowedObject(yaffs_Device *dev, int objId,
+				int backwardScanning);
+int yaffs_CheckSpaceForAllocation(yaffs_Device *dev, int nChunks);
+yaffs_Tnode *yaffs_GetTnode(yaffs_Device *dev);
+yaffs_Tnode *yaffs_AddOrFindLevel0Tnode(yaffs_Device *dev,
+					yaffs_FileStructure *fStruct,
+					__u32 chunkId,
+					yaffs_Tnode *passedTn);
+void yaffs_VerifyObjects(yaffs_Device *dev);
+void yaffs_VerifyBlocks(yaffs_Device *dev);
+void yaffs_VerifyFreeChunks(yaffs_Device *dev);
+int yaffs_DoWriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
+			int nBytes, int writeThrough);
+void yaffs_ResizeDown( yaffs_Object *obj, loff_t newSize);
+void yaffs_SkipRestOfBlock(yaffs_Device *dev);
 #endif

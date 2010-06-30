@@ -36,7 +36,10 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 		 yaffs_checkptrw.o  yaffs_qsort.o\
 		 yaffs_nameval.o \
 		 yaffs_norif1.o  ynorsim.o nor_stress.o yaffs_fsx.o \
-		 yaffs_allocator.o
+		 yaffs_allocator.o \
+		 yaffs_bitmap.o \
+		 yaffs_yaffs1.o \
+		 yaffs_yaffs2.o
 
 #		 yaffs_checkptrwtest.o\
 
@@ -53,7 +56,10 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
           yaffs_nameval.c yaffs_nameval.h \
           yaffs_qsort.c yaffs_qsort.h yaffs_trace.h \
-          yaffs_allocator.c yaffs_allocator.h
+          yaffs_allocator.c yaffs_allocator.h \
+          yaffs_yaffs1.c yaffs_yaffs1.h \
+          yaffs_yaffs2.c yaffs_yaffs2.h \
+          yaffs_bitmap.c yaffs_bitmap.h
 
 YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffs_fileem2k.h yaffsfs.h yaffs_malloc.h yaffs_ramdisk.h ydirectenv.h \

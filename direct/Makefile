@@ -35,7 +35,10 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 		 yaffs_checkptrw.o  yaffs_qsort.o\
 		 yaffs_nameval.o \
 		 yaffs_norif1.o  ynorsim.o \
-		 yaffs_allocator.o
+		 yaffs_allocator.o yaffs_yaffs1.o \
+		 yaffs_yaffs2.o \
+		 yaffs_bitmap.o
+
 #		 yaffs_checkptrwtest.o\
 
 DIRECTTESTOBJS = $(COMMONTESTOBJS) dtest.o
@@ -52,7 +55,10 @@ SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsin
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
           yaffs_nameval.h yaffs_nameval.c \
           yaffs_qsort.c yaffs_qsort.h yaffs_trace.h \
-          yaffs_allocator.c yaffs_allocator.h
+          yaffs_allocator.c yaffs_allocator.h \
+	  yaffs_bitmap.c yaffs_bitmap.h \
+          yaffs_yaffs1.c yaffs_yaffs1.h \
+          yaffs_yaffs2.c yaffs_yaffs2.h 
 
 #all: directtest2k boottest
 

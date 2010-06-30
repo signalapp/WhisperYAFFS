@@ -62,7 +62,7 @@ yaffs_Object *yaffs_AllocateRawObject(yaffs_Device *dev)
 void yaffs_FreeRawObject(yaffs_Device *dev, yaffs_Object *obj)
 {
 
-	dev = dev;	
+	dev = dev;
 	YFREE(obj);
 }
 
@@ -82,7 +82,7 @@ struct yaffs_ObjectList_struct {
 
 typedef struct yaffs_ObjectList_struct yaffs_ObjectList;
 
-                
+
 struct yaffs_AllocatorStruct {
 	int nTnodesCreated;
 	yaffs_Tnode *freeTnodes;
@@ -92,7 +92,7 @@ struct yaffs_AllocatorStruct {
 	int nObjectsCreated;
 	yaffs_Object *freeObjects;
 	int nFreeObjects;
-	
+
 	yaffs_ObjectList *allocatedObjectList;
 };
 
@@ -105,7 +105,7 @@ static void yaffs_DeinitialiseRawTnodes(yaffs_Device *dev)
 	yaffs_Allocator *allocator = (yaffs_Allocator *)dev->allocator;
 
 	yaffs_TnodeList *tmp;
-	
+
 	if(!allocator){
 		YBUG();
 		return;
@@ -147,7 +147,7 @@ static int yaffs_CreateTnodes(yaffs_Device *dev, int nTnodes)
 	yaffs_Tnode *curr;
 	yaffs_Tnode *next;
 	yaffs_TnodeList *tnl;
-	
+
 	if(!allocator){
 		YBUG();
 		return YAFFS_FAIL;
@@ -227,7 +227,7 @@ yaffs_Tnode *yaffs_AllocateRawTnode(yaffs_Device *dev)
 {
 	yaffs_Allocator *allocator = (yaffs_Allocator *)dev->allocator;
 	yaffs_Tnode *tn = NULL;
-	
+
 	if(!allocator){
 		YBUG();
 		return NULL;
@@ -403,7 +403,7 @@ void yaffs_FreeRawObject(yaffs_Device *dev, yaffs_Object *obj)
 
 	if(!allocator)
 		YBUG();
-	else {   
+	else {
 		/* Link into the free list. */
 		obj->siblings.next = (struct ylist_head *)(allocator->freeObjects);
 		allocator->freeObjects = obj;
@@ -416,7 +416,7 @@ void yaffs_DeinitialiseRawTnodesAndObjects(yaffs_Device *dev)
 	if(dev->allocator){
 		yaffs_DeinitialiseRawTnodes(dev);
 		yaffs_DeinitialiseRawObjects(dev);
-	
+
 		YFREE(dev->allocator);
 		dev->allocator=NULL;
 	} else
@@ -426,7 +426,7 @@ void yaffs_DeinitialiseRawTnodesAndObjects(yaffs_Device *dev)
 void yaffs_InitialiseRawTnodesAndObjects(yaffs_Device *dev)
 {
 	yaffs_Allocator *allocator;
-	
+
 	if(!dev->allocator){
 		allocator = YMALLOC(sizeof(yaffs_Allocator));
 		if(allocator){

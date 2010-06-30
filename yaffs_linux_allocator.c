@@ -11,6 +11,8 @@
  * published by the Free Software Foundation.
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
+ *
+ * Note: Tis code is currently unused. Being checked in in case it becomes useful.
  */
 
 
@@ -62,14 +64,14 @@ void yaffs_DeinitialiseRawTnodesAndObjects(yaffs_Device *dev)
 				(TSTR("NULL object cache\n")));
 			YBUG();
 		}
-		
+
 		YFREE(allocator);
 
 	} else {
 		T(YAFFS_TRACE_ALWAYS,
 			(TSTR("Deinitialising NULL allocator\n")));
 		YBUG();
-	}		
+	}
 	dev->allocator = NULL;
 }
 
@@ -102,7 +104,7 @@ void yaffs_InitialiseRawTnodesAndObjects(yaffs_Device *dev)
 {
 	yaffs_Allocator *allocator;
 	unsigned mount_id = yaffs_DeviceToContext(dev)->mount_id;
-	
+
 	T(YAFFS_TRACE_ALLOCATE,(TSTR("Initialising yaffs allocator\n")));
 
 	if(dev->allocator)
@@ -113,19 +115,19 @@ void yaffs_InitialiseRawTnodesAndObjects(yaffs_Device *dev)
 		 allocator = YMALLOC(sizeof(yaffs_Allocator));
 		 memset(allocator,0,sizeof(yaffs_Allocator));
 		 dev->allocator = allocator;
-		
+
 		if(!dev->allocator){
 			T(YAFFS_TRACE_ALWAYS,
 				(TSTR("yaffs allocator creation failed\n")));
 			YBUG();
 			return;
-			
+
 		}
-		
+
 		sprintf(allocator->tnode_name,"yaffs_t_%u",mount_id);
 		sprintf(allocator->object_name,"yaffs_o_%u",mount_id);
-		
-		allocator->tnode_cache = 
+
+		allocator->tnode_cache =
 			kmem_cache_create(allocator->tnode_name,
 				dev->tnodeSize,
 				0, 0,

@@ -82,4 +82,4 @@ libyaffsfs.so: $(SYMLINKS) $(YAFFSLIBOBJS)
 clean:
 	rm -f  $(YAFFSLIBOBJS)  core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
 	rm -f libyaffsfs.so
-
+	rm -f *.pyc

@@ -2573,7 +2573,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	yaffs_DeviceParam *param;
 
 	yaffs_options options;
-	
+
 	unsigned mount_id;
 	int found;
 	struct yaffs_LinuxContext *context_iterator;
@@ -2892,7 +2892,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		}
 	}
 	context->mount_id = mount_id;
-	
+
 	ylist_add_tail(&(yaffs_DeviceToContext(dev)->contextList), &yaffs_context_list);
 	up(&yaffs_context_lock);
 

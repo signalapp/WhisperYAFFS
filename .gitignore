@@ -1,0 +1,6 @@
+*~
+*.o
+*o.cmd
+*.ko
+*.pyc
+DEADJOE

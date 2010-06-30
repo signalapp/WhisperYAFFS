@@ -826,10 +826,10 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 		yaffsfs_SetError(-EINVAL);
 		totalWritten=-1;
 	} else if( h && obj){
-		if(isPwrite)
-			startPos = offset;
 		if(h->append)
 			startPos = yaffs_GetObjectFileLength(obj);
+		else if(isPwrite)
+			startPos = offset;
 		else
 			startPos = h->position;
 

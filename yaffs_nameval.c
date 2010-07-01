@@ -80,7 +80,7 @@ int nval_del(char *xb, int xb_size, const char *name)
 		memset(xb + (xb_size - size),0,size);
 		return 0;
 	} else
-		return -ENOENT;
+		return -ENODATA;
 }
 
 int nval_set(char *xb, int xb_size, const char *name, const char *buf, int bsize, int flags)
@@ -97,7 +97,7 @@ int nval_set(char *xb, int xb_size, const char *name, const char *buf, int bsize
 	if(flags & XATTR_CREATE && pos >= 0)
 		return -EEXIST;
 	if(flags & XATTR_REPLACE && pos < 0)
-		return -ENOENT;
+		return -ENODATA;
 
 	start = nval_used(xb,xb_size);
 	space = xb_size - start + size_exist;
@@ -148,7 +148,10 @@ int nval_get(const char *xb, int xb_size, const char *name, char *buf, int bsize
 		}
 		
 	}
-	return -ENOENT;
+	if(pos >= 0)
+		return -ERANGE;
+	else
+		return -ENODATA;
 }
 
 int nval_list(const char *xb, int xb_size, char *buf, int bsize)

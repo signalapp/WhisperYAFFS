@@ -110,6 +110,14 @@
 #define ENOSPC	28
 #endif
 
+#ifndef ERANGE
+#define ERANGE 34
+#endif
+
+#ifndef ENODATA
+#define ENODATA 61
+#endif
+
 #ifndef ENOTEMPTY
 #define ENOTEMPTY 39
 #endif

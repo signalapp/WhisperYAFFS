@@ -7516,7 +7516,7 @@ static int yaffs_DoXFetch(yaffs_Object *obj, const char *name, void *value, int 
 	int retval = 0;
 
 	if(obj->hdrChunk < 1)
-		return -ENOENT;
+		return -ENODATA;
 
 	buffer = yaffs_GetTempBuffer(dev, __LINE__);
 	if(!buffer)

@@ -33,6 +33,4 @@ int yaffs2_CheckpointRestore(yaffs_Device *dev);
 int yaffs2_HandleHole(yaffs_Object *obj, loff_t newSize);
 int yaffs2_ScanBackwards(yaffs_Device *dev);
 
-void yaffs2_VerifyBlock(yaffs_Device *dev, yaffs_BlockInfo *bi, int n);
-
 #endif

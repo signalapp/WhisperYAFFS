@@ -28,6 +28,7 @@ ifneq ($(KERNELRELEASE),)
 	yaffs2-objs += yaffs_allocator.o yaffs_bitmap.o
 	yaffs2-objs += yaffs_yaffs1.o
 	yaffs2-objs += yaffs_yaffs2.o
+	yaffs2-objs += yaffs_verify.o
 
 else
 	KERNELDIR ?= /lib/modules/$(shell uname -r)/build

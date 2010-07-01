@@ -31,16 +31,6 @@
 
 #define YAFFS_SMALL_HOLE_THRESHOLD 4
 
-void yaffs2_VerifyBlock(yaffs_Device *dev, yaffs_BlockInfo *bi, int n)
-{
-	if (!dev->param.isYaffs2)
-		return;
-
-	if((bi->blockState == YAFFS_BLOCK_STATE_ALLOCATING || bi->blockState == YAFFS_BLOCK_STATE_FULL) &&
-	   (bi->sequenceNumber < YAFFS_LOWEST_SEQUENCE_NUMBER || bi->sequenceNumber > 10000000))
-		T(YAFFS_TRACE_VERIFY, (TSTR("Block %d has suspect sequence number of %d"TENDSTR),
-		n, bi->sequenceNumber));
-}
 
 /*
  * Oldest Dirty Sequence Number handling.

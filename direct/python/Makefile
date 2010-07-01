@@ -36,7 +36,9 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 		 yaffs_nameval.o \
 		 yaffs_allocator.o \
 		 yaffs_norif1.o  ynorsim.o \
-		 yaffs_bitmap.o yaffs_yaffs1.o yaffs_yaffs2.o
+		 yaffs_bitmap.o \
+		 yaffs_verify.o \
+		 yaffs_yaffs1.o yaffs_yaffs2.o
 
 
 YAFFSLIBOBJS  = $(COMMONTESTOBJS) yaffs_python_helper.o
@@ -52,7 +54,8 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
           yaffs_allocator.c yaffs_allocator.h \
           yaffs_yaffs1.c yaffs_yaffs1.h \
           yaffs_yaffs2.c yaffs_yaffs2.h \
-          yaffs_bitmap.c yaffs_bitmap.h
+          yaffs_bitmap.c yaffs_bitmap.h \
+          yaffs_verify.c yaffs_verify.h
           
 
 YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\

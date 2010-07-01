@@ -1130,6 +1130,15 @@ int yaffs2_ScanBackwards(yaffs_Device *dev)
 
 				  dev->nFreeChunks++;
 
+			} else if (tags.objectId > YAFFS_MAX_OBJECT_ID ||
+				tags.chunkId > YAFFS_MAX_CHUNK_ID ||
+				(tags.chunkId > 0 && tags.byteCount > dev->nDataBytesPerChunk)) {
+				T(YAFFS_TRACE_SCAN,
+				  (TSTR("Chunk (%d:%d) with bad tags:obj = %d, chunkId = %d, byteCount = %d, ignored"TENDSTR),
+				  blk, c,tags.objectId, tags.chunkId, tags.byteCount));
+
+				  dev->nFreeChunks++;
+
 			} else if (tags.chunkId > 0) {
 				/* chunkId > 0 so it is a data chunk... */
 				unsigned int endpos;

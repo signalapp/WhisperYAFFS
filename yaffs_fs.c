@@ -1442,7 +1442,7 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
         sc = yaffs_NewSearch(obj);
         if(!sc){
                 retVal = -ENOMEM;
-                goto unlock_out;
+                goto out;
         }
 
 	T(YAFFS_TRACE_OS, (TSTR("yaffs_readdir: starting at %d\n"), (int)offset));
@@ -1452,8 +1452,10 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 			(TSTR("yaffs_readdir: entry . ino %d \n"),
 			(int)inode->i_ino));
 		yaffs_GrossUnlock(dev);
-		if (filldir(dirent, ".", 1, offset, inode->i_ino, DT_DIR) < 0)
+		if (filldir(dirent, ".", 1, offset, inode->i_ino, DT_DIR) < 0){
+			yaffs_GrossLock(dev);
 			goto out;
+		}
 		yaffs_GrossLock(dev);
 		offset++;
 		f->f_pos++;
@@ -1464,8 +1466,10 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 			(int)f->f_dentry->d_parent->d_inode->i_ino));
 		yaffs_GrossUnlock(dev);
 		if (filldir(dirent, "..", 2, offset,
-			f->f_dentry->d_parent->d_inode->i_ino, DT_DIR) < 0)
+			f->f_dentry->d_parent->d_inode->i_ino, DT_DIR) < 0){
+			yaffs_GrossLock(dev);
 			goto out;
+		}
 		yaffs_GrossLock(dev);
 		offset++;
 		f->f_pos++;
@@ -1501,8 +1505,10 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 					strlen(name),
 					offset,
 					this_inode,
-					this_type) < 0)
+					this_type) < 0){
+				yaffs_GrossLock(dev);
 				goto out;
+			}
 
                         yaffs_GrossLock(dev);
 
@@ -1512,12 +1518,10 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
                 yaffs_SearchAdvance(sc);
 	}
 
-unlock_out:
-	yaffs_DeviceToContext(dev)->readdirProcess = NULL;
-
-	yaffs_GrossUnlock(dev);
 out:
-        yaffs_EndSearch(sc);
+	yaffs_EndSearch(sc);
+	yaffs_DeviceToContext(dev)->readdirProcess = NULL;
+	yaffs_GrossUnlock(dev);
 
 	return retVal;
 }

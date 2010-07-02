@@ -49,6 +49,8 @@ static unsigned cycleEnds;
 
 static int interleave_fsx;
 
+static int no_verification;
+ 
 char fullPathName[100];
 char fullPowerUpName[100];
 char fullStartName[100];
@@ -119,8 +121,9 @@ static void UpdateCounter(const char *name, unsigned *val,  int initialise)
       yaffs_close(inh);
     }
 
-    if(nread != sizeof(x) ||
-       x[0] + 1 != x[1]){
+    if(!no_verification &&
+      (nread != sizeof(x) ||
+       x[0] + 1 != x[1])){
       printf("Error reading counter %s handle %d, x[0] %u x[1] %u last error %d\n",
               name, inh, x[0], x[1],yaffsfs_GetLastError());
       FatalError(__LINE__);
@@ -220,7 +223,7 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 							
 		}
 		
-		if(error_line)
+		if(error_line && !no_verification)
 			FatalError(error_line);
 		
 		yaffs_closedir(d);
@@ -312,6 +315,8 @@ static int yVerifyFile(const char *fName)
 	int i;
 	int retval = 0;
 
+	if(no_verification)
+		return 0;
 
         printf("Verifying file %s\n",fName);
         	
@@ -384,7 +389,7 @@ static void DoUpdateMainFile(void)
         
 	result = yWriteFile(fullTempMainName,sz32);
 	FSX();
-	if(result)
+	if(!no_verification && result)
 	    FatalError(__LINE__);
 	printf("Raname file %s to %s\n",fullTempMainName,fullMainName);
 	yaffs_rename(fullTempMainName,fullMainName);
@@ -394,6 +399,8 @@ static void DoUpdateMainFile(void)
 static void DoVerifyMainFile(void)
 {
         int result;
+	if(no_verification)
+		return;
 	result = yVerifyFile(fullMainName);
 	if(result)
 	    FatalError(__LINE__);
@@ -414,10 +421,12 @@ void NorStressTestInitialise(const char *prefix)
 }
 
 
-void NorStressTestRun(const char *prefix, int n_cycles, int do_fsx)
+void NorStressTestRun(const char *prefix, int n_cycles, int do_fsx, int skip_verification)
 {
 
   interleave_fsx = do_fsx;
+  no_verification = skip_verification;
+ 
   MakeFullNames(prefix);
   dump_directory_tree(fullPathName);
   FSX_INIT(prefix);

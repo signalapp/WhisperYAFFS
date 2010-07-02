@@ -42,6 +42,9 @@ int do_bash_around;
 int init_test;
 int do_upgrade;
 int n_cycles = -1;
+int fuzz_test=0;
+
+
 int yaffs_test_maxMallocs;
 
 extern int ops_multiplier;
@@ -74,7 +77,7 @@ void yaffs_bash_around(const char *mountpt, int n_cycles)
 	while(n_cycles){
 		if(cycle % 100 == 0){
 			printf("CYCLE %8d mo %2d inodes %d space %d ",cycle,op_max,
-				yaffs_inodecount(mountpt),yaffs_freespace(mountpt));
+				yaffs_inodecount(mountpt),(int)yaffs_freespace(mountpt));
 			for(i = 0; i < BASH_HANDLES; i++)
 				printf("%2d ",h[i]);
 			printf("\n");
@@ -155,6 +158,7 @@ void BadUsage(void)
 	printf(" s sss: set seed\n");
 	printf(" u: do upgrade test\n");
 	printf(" b: bash-about test\n");
+	printf(" z: fuzz test - ignore verification errors\n");
 	exit(2);
 }
 
@@ -192,7 +196,7 @@ int main(int argc, char **argv)
 	signal(SIGBUS,bad_ptr_handler);
 	signal(SIGABRT,bad_ptr_handler);
 #endif	
-	while ((ch = getopt(argc,argv, "bfilmn:ps:t:u"))
+	while ((ch = getopt(argc,argv, "bfilmn:ps:t:uz"))
 	       != EOF)
 		switch (ch) {
 		case 's':
@@ -225,6 +229,8 @@ int main(int argc, char **argv)
 		case 't':
 			yaffs_traceMask = strtol(optarg,NULL,0);
 			break;
+		case 'z':fuzz_test=1;
+			break;
 		default:
 			BadUsage();
 			/* NOTREACHED */
@@ -237,19 +243,31 @@ int main(int argc, char **argv)
 	}
 	
 	if(argc == 1) {
+		int result;
+
 		strcpy(mount_point,argv[0]);
 		
 		if(simulate_power_failure)
 			n_cycles = -1;
-		printf("Running test %s %s %s %s seed %d cycles %d\n",
+		printf("Running test %s %s %s %s %s seed %d cycles %d\n",
 			do_upgrade ? "fw_upgrade" : "",
 			init_test ? "initialise":"",
+			fuzz_test ? "fuzz-test" : "",
 			do_fsx ? "fsx" :"",
 			simulate_power_failure ? "power_fail" : "",
 			random_seed, n_cycles);
 
 		yaffs_StartUp();
-		yaffs_mount(mount_point);
+		result = yaffs_mount(mount_point);
+		if(result < 0){
+			printf("Mount of %s failed\n",mount_point);
+			printf("pid %d sleeping\n",getpid());
+			
+			while(!sleep_exit){
+				sleep(1);
+				sleep_time++;
+			}
+		}
 		printf("Mount complete\n");
 			
 		if(do_upgrade && init_test){
@@ -257,7 +275,7 @@ int main(int argc, char **argv)
 			NorStressTestInitialise(mount_point);
 		} else if(do_upgrade){
 			printf("Running stress on %s with seed %d\n",mount_point,random_seed);
-			NorStressTestRun(mount_point,n_cycles,do_fsx);
+			NorStressTestRun(mount_point,n_cycles,do_fsx,fuzz_test);
 		} else if(do_fsx){
 			yaffs_fsx_main(mount_point,n_cycles);
 		} else if(do_bash_around){

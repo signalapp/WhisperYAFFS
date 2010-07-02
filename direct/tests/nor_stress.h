@@ -16,7 +16,7 @@
 #define __NOR_STRESS_H__
 
 void NorStressTestInitialise(const char *path);
-void NorStressTestRun(const char *path, int n_cycles, int do_fsx);
+void NorStressTestRun(const char *path, int n_cycles, int do_fsx, int no_verification);
 
 #endif
 

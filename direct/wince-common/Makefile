@@ -59,8 +59,17 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
           yaffs_bitmap.c yaffs_bitmap.h \
           yaffs_verify.c yaffs_verify.h
 
+YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
+		       yaffsfs.h yaffs_malloc.h ydirectenv.h \
+		       yaffs_flashif.c \
+		       yaffs_nandif.c yaffs_nandif.h
 
-SYMLINKS = $(YAFFSSYMLINKS)
+
+
+BASICTESTSYMLINKS = yramsim.c yramsim.h
+
+SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS) $(BASICTESTSYMLINKS)
+
 
 
 
@@ -70,10 +79,13 @@ symlinks: $(SYMLINKS)
 
 
 $(YAFFSSYMLINKS):
-	ln -s ../$@ $@
+	ln -s ../../$@ $@
 
 $(YAFFSDIRECTSYMLINKS):
 	ln -s ../$@ $@
+
+$(BASICTESTSYMLINKS):
+	ln -s ../basic-test/$@ $@
 
 
 clean:

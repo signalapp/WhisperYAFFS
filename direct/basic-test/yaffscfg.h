@@ -24,6 +24,7 @@
 
 
 #include "yportenv.h"
+#include "devextras.h"
 
 #define YAFFSFS_N_HANDLES 100
 

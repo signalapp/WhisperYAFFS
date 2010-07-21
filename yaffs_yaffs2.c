@@ -1373,7 +1373,7 @@ int yaffs2_ScanBackwards(yaffs_Device *dev)
 							
 
 
-						yaffs_SetObjectName(in, oh->name);
+						yaffs_SetObjectNameFromOH(in, oh);
 						parent =
 						    yaffs_FindOrCreateObjectByNumber
 							(dev, oh->parentObjectId,

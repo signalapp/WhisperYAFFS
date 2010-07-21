@@ -99,6 +99,11 @@ static int yaffs_VerifyChunkWritten(yaffs_Device *dev,
 					const __u8 *data,
 					yaffs_ExtendedTags *tags);
 
+
+static void yaffs_LoadNameFromObjectHeader(yaffs_Device *dev,YCHAR *name, const YCHAR *ohName, int bufferSize);
+static void yaffs_LoadObjectHeaderFromName(yaffs_Device *dev,YCHAR *ohName, const YCHAR *name);
+
+
 /* Function to calculate chunk and offset */
 
 static void yaffs_AddrToChunk(yaffs_Device *dev, loff_t addr, int *chunkOut,
@@ -620,6 +625,18 @@ void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name)
 		obj->shortName[0] = _Y('\0');
 #endif
 	obj->sum = yaffs_CalcNameSum(name);
+}
+
+void yaffs_SetObjectNameFromOH(yaffs_Object *obj, const yaffs_ObjectHeader *oh)
+{
+#ifdef CONFIG_YAFFS_AUTO_UNICODE
+	YCHAR tmpName[YAFFS_MAX_NAME_LENGTH+1];
+	memset(tmpName,0,sizeof(tmpName));
+	yaffs_LoadNameFromObjectHeader(obj->myDev,tmpName,oh->name,YAFFS_MAX_NAME_LENGTH+1);
+	yaffs_SetObjectName(obj,tmpName);
+#else
+	yaffs_SetObjectName(obj,oh->name);
+#endif
 }
 
 /*-------------------- TNODES -------------------
@@ -3036,7 +3053,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 
 		if (name && *name) {
 			memset(oh->name, 0, sizeof(oh->name));
-			yaffs_strncpy(oh->name, name, YAFFS_MAX_NAME_LENGTH);
+			yaffs_LoadObjectHeaderFromName(dev,oh->name,name);
 		} else if (prevChunkId > 0)
 			memcpy(oh->name, oldName, sizeof(oh->name));
 		else
@@ -4386,6 +4403,7 @@ static void yaffs_UpdateParent(yaffs_Object *obj)
 	yaffs_Device *dev;
 	if(!obj)
 		return;
+#ifndef CONFIG_YAFFS_WINCE
 
 	dev = obj->myDev;
 	obj->dirty = 1;
@@ -4400,6 +4418,7 @@ static void yaffs_UpdateParent(yaffs_Object *obj)
 
 	} else
 		yaffs_UpdateObjectHeader(obj, NULL, 0, 0, 0, NULL);
+#endif
 }
 
 void yaffs_UpdateDirtyDirectories(yaffs_Device *dev)
@@ -4600,36 +4619,124 @@ yaffs_Object *yaffs_GetEquivalentObject(yaffs_Object *obj)
 	return obj;
 }
 
-int yaffs_GetObjectName(yaffs_Object *obj, YCHAR *name, int buffSize)
+/*
+ *  A note or two on object names.
+ *  * If the object name is missing, we then make one up in the form objnnn
+ *
+ *  * ASCII names are stored in the object header's name field from byte zero
+ *  * Unicode names are historically stored starting from byte zero.
+ *
+ * Then there are automatic Unicode names...
+ * The purpose of these is to save names in a way that can be read as
+ * ASCII or Unicode names as appropriate, thus allowing a Unicode and ASCII
+ * system to share files.
+ *
+ * These automatic unicode are stored slightly differently...
+ *  - If the name can fit in the ASCII character space then they are saved as 
+ *    ascii names as per above.
+ *  - If the name needs Unicode then the name is saved in Unicode
+ *    starting at oh->name[1].
+
+ */
+static void yaffs_FixNullName(yaffs_Object * obj,YCHAR * name, int buffSize)
 {
-	memset(name, 0, buffSize * sizeof(YCHAR));
-
-	yaffs_CheckObjectDetailsLoaded(obj);
-
-	if (obj->objectId == YAFFS_OBJECTID_LOSTNFOUND) {
-		yaffs_strncpy(name, YAFFS_LOSTNFOUND_NAME, buffSize - 1);
-	} else if (obj->hdrChunk <= 0) {
+	/* Create an object name if we could not find one. */
+	if(yaffs_strnlen(name,YAFFS_MAX_NAME_LENGTH) == 0){
 		YCHAR locName[20];
 		YCHAR numString[20];
 		YCHAR *x = &numString[19];
 		unsigned v = obj->objectId;
 		numString[19] = 0;
-		while (v > 0) {
+		while(v>0){
 			x--;
 			*x = '0' + (v % 10);
 			v /= 10;
 		}
 		/* make up a name */
 		yaffs_strcpy(locName, YAFFS_LOSTNFOUND_PREFIX);
-		yaffs_strcat(locName, x);
+		yaffs_strcat(locName,x);
 		yaffs_strncpy(name, locName, buffSize - 1);
-
 	}
-#ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
-	else if (obj->shortName[0])
-		yaffs_strncpy(name, obj->shortName,YAFFS_SHORT_NAME_LENGTH+1);
+}
+
+static void yaffs_LoadNameFromObjectHeader(yaffs_Device *dev,YCHAR *name, const YCHAR *ohName, int bufferSize)
+{
+#ifdef CONFIG_YAFFS_AUTO_UNICODE
+	if(dev->param.autoUnicode){
+		if(*ohName){
+			/* It is an ASCII name, so do an ASCII to unicode conversion */
+			const char *asciiOhName = (const char *)ohName;
+			int n = bufferSize - 1;
+			while(n > 0 && *asciiOhName){
+				*name = *asciiOhName;
+				name++;
+				asciiOhName++;
+				n--;
+			}
+		} else 
+			yaffs_strncpy(name,ohName+1, bufferSize -1);
+	} else
 #endif
-	else {
+		yaffs_strncpy(name, ohName, bufferSize - 1);
+}
+
+
+static void yaffs_LoadObjectHeaderFromName(yaffs_Device *dev, YCHAR *ohName, const YCHAR *name)
+{
+#ifdef CONFIG_YAFFS_AUTO_UNICODE
+
+	int isAscii;
+	YCHAR *w;
+
+	if(dev->param.autoUnicode){
+
+		isAscii = 1;
+		w = name;
+	
+		/* Figure out if the name will fit in ascii character set */
+		while(isAscii && *w){
+			if((*w) & 0xff00)
+				isAscii = 0;
+			w++;
+		}
+
+		if(isAscii){
+			/* It is an ASCII name, so do a unicode to ascii conversion */
+			char *asciiOhName = (char *)ohName;
+			int n = YAFFS_MAX_NAME_LENGTH  - 1;
+			while(n > 0 && *name){
+				*asciiOhName= *name;
+				name++;
+				asciiOhName++;
+				n--;
+			}
+		} else{
+			/* It is a unicode name, so save starting at the second YCHAR */
+			*ohName = 0;
+			yaffs_strncpy(ohName+1,name, YAFFS_MAX_NAME_LENGTH -2);
+		}
+	}
+	else 
+#endif
+		yaffs_strncpy(ohName,name, YAFFS_MAX_NAME_LENGTH - 1);
+
+}
+
+int yaffs_GetObjectName(yaffs_Object * obj, YCHAR * name, int buffSize)
+{
+	memset(name, 0, buffSize * sizeof(YCHAR));
+	
+	yaffs_CheckObjectDetailsLoaded(obj);
+
+	if (obj->objectId == YAFFS_OBJECTID_LOSTNFOUND) {
+		yaffs_strncpy(name, YAFFS_LOSTNFOUND_NAME, buffSize - 1);
+	} 
+#ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
+	else if (obj->shortName[0]) {
+		yaffs_strcpy(name, obj->shortName);
+	}
+#endif
+	else if(obj->hdrChunk > 0) {
 		int result;
 		__u8 *buffer = yaffs_GetTempBuffer(obj->myDev, __LINE__);
 
@@ -4642,14 +4749,16 @@ int yaffs_GetObjectName(yaffs_Object *obj, YCHAR *name, int buffSize)
 							obj->hdrChunk, buffer,
 							NULL);
 		}
-		yaffs_strncpy(name, oh->name, buffSize - 1);
-		name[buffSize-1]=0;
+		yaffs_LoadNameFromObjectHeader(obj->myDev,name,oh->name,buffSize);
 
 		yaffs_ReleaseTempBuffer(obj->myDev, buffer, __LINE__);
 	}
 
-	return yaffs_strnlen(name,buffSize-1);
+	yaffs_FixNullName(obj,name,buffSize);
+
+	return yaffs_strnlen(name,YAFFS_MAX_NAME_LENGTH);
 }
+
 
 int yaffs_GetObjectFileLength(yaffs_Object *obj)
 {

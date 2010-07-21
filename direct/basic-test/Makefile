@@ -28,8 +28,51 @@ CFLAGS +=    -O0
 #CFLAGS+=   -Wshadow -Wpointer-arith -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
 
-
 COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
+		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
+		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
+		 yaffs_checkptrw.o  yaffs_qsort.o\
+		 yaffs_nameval.o \
+		 yaffs_norif1.o  ynorsim.o nor_stress.o yaffs_fsx.o \
+		 yaffs_allocator.o \
+		 yaffs_bitmap.o \
+		 yaffs_yaffs1.o \
+		 yaffs_yaffs2.o \
+		 yaffs_verify.o
+
+#		 yaffs_checkptrwtest.o\
+
+YAFFSTESTOBJS  = $(COMMONTESTOBJS) yaffs_test.o
+
+
+ALLOBJS = $(sort $(YAFFSTESTOBJS))
+
+YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
+          yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
+          yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h yaffs_list.h \
+          yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
+          yaffs_nameval.c yaffs_nameval.h \
+          yaffs_qsort.c yaffs_qsort.h yaffs_trace.h \
+          yaffs_allocator.c yaffs_allocator.h \
+          yaffs_yaffs1.c yaffs_yaffs1.h \
+          yaffs_yaffs2.c yaffs_yaffs2.h \
+          yaffs_bitmap.c yaffs_bitmap.h \
+          yaffs_verify.c yaffs_verify.h
+
+YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
+		       yaffsfs.h yaffs_malloc.h ydirectenv.h \
+		       yaffs_flashif.c \
+		       yaffs_nandif.c yaffs_nandif.h
+
+
+
+SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
+
+
+
+
+COMMONTESTOBJS = yaffsnewcfg.o  yramsim.o \
+		 yaffsfs.o yaffs_guts.o yaffs_ecc.o yaffs_nandif.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
 		 yaffs_checkptrw.o  yaffs_qsort.o\
@@ -45,31 +88,22 @@ DIRECTTESTOBJS = $(COMMONTESTOBJS) dtest.o
 
 BOOTTESTOBJS = bootldtst.o yboot.o yaffs_fileem.o nand_ecc.o
 
-#ALLOBJS =  dtest.o nand_ecc.o yaffscfg.o yaffs_fileem.o yaffsfs.o yaffs_ramdisk.o bootldtst.o yboot.o yaffs_ramem2k.o
-
 ALLOBJS = $(sort $(DIRECTTESTOBJS) $(YAFFSTESTOBJS))
 
-SYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
-          yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
-          yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
-          yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
-          yaffs_nameval.h yaffs_nameval.c \
-          yaffs_qsort.c yaffs_qsort.h yaffs_trace.h \
-          yaffs_allocator.c yaffs_allocator.h \
-	  yaffs_bitmap.c yaffs_bitmap.h \
-          yaffs_yaffs1.c yaffs_yaffs1.h \
-          yaffs_yaffs2.c yaffs_yaffs2.h \
-          yaffs_verify.c yaffs_verify.h
+TARGETS = directtest2k
 
-#all: directtest2k boottest
-
-all: directtest2k
+all: $(TARGETS)
 
 $(ALLOBJS): %.o: %.c
 	gcc -c $(CFLAGS) -o $@ $<
 
-$(SYMLINKS):
+
+$(YAFFSSYMLINKS):
+	ln -s ../../$@ $@
+
+$(YAFFSDIRECTSYMLINKS):
 	ln -s ../$@ $@
+
 
 directtest2k: $(SYMLINKS) $(DIRECTTESTOBJS)
 	gcc -o $@ $(DIRECTTESTOBJS)
@@ -83,4 +117,4 @@ boottest: $(SYMLINKS) $(BOOTTESTOBJS)
 
 
 clean:
-	rm -f $(ALLOBJS) core core $(SYMLINKS)
+	rm -f $(TARGETS) $(ALLOBJS) core core $(SYMLINKS)

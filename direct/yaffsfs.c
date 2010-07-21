@@ -30,13 +30,6 @@
 #define YAFFSFS_RW_SHIFT (13)
 #define YAFFSFS_RW_SIZE  (1<<YAFFSFS_RW_SHIFT)
 
-
-const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.35 2010-02-25 22:38:03 charles Exp $";
-
-/* configurationList is the list of devices that are supported */
-static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
-
-
 /* Some forward references */
 static yaffs_Object *yaffsfs_FindObject(yaffs_Object *relativeDirectory, const YCHAR *path, int symDepth);
 static void yaffsfs_RemoveObjectCallback(yaffs_Object *obj);
@@ -264,6 +257,10 @@ int yaffsfs_IsPathDivider(YCHAR ch)
 	return 0;
 }
 
+
+
+YLIST_HEAD(yaffsfs_deviceList);
+
 /*
  * yaffsfs_FindDevice
  * yaffsfs_FindRoot
@@ -273,10 +270,11 @@ int yaffsfs_IsPathDivider(YCHAR ch)
  */
 static yaffs_Device *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 {
-	yaffsfs_DeviceConfiguration *cfg = yaffsfs_configurationList;
+	struct ylist_head *cfg;
 	const YCHAR *leftOver;
 	const YCHAR *p;
 	yaffs_Device *retval = NULL;
+	yaffs_Device *dev = NULL;
 	int thisMatchLength;
 	int longestMatch = -1;
 	int matching;
@@ -286,9 +284,10 @@ static yaffs_Device *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 	 * 1) Actually matches a prefix (ie /a amd /abc will not match
 	 * 2) Matches the longest.
 	 */
-	while(cfg && cfg->prefix && cfg->dev){
+	ylist_for_each(cfg, &yaffsfs_deviceList){
+		dev = ylist_entry(cfg, yaffs_Device, devList);
 		leftOver = path;
-		p = cfg->prefix;
+		p = dev->param.name;
 		thisMatchLength = 0;
 		matching = 1;
 
@@ -319,16 +318,23 @@ static yaffs_Device *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 		/* Skip over any /s in leftOver */
 		while(yaffsfs_IsPathDivider(*leftOver))
 	              leftOver++;
-		
 
-		if( matching && (thisMatchLength > longestMatch)){
-			/* Matched prefix */
+		// Skip over any /s in p
+		while(yaffsfs_IsPathDivider(*p))
+	              p++;
+
+		// p should now be at the end of the string (ie. fully matched)
+		if(*p)
+			matching = 0;
+
+		if( matching && (thisMatchLength > longestMatch))
+		{
+			// Matched prefix
 			*restOfPath = (YCHAR *)leftOver;
-			retval = cfg->dev;
+			retval = dev;
 			longestMatch = thisMatchLength;
 		}
 
-		cfg++;
 	}
 	return retval;
 }
@@ -1091,7 +1097,7 @@ static int yaffsfs_DoStat(yaffs_Object *obj,struct yaffs_stat *buf)
 		obj = yaffs_GetEquivalentObject(obj);
 
 	if(obj && buf){
-	    	buf->st_dev = (int)obj->myDev->context;
+	    	buf->st_dev = (int)obj->myDev->osContext;
 	    	buf->st_ino = obj->objectId;
 	    	buf->st_mode = obj->yst_mode & ~S_IFMT; /* clear out file type bits */
 
@@ -1859,26 +1865,23 @@ int yaffs_inodecount(const YCHAR *path)
 }
 
 
-
-void yaffs_initialise(yaffsfs_DeviceConfiguration *cfgList)
+void yaffs_AddDevice(yaffs_Device *dev)
 {
+	dev->isMounted = 0;
+	dev->param.removeObjectCallback = yaffsfs_RemoveObjectCallback;
 
-	yaffsfs_DeviceConfiguration *cfg;
+	if(!dev->devList.next)
+		YINIT_LIST_HEAD(&dev->devList);
 
-	yaffsfs_configurationList = cfgList;
-
-	yaffsfs_InitHandles();
-
-	cfg = yaffsfs_configurationList;
-
-	while(cfg && cfg->prefix && cfg->dev){
-		cfg->dev->isMounted = 0;
-		cfg->dev->param.removeObjectCallback = yaffsfs_RemoveObjectCallback;
-		cfg++;
-	}
-
-
+	ylist_add(&dev->devList,&yaffsfs_deviceList);
 }
+
+void yaffs_RemoveDevice(yaffs_Device *dev)
+{
+	ylist_del_init(&dev->devList);
+}
+
+
 
 
 /* Directory search stuff. */

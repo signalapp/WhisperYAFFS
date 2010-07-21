@@ -305,7 +305,7 @@ int yaffs1_Scan(yaffs_Device *dev)
 					in->hdrChunk = chunk;
 					in->serial = tags.serialNumber;
 
-					yaffs_SetObjectName(in, oh->name);
+					yaffs_SetObjectNameFromOH(in, oh);
 					in->dirty = 0;
 
 					/* directory stuff...

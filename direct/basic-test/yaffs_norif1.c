@@ -91,6 +91,7 @@ const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.6 2010-02-18 01:18
 __u32 *Block2Addr(yaffs_Device *dev, int blockNumber)
 {
 	__u32 addr;
+	dev=dev;
 	
 	addr = (__u32) DEVICE_BASE;
 	addr += blockNumber * BLOCK_SIZE_IN_BYTES;
@@ -101,7 +102,7 @@ __u32 *Block2Addr(yaffs_Device *dev, int blockNumber)
 __u32 *Block2FormatAddr(yaffs_Device *dev,int blockNumber)
 {
 	__u32 addr;
-	
+
 	addr = (__u32) Block2Addr(dev,blockNumber);
 	addr += FORMAT_OFFSET;
 	
@@ -301,7 +302,7 @@ int ynorif1_InitialiseNAND(yaffs_Device *dev)
 
 int ynorif1_DeinitialiseNAND(yaffs_Device *dev)
 {
-	
+	dev=dev;	
 	ynorif1_FlashDeinit();
 
 	return YAFFS_OK;

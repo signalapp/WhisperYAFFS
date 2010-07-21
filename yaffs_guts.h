@@ -16,8 +16,9 @@
 #ifndef __YAFFS_GUTS_H__
 #define __YAFFS_GUTS_H__
 
-#include "devextras.h"
 #include "yportenv.h"
+#include "devextras.h"
+#include "yaffs_list.h"
 
 #define YAFFS_OK	1
 #define YAFFS_FAIL  0
@@ -598,6 +599,10 @@ struct yaffs_DeviceParamStruct {
 	int disableSoftDelete;  /* yaffs 1 only: Set to disable the use of softdeletion. */
 	
 	int deferDirectoryUpdate; /* Set to defer directory updates */
+
+#ifdef CONFIG_YAFFS_AUTO_UNICODE
+	int autoUnicode;
+#endif
 	
 };
 
@@ -608,7 +613,10 @@ struct yaffs_DeviceStruct {
 
         /* Context storage. Holds extra OS specific data for this device */
 
-	void *context;
+	void *osContext;
+	void *driverContext;
+
+	struct ylist_head devList;
 
 	/* Runtime parameters. Set up by YAFFS. */
 	int nDataBytesPerChunk;	
@@ -928,6 +936,7 @@ yaffs_Object *yaffs_FindOrCreateObjectByNumber(yaffs_Device *dev,
 int yaffs_PutChunkIntoFile(yaffs_Object *in, int chunkInInode,
 			        int chunkInNAND, int inScan);
 void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name);
+void yaffs_SetObjectNameFromOH(yaffs_Object *obj, const yaffs_ObjectHeader *oh);
 void yaffs_AddObjectToDirectory(yaffs_Object *directory,
 					yaffs_Object *obj);
 YCHAR *yaffs_CloneString(const YCHAR *str);

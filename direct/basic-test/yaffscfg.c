@@ -22,6 +22,9 @@
 #include "yaffsfs.h"
 #include <errno.h>
 
+
+#include "yramsim.h"
+
 unsigned yaffs_traceMask = 0xFFFFFFFF;
 
 
@@ -90,6 +93,9 @@ int yaffs_StartUp(void)
 	// Stuff to initialise anything special (eg lock semaphore).
 	yaffsfs_LocalInitialisation();
 	
+#if 1
+	yramsim_CreateSim("yaffs2");
+#else
 	// Set up devices
 
 	// /ram
@@ -135,6 +141,7 @@ int yaffs_StartUp(void)
 	flashDev.initialiseNAND = yflash_InitialiseNAND;
 
 	yaffs_initialise(yaffsfs_config);
+#endif
 	
 	return 0;
 }

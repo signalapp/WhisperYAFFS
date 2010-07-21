@@ -19,11 +19,13 @@
  */
 
 #include "yaffscfg.h"
+#include "yaffs_guts.h"
 #include "yaffsfs.h"
 #include "yaffs_fileem2k.h"
 #include "yaffs_nandemul2k.h"
 #include "yaffs_norif1.h"
 #include "yaffs_trace.h"
+
 
 #include <errno.h>
 
@@ -104,20 +106,9 @@ void yaffsfs_LocalInitialisation(void)
 #include "yaffs_flashif2.h"
 #include "yaffs_nandemul2k.h"
 
-static yaffs_Device ram1Dev;
-static yaffs_Device flashDev;
-static yaffs_Device ram2kDev;
-static yaffs_Device m18_1Dev;
-
-static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
-
-	{ "/ram1", &ram1Dev},
-	{ "/M18-1", &m18_1Dev},
-	{ "/yaffs2", &flashDev},
-	{ "/ram2k", &ram2kDev},
-	{ NULL, NULL } /* Null entry to terminate list */
-};
-
+struct yaffs_DeviceStruct ram1Dev;
+struct yaffs_DeviceStruct flashDev;
+struct yaffs_DeviceStruct m18_1Dev;
 
 int yaffs_StartUp(void)
 {
@@ -128,6 +119,7 @@ int yaffs_StartUp(void)
 	// Set up devices
 	// /ram1   ram, yaffs1
 	memset(&ram1Dev,0,sizeof(ram1Dev));
+	ram1Dev.param.name = "ram1";
 	ram1Dev.param.totalBytesPerChunk = 512;
 	ram1Dev.param.nChunksPerBlock = 32;
 	ram1Dev.param.nReservedBlocks = 2; // Set this smaller for RAM
@@ -135,14 +127,17 @@ int yaffs_StartUp(void)
 	ram1Dev.param.endBlock = 127; // Last block in 2MB.	
 	//ram1Dev.param.useNANDECC = 1;
 	ram1Dev.param.nShortOpCaches = 0;	// Disable caching on this device.
-	ram1Dev.context = (void *) 0;	// Used to identify the device in fstat.
+	ram1Dev.driverContext = (void *) 0;	// Used to identify the device in fstat.
 	ram1Dev.param.writeChunkWithTagsToNAND = yramdisk_WriteChunkWithTagsToNAND;
 	ram1Dev.param.readChunkWithTagsFromNAND = yramdisk_ReadChunkWithTagsFromNAND;
 	ram1Dev.param.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
 	ram1Dev.param.initialiseNAND = yramdisk_InitialiseNAND;
+	
+	yaffs_AddDevice(&ram1Dev);
 
 	// /M18-1 yaffs1 on M18 nor sim
 	memset(&m18_1Dev,0,sizeof(m18_1Dev));
+	m18_1Dev.param.name = "M18-1";
 	m18_1Dev.param.totalBytesPerChunk = 1024;
 	m18_1Dev.param.nChunksPerBlock =248;
 	m18_1Dev.param.nReservedBlocks = 2;
@@ -150,19 +145,20 @@ int yaffs_StartUp(void)
 	m18_1Dev.param.endBlock = 31; // Last block
 	m18_1Dev.param.useNANDECC = 0; // use YAFFS's ECC
 	m18_1Dev.param.nShortOpCaches = 10; // Use caches
-	m18_1Dev.context = (void *) 1;	// Used to identify the device in fstat.
+	m18_1Dev.driverContext = (void *) 1;	// Used to identify the device in fstat.
 	m18_1Dev.param.writeChunkToNAND = ynorif1_WriteChunkToNAND;
 	m18_1Dev.param.readChunkFromNAND = ynorif1_ReadChunkFromNAND;
 	m18_1Dev.param.eraseBlockInNAND = ynorif1_EraseBlockInNAND;
 	m18_1Dev.param.initialiseNAND = ynorif1_InitialiseNAND;
 	m18_1Dev.param.deinitialiseNAND = ynorif1_DeinitialiseNAND;
 
+	yaffs_AddDevice(&m18_1Dev);
 
 	// /yaffs2  yaffs2 file emulation
 	// 2kpage/64chunk per block
 	//
 	memset(&flashDev,0,sizeof(flashDev));
-
+	flashDev.param.name = "yaffs2";
 	flashDev.param.totalBytesPerChunk = 2048;
 	flashDev.param.nChunksPerBlock = 64;
 	flashDev.param.nReservedBlocks = 5;
@@ -174,7 +170,7 @@ int yaffs_StartUp(void)
 	flashDev.param.wideTnodesDisabled=0;
 	flashDev.param.refreshPeriod = 1000;
 	flashDev.param.nShortOpCaches = 10; // Use caches
-	flashDev.context = (void *) 2;	// Used to identify the device in fstat.
+	flashDev.driverContext = (void *) 2;	// Used to identify the device in fstat.
 	flashDev.param.writeChunkWithTagsToNAND = yflash2_WriteChunkWithTagsToNAND;
 	flashDev.param.readChunkWithTagsFromNAND = yflash2_ReadChunkWithTagsFromNAND;
 	flashDev.param.eraseBlockInNAND = yflash2_EraseBlockInNAND;
@@ -183,8 +179,9 @@ int yaffs_StartUp(void)
 	flashDev.param.queryNANDBlock = yflash2_QueryNANDBlock;
 	flashDev.param.enableXattr = 1;
 
+	yaffs_AddDevice(&flashDev);
 
-	yaffs_initialise(yaffsfs_config);
+// todo	yaffs_initialise(yaffsfs_config);
 	
 	return 0;
 }

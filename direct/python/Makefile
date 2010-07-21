@@ -29,7 +29,9 @@ CFLAGS +=    -O0
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
 
 
-COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
+COMMONTESTOBJS = yaffsnewcfg.o yramsim.o \
+		 yaffs_nandif.o \
+		 yaffsfs.o  yaffs_ecc.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
 		 yaffs_checkptrw.o  yaffs_qsort.o\
@@ -47,7 +49,7 @@ YAFFSLIBOBJS  = $(COMMONTESTOBJS) yaffs_python_helper.o
 
 YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffsinterface.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
-          yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
+          yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h yaffs_list.h \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
           yaffs_nameval.c yaffs_nameval.h \
           yaffs_qsort.c yaffs_qsort.h yaffs_trace.h \
@@ -58,14 +60,17 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
           yaffs_verify.c yaffs_verify.h
           
 
-YAFFSDIRECTSYMLINKS =  yaffscfg2k.c yaffs_fileem2k.c yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
-		       yaffs_fileem2k.h yaffsfs.h yaffs_malloc.h yaffs_ramdisk.h ydirectenv.h \
-		       yaffscfg.h yaffs_fileem.c yaffs_flashif.c yaffs_ramdisk.c yaffs_ramem2k.c\
-		       yaffs_norif1.c yaffs_norif1.h ynorsim.c ynorsim.h \
+YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffsfs.h yaffs_malloc.h ydirectenv.h \
+		       yaffs_flashif.c yaffs_flashif.h\
 		       yaffs_nandif.c yaffs_nandif.h
 
-
-SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
+DIRECTEXTRASYMLINKS =   yaffscfg2k.c yaffscfg.h yaffs_fileem2k.c yaffs_fileem2k.h\
+                        yaffs_fileem.c yaffs_norif1.c yaffs_norif1.h \
+                        yaffs_ramdisk.c yaffs_ramdisk.h yaffs_ramem2k.c \
+                        yaffsnewcfg.c yramsim.c yramsim.h \
+                        ynorsim.h ynorsim.c
+                                                                        
+SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS) $(DIRECTEXTRASYMLINKS)
 
 all:  libyaffsfs.so
 
@@ -80,6 +85,8 @@ $(YAFFSSYMLINKS):
 $(YAFFSDIRECTSYMLINKS):
 	ln -s ../$@ $@
 
+$(DIRECTEXTRASYMLINKS):
+	ln -s ../basic-test/$@ $@
 
 
 libyaffsfs.so: $(SYMLINKS) $(YAFFSLIBOBJS)
@@ -89,6 +96,6 @@ libyaffsfs.so: $(SYMLINKS) $(YAFFSLIBOBJS)
 
 
 clean:
-	rm -f  $(YAFFSLIBOBJS)  core $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS)
+	rm -f  $(YAFFSLIBOBJS)  core $(SYMLINKS)
 	rm -f libyaffsfs.so
 	rm -f *.pyc

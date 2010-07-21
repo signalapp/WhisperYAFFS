@@ -1,7 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2010 Aleph One Ltd.
+ * Copyright (C) 2002-2007 Aleph One Ltd.
  *   for Toby Churchill Ltd and Brightstar Engineering
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
@@ -11,9 +11,6 @@
  * published by the Free Software Foundation.
  */
 
-
-
-
 #include "yportenv.h"
 #include "yaffs_guts.h"
 #include "devextras.h"
@@ -22,28 +19,11 @@
 #include "yaffs_nandif.h"
 #include "yaffs_packedtags2.h"
 
+#include "yramsim.h"
 
-#if 0
+#include "yaffs_trace.h"
 
 
-static unsigned char *DevBufferIn(yaffs_Device *dev)
-{
-	yfsd_WinCEDevice *cedev = (yfsd_WinCEDevice *)(dev->genericDevice);
-	return cedev->bufferIn;
-}
-static unsigned char *DevBufferOut(yaffs_Device *dev)
-{
-	yfsd_WinCEDevice *cedev = (yfsd_WinCEDevice *)(dev->genericDevice);
-	return cedev->bufferOut;
-}
-
-static unsigned DevBufferSize(yaffs_Device *dev)
-{
-	yfsd_WinCEDevice *cedev = (yfsd_WinCEDevice *)(dev->genericDevice);
-	return cedev->bufferSize;
-}
-
-#endif
 
 /* NB For use with inband tags....
  * We assume that the data buffer is of size totalBytersPerChunk so that we can also
@@ -58,10 +38,7 @@ int ynandif_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 	yaffs_PackedTags2 pt;
 	void *spare;
 	unsigned spareSize = 0;
-
-	unsigned char *bufferIn   = DevBufferIn(dev);
-	unsigned char *bufferOut  = DevBufferOut(dev);
-	unsigned       bufferSize = DevBufferSize(dev);
+	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
 
 	T(YAFFS_TRACE_MTD,
 	  (TSTR
@@ -74,7 +51,7 @@ int ynandif_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 	 * the end of the data buffer.
 	 */
 
-	if(dev->inbandTags){
+	if(dev->param.inbandTags){
 		yaffs_PackedTags2TagsPart *pt2tp;
 		pt2tp = (yaffs_PackedTags2TagsPart *)(data + dev->nDataBytesPerChunk);
 		yaffs_PackTags2TagsPart(pt2tp,tags);
@@ -82,15 +59,15 @@ int ynandif_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 		spareSize = 0;
 	}
 	else{
-		yaffs_PackTags2(&pt, tags);
+		yaffs_PackTags2(&pt, tags,!dev->param.noTagsECC);
 		spare = &pt;
 		spareSize = sizeof(yaffs_PackedTags2);
 	}
 	
-	yramsim_WritePage(chunkInNAND,
-					  data, dev->totalBytesPerChunk, spare, spareSize);
+	retval = geometry->writeChunk(dev,chunkInNAND,
+					  data, dev->param.totalBytesPerChunk, spare, spareSize);
 
-	return YAFFS_OK;
+	return retval;
 }
 
 int ynandif_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
@@ -100,11 +77,9 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	int localData = 0;
 	void *spare = NULL;
 	unsigned spareSize;
+	int retval = 0;
 	int eccStatus; //0 = ok, 1 = fixed, -1 = unfixed
-
-	unsigned char *bufferIn   = DevBufferIn(dev);
-	unsigned char *bufferOut  = DevBufferOut(dev);
-	unsigned       bufferSize = DevBufferSize(dev);
+	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
 
 	T(YAFFS_TRACE_MTD,
 	  (TSTR
@@ -114,7 +89,7 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	if(!tags){
 		spare = NULL;
 		spareSize = 0;
-	}else if(dev->inbandTags){
+	}else if(dev->param.inbandTags){
 		
 		if(!data) {
 			localData = 1;
@@ -128,14 +103,13 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 		spareSize = sizeof(yaffs_PackedTags2);
 	}
 
-	yramsim_ReadPage(chunkInNAND,
-					 data,data ? dev->totalBytesPerChunk : 0,
+	retval = geometry->readChunk(dev,chunkInNAND,
+					 data,
+					 data ? dev->param.totalBytesPerChunk : 0,
 					 spare,spareSize,
 					 &eccStatus);
 
-
-
-	if(dev->inbandTags){
+	if(dev->param.inbandTags){
 		if(tags){
 			yaffs_PackedTags2TagsPart * pt2tp;
 			pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->nDataBytesPerChunk];	
@@ -144,55 +118,59 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	}
 	else {
 		if (tags){
-			yaffs_UnpackTags2(tags, &pt);
+			yaffs_UnpackTags2(tags, &pt,!dev->param.noTagsECC);
 		}
 	}
 
 	if(tags && tags->chunkUsed){
-		if(eccStatus == 0)
-			tags->eccResult = YAFFS_ECC_RESULT_NO_ERROR;
-		else if(eccStatus < 0)
+		if(eccStatus < 0 || 
+		   tags->eccResult == YAFFS_ECC_RESULT_UNFIXED)
 			tags->eccResult = YAFFS_ECC_RESULT_UNFIXED;
-		else
+		else if(eccStatus > 0 ||
+			     tags->eccResult == YAFFS_ECC_RESULT_FIXED)
 			tags->eccResult = YAFFS_ECC_RESULT_FIXED;
+		else
+			tags->eccResult = YAFFS_ECC_RESULT_NO_ERROR;
 	}
 
 	if(localData)
 		yaffs_ReleaseTempBuffer(dev,data,__LINE__);
 	
-	return YAFFS_OK;
+	return retval;
 }
 
 int ynandif_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockId)
 {
+	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
 
-	yramsim_MarkBlockBad(blockId);
-
-	return YAFFS_OK;
+	return geometry->markBlockBad(dev,blockId);
 }
 
 int ynandif_EraseBlockInNAND(struct yaffs_DeviceStruct *dev, int blockId)
 {
+	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
 
-	yramsim_EraseBlock(blockId);
+	return geometry->eraseBlock(dev,blockId);
 
-	return YAFFS_OK;
 }
 
 
 static int ynandif_IsBlockOk(struct yaffs_DeviceStruct *dev, int blockId)
 {
-	return yramsim_CheckBlockOk(blockId);
+	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
+
+	return geometry->checkBlockOk(dev,blockId);
 }
 
 int ynandif_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockId, yaffs_BlockState *state, __u32 *sequenceNumber)
 {
 	unsigned chunkNo;
 	yaffs_ExtendedTags tags;
+	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
 
 	*sequenceNumber = 0;
 	
-	chunkNo = blockId * dev->nChunksPerBlock;
+	chunkNo = blockId * dev->param.nChunksPerBlock;
 	
 	if(!ynandif_IsBlockOk(dev,blockId)){
 		*state = YAFFS_BLOCK_STATE_DEAD;
@@ -216,29 +194,64 @@ int ynandif_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockId, yaffs_Bl
 }
 
 
-int ynandif_GetGeometry(yaffs_Device *dev, ynandif_Geometry *geometry)
-{
-
-	yramsim_Geometry g;
-
-	yramsim_GetGeometry(&g);
-	geometry->startBlock = g.startBlock;
-	geometry->endBlock = g.endBlock;
-	geometry->dataSize = g.dataSize;
-	geometry->spareSize = g.spareSize;
-	geometry->pagesPerBlock = g.pagesPerBlock;
-	geometry->hasECC = g.hasECC;
-	geometry->inbandTags = g.inbandTags;
-	geometry->useYaffs2 = g.useYaffs2;
-
-	return YAFFS_OK;
-
-}
-
 int ynandif_InitialiseNAND(yaffs_Device *dev)
 {
+	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
 
-	yramsim_Initialise();
+	geometry->initialise(dev);
 
 	return YAFFS_OK;
+}
+
+int ynandif_DeinitialiseNAND(yaffs_Device *dev)
+{
+	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
+
+	geometry->deinitialise(dev);
+
+	return YAFFS_OK;
+}
+
+
+struct yaffs_DeviceStruct * 
+	yaffs_AddDeviceFromGeometry(const YCHAR *name,
+					const ynandif_Geometry *geometry)
+{
+	YCHAR *clonedName = YMALLOC(sizeof(YCHAR) * (yaffs_strnlen(name,YAFFS_MAX_NAME_LENGTH)+1));
+	struct yaffs_DeviceStruct *dev = YMALLOC(sizeof(struct yaffs_DeviceStruct));
+
+	if(dev && clonedName){
+		memset(dev,0,sizeof(struct yaffs_DeviceStruct));
+		yaffs_strcpy(clonedName,name);
+
+		dev->param.name = clonedName;
+		dev->param.writeChunkWithTagsToNAND  = ynandif_WriteChunkWithTagsToNAND;
+		dev->param.readChunkWithTagsFromNAND = ynandif_ReadChunkWithTagsFromNAND;
+		dev->param.eraseBlockInNAND          = ynandif_EraseBlockInNAND;
+		dev->param.initialiseNAND            = ynandif_InitialiseNAND;
+		dev->param.queryNANDBlock            = ynandif_QueryNANDBlock;
+		dev->param.markNANDBlockBad          = ynandif_MarkNANDBlockBad;
+		dev->param.nShortOpCaches			   = 20;
+		dev->param.startBlock                = geometry->startBlock;
+		dev->param.endBlock                  = geometry->endBlock;
+		dev->param.totalBytesPerChunk		   = geometry->dataSize;
+		dev->param.spareBytesPerChunk		   = geometry->spareSize;
+		dev->param.inbandTags				   = geometry->inbandTags;
+		dev->param.nChunksPerBlock		   = geometry->pagesPerBlock;
+		dev->param.useNANDECC				   = geometry->hasECC;
+		dev->param.isYaffs2				   = geometry->useYaffs2;
+		dev->param.nReservedBlocks		   = 5;
+		dev->driverContext			   = (void *)geometry;
+
+		yaffs_AddDevice(dev);
+
+		return dev;
+	}
+
+	if(dev)
+		YFREE(dev);
+	if(clonedName)
+		YFREE(clonedName);
+
+	return NULL;
 }

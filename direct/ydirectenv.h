@@ -22,8 +22,6 @@
 
 // Direct interface
 
-#include "devextras.h"
-
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
@@ -50,7 +48,7 @@
 #ifdef NO_Y_INLINE
 #define Y_INLINE
 #else
-#define Y_INLINE inline
+#define Y_INLINE __inline__
 #endif
 
 #define YMALLOC(x) yaffs_malloc(x)

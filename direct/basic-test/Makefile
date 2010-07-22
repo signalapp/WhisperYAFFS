@@ -61,7 +61,7 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
 
 YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffsfs.h yaffs_malloc.h ydirectenv.h \
-		       yaffs_flashif.c \
+		       yaffs_flashif.c yaffscfg.h \
 		       yaffs_nandif.c yaffs_nandif.h
 
 

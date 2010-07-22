@@ -60,11 +60,11 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h ya
           yaffs_verify.c yaffs_verify.h
           
 
-YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffsfs.h yaffs_malloc.h ydirectenv.h \
+YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffsfs.h yaffscfg.h yaffs_malloc.h ydirectenv.h \
 		       yaffs_flashif.c yaffs_flashif.h\
 		       yaffs_nandif.c yaffs_nandif.h
 
-DIRECTEXTRASYMLINKS =   yaffscfg2k.c yaffscfg.h yaffs_fileem2k.c yaffs_fileem2k.h\
+DIRECTEXTRASYMLINKS =   yaffscfg2k.c yaffs_fileem2k.c yaffs_fileem2k.h\
                         yaffs_fileem.c yaffs_norif1.c yaffs_norif1.h \
                         yaffs_ramdisk.c yaffs_ramdisk.h yaffs_ramem2k.c \
                         yaffsnewcfg.c yramsim.c yramsim.h \

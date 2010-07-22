@@ -621,6 +621,7 @@ int yaffs_VerifyFileSanity(yaffs_Object *in)
 
 	return failed ? YAFFS_FAIL : YAFFS_OK;
 #else
+	in=in;
 	return YAFFS_OK;
 #endif
 }

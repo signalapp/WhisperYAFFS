@@ -1186,7 +1186,7 @@ int yaffs_fstat(int fd, struct yaffs_stat *buf)
 	return retVal;
 }
 
-
+#ifndef CONFIG_YAFFS_WINCE
 /* xattrib functions */
 
 
@@ -1440,6 +1440,7 @@ int yaffs_fremovexattr(int fd, const char *name)
 
 	return retVal;
 }
+#endif
 
 #ifdef CONFIG_YAFFS_WINCE
 int yaffs_get_wince_times(int fd, unsigned *wctime, unsigned *watime, unsigned *wmtime)

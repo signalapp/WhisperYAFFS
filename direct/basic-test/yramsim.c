@@ -7,13 +7,6 @@
 #include "yaffs_nandif.h"
 
 
-#ifdef __WINCE__
-#include <windows.h>
-#else
-#define DebugBreak() do { } while(0)
-#endif
-
-
 #define DATA_SIZE	2048
 #define SPARE_SIZE	64
 #define PAGE_SIZE	(DATA_SIZE + SPARE_SIZE)
@@ -47,17 +40,14 @@ static void CheckInitialised(void)
 static int yramsim_EraseBlockInternal(SymData *sym, unsigned blockId,int force)
 {
 	if(blockId < 0 || blockId >= sym->nBlocks){
-		DebugBreak();
 		return 0;
 	}
 
 	if(!sym->blockList[blockId]){
-		DebugBreak();
 		return 0;
 	}
 
 	if(!force && !sym->blockList[blockId]->blockOk){
-		DebugBreak();
 		return 0;
 	}
 
@@ -101,7 +91,6 @@ static int yramsim_ReadChunk (yaffs_Device *dev, unsigned pageId,
 	   spareLength > SPARE_SIZE ||
 	   !eccStatus ||
 	   !blockList[blockId]->blockOk){
-		   DebugBreak();
 		   return 0;
 	}
 
@@ -136,7 +125,6 @@ static int yramsim_WriteChunk (yaffs_Device *dev,unsigned pageId,
 	   dataLength >DATA_SIZE ||
 	   spareLength > SPARE_SIZE ||
 	   !blockList[blockId]->blockOk){
-		   DebugBreak();
 		   return 0;
 	}
 
@@ -167,7 +155,6 @@ static int yramsim_CheckBlockOk(yaffs_Device *dev,unsigned blockId)
 	SymData *sym = DevToSym(dev);
 	Block **blockList = sym->blockList;
 	if(blockId >= sym->nBlocks){
-		DebugBreak();
 		return 0;
 	}
 
@@ -179,7 +166,6 @@ static int yramsim_MarkBlockBad(yaffs_Device *dev,unsigned blockId)
 	SymData *sym = DevToSym(dev);
 	Block **blockList = sym->blockList;
 	if(blockId >= sym->nBlocks){
-		DebugBreak();
 		return 0;
 	}
 

@@ -4896,7 +4896,7 @@ int yaffs_GetAttributes(yaffs_Object *obj, struct iattr *attr)
 #endif
 
 
-static int yaffs_DoXMod(yaffs_Object *obj, int set, const char *name, const void *value, int size, int flags)
+static int yaffs_DoXMod(yaffs_Object *obj, int set, const YCHAR *name, const void *value, int size, int flags)
 {
 	yaffs_XAttrMod xmod;
 
@@ -4935,7 +4935,7 @@ static int yaffs_ApplyXMod(yaffs_Device *dev, char *buffer, yaffs_XAttrMod *xmod
 	return retval;
 }
 
-static int yaffs_DoXFetch(yaffs_Object *obj, const char *name, void *value, int size)
+static int yaffs_DoXFetch(yaffs_Object *obj, const YCHAR *name, void *value, int size)
 {
 	char *buffer = NULL;
 	int result;
@@ -4971,17 +4971,17 @@ static int yaffs_DoXFetch(yaffs_Object *obj, const char *name, void *value, int 
 	return retval;
 }
 
-int yaffs_SetXAttribute(yaffs_Object *obj, const char *name, const void * value, int size, int flags)
+int yaffs_SetXAttribute(yaffs_Object *obj, const YCHAR *name, const void * value, int size, int flags)
 {
 	return yaffs_DoXMod(obj, 1, name, value, size, flags);
 }
 
-int yaffs_RemoveXAttribute(yaffs_Object *obj, const char *name)
+int yaffs_RemoveXAttribute(yaffs_Object *obj, const YCHAR *name)
 {
 	return yaffs_DoXMod(obj, 0, name, NULL, 0, 0);
 }
 
-int yaffs_GetXAttribute(yaffs_Object *obj, const char *name, void *value, int size)
+int yaffs_GetXAttribute(yaffs_Object *obj, const YCHAR *name, void *value, int size)
 {
 	return yaffs_DoXFetch(obj, name, value, size);
 }

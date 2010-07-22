@@ -21,6 +21,8 @@
  *  nbytes    value.
  *  ----------
  *  total size  stored in record size 
+ *
+ * This code has not been tested with unicode yet.
  */
 
 
@@ -28,7 +30,7 @@
 
 #include "yportenv.h"
  
-static int nval_find(const char *xb, int xb_size, const char *name,
+static int nval_find(const char *xb, int xb_size, const YCHAR *name,
 		int *exist_size)
 {
 	int pos=0;
@@ -36,7 +38,7 @@ static int nval_find(const char *xb, int xb_size, const char *name,
 
 	memcpy(&size,xb,sizeof(int));
 	while(size > 0 && (size < xb_size) && (pos + size < xb_size)){
-		if(strncmp(xb+pos+sizeof(int),name,size) == 0){
+		if(yaffs_strncmp((YCHAR *)(xb+pos+sizeof(int)),name,size) == 0){
 			if(exist_size)
 				*exist_size = size;
 			return pos;
@@ -68,7 +70,7 @@ static int nval_used(const char *xb, int xb_size)
 	return pos;
 }
 
-int nval_del(char *xb, int xb_size, const char *name)
+int nval_del(char *xb, int xb_size, const YCHAR *name)
 {
 	int pos  = nval_find(xb, xb_size, name, NULL);
 	int size;
@@ -83,10 +85,10 @@ int nval_del(char *xb, int xb_size, const char *name)
 		return -ENODATA;
 }
 
-int nval_set(char *xb, int xb_size, const char *name, const char *buf, int bsize, int flags)
+int nval_set(char *xb, int xb_size, const YCHAR *name, const char *buf, int bsize, int flags)
 {
 	int pos;
-	int namelen = strnlen(name,xb_size);
+	int namelen = yaffs_strnlen(name,xb_size);
 	int reclen;
 	int size_exist = 0;
 	int space;
@@ -116,13 +118,13 @@ int nval_set(char *xb, int xb_size, const char *name, const char *buf, int bsize
 
 	memcpy(xb + pos,&reclen,sizeof(int));
 	pos +=sizeof(int);
-	strncpy(xb + pos, name, reclen);
+	yaffs_strncpy((YCHAR *)(xb + pos), name, reclen);
 	pos+= (namelen+1);
 	memcpy(xb + pos,buf,bsize);
 	return 0;
 }
 
-int nval_get(const char *xb, int xb_size, const char *name, char *buf, int bsize)
+int nval_get(const char *xb, int xb_size, const YCHAR *name, char *buf, int bsize)
 {
 	int pos = nval_find(xb,xb_size,name,NULL);
 	int size;
@@ -166,12 +168,16 @@ int nval_list(const char *xb, int xb_size, char *buf, int bsize)
 	while(size > sizeof(int) && size <= xb_size && (pos + size) < xb_size && !filled){
 		pos+= sizeof(int);
 		size-=sizeof(int);
-		name_len = strnlen(xb + pos, size);
+		name_len = yaffs_strnlen((YCHAR *)(xb + pos), size);
 		if(ncopied + name_len + 1 < bsize){
-			memcpy(buf,xb+pos,name_len);
+			memcpy(buf,xb+pos,name_len * sizeof(YCHAR));
 			buf+= name_len;
 			*buf = '\0';
 			buf++;
+			if(sizeof(YCHAR) > 1){
+				*buf = '\0';
+				buf++;
+			}
 			ncopied += (name_len+1);
 		} else
 			filled = 1;

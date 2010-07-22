@@ -517,7 +517,7 @@ typedef struct {
 
 
 struct yaffs_DeviceParamStruct {
-	const char *name;
+	const YCHAR *name;
 
 	/*
          * Entry parameters set up way early. Yaffs sets up the rest.
@@ -822,7 +822,7 @@ struct yaffs_ShadowFixerStruct {
 /* Structure for doing xattr modifications */
 typedef struct {
 	int set; /* If 0 then this is a deletion */
-	const char *name;
+	const YCHAR *name;
 	const void *data;
 	int size;
 	int flags;

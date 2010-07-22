@@ -22,7 +22,7 @@
 #include "yramsim.h"
 
 #include "yaffs_trace.h"
-
+#include "yaffsfs.h"
 
 
 /* NB For use with inband tags....

@@ -103,7 +103,7 @@ static void (*fake_ctor_list[10]) (void *) = {
 void yaffs_InitialiseRawTnodesAndObjects(yaffs_Device *dev)
 {
 	yaffs_Allocator *allocator;
-	unsigned mount_id = yaffs_DeviceToContext(dev)->mount_id;
+	unsigned mount_id = yaffs_DeviceToLC(dev)->mount_id;
 
 	T(YAFFS_TRACE_ALLOCATE,(TSTR("Initialising yaffs allocator\n")));
 

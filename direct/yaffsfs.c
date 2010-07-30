@@ -573,12 +573,21 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 		if(obj)
 			obj = yaffs_GetEquivalentObject(obj);
 
-		if(obj && obj->variantType != YAFFS_OBJECT_TYPE_FILE)
+		if(obj &&
+			obj->variantType != YAFFS_OBJECT_TYPE_FILE &&
+			obj->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
 			obj = NULL;
 
 		if(obj){
 
-			/* The file already exists */
+			/* The file already exists or it might be a directory */
+
+			/* If it is a directory then we can't open it as a file */
+			if(obj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY){
+				openDenied = 1;
+				yaffsfs_SetError(-EISDIR);
+				errorReported = 1;
+			}
 
 			/* Open should fail if O_CREAT and O_EXCL are specified since
 			 * the file exists

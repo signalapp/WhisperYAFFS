@@ -292,6 +292,22 @@ void yaffs_backward_scan_test(const char *path)
 	yaffs_mount(path);
 }
 
+void null_name_test(const char *path)
+{
+	char fn[100];
+	int h;
+	yaffs_StartUp();
+
+	yaffs_mount(path);
+
+	sprintf(fn,"%s",path);
+
+	h = yaffs_open(fn,O_CREAT| O_TRUNC| O_RDWR, 0666);
+
+	printf("%d\n",h);
+
+}
+
 char xxzz[2000];
 
 
@@ -2686,8 +2702,10 @@ int main(int argc, char *argv[])
 	 
 	 //check_resize_gc_bug("/flash");
 	 
-	 basic_xattr_test("/yaffs2");
-	 big_xattr_test("/yaffs2");
+	 //basic_xattr_test("/yaffs2");
+	 //big_xattr_test("/yaffs2");
+
+	 null_name_test("yaffs2");
 
 	 return 0;
 	

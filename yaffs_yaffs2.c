@@ -1132,7 +1132,8 @@ int yaffs2_ScanBackwards(yaffs_Device *dev)
 
 			} else if (tags.objectId > YAFFS_MAX_OBJECT_ID ||
 				tags.chunkId > YAFFS_MAX_CHUNK_ID ||
-				(tags.chunkId > 0 && tags.byteCount > dev->nDataBytesPerChunk)) {
+				(tags.chunkId > 0 && tags.byteCount > dev->nDataBytesPerChunk) ||
+				tags.sequenceNumber != bi->sequenceNumber ) {
 				T(YAFFS_TRACE_SCAN,
 				  (TSTR("Chunk (%d:%d) with bad tags:obj = %d, chunkId = %d, byteCount = %d, ignored"TENDSTR),
 				  blk, c,tags.objectId, tags.chunkId, tags.byteCount));
@@ -1313,7 +1314,6 @@ int yaffs2_ScanBackwards(yaffs_Device *dev)
 					in->valid = 1;
 
 					if (oh) {
-						in->variantType = oh->type;
 
 						in->yst_mode = oh->yst_mode;
 #ifdef CONFIG_YAFFS_WINCE
@@ -1331,11 +1331,11 @@ int yaffs2_ScanBackwards(yaffs_Device *dev)
 						in->yst_ctime = oh->yst_ctime;
 						in->yst_rdev = oh->yst_rdev;
 
+						in->lazyLoaded = 0;
+
 #endif
-					} else {
-						in->variantType = tags.extraObjectType;
+					} else
 						in->lazyLoaded = 1;
-					}
 
 					in->hdrChunk = chunk;
 

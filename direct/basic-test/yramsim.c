@@ -21,15 +21,17 @@ typedef struct {
 typedef struct {
 	Block **blockList;
 	int nBlocks;
-} SymData;
+} SimData;
 
 
-static SymData *DevToSym(yaffs_Device *dev)
+SimData *simDevs[N_RAM_SIM_DEVS];
+
+static SimData *DevToSim(yaffs_Device *dev)
 {
 	ynandif_Geometry *geom = (ynandif_Geometry *)(dev->driverContext);
-	SymData * sym = (SymData*)(geom->privateData);
-	return sym;
-} 
+	SimData * sim = (SimData*)(geom->privateData);
+	return sim;
+}
 
 
 static void CheckInitialised(void)
@@ -37,22 +39,22 @@ static void CheckInitialised(void)
 
 }
 
-static int yramsim_EraseBlockInternal(SymData *sym, unsigned blockId,int force)
+static int yramsim_EraseBlockInternal(SimData *sim, unsigned blockId,int force)
 {
-	if(blockId < 0 || blockId >= sym->nBlocks){
+	if(blockId < 0 || blockId >= sim->nBlocks){
 		return 0;
 	}
 
-	if(!sym->blockList[blockId]){
+	if(!sim->blockList[blockId]){
 		return 0;
 	}
 
-	if(!force && !sym->blockList[blockId]->blockOk){
+	if(!force && !sim->blockList[blockId]->blockOk){
 		return 0;
 	}
 
-	memset(sym->blockList[blockId],0xff,sizeof(Block));
-	sym->blockList[blockId]->blockOk = 1;
+	memset(sim->blockList[blockId],0xff,sizeof(Block));
+	sim->blockList[blockId]->blockOk = 1;
 
 	return 1;
 }
@@ -62,8 +64,8 @@ static int yramsim_EraseBlockInternal(SymData *sym, unsigned blockId,int force)
 
 static int yramsim_Initialise(yaffs_Device *dev)
 {
-	SymData *sym = DevToSym(dev);
-	Block **blockList = sym->blockList;
+	SimData *sim = DevToSim(dev);
+	Block **blockList = sim->blockList;
 	return blockList != NULL;
 }
 
@@ -73,19 +75,19 @@ static int yramsim_Deinitialise(yaffs_Device *dev)
 	return 1;
 }
 
-static int yramsim_ReadChunk (yaffs_Device *dev, unsigned pageId, 
+static int yramsim_ReadChunk (yaffs_Device *dev, unsigned pageId,
 					  unsigned char *data, unsigned dataLength,
 					  unsigned char *spare, unsigned spareLength,
 					  int *eccStatus)
 {
-	SymData *sym = DevToSym(dev);
-	Block **blockList = sym->blockList;
+	SimData *sim = DevToSim(dev);
+	Block **blockList = sim->blockList;
 
 	unsigned blockId = pageId / PAGES_PER_BLOCK;
 	unsigned pageOffset = pageId % PAGES_PER_BLOCK;
 	unsigned char * d;
 	unsigned char *s;
-	if(blockId >= sym->nBlocks ||
+	if(blockId >= sim->nBlocks ||
 	   pageOffset >= PAGES_PER_BLOCK ||
 	   dataLength >DATA_SIZE ||
 	   spareLength > SPARE_SIZE ||
@@ -106,21 +108,20 @@ static int yramsim_ReadChunk (yaffs_Device *dev, unsigned pageId,
 	*eccStatus = 0; // 0 = no error, -1 = unfixable error, 1 = fixable
 
 	return 1;
-	
 }
 
-static int yramsim_WriteChunk (yaffs_Device *dev,unsigned pageId, 
+static int yramsim_WriteChunk (yaffs_Device *dev,unsigned pageId,
 					   const unsigned char *data, unsigned dataLength,
 					   const unsigned char *spare, unsigned spareLength)
 {
-	SymData *sym = DevToSym(dev);
-	Block **blockList = sym->blockList;
+	SimData *sim = DevToSim(dev);
+	Block **blockList = sim->blockList;
 
 	unsigned blockId = pageId / PAGES_PER_BLOCK;
 	unsigned pageOffset = pageId % PAGES_PER_BLOCK;
 	unsigned char * d;
 	unsigned char *s;
-	if(blockId >= sym->nBlocks ||
+	if(blockId >= sim->nBlocks ||
 	   pageOffset >= PAGES_PER_BLOCK ||
 	   dataLength >DATA_SIZE ||
 	   spareLength > SPARE_SIZE ||
@@ -138,23 +139,22 @@ static int yramsim_WriteChunk (yaffs_Device *dev,unsigned pageId,
 		memcpy(s,spare,spareLength);
 
 	return 1;
-	
 }
 
 
 static int yramsim_EraseBlock(yaffs_Device *dev,unsigned blockId)
 {
-	SymData *sym = DevToSym(dev);
+	SimData *sim = DevToSim(dev);
 
 	CheckInitialised();
-	return yramsim_EraseBlockInternal(sym,blockId,0);
+	return yramsim_EraseBlockInternal(sim,blockId,0);
 }
 
 static int yramsim_CheckBlockOk(yaffs_Device *dev,unsigned blockId)
 {
-	SymData *sym = DevToSym(dev);
-	Block **blockList = sym->blockList;
-	if(blockId >= sym->nBlocks){
+	SimData *sim = DevToSim(dev);
+	Block **blockList = sim->blockList;
+	if(blockId >= sim->nBlocks){
 		return 0;
 	}
 
@@ -163,9 +163,9 @@ static int yramsim_CheckBlockOk(yaffs_Device *dev,unsigned blockId)
 
 static int yramsim_MarkBlockBad(yaffs_Device *dev,unsigned blockId)
 {
-	SymData *sym = DevToSym(dev);
-	Block **blockList = sym->blockList;
-	if(blockId >= sym->nBlocks){
+	SimData *sim = DevToSim(dev);
+	Block **blockList = sim->blockList;
+	if(blockId >= sim->nBlocks){
 		return 0;
 	}
 
@@ -175,25 +175,35 @@ static int yramsim_MarkBlockBad(yaffs_Device *dev,unsigned blockId)
 }
 
 
-static SymData *yramsim_AllocSymData(int nBlocks)
+static SimData *yramsim_AllocSimData(__u32 devId, __u32 nBlocks)
 {
 	int ok = 1;
 
 	Block **blockList;
-	SymData *sym;
+	SimData *sim;
 	Block *b;
-	int i;
+	__u32 i;
 
-	sym = malloc(sizeof (SymData));
-	if(!sym)
+	if(devId >= N_RAM_SIM_DEVS)
 		return NULL;
 
+	sim = simDevs[devId];
+
+	if(sim)
+		return sim;
+
+	sim = malloc(sizeof (SimData));
+	if(!sim)
+		return NULL;
+
+	simDevs[devId] = sim;
+
 	blockList = malloc(nBlocks * sizeof(Block *));
-	
-	sym->blockList = blockList;
-	sym->nBlocks = nBlocks;
+
+	sim->blockList = blockList;
+	sim->nBlocks = nBlocks;
 	if(!blockList){
-		free(sym);
+		free(sim);
 		return NULL;
 	}
 
@@ -204,7 +214,7 @@ static SymData *yramsim_AllocSymData(int nBlocks)
 		b=  malloc(sizeof(Block));
 		if(b){
 			blockList[i] = b;
-			yramsim_EraseBlockInternal(sym,i,1);
+			yramsim_EraseBlockInternal(sim,i,1);
 		}
 		else
 			ok = 0;
@@ -218,32 +228,39 @@ static SymData *yramsim_AllocSymData(int nBlocks)
 			}
 		free(blockList);
 		blockList = NULL;
-		free(sym);
-		sym = NULL;
+		free(sim);
+		sim = NULL;
 	}
 
-	return sym;
+	return sim;
 }
 
 
-struct yaffs_DeviceStruct *yramsim_CreateSim(const YCHAR *name,int nBlocks)
+struct yaffs_DeviceStruct *yramsim_CreateRamSim(const YCHAR *name,
+				__u32 devId, __u32 nBlocks,
+				__u32 startBlock, __u32 endBlock)
 {
-	void *sym = (void *)yramsim_AllocSymData(nBlocks);
+	SimData *sim;
 	ynandif_Geometry *g;
 
+	sim = yramsim_AllocSimData(devId, nBlocks);
+
 	g = YMALLOC(sizeof(ynandif_Geometry));
-	
-	if(!sym || !g){
-		if(sym)
-			YFREE(sym);
+
+	if(!sim || !g){
 		if(g)
 			YFREE(g);
 		return NULL;
 	}
 
+	if(startBlock >= sim->nBlocks)
+		startBlock = 0;
+	if(endBlock == 0 || endBlock >= sim->nBlocks)
+		endBlock = sim->nBlocks - 1;
+
 	memset(g,0,sizeof(ynandif_Geometry));
-	g->startBlock = 0;
-	g->endBlock = nBlocks - 1;
+	g->startBlock = startBlock;
+	g->endBlock = endBlock;
 	g->dataSize = DATA_SIZE;
 	g->spareSize= SPARE_SIZE;
 	g->pagesPerBlock = PAGES_PER_BLOCK;
@@ -251,13 +268,13 @@ struct yaffs_DeviceStruct *yramsim_CreateSim(const YCHAR *name,int nBlocks)
 	g->inbandTags = 0;
 	g->useYaffs2 = 1;
 	g->initialise = yramsim_Initialise;
-	g->deinitialise = yramsim_Deinitialise; 
-	g->readChunk = yramsim_ReadChunk, 
+	g->deinitialise = yramsim_Deinitialise;
+	g->readChunk = yramsim_ReadChunk,
 	g->writeChunk = yramsim_WriteChunk,
 	g->eraseBlock = yramsim_EraseBlock,
 	g->checkBlockOk = yramsim_CheckBlockOk,
 	g->markBlockBad = yramsim_MarkBlockBad,
-	g->privateData = sym;
+	g->privateData = (void *)sim;
 
 	return yaffs_AddDeviceFromGeometry(name,g);
 }

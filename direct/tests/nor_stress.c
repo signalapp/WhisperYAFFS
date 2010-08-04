@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 
+extern int fuzz_test;
 
 #if 1
 #define FSX_INIT(mount_pt) do{ if(interleave_fsx) yaffs_fsx_init(mount_pt); } while(0)
@@ -89,6 +90,10 @@ void MakeFullNames(const char *prefix)
 static void FatalError(int lineNo)
 {
   printf("Integrity error %d\n",lineNo);
+
+  if(fuzz_test)
+  	return;
+
   if(ext_fatal)
   	ext_fatal();
   	

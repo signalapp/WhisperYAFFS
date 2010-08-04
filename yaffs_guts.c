@@ -4367,7 +4367,7 @@ static void yaffs_CheckObjectDetailsLoaded(yaffs_Object *in)
 		in->yst_rdev = oh->yst_rdev;
 
 #endif
-		yaffs_SetObjectName(in, oh->name);
+		yaffs_SetObjectNameFromOH(in, oh);
 
 		if (in->variantType == YAFFS_OBJECT_TYPE_SYMLINK) {
 			in->variant.symLinkVariant.alias =

@@ -182,6 +182,7 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 	struct yaffs_stat s;
 	char str[1000];
 	int error_line = 0;
+	int nentries;
 			
 	d = yaffs_opendir(dname);
 	
@@ -191,11 +192,13 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 	}
 	else
 	{
+		nentries = 0;
 		while((de = yaffs_readdir(d)) != NULL)
 		{
 			strcpy(str,dname);
 			strcat(str,"/");
 			strcat(str,de->d_name);
+			nentries++;
 			
 			yaffs_lstat(str,&s);
 			
@@ -224,10 +227,15 @@ static void dump_directory_tree_worker(const char *dname,int recursive)
 				dump_directory_tree_worker(str,1);
 				
                         if(s.st_ino > 10000)
-                          error_line = __LINE__;
+                        	error_line = __LINE__;
 							
 		}
 		
+		if(strstr(dname,"lost+found") && nentries >0){
+			printf("\n\n!!! HEY lost+found not empty, had %d entries\n\n\n",nentries);
+			error_line = __LINE__;
+		}
+
 		if(error_line && !no_verification)
 			FatalError(error_line);
 		

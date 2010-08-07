@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	srand(time(0));
 
 	for(b = 0; b < nbuffers; b++){
-		printf("buffer %d\n",b);
+		/* printf("buffer %d\n",b); */
 		lseek(h,b * sizeof(buffer),SEEK_SET);
 		bufsize = read(h,buffer,sizeof(buffer));
 		for(i = 0; i < changesPerBuffer; i++){

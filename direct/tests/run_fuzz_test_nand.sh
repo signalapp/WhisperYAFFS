@@ -17,6 +17,9 @@ do
    seed=$RANDOM   
    j=$(( $i % 10 ))
 
+   cycles=$RANDOM
+   cycles=$(( $cycles % 10000 ))
+
    rm -f log-nand-*$j
    rm -f seed-nand-*$j
    echo $seed>seed-nand-for-run-$i
@@ -45,6 +48,5 @@ do
    echo "#########"
    echo "#########"
    echo "#########"
-   ./yaffs_test -u  -p -s$seed -t 8 -z yaffs2 
-   # >log-nand-$i
+   ./yaffs_test -u  -p -s$seed -t 8 -n $cycles -z yaffs2 
 done

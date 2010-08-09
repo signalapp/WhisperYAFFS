@@ -1711,7 +1711,7 @@ int yaffs_sync(const YCHAR *path)
                         
                         yaffs_FlushEntireDeviceCache(dev);
                         yaffs_CheckpointSave(dev);
-                        
+                        retVal = 0;
                         
                 } else
                         /* todo error - not mounted. */

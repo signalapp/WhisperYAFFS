@@ -41,6 +41,11 @@
 #define YAFFS_COMPILE_EXPORTFS
 #endif
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,13))
+#define YAFFS_NEW_FOLLOW_LINK 1
+#else
+#define YAFFS_NEW_FOLLOW_LINK 0
+#endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
 #include <linux/config.h>
@@ -58,6 +63,10 @@
 #include <linux/interrupt.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
+
+#if (YAFFS_NEW_FOLLOW_LINK == 1)
+#include <linux/namei.h>
+#endif
 
 #ifdef YAFFS_COMPILE_EXPORTFS
 #include <linux/exportfs.h>
@@ -295,11 +304,13 @@ static int yaffs_commit_write(struct file *f, struct page *pg, unsigned offset,
 
 static int yaffs_readlink(struct dentry *dentry, char __user *buffer,
 				int buflen);
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 13))
+#if (YAFFS_NEW_FOLLOW_LINK == 1)
+void yaffs_put_link(struct dentry *dentry, struct nameidata *nd, void *alias);
 static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 #else
 static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 #endif
+
 static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin);
 
 static struct address_space_operations yaffs_file_address_operations = {
@@ -379,6 +390,9 @@ static const struct inode_operations yaffs_file_inode_operations = {
 static const struct inode_operations yaffs_symlink_inode_operations = {
 	.readlink = yaffs_readlink,
 	.follow_link = yaffs_follow_link,
+#if (YAFFS_NEW_FOLLOW_LINK == 1)
+	.put_link = yaffs_put_link,
+#endif
 	.setattr = yaffs_setattr,
 #ifdef CONFIG_YAFFS_XATTR
 	.setxattr = yaffs_setxattr,
@@ -651,7 +665,7 @@ static int yaffs_readlink(struct dentry *dentry, char __user *buffer,
 	return ret;
 }
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 13))
+#if (YAFFS_NEW_FOLLOW_LINK == 1)
 static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
 #else
 static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
@@ -664,7 +678,6 @@ static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	yaffs_GrossLock(dev);
 
 	alias = yaffs_GetSymlinkAlias(yaffs_DentryToObject(dentry));
-
 	yaffs_GrossUnlock(dev);
 
 	if (!alias) {
@@ -672,15 +685,24 @@ static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
 		goto out;
 	}
 
+#if (YAFFS_NEW_FOLLOW_LINK == 1)
+	nd_set_link(nd, alias);
+	ret = (int)alias;
+out:
+	return ERR_PTR(ret);
+#else
 	ret = vfs_follow_link(nd, alias);
 	kfree(alias);
 out:
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 13))
-	return ERR_PTR(ret);
-#else
 	return ret;
 #endif
 }
+
+#if (YAFFS_NEW_FOLLOW_LINK == 1)
+void yaffs_put_link(struct dentry *dentry, struct nameidata *nd, void *alias) {
+	kfree(alias);
+}
+#endif
 
 struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,
 				yaffs_Object *obj);

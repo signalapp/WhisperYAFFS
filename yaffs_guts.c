@@ -2106,7 +2106,6 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 	int newChunk;
 	int markNAND;
 	int retVal = YAFFS_OK;
-	int cleanups = 0;
 	int i;
 	int isCheckpointBlock;
 	int matchingChunk;
@@ -2229,9 +2228,9 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 
 					if (object->nDataChunks <= 0) {
 						/* remeber to clean up the object */
-						dev->gcCleanupList[cleanups] =
+						dev->gcCleanupList[dev->nCleanups] =
 						    tags.objectId;
-						cleanups++;
+						dev->nCleanups++;
 					}
 					markNAND = 0;
 				} else if (0) {
@@ -2317,8 +2316,23 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 		yaffs_ReleaseTempBuffer(dev, buffer, __LINE__);
 
 
+
+	}
+
+	yaffs_VerifyCollectedBlock(dev, bi, block);
+
+
+
+	if (bi->blockState == YAFFS_BLOCK_STATE_COLLECTING) {
+		/*
+		 * The gc did not complete. Set block state back to FULL
+		 * because checkpointing does not restore gc.
+		 */
+		bi->blockState = YAFFS_BLOCK_STATE_FULL;
+	} else {
+		/* The gc completed. */
 		/* Do any required cleanups */
-		for (i = 0; i < cleanups; i++) {
+		for (i = 0; i < dev->nCleanups; i++) {
 			/* Time to delete the file too */
 			object =
 			    yaffs_FindObjectByNumber(dev,
@@ -2338,20 +2352,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 
 		}
 
-	}
 
-	yaffs_VerifyCollectedBlock(dev, bi, block);
-
-
-
-	if (bi->blockState == YAFFS_BLOCK_STATE_COLLECTING) {
-		/*
-		 * The gc did not complete. Set block state back to FULL
-		 * because checkpointing does not restore gc.
-		 */
-		bi->blockState = YAFFS_BLOCK_STATE_FULL;
-	} else {
-		/* The gc completed. */
 		chunksAfter = yaffs_GetErasedChunks(dev);
 		if (chunksBefore >= chunksAfter) {
 			T(YAFFS_TRACE_GC,
@@ -2361,6 +2362,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 		}
 		dev->gcBlock = 0;
 		dev->gcChunk = 0;
+		dev->nCleanups = 0;
 	}
 
 	dev->gcDisable = 0;
@@ -2582,10 +2584,12 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev, int background)
 		if (dev->gcBlock < 1 && !aggressive) {
 			dev->gcBlock = yaffs2_FindRefreshBlock(dev);
 			dev->gcChunk = 0;
+			dev->nCleanups=0;
 		}
 		if (dev->gcBlock < 1) {
 			dev->gcBlock = yaffs_FindBlockForGarbageCollection(dev, aggressive, background);
 			dev->gcChunk = 0;
+			dev->nCleanups=0;
 		}
 
 		if (dev->gcBlock > 0) {

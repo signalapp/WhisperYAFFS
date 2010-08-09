@@ -696,6 +696,7 @@ struct yaffs_DeviceStruct {
 
 	/* Garbage collection control */
 	__u32 *gcCleanupList;	/* objects to delete at the end of a GC. */
+	__u32 nCleanups;
 
 	unsigned hasPendingPrioritisedGCs; /* We think this device might have pending prioritised gcs */
 	unsigned gcDisable;

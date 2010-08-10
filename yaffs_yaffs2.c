@@ -206,6 +206,7 @@ int yaffs2_CheckpointRequired(yaffs_Device *dev)
 	nblocks = dev->internalEndBlock - dev->internalStartBlock + 1 ;
 
 	return 	!dev->param.skipCheckpointWrite &&
+		!dev->readOnly &&
 		(nblocks >= YAFFS_CHECKPOINT_MIN_BLOCKS);
 }
 

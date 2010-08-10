@@ -4189,6 +4189,9 @@ static void yaffs_StripDeletedObjects(yaffs_Device *dev)
 	struct ylist_head *n;
 	yaffs_Object *l;
 
+	if (dev->readOnly)
+		return;
+
 	/* Soft delete all the unlinked files */
 	ylist_for_each_safe(i, n,
 		&dev->unlinkedDir->variant.directoryVariant.children) {
@@ -4242,6 +4245,8 @@ static void yaffs_FixHangingObjects(yaffs_Device *dev)
 	int depthLimit;
 	int hanging;
 
+	if (dev->readOnly)
+		return;
 
 	/* Iterate through the objects in each hash entry,
 	 * looking at each object.

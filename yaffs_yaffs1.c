@@ -231,6 +231,11 @@ int yaffs1_Scan(yaffs_Device *dev)
 						shadowFixerList = fixer;
 						fixer->objectId = tags.objectId;
 						fixer->shadowedId = oh->shadowsObject;
+						T(YAFFS_TRACE_SCAN,
+						  (TSTR
+						   (" Shadow fixer: %d shadows %d" TENDSTR),
+						   fixer->objectId, fixer->shadowedId));
+
 					}
 
 				}

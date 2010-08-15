@@ -2223,6 +2223,7 @@ static int yaffs_GarbageCollectBlock(yaffs_Device *dev, int block,
 					 * We have to decrement free chunks so this works out properly.
 					 */
 					dev->nFreeChunks--;
+					bi->softDeletions--;
 
 					object->nDataChunks--;
 

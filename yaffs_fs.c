@@ -311,6 +311,8 @@ static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 #endif
 
+static void yaffs_MarkSuperBlockDirty(yaffs_Device *dev);
+
 static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin);
 
 static struct address_space_operations yaffs_file_address_operations = {
@@ -951,6 +953,7 @@ static int yaffs_writepage(struct page *page, struct writeback_control *wbc)
 static int yaffs_writepage(struct page *page)
 #endif
 {
+	yaffs_Device *dev;
 	struct address_space *mapping = page->mapping;
 	struct inode *inode;
 	unsigned long end_index;
@@ -998,7 +1001,8 @@ static int yaffs_writepage(struct page *page)
 	buffer = kmap(page);
 
 	obj = yaffs_InodeToObject(inode);
-	yaffs_GrossLock(obj->myDev);
+	dev = obj->myDev;
+	yaffs_GrossLock(dev);
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_writepage at %08x, size %08x\n"),
@@ -1010,11 +1014,13 @@ static int yaffs_writepage(struct page *page)
 	nWritten = yaffs_WriteDataToFile(obj, buffer,
 			page->index << PAGE_CACHE_SHIFT, nBytes, 0);
 
+	yaffs_MarkSuperBlockDirty(dev);
+
 	T(YAFFS_TRACE_OS,
 		(TSTR("writepag1: obj = %05x, ino = %05x\n"),
 		(int)obj->variant.fileVariant.fileSize, (int)inode->i_size));
 
-	yaffs_GrossUnlock(obj->myDev);
+	yaffs_GrossUnlock(dev);
 
 	kunmap(page);
 	set_page_writeback(page);
@@ -1349,6 +1355,8 @@ static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
 			(unsigned) n, (unsigned) n, obj->objectId, ipos,ipos));
 
 	nWritten = yaffs_WriteDataToFile(obj, buf, ipos, n, 0);
+
+	yaffs_MarkSuperBlockDirty(dev);
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_file_write: %d(%x) bytes written\n"),

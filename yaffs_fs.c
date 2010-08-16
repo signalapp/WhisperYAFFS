@@ -41,6 +41,13 @@
 #define YAFFS_COMPILE_EXPORTFS
 #endif
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,35))
+#define YAFFS_USE_SETATTR_COPY
+#endif
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,35))
+#define YAFFS_HAS_EVICT_INODE
+#endif
+
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,13))
 #define YAFFS_NEW_FOLLOW_LINK 1
 #else
@@ -267,8 +274,12 @@ static int yaffs_statfs(struct super_block *sb, struct statfs *buf);
 static void yaffs_put_inode(struct inode *inode);
 #endif
 
+#ifdef YAFFS_HAS_EVICT_INODE
+static void yaffs_evict_inode(struct inode *);
+#else
 static void yaffs_delete_inode(struct inode *);
 static void yaffs_clear_inode(struct inode *);
+#endif
 
 static int yaffs_readpage(struct file *file, struct page *page);
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
@@ -315,6 +326,9 @@ static void yaffs_MarkSuperBlockDirty(yaffs_Device *dev);
 
 static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin);
 
+static int yaffs_vfs_setattr(struct inode *, struct iattr *);
+
+
 static struct address_space_operations yaffs_file_address_operations = {
 	.readpage = yaffs_readpage,
 	.writepage = yaffs_writepage,
@@ -326,6 +340,7 @@ static struct address_space_operations yaffs_file_address_operations = {
 	.commit_write = yaffs_commit_write,
 #endif
 };
+
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 22))
 static const struct file_operations yaffs_file_operations = {
@@ -440,11 +455,27 @@ static const struct super_operations yaffs_super_ops = {
 	.put_inode = yaffs_put_inode,
 #endif
 	.put_super = yaffs_put_super,
+#ifdef YAFFS_HAS_EVICT_INODE
+	.evict_inode = yaffs_evict_inode,
+#else
 	.delete_inode = yaffs_delete_inode,
 	.clear_inode = yaffs_clear_inode,
+#endif
 	.sync_fs = yaffs_sync_fs,
 	.write_super = yaffs_write_super,
 };
+
+
+static  int yaffs_vfs_setattr(struct inode *inode, struct iattr *attr)
+{
+#ifdef  YAFFS_USE_SETATTR_COPY
+	setattr_copy(inode,attr);
+	return 0;
+#else
+	return inode_setattr(inode, attr);
+#endif
+
+}
 
 static unsigned yaffs_gc_control_callback(yaffs_Device *dev)
 {
@@ -788,7 +819,69 @@ static void yaffs_put_inode(struct inode *inode)
 }
 #endif
 
-/* clear is called to tell the fs to release any per-inode data it holds */
+
+static void yaffs_UnstitchObject(struct inode *inode, yaffs_Object *obj)
+{
+	/* Clear the association between the inode and
+	 * the yaffs_Object.
+	 */
+	obj->myInode = NULL;
+	yaffs_InodeToObjectLV(inode) = NULL;
+
+	/* If the object freeing was deferred, then the real
+	 * free happens now.
+	 * This should fix the inode inconsistency problem.
+	 */
+	yaffs_HandleDeferedFree(obj);
+}
+
+#ifdef YAFFS_HAS_EVICT_INODE
+/* yaffs_evict_inode combines into one operation what was previously done in
+ * yaffs_clear_inode() and yaffs_delete_inode()
+ *
+ */
+static void yaffs_evict_inode( struct inode *inode)
+{
+	yaffs_Object *obj;
+	yaffs_Device *dev;
+	int deleteme = 0;
+
+	obj = yaffs_InodeToObject(inode);
+
+	T(YAFFS_TRACE_OS,
+		(TSTR("yaffs_evict_inode: ino %d, count %d %s\n"), (int)inode->i_ino,
+		atomic_read(&inode->i_count),
+		obj ? "object exists" : "null object"));
+
+	if (!inode->i_nlink && !is_bad_inode(inode))
+		deleteme = 1;
+	truncate_inode_pages(&inode->i_data,0);
+
+	if(deleteme && obj){
+		dev = obj->myDev;
+		yaffs_GrossLock(dev);
+		yaffs_DeleteObject(obj);
+		yaffs_GrossUnlock(dev);
+	}
+	end_writeback(inode);
+	if (obj) {
+		dev = obj->myDev;
+		yaffs_GrossLock(dev);
+		yaffs_UnstitchObject(inode,obj);
+		yaffs_GrossUnlock(dev);
+	}
+
+
+}
+#else
+
+/* clear is called to tell the fs to release any per-inode data it holds.
+ * The object might still exist on disk and is just being thrown out of the cache
+ * or else the object has actually been deleted and we're being called via
+ * the chain
+ *   yaffs_delete_inode() -> clear_inode()->yaffs_clear_inode()
+ */
+
 static void yaffs_clear_inode(struct inode *inode)
 {
 	yaffs_Object *obj;
@@ -804,20 +897,7 @@ static void yaffs_clear_inode(struct inode *inode)
 	if (obj) {
 		dev = obj->myDev;
 		yaffs_GrossLock(dev);
-
-		/* Clear the association between the inode and
-		 * the yaffs_Object.
-		 */
-		obj->myInode = NULL;
-		yaffs_InodeToObjectLV(inode) = NULL;
-
-		/* If the object freeing was deferred, then the real
-		 * free happens now.
-		 * This should fix the inode inconsistency problem.
-		 */
-
-		yaffs_HandleDeferedFree(obj);
-
+		yaffs_UnstitchObject(inode,obj);
 		yaffs_GrossUnlock(dev);
 	}
 
@@ -849,6 +929,8 @@ static void yaffs_delete_inode(struct inode *inode)
 #endif
 	clear_inode(inode);
 }
+#endif
+
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 static int yaffs_file_flush(struct file *file, fl_owner_t id)
@@ -1881,7 +1963,7 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 	if (error == 0) {
 		int result;
 		if (!error){
-			error = inode_setattr(inode, attr);
+			error = yaffs_vfs_setattr(inode, attr);
 			T(YAFFS_TRACE_OS,(TSTR("inode_setattr called\n")));
 			if (attr->ia_valid & ATTR_SIZE)
                         	truncate_inode_pages(&inode->i_data,attr->ia_size);

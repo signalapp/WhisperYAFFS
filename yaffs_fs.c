@@ -3194,6 +3194,7 @@ static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "allGCs............. %u\n", dev->allGCs);
 	buf += sprintf(buf, "passiveGCs......... %u\n", dev->passiveGCs);
 	buf += sprintf(buf, "oldestDirtyGCs..... %u\n", dev->oldestDirtyGCs);
+	buf += sprintf(buf, "nGCBlocks.......... %u\n", dev->nGCBlocks);
 	buf += sprintf(buf, "backgroundGCs...... %u\n", dev->backgroundGCs);
 	buf += sprintf(buf, "nRetriedWrites..... %u\n", dev->nRetriedWrites);
 	buf += sprintf(buf, "nRetireBlocks...... %u\n", dev->nRetiredBlocks);

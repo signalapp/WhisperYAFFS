@@ -2500,8 +2500,10 @@ static unsigned yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
 		  dev->param.nChunksPerBlock - dev->gcPagesInUse,
 		  prioritised));
 
+		dev->nGCBlocks++;
 		if(background)
 			dev->backgroundGCs++;
+
 		dev->gcDirtiest = 0;
 		dev->gcPagesInUse = 0;
 		dev->gcNotDone = 0;

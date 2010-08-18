@@ -116,6 +116,12 @@
 #define YPROC_ROOT  NULL
 #endif
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26))
+#define Y_INIT_TIMER(a)	init_timer(a)
+#else
+#define Y_INIT_TIMER(a)	init_timer_on_stack(a)
+#endif
+
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 #define WRITE_SIZE_STR "writesize"
 #define WRITE_SIZE(mtd) ((mtd)->writesize)
@@ -2343,7 +2349,7 @@ static int yaffs_BackgroundThread(void *data)
 		if(time_before(expires,now))
 			expires = now + HZ;
 
-		init_timer_on_stack(&timer);
+		Y_INIT_TIMER(&timer);
 		timer.expires = expires+1;
 		timer.data = (unsigned long) current;
 		timer.function = yaffs_background_waker;

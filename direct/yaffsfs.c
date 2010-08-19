@@ -1660,6 +1660,14 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 	return retVal;
 }
 
+void * yaffs_getdev(const YCHAR *path)
+{
+	yaffs_Device *dev=NULL;
+	YCHAR *dummy;
+	dev = yaffsfs_FindDevice(path,&dummy);
+	return (void *)dev;
+}
+
 int yaffs_mount2(const YCHAR *path,int readOnly)
 {
 	int retVal=-1;

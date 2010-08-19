@@ -101,7 +101,7 @@ int yaffs_StartUp(void)
 	// Stuff to configure YAFFS
 	// Stuff to initialise anything special (eg lock semaphore).
 	yaffsfs_LocalInitialisation();
-	yramsim_CreateRamSim("yaffs2",1,200,0,0);
+	yramsim_CreateRamSim("yaffs2",1,1000,0,0);
 	yramsim_CreateRamSim("p0",0,0x400,1,0xff);
 	yramsim_CreateRamSim("p1",0,0x400,1,0);
 	

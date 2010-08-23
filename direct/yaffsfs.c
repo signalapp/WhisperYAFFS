@@ -1637,7 +1637,10 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,path,&name,0);
-	if(parent && parent->myDev->readOnly){
+	if(parent && yaffs_strnlen(name,5) == 0){
+		/* Trying to make the root itself */
+		yaffsfs_SetError(-EEXIST);
+	} else if(parent && parent->myDev->readOnly){
 		yaffsfs_SetError(-EINVAL);
 	} else {
 		if(parent)

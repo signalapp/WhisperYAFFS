@@ -12,7 +12,8 @@
 #
 # Patch YAFFS into the kernel
 #
-#  args:  kpath  : Full path to kernel sources to be patched
+#  args:  l/c : link or copy
+#	  kpath  : Full path to kernel sources to be patched
 #
 #  Somewhat "inspired by" the mtd patchin script
 #
@@ -111,7 +112,9 @@ YAFFSDIR=$LINUXDIR/fs/yaffs2
 
 if [ -e $YAFFSDIR ]
 then
-   echo "$YAFFSDIR exists, not patching"
+   echo "$YAFFSDIR exists, not patching."
+   echo "If you want to replace what is already there then delete $YAFFSDIR"
+   echo " eg.  \"rm -rf $YAFFSDIR\" "
 else
    mkdir $LINUXDIR/fs/yaffs2
    $CPY  $PWD/Makefile.kernel $LINUXDIR/fs/yaffs2/Makefile

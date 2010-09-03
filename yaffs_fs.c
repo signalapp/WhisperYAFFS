@@ -43,6 +43,7 @@
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,35))
 #define YAFFS_USE_SETATTR_COPY
+#define YAFFS_USE_TRUNCATE_SETSIZE
 #endif
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,35))
 #define YAFFS_HAS_EVICT_INODE
@@ -479,6 +480,17 @@ static  int yaffs_vfs_setattr(struct inode *inode, struct iattr *attr)
 
 }
 
+static  int yaffs_vfs_setsize(struct inode *inode, loff_t newsize)
+{
+#ifdef  YAFFS_USE_TRUNCATE_SETSIZE
+	truncate_setsize(inode,newsize);
+	return 0;
+#else
+	return simple_setsize(inode, newsize);
+#endif
+
+}
+
 static unsigned yaffs_gc_control_callback(yaffs_Device *dev)
 {
 	return yaffs_gc_control;
@@ -858,6 +870,7 @@ static void yaffs_evict_inode( struct inode *inode)
 	if (!inode->i_nlink && !is_bad_inode(inode))
 		deleteme = 1;
 	truncate_inode_pages(&inode->i_data,0);
+	end_writeback(inode);
 
 	if(deleteme && obj){
 		dev = obj->myDev;
@@ -865,7 +878,6 @@ static void yaffs_evict_inode( struct inode *inode)
 		yaffs_DeleteObject(obj);
 		yaffs_GrossUnlock(dev);
 	}
-	end_writeback(inode);
 	if (obj) {
 		dev = obj->myDev;
 		yaffs_GrossLock(dev);
@@ -1967,8 +1979,10 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 		if (!error){
 			error = yaffs_vfs_setattr(inode, attr);
 			T(YAFFS_TRACE_OS,(TSTR("inode_setattr called\n")));
-			if (attr->ia_valid & ATTR_SIZE)
-                        	truncate_inode_pages(&inode->i_data,attr->ia_size);
+			if (attr->ia_valid & ATTR_SIZE){
+                        	yaffs_vfs_setsize(inode,attr->ia_size);
+                        	inode->i_blocks = (inode->i_size + 511) >> 9;
+			}
 		}
 		dev = yaffs_InodeToObject(inode)->myDev;
 		if (attr->ia_valid & ATTR_SIZE){
@@ -2034,9 +2048,8 @@ ssize_t yaffs_getxattr(struct dentry *dentry, const char *name, void *buff,
 	yaffs_Object *obj = yaffs_InodeToObject(inode);
 
 	T(YAFFS_TRACE_OS,
-		(TSTR("yaffs_getxattr of object %d\n"),
-		obj->objectId));
-
+		(TSTR("yaffs_getxattr \"%s\" from object %d\n"),
+		name, obj->objectId));
 
 	if (error == 0) {
 		dev = obj->myDev;

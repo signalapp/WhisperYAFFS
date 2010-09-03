@@ -22,6 +22,9 @@
 
 #include "yaffsfs.h"
 
+#include "yaffs_guts.h" /* Only for dumping device innards */
+
+extern int yaffs_traceMask;
 
 void dumpDir(const char *dname);
 
@@ -177,21 +180,22 @@ void create_file_of_size(const char *fn,int syze)
 	int h;
 	int n;
 	int result;
-	
+	int iteration = 0;
 	char xx[200];
-	
-	int iterations = (syze + strlen(fn) -1)/ strlen(fn);
-	
+
 	h = yaffs_open(fn, O_CREAT | O_RDWR | O_TRUNC, S_IREAD | S_IWRITE);
 		
-	while (iterations > 0)
+	while (syze > 0)
 	{
-		sprintf(xx,"%s %8d",fn,iterations);
+		sprintf(xx,"%s %8d",fn,iteration);
 		n = strlen(xx);
 		result = yaffs_write(h,xx,n);
-		if(result != n)
-			printf("Wrote %d, should have been %d\n",result,n);
-		iterations--;
+		if(result != n){
+			printf("Wrote %d, should have been %d. syze is %d\n",result,n,syze);
+			syze = 0;
+		} else
+			syze-=n;
+		iteration++;
 	}
 	yaffs_close (h);
 }
@@ -2639,7 +2643,48 @@ void big_xattr_test(const char *mountpt)
 	list_xattr(name);
 
 }
+
+
+void dump_dev_stats(yaffs_Device *dev, const char * str)
+{
+	printf("%s\n",str);
+	printf( "space free %d erased %d "
+		"nand reads %d writes %d erases %d "
+		"gc all %d passive %d oldestdirty %d blocks %d copies %d \n",
+		dev->nFreeChunks, dev->nErasedBlocks * dev->param.nChunksPerBlock,
+		dev->nPageReads, dev->nPageWrites, dev->nBlockErasures,
+		dev->allGCs, dev->passiveGCs, dev->oldestDirtyGCs, dev->nGCBlocks, dev->nGCCopies);
+}
+
+void test_flash_traffic(const char *mountpt)
+{
+	char name0[100];
+	char name1[100];
+	int i;
+	yaffs_Device *dev;
+
+	yaffs_traceMask = 0;
+
+	yaffs_StartUp();
+
+	yaffs_mount(mountpt);
 	
+	dev = yaffs_getdev(mountpt);
+
+	strcpy(name0,mountpt);
+	strcat(name0,"/x");
+
+	strcpy(name1,mountpt);
+	strcat(name1,"/y");
+
+	dump_dev_stats(dev,"start");
+	create_file_of_size(name0,32 * 1024 * 1024);
+	dump_dev_stats(dev,"32MB written");
+	for(i = 0; i < 20; i++)
+		create_file_of_size(name1,1024 * 1024);
+	dump_dev_stats(dev,"20x 1MB files written");
+
+}
 
 int random_seed;
 int simulate_power_failure;
@@ -2693,9 +2738,6 @@ int main(int argc, char *argv[])
 	
 	//link_test("/flash/flash");
 	
-	
-	
-	
 	// cache_bypass_bug_test();
 	
 	 //free_space_check();
@@ -2705,7 +2747,9 @@ int main(int argc, char *argv[])
 	 //basic_xattr_test("/yaffs2");
 	 //big_xattr_test("/yaffs2");
 
-	 null_name_test("yaffs2");
+	 //null_name_test("yaffs2");
+
+	 test_flash_traffic("yaffs2");
 
 	 return 0;
 	

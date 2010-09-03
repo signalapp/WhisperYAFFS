@@ -164,6 +164,10 @@ void yaffs_AddDevice(struct yaffs_DeviceStruct *dev);
 
 int yaffs_StartUp(void);
 
+
+/* Function only for debugging */
+void * yaffs_getdev(const YCHAR *path);
+
 #endif
 
 

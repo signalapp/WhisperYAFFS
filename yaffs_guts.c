@@ -2435,7 +2435,16 @@ static unsigned yaffs_FindBlockForGarbageCollection(yaffs_Device *dev,
 			threshold = dev->param.nChunksPerBlock;
 			iterations = nBlocks;
 		} else {
-			int maxThreshold = dev->param.nChunksPerBlock/2;
+			int maxThreshold;
+
+			if(background)
+				maxThreshold = dev->param.nChunksPerBlock/2;
+			else
+				maxThreshold = dev->param.nChunksPerBlock/8;
+
+			if(maxThreshold <  YAFFS_GC_PASSIVE_THRESHOLD)
+				maxThreshold = YAFFS_GC_PASSIVE_THRESHOLD;
+
 			threshold = background ?
 				(dev->gcNotDone + 2) * 2 : 0;
 			if(threshold <YAFFS_GC_PASSIVE_THRESHOLD)
@@ -2537,10 +2546,8 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev, int background)
 	int aggressive = 0;
 	int gcOk = YAFFS_OK;
 	int maxTries = 0;
-
 	int minErased;
 	int erasedChunks;
-
 	int checkpointBlockAdjust;
 
 	if(dev->param.gcControl &&
@@ -2568,6 +2575,9 @@ static int yaffs_CheckGarbageCollection(yaffs_Device *dev, int background)
 		if (dev->nErasedBlocks < minErased)
 			aggressive = 1;
 		else {
+			if(!background && erasedChunks > (dev->nFreeChunks / 4))
+				break;
+
 			if(dev->gcSkip > 20)
 				dev->gcSkip = 20;
 			if(erasedChunks < dev->nFreeChunks/2 ||

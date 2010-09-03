@@ -759,6 +759,7 @@ struct yaffs_DeviceStruct {
 	__u32 allGCs;
 	__u32 passiveGCs;
 	__u32 oldestDirtyGCs;
+	__u32 nGCBlocks;
 	__u32 backgroundGCs;
 	__u32 nRetriedWrites;
 	__u32 nRetiredBlocks;

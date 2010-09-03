@@ -158,6 +158,7 @@ unsigned int yaffs_traceMask = YAFFS_TRACE_BAD_BLOCKS | YAFFS_TRACE_ALWAYS;
 unsigned int yaffs_wr_attempts = YAFFS_WR_ATTEMPTS;
 unsigned int yaffs_auto_checkpoint = 1;
 unsigned int yaffs_gc_control = 1;
+unsigned int yaffs_bg_enable = 1;
 
 /* Module Parameters */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
@@ -165,6 +166,7 @@ module_param(yaffs_traceMask, uint, 0644);
 module_param(yaffs_wr_attempts, uint, 0644);
 module_param(yaffs_auto_checkpoint, uint, 0644);
 module_param(yaffs_gc_control, uint, 0644);
+module_param(yaffs_bg_enable, uint, 0644);
 #else
 MODULE_PARM(yaffs_traceMask, "i");
 MODULE_PARM(yaffs_wr_attempts, "i");
@@ -2314,12 +2316,12 @@ static int yaffs_BackgroundThread(void *data)
 
 		now = jiffies;
 
-		if(time_after(now, next_dir_update)){
+		if(time_after(now, next_dir_update) && yaffs_bg_enable){
 			yaffs_UpdateDirtyDirectories(dev);
 			next_dir_update = now + HZ;
 		}
 
-		if(time_after(now,next_gc)){
+		if(time_after(now,next_gc) && yaffs_bg_enable){
 			if(!dev->isCheckpointed){
 				urgency = yaffs_bg_gc_urgency(dev);
 				gcResult = yaffs_BackgroundGarbageCollect(dev, urgency);
@@ -3188,6 +3190,7 @@ static char *yaffs_dump_dev_part1(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "allGCs............. %u\n", dev->allGCs);
 	buf += sprintf(buf, "passiveGCs......... %u\n", dev->passiveGCs);
 	buf += sprintf(buf, "oldestDirtyGCs..... %u\n", dev->oldestDirtyGCs);
+	buf += sprintf(buf, "nGCBlocks.......... %u\n", dev->nGCBlocks);
 	buf += sprintf(buf, "backgroundGCs...... %u\n", dev->backgroundGCs);
 	buf += sprintf(buf, "nRetriedWrites..... %u\n", dev->nRetriedWrites);
 	buf += sprintf(buf, "nRetireBlocks...... %u\n", dev->nRetiredBlocks);

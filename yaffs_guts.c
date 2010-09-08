@@ -72,9 +72,6 @@ static void yaffs_RemoveObjectFromDirectory(yaffs_Object *obj);
 static int yaffs_CheckStructures(void);
 static int yaffs_DoGenericObjectDeletion(yaffs_Object *in);
 
-static yaffs_BlockInfo *yaffs_GetBlockInfo(yaffs_Device *dev, int blockNo);
-
-
 static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,
 				int chunkInNAND);
 
@@ -3011,7 +3008,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 	int newChunkId;
 	yaffs_ExtendedTags newTags;
 	yaffs_ExtendedTags oldTags;
-	YCHAR *alias = NULL;
+	const YCHAR *alias = NULL;
 
 	__u8 *buffer = NULL;
 	YCHAR oldName[YAFFS_MAX_NAME_LENGTH + 1];
@@ -4970,7 +4967,7 @@ static int yaffs_DoXFetch(yaffs_Object *obj, const YCHAR *name, void *value, int
 	int x_offs = sizeof(yaffs_ObjectHeader);
 	int x_size = dev->nDataBytesPerChunk - sizeof(yaffs_ObjectHeader);
 
-	__u8 * x_buffer;
+	char * x_buffer;
 
 	int retval = 0;
 
@@ -4987,11 +4984,11 @@ static int yaffs_DoXFetch(yaffs_Object *obj, const YCHAR *name, void *value, int
 			return 0;
 	}
 
-	buffer = yaffs_GetTempBuffer(dev, __LINE__);
+	buffer = (char *) yaffs_GetTempBuffer(dev, __LINE__);
 	if(!buffer)
 		return -ENOMEM;
 
-	result = yaffs_ReadChunkWithTagsFromNAND(dev,obj->hdrChunk, buffer, &tags);
+	result = yaffs_ReadChunkWithTagsFromNAND(dev,obj->hdrChunk, (__u8 *)buffer, &tags);
 
 	if(result != YAFFS_OK)
 		retval = -ENOENT;
@@ -5008,7 +5005,7 @@ static int yaffs_DoXFetch(yaffs_Object *obj, const YCHAR *name, void *value, int
 		else
 			retval = nval_list(x_buffer, x_size, value,size);
 	}
-	yaffs_ReleaseTempBuffer(dev,buffer,__LINE__);
+	yaffs_ReleaseTempBuffer(dev,(__u8 *)buffer,__LINE__);
 	return retval;
 }
 

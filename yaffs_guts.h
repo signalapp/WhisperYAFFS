@@ -927,7 +927,6 @@ int yaffs_DumpObject(yaffs_Object *obj);
 void yaffs_GutsTest(yaffs_Device *dev);
 
 /* A few useful functions to be used within the core files*/
-void yaffs_InitialiseTags(yaffs_ExtendedTags *tags);
 void yaffs_DeleteChunk(yaffs_Device *dev, int chunkId, int markNAND, int lyn);
 int yaffs_CheckFF(__u8 *buffer, int nBytes);
 void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi);
@@ -958,9 +957,7 @@ yaffs_Tnode *yaffs_AddOrFindLevel0Tnode(yaffs_Device *dev,
 					yaffs_FileStructure *fStruct,
 					__u32 chunkId,
 					yaffs_Tnode *passedTn);
-void yaffs_VerifyObjects(yaffs_Device *dev);
-void yaffs_VerifyBlocks(yaffs_Device *dev);
-void yaffs_VerifyFreeChunks(yaffs_Device *dev);
+
 int yaffs_DoWriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
 			int nBytes, int writeThrough);
 void yaffs_ResizeDown( yaffs_Object *obj, loff_t newSize);

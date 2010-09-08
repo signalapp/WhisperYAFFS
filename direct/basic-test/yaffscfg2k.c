@@ -152,6 +152,8 @@ int yaffs_StartUp(void)
 	m18_1Dev.param.initialiseNAND = ynorif1_InitialiseNAND;
 	m18_1Dev.param.deinitialiseNAND = ynorif1_DeinitialiseNAND;
 
+//	m18_1Dev.param.disableSoftDelete = 1;
+
 	yaffs_AddDevice(&m18_1Dev);
 
 	// /yaffs2  yaffs2 file emulation

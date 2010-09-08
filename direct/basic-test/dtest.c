@@ -19,6 +19,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 
 #include "yaffsfs.h"
 
@@ -28,9 +29,7 @@ extern int yaffs_traceMask;
 
 void dumpDir(const char *dname);
 
-char xx[600];
-
-void copy_in_a_file(char *yaffsName,char *inName)
+void copy_in_a_file(const char *yaffsName,const char *inName)
 {
 	int inh,outh;
 	unsigned char buffer[100];
@@ -52,7 +51,7 @@ void copy_in_a_file(char *yaffsName,char *inName)
 	close(inh);
 }
 
-void make_a_file(char *yaffsName,char bval,int sizeOfFile)
+void make_a_file(const char *yaffsName,char bval,int sizeOfFile)
 {
 	int outh;
 	int i;
@@ -401,7 +400,8 @@ void fill_disk(const char *path,int nfiles)
 	int n;
 	int result;
 	int f;
-	
+
+        static char xx[600];	
 	char str[50];
 	
 	for(n = 0; n < nfiles; n++)
@@ -481,7 +481,7 @@ void fill_files(const char *path,int flags, int maxIterations,int siz)
 	}
 }
 
-void leave_unlinked_file(char *path,int maxIterations,int siz)
+void leave_unlinked_file(const char *path,int maxIterations,int siz)
 {
 	int i;
 	char str[50];
@@ -1498,7 +1498,7 @@ void long_name_test(const char *mountpt)
 	char name[300];
 	int result = 0;
 	
-	int d,f;
+	int f;
 	
 	// Make a 256 byte name
 	memset(name,0,sizeof(name));
@@ -1602,7 +1602,6 @@ void lookup_test(const char *mountpt)
 
 void link_test0(const char *mountpt)
 {
-	int i;
 	char namea[300];
 	char nameb[300];
 	int result = 0;
@@ -2176,7 +2175,7 @@ void small_overwrite_test(const char *mountpt,int nmounts)
 
 void seek_overwrite_test(const char *mountpt,int nmounts)
 {
-
+        static char xx[5000];
 	char a[30];
 	
 	int i;
@@ -2556,7 +2555,6 @@ void basic_xattr_test(const char *mountpt)
 	int h;
 	int result;
 	int val1;
-	int valread;
 
 	yaffs_StartUp();
 
@@ -2607,7 +2605,6 @@ void big_xattr_test(const char *mountpt)
 	int h;
 	int result;
 	char val[1000];
-	char valread[1000];
 
 	yaffs_StartUp();
 

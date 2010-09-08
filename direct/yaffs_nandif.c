@@ -166,7 +166,6 @@ int ynandif_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockId, yaffs_Bl
 {
 	unsigned chunkNo;
 	yaffs_ExtendedTags tags;
-	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driverContext);
 
 	*sequenceNumber = 0;
 	

@@ -20,13 +20,15 @@
 
 CFLAGS =      -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONFIG_YAFFS_YAFFS2  
 CFLAGS +=     -DCONFIG_YAFFS_PROVIDE_DEFS -DCONFIG_YAFFSFS_PROVIDE_VALUES -DNO_Y_INLINE
-CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS) -Wstrict-aliasing 
+CFLAGS +=    -Wall -g $(EXTRA_COMPILE_FLAGS) -Werror=strict-aliasing 
 #CFLAGS +=    -fno-strict-aliasing
 CFLAGS +=    -O0
 #CFLAGS +=    -DVALGRIND_TEST
 
-#CFLAGS+=   -Wshadow -Wpointer-arith -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations
-#CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
+CFLAGS+=   -Wshadow -Werror=pointer-arith -Werror=write-strings
+CFLAGS+=   -Werror=strict-prototypes -Werror=missing-parameter-type
+CFLAGS+=   -Werror=redundant-decls -Werror=nested-externs -Winline
+CFLAGS+=   -Werror=undef
 
 COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \

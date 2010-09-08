@@ -62,21 +62,23 @@ typedef struct{
 
 static yaffsfs_Inode yaffsfs_inode[YAFFSFS_N_HANDLES];
 static yaffsfs_Handle yaffsfs_handle[YAFFSFS_N_HANDLES];
+static int yaffsfs_handlesInitialised;
 
 /*
  * yaffsfs_InitHandle
  * Inilitalise handle management on start-up.
  */
 
-static int yaffsfs_InitHandles(void)
+static void yaffsfs_InitHandles(void)
 {
 	int i;
+	if(yaffsfs_handlesInitialised)
+                return;
+
 	memset(yaffsfs_inode,0,sizeof(yaffsfs_inode));
 	memset(yaffsfs_handle,0,sizeof(yaffsfs_handle));
 	for(i = 0; i < YAFFSFS_N_HANDLES; i++)
 		yaffsfs_handle[i].inodeId = -1;
-
-	return 0;
 }
 
 yaffsfs_Handle *yaffsfs_GetHandlePointer(int h)
@@ -246,7 +248,7 @@ int yaffsfs_Match(YCHAR a, YCHAR b)
 
 int yaffsfs_IsPathDivider(YCHAR ch)
 {
-	YCHAR *str = YAFFS_PATH_DIVIDERS;
+	const YCHAR *str = YAFFS_PATH_DIVIDERS;
 
 	while(*str){
 		if(*str == ch)
@@ -1681,6 +1683,9 @@ int yaffs_mount2(const YCHAR *path,int readOnly)
 	T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: Mounting %s" TENDSTR),path));
 
 	yaffsfs_Lock();
+
+	yaffsfs_InitHandles();
+
 	dev = yaffsfs_FindDevice(path,&dummy);
 	if(dev){
 		if(!dev->isMounted){

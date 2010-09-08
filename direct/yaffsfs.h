@@ -167,6 +167,7 @@ int yaffs_StartUp(void);
 
 /* Function only for debugging */
 void * yaffs_getdev(const YCHAR *path);
+int yaffs_DumpDevStruct(const YCHAR *path);
 
 #endif
 

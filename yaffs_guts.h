@@ -423,6 +423,9 @@ struct yaffs_ObjectStruct {
 	__u8 beingCreated:1;	/* This object is still being created so skip some checks. */
 	__u8 isShadowed:1;	/* This object is shadowed on the way to being renamed. */
 
+	__u8 xattrKnown:1;	/* We know if this has object has xattribs or not. */
+	__u8 hasXattr:1;	/* This object has xattribs. Valid if xattrKnown. */
+
 	__u8 serial;		/* serial number of chunk in NAND. Cached here */
 	__u16 sum;		/* sum of the name to speed searching */
 

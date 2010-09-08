@@ -66,7 +66,7 @@ static yaffs_Object *yaffs_CreateNewObject(yaffs_Device *dev, int number,
 					yaffs_ObjectType type);
 
 
-static int yaffs_ApplyXMod(yaffs_Device *dev, char *buffer, yaffs_XAttrMod *xmod);
+static int yaffs_ApplyXMod(yaffs_Object *obj, char *buffer, yaffs_XAttrMod *xmod);
 
 static void yaffs_RemoveObjectFromDirectory(yaffs_Object *obj);
 static int yaffs_CheckStructures(void);
@@ -3112,7 +3112,7 @@ int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name, int force,
 
 		/* process any xattrib modifications */
 		if(xmod)
-			yaffs_ApplyXMod(dev, (char *)buffer, xmod);
+			yaffs_ApplyXMod(in, (char *)buffer, xmod);
 
 
 		/* Tags */
@@ -4939,10 +4939,11 @@ static int yaffs_DoXMod(yaffs_Object *obj, int set, const YCHAR *name, const voi
 		return -ENOSPC;
 }
 
-static int yaffs_ApplyXMod(yaffs_Device *dev, char *buffer, yaffs_XAttrMod *xmod)
+static int yaffs_ApplyXMod(yaffs_Object *obj, char *buffer, yaffs_XAttrMod *xmod)
 {
 	int retval = 0;
 	int x_offs = sizeof(yaffs_ObjectHeader);
+	yaffs_Device *dev = obj->myDev;
 	int x_size = dev->nDataBytesPerChunk - sizeof(yaffs_ObjectHeader);
 
 	char * x_buffer = buffer + x_offs;
@@ -4951,6 +4952,9 @@ static int yaffs_ApplyXMod(yaffs_Device *dev, char *buffer, yaffs_XAttrMod *xmod
 		retval = nval_set(x_buffer, x_size, xmod->name, xmod->data, xmod->size, xmod->flags);
 	else
 		retval = nval_del(x_buffer, x_size, xmod->name);
+
+	obj->hasXattr = nval_hasvalues(x_buffer, x_size);
+	obj->xattrKnown = 1;
 
 	xmod->result = retval;
 
@@ -4973,6 +4977,16 @@ static int yaffs_DoXFetch(yaffs_Object *obj, const YCHAR *name, void *value, int
 	if(obj->hdrChunk < 1)
 		return -ENODATA;
 
+	/* If we know that the object has no xattribs then don't do all the
+	 * reading and parsing.
+	 */
+	if(obj->xattrKnown && !obj->hasXattr){
+		if(name)
+			return -ENODATA;
+		else
+			return 0;
+	}
+
 	buffer = yaffs_GetTempBuffer(dev, __LINE__);
 	if(!buffer)
 		return -ENOMEM;
@@ -4983,6 +4997,11 @@ static int yaffs_DoXFetch(yaffs_Object *obj, const YCHAR *name, void *value, int
 		retval = -ENOENT;
 	else{
 		x_buffer =  buffer + x_offs;
+
+		if (!obj->xattrKnown){
+			obj->hasXattr = nval_hasvalues(x_buffer, x_size);
+			obj->xattrKnown = 1;
+		}
 
 		if(name)
 			retval = nval_get(x_buffer, x_size, name, value, size);

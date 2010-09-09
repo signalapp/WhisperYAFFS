@@ -28,7 +28,7 @@ while [ ! -e $done_file ] ; do
 str=$(cat /proc/yaffs_stats)
 echo "$i, $str" 
 echo "$i, $str"  >> $log_file
-let i=$i+1
+i=$(($i+1))
 sleep $gather_delay
 done
 }

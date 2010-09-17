@@ -158,6 +158,7 @@ loff_t yaffs_totalspace(const YCHAR *path);
 
 int yaffs_inodecount(const YCHAR *path);
 
+int yaffs_n_handles(const YCHAR *path);
 
 struct yaffs_DeviceStruct;
 void yaffs_AddDevice(struct yaffs_DeviceStruct *dev);

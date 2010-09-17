@@ -110,31 +110,46 @@ yaffs_Object *yaffsfs_GetHandleObject(int handle)
 }
 
 /*
- * yaffsfs_GetInodeIdForObject
- * Grab an inode entry when opening a new inode.
+ * yaffsfs_FindInodeIdForObject
+ * Find the inode entry for an object, if it exists.
  */
 
-static int yaffsfs_GetInodeIdForObject(yaffs_Object *obj)
+static int yaffsfs_FindInodeIdForObject(yaffs_Object *obj)
 {
 	int i;
 	int ret = -1;
+	
+	if(obj)
+		obj = yaffs_GetEquivalentObject(obj);
+
+	/* Look for it in open inode table*/
+	for(i = 0; i < YAFFSFS_N_HANDLES && ret < 0; i++){
+		if(yaffsfs_inode[i].iObj == obj)
+			ret = i;
+	}
+	return ret;
+}
+
+/*
+ * yaffsfs_GetInodeIdForObject
+ * Grab an inode entry when opening a new inode.
+ */
+static int yaffsfs_GetInodeIdForObject(yaffs_Object *obj)
+{
+	int i;
+	int ret;
 	yaffsfs_Inode *in = NULL;
 	
 	if(obj)
 		obj = yaffs_GetEquivalentObject(obj);
 
-	/* Look for it. If we can't find it then make one */
-	for(i = 0; i < YAFFSFS_N_HANDLES && ret < 0; i++){
-		if(yaffsfs_inode[i].iObj == obj)
-			ret = i;
-	}
+        ret = yaffsfs_FindInodeIdForObject(obj);
 
 	for(i = 0; i < YAFFSFS_N_HANDLES && ret < 0; i++){
 		if(!yaffsfs_inode[i].iObj)
 			ret = i;
 	}
-	
-	
+
 	if(ret>=0){
 		in = &yaffsfs_inode[ret];
 		if(!in->iObj)
@@ -145,6 +160,17 @@ static int yaffsfs_GetInodeIdForObject(yaffs_Object *obj)
 	
 	
 	return ret;
+}
+
+
+static int yaffsfs_CountHandles(yaffs_Object *obj)
+{
+	int i = yaffsfs_FindInodeIdForObject(obj);
+
+	if(i >= 0)
+		return yaffsfs_inode[i].count;
+	else
+		return 0;
 }
 
 static void yaffsfs_ReleaseInode(yaffsfs_Inode *in)
@@ -2221,6 +2247,23 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 int yaffs_mknod(const YCHAR *pathname, mode_t mode, dev_t dev)
 {
 	return -1;
+}
+
+
+
+/*
+ * yaffs_n_handles()
+ * Returns number of handles attached to the object
+ */
+int yaffs_n_handles(const YCHAR *path)
+{
+	yaffs_Object *obj;
+
+	obj = yaffsfs_FindObject(NULL,path,0);
+	if(obj)
+		obj = yaffs_GetEquivalentObject(obj);
+
+	return yaffsfs_CountHandles(obj);
 }
 
 int yaffs_DumpDevStruct(const YCHAR *path)

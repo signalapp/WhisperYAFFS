@@ -18,7 +18,7 @@
  * makeyaffs2image.c 
  *
  * Makes a YAFFS2 file system image that can be used to load up a file system.
- * Uses default Linux MTD layout - change if you need something different.
+ * Uses default Linux MTD layout - search for "NAND LAYOUT" to change.
  */
  
 #include <stdlib.h>
@@ -29,6 +29,8 @@
 #include <dirent.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+#include <assert.h>
 #include "yaffs_ecc.h"
 #include "yaffs_guts.h"
 
@@ -39,8 +41,10 @@ unsigned yaffs_traceMask=0;
 
 #define MAX_OBJECTS 10000
 
+// Adjust these to match your NAND LAYOUT:
 #define chunkSize 2048
 #define spareSize 64
+#define pagesPerBlock 64
 
 const char * mkyaffsimage_c_version = "$Id: mkyaffs2image.c,v 1.5 2010-01-11 21:43:18 charles Exp $";
 
@@ -62,8 +66,24 @@ static int nObjects, nDirectories, nPages;
 static int outFile;
 
 static int error;
+static int savedErrno;
 
 static int convert_endian = 0;
+
+static void fatal(const char *fn)
+{
+	perror(fn);
+	error |= 1;
+	exit(error);
+}
+
+static int warn(const char *fn)
+{
+	savedErrno = errno;
+	perror(fn);
+	error |= 2;
+	return error;
+}
 
 static int obj_compare(const void *a, const void * b)
 {
@@ -96,7 +116,7 @@ static void add_obj_to_list(dev_t dev, ino_t ino, int obj)
 	{
 		// oops! not enough space in the object array
 		fprintf(stderr,"Not enough space in object array\n");
-		exit(2);
+		exit(1);
 	}
 }
 
@@ -154,13 +174,21 @@ static void little_to_big_endian(yaffs_Tags *tagsPtr)
 #endif
 }
 
+static void shuffle_oob(char *spareData, yaffs_PackedTags2 *pt)
+{
+	assert(sizeof(*pt) <= spareSize);
+	// NAND LAYOUT: For non-trivial OOB orderings, here would be a good place to shuffle.
+	memcpy(spareData, pt, sizeof(*pt));
+}
+
 static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
 {
 	yaffs_ExtendedTags t;
 	yaffs_PackedTags2 pt;
+	char spareData[spareSize];
 
-	error = write(outFile,data,chunkSize);
-	if(error < 0) return error;
+	if (write(outFile,data,chunkSize) != chunkSize)
+		fatal("write");
 
 	yaffs_InitialiseTags(&t);
 	
@@ -182,11 +210,15 @@ static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
 
 	nPages++;
 
+	memset(&pt, 0, sizeof(pt));
 	yaffs_PackTags2(&pt,&t,1);
-	
-//	return write(outFile,&pt,sizeof(yaffs_PackedTags2));
-	return write(outFile,&pt,spareSize);
-	
+
+	memset(spareData, 0xff, sizeof(spareData));
+	shuffle_oob(spareData, &pt);
+
+	if (write(outFile,spareData,sizeof(spareData)) != sizeof(spareData))
+		fatal("write");
+	return 0;
 }
 
 #define SWAP32(x)   ((((x) & 0x000000FF) << 24) | \
@@ -200,18 +232,21 @@ static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
 // This one is easier, since the types are more standard. No funky shifts here.
 static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
 {
+    int i;    
     oh->type = SWAP32(oh->type); // GCC makes enums 32 bits.
     oh->parentObjectId = SWAP32(oh->parentObjectId); // int
     oh->sum__NoLongerUsed = SWAP16(oh->sum__NoLongerUsed); // __u16 - Not used, but done for completeness.
     // name = skip. Char array. Not swapped.
     oh->yst_mode = SWAP32(oh->yst_mode);
 #ifdef CONFIG_YAFFS_WINCE // WinCE doesn't implement this, but we need to just in case. 
-    // In fact, WinCE would be *THE* place where this would be an issue!
-    oh->notForWinCE[0] = SWAP32(oh->notForWinCE[0]);
-    oh->notForWinCE[1] = SWAP32(oh->notForWinCE[1]);
-    oh->notForWinCE[2] = SWAP32(oh->notForWinCE[2]);
-    oh->notForWinCE[3] = SWAP32(oh->notForWinCE[3]);
-    oh->notForWinCE[4] = SWAP32(oh->notForWinCE[4]);
+    // In fact, WinCE would be *THE* place where this would be an issue.
+    // Why? WINCE is little-endian only.
+
+    {
+        int n = sizeof(oh->notForWinCE)/sizeof(oh->notForWinCE[0]);
+        for(i = 0; i < n; i++)
+            oh->notForWinCE[i] = SWAP32(oh->notForWinCE[i]);
+    }
 #else
     // Regular POSIX.
     oh->yst_uid = SWAP32(oh->yst_uid);
@@ -233,25 +268,13 @@ static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
     oh->win_atime[1] = SWAP32(oh->win_atime[1]);
     oh->win_mtime[0] = SWAP32(oh->win_mtime[0]);
     oh->win_mtime[1] = SWAP32(oh->win_mtime[1]);
-    oh->roomToGrow[0] = SWAP32(oh->roomToGrow[0]);
-    oh->roomToGrow[1] = SWAP32(oh->roomToGrow[1]);
-    oh->roomToGrow[2] = SWAP32(oh->roomToGrow[2]);
-    oh->roomToGrow[3] = SWAP32(oh->roomToGrow[3]);
-    oh->roomToGrow[4] = SWAP32(oh->roomToGrow[4]);
-    oh->roomToGrow[5] = SWAP32(oh->roomToGrow[5]);
 #else
-    oh->roomToGrow[0] = SWAP32(oh->roomToGrow[0]);
-    oh->roomToGrow[1] = SWAP32(oh->roomToGrow[1]);
-    oh->roomToGrow[2] = SWAP32(oh->roomToGrow[2]);
-    oh->roomToGrow[3] = SWAP32(oh->roomToGrow[3]);
-    oh->roomToGrow[4] = SWAP32(oh->roomToGrow[4]);
-    oh->roomToGrow[5] = SWAP32(oh->roomToGrow[5]);
-    oh->roomToGrow[6] = SWAP32(oh->roomToGrow[6]);
-    oh->roomToGrow[7] = SWAP32(oh->roomToGrow[7]);
-    oh->roomToGrow[8] = SWAP32(oh->roomToGrow[8]);
-    oh->roomToGrow[9] = SWAP32(oh->roomToGrow[9]);
-    oh->roomToGrow[10] = SWAP32(oh->roomToGrow[10]);
-    oh->roomToGrow[11] = SWAP32(oh->roomToGrow[11]);
+
+    {
+        int n = sizeof(oh->roomToGrow)/sizeof(oh->roomToGrow[0]);
+        for(i=0; i < n; i++)
+            oh->roomToGrow[i] = SWAP32(oh->roomToGrow[i]);
+    }
 #endif
 }
 
@@ -268,7 +291,13 @@ static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, in
 
 	oh->parentObjectId = parent;
 	
-	strncpy(oh->name,name,YAFFS_MAX_NAME_LENGTH);
+	if (strlen(name)+1 > sizeof(oh->name))
+	{
+		errno = ENAMETOOLONG;
+		return warn("object name");
+	}
+	memset(oh->name,0,sizeof(oh->name));
+	strcpy(oh->name,name);
 	
 	
 	if(t != YAFFS_OBJECT_TYPE_HARDLINK)
@@ -295,7 +324,13 @@ static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, in
 	
 	if(t == YAFFS_OBJECT_TYPE_SYMLINK)
 	{
-		strncpy(oh->alias,alias,YAFFS_MAX_ALIAS_LENGTH);
+		if (strlen(alias)+1 > sizeof(oh->alias))
+		{
+			errno = ENAMETOOLONG;
+			return warn("object alias");
+		}
+		memset(oh->alias,0,sizeof(oh->alias));
+		strcpy(oh->alias,alias);
 	}
 
 	if (convert_endian)
@@ -307,6 +342,21 @@ static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, in
 	
 }
 
+static void pad_image()
+{
+	__u8 data[chunkSize + spareSize];
+	int padPages = (nPages % pagesPerBlock);
+
+	if (padPages)
+	{
+		memset(data, 0xff, sizeof(data));
+		for (padPages = pagesPerBlock-padPages; padPages; padPages--)
+		{
+			if (write(outFile, data, sizeof(data)) != sizeof(data))
+				fatal("write");
+		}
+	}
+}
 
 static int process_directory(int parent, const char *path)
 {
@@ -317,8 +367,11 @@ static int process_directory(int parent, const char *path)
 	nDirectories++;
 	
 	dir = opendir(path);
-	
-	if(dir)
+	if(!dir)
+	{
+		warn("opendir");
+	}
+	else
 	{
 		while((entry = readdir(dir)) != NULL)
 		{
@@ -332,9 +385,17 @@ static int process_directory(int parent, const char *path)
 				int equivalentObj;
 				int newObj;
 				
-				sprintf(full_name,"%s/%s",path,entry->d_name);
+				if (snprintf(full_name,sizeof(full_name),"%s/%s",path,entry->d_name) >= (int)sizeof(full_name))
+				{
+					error = -1;
+					continue;
+				}
 				
-				lstat(full_name,&stats);
+				if (lstat(full_name,&stats) < 0)
+				{
+					warn("lstat");
+					continue;
+				}
 				
 				if(S_ISLNK(stats.st_mode) ||
 				    S_ISREG(stats.st_mode) ||
@@ -355,7 +416,7 @@ static int process_directory(int parent, const char *path)
 					{
 					 	/* we need to make a hard link */
 					 	printf("hard link to object %d\n",equivalentObj);
-						error =  write_object_header(newObj, YAFFS_OBJECT_TYPE_HARDLINK, &stats, parent, entry->d_name, equivalentObj, NULL);
+						write_object_header(newObj, YAFFS_OBJECT_TYPE_HARDLINK, &stats, parent, entry->d_name, equivalentObj, NULL);
 					}
 					else 
 					{
@@ -369,18 +430,20 @@ static int process_directory(int parent, const char *path)
 						
 							memset(symname,0, sizeof(symname));
 					
-							readlink(full_name,symname,sizeof(symname) -1);
-						
-							printf("symlink to \"%s\"\n",symname);
-							error =  write_object_header(newObj, YAFFS_OBJECT_TYPE_SYMLINK, &stats, parent, entry->d_name, -1, symname);
-
+							if (readlink(full_name,symname,sizeof(symname) -1) < 0)
+							{
+								warn("readlink");
+							}
+							else
+							{
+								printf("symlink to \"%s\"\n",symname);
+								write_object_header(newObj, YAFFS_OBJECT_TYPE_SYMLINK, &stats, parent, entry->d_name, -1, symname);
+							}
 						}
 						else if(S_ISREG(stats.st_mode))
 						{
 							printf("file, ");
-							error =  write_object_header(newObj, YAFFS_OBJECT_TYPE_FILE, &stats, parent, entry->d_name, -1, NULL);
-
-							if(error >= 0)
+							if(write_object_header(newObj, YAFFS_OBJECT_TYPE_FILE, &stats, parent, entry->d_name, -1, NULL) == 0)
 							{
 								int h;
 								__u8 bytes[chunkSize];
@@ -398,15 +461,15 @@ static int process_directory(int parent, const char *path)
 										memset(bytes,0xff,sizeof(bytes));
 									}
 									if(nBytes < 0) 
-									   error = nBytes;
+									   warn("read");
 									   
 									printf("%d data chunks written\n",chunk);
+									close(h);
 								}
 								else
 								{
-									perror("Error opening file");
+									warn("open");
 								}
-								close(h);
 								
 							}							
 														
@@ -414,38 +477,40 @@ static int process_directory(int parent, const char *path)
 						else if(S_ISSOCK(stats.st_mode))
 						{
 							printf("socket\n");
-							error =  write_object_header(newObj, YAFFS_OBJECT_TYPE_SPECIAL, &stats, parent, entry->d_name, -1, NULL);
+							write_object_header(newObj, YAFFS_OBJECT_TYPE_SPECIAL, &stats, parent, entry->d_name, -1, NULL);
 						}
 						else if(S_ISFIFO(stats.st_mode))
 						{
 							printf("fifo\n");
-							error =  write_object_header(newObj, YAFFS_OBJECT_TYPE_SPECIAL, &stats, parent, entry->d_name, -1, NULL);
+							write_object_header(newObj, YAFFS_OBJECT_TYPE_SPECIAL, &stats, parent, entry->d_name, -1, NULL);
 						}
 						else if(S_ISCHR(stats.st_mode))
 						{
 							printf("character device\n");
-							error =  write_object_header(newObj, YAFFS_OBJECT_TYPE_SPECIAL, &stats, parent, entry->d_name, -1, NULL);
+							write_object_header(newObj, YAFFS_OBJECT_TYPE_SPECIAL, &stats, parent, entry->d_name, -1, NULL);
 						}
 						else if(S_ISBLK(stats.st_mode))
 						{
 							printf("block device\n");
-							error =  write_object_header(newObj, YAFFS_OBJECT_TYPE_SPECIAL, &stats, parent, entry->d_name, -1, NULL);
+							write_object_header(newObj, YAFFS_OBJECT_TYPE_SPECIAL, &stats, parent, entry->d_name, -1, NULL);
 						}
 						else if(S_ISDIR(stats.st_mode))
 						{
 							printf("directory\n");
-							error =  write_object_header(newObj, YAFFS_OBJECT_TYPE_DIRECTORY, &stats, parent, entry->d_name, -1, NULL);
-// NCB modified 10/9/2001				process_directory(1,full_name);
-							process_directory(newObj,full_name);
+							if (write_object_header(newObj, YAFFS_OBJECT_TYPE_DIRECTORY, &stats, parent, entry->d_name, -1, NULL) == 0)
+								process_directory(newObj,full_name);
 						}
 					}
 				}
 				else
 				{
-					printf(" we don't handle this type\n");
+					fprintf(stderr, "%s: unhandled type\n", full_name);
+					error |= 2;
+					savedErrno = EINVAL;
 				}
 			}
 		}
+		closedir(dir);
 	}
 	
 	return 0;
@@ -495,16 +560,16 @@ int main(int argc, char *argv[])
 	}
 	
 	printf("Processing directory %s into image file %s\n",argv[1],argv[2]);
-	error =  write_object_header(1, YAFFS_OBJECT_TYPE_DIRECTORY, &stats, 1,"", -1, NULL);
-	if(error)
-	error = process_directory(YAFFS_OBJECTID_ROOT,argv[1]);
+	process_directory(YAFFS_OBJECTID_ROOT,argv[1]);
 	
+	pad_image();
+
 	close(outFile);
 	
-	if(error < 0)
+	if(error)
 	{
+		errno = savedErrno;
 		perror("operation incomplete");
-		exit(1);
 	}
 	else
 	{
@@ -513,8 +578,6 @@ int main(int argc, char *argv[])
 		       "%d NAND pages\n",nObjects, nDirectories, nPages);
 	}
 	
-	close(outFile);
-	
-	exit(0);
+	exit(error);
 }	
 

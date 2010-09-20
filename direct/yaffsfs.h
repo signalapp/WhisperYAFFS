@@ -76,6 +76,7 @@ struct yaffs_stat{
 };
 
 int yaffs_open(const YCHAR *path, int oflag, int mode) ;
+
 int yaffs_close(int fd) ;
 int yaffs_fsync(int fd) ;
 int yaffs_fdatasync(int fd) ;
@@ -159,6 +160,11 @@ loff_t yaffs_totalspace(const YCHAR *path);
 int yaffs_inodecount(const YCHAR *path);
 
 int yaffs_n_handles(const YCHAR *path);
+
+#define YAFFS_SHARE_READ  1
+#define YAFFS_SHARE_WRITE 2
+int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int shareMode) ;
+
 
 struct yaffs_DeviceStruct;
 void yaffs_AddDevice(struct yaffs_DeviceStruct *dev);

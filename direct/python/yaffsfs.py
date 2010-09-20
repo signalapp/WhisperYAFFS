@@ -2,6 +2,11 @@ from ctypes import *
 cdll.LoadLibrary("./libyaffsfs.so")
 ylib = CDLL("./libyaffsfs.so")
 
+#int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharingmode) ;
+yaffs_open_sharing = ylib.yaffs_open_sharing
+yaffs_open_sharing.argtypes = [ c_char_p, c_int, c_int, c_int]
+yaffs_open_sharing.restype = c_int
+
 #int yaffs_open(const YCHAR *path, int oflag, int mode) ;
 yaffs_open = ylib.yaffs_open
 yaffs_open.argtypes = [ c_char_p, c_int, c_int]

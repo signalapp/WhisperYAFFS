@@ -53,10 +53,13 @@ typedef struct {
 } yaffsfs_Inode;
 
 typedef struct{
-	__u8 	readOnly:1;
+	__u8 	reading:1;
+	__u8 	writing:1;
 	__u8 	append:1;
-	int	inodeId:13;	/* Index to corresponding yaffsfs_Inode */
-	int	useCount:16;	/* Use count for this handle */
+	__u8	shareRead:1;
+	__u8	shareWrite:1;
+	int	inodeId:12;	/* Index to corresponding yaffsfs_Inode */
+	int	useCount:10;	/* Use count for this handle */
 	__u32 position;		/* current position in file */
 }yaffsfs_Handle;
 
@@ -561,7 +564,7 @@ int yaffs_dup(int fd)
 
 }
 
-int yaffs_open(const YCHAR *path, int oflag, int mode)
+int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 {
 	yaffs_Object *obj = NULL;
 	yaffs_Object *dir = NULL;
@@ -571,6 +574,14 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 	int openDenied = 0;
 	int symDepth = 0;
 	int errorReported = 0;
+	__u8 shareRead = (sharing & YAFFS_SHARE_READ) ?  1 : 0;
+	__u8 shareWrite = (sharing & YAFFS_SHARE_WRITE) ? 1 : 0;
+	__u8 sharedReadAllowed;
+	__u8 sharedWriteAllowed;
+	__u8 alreadyReading;
+	__u8 alreadyWriting;
+	__u8 readRequested;
+	__u8 writeRequested;
 
 	/* O_EXCL only has meaning if O_CREAT is specified */
 	if(!(oflag & O_CREAT))
@@ -590,7 +601,6 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 	if(handle >= 0){
 
 		h = yaffsfs_GetHandlePointer(handle);
-
 
 		/* try to find the exisiting object */
 		obj = yaffsfs_FindObject(NULL,path,0);
@@ -639,6 +649,43 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 			   !(obj->yst_mode & S_IWRITE))
 				openDenied = 1;
 
+			/* Check sharing of an existing object. */
+			{
+				yaffsfs_Handle *h;
+				int i;
+				sharedReadAllowed = 1;
+				sharedWriteAllowed = 1;
+				alreadyReading = 0;
+				alreadyWriting = 0;
+				for( i = 0; i < YAFFSFS_N_HANDLES; i++){
+					h = &yaffsfs_handle[i];
+					if(h->useCount > 0 &&
+						h->inodeId >= 0 &&
+						yaffsfs_inode[h->inodeId].iObj == obj){
+						if(!h->shareRead)
+							sharedReadAllowed = 0;
+						if(!h->shareWrite)
+							sharedWriteAllowed = 0;
+						if(h->reading)
+							alreadyReading = 1;
+						if(h->writing)
+							alreadyWriting = 0;
+					}
+				}
+
+				readRequested = (oflag & (O_RDWR | O_RDONLY)) ? 1 : 0;
+				writeRequested = (oflag & (O_RDWR | O_WRONLY)) ? 1 : 0;
+
+				if((!sharedReadAllowed && readRequested)|| 
+					(!shareRead  && alreadyReading) ||
+					(!sharedWriteAllowed && writeRequested) ||
+					(!shareWrite && alreadyWriting)){
+					openDenied = 1;
+					yaffsfs_SetError(-EBUSY);
+					errorReported=1;
+				}
+			}
+
 		} else if((oflag & O_CREAT)) {
 			/* Let's see if we can create this file */
 			dir = yaffsfs_FindDirectory(NULL,path,&name,0);
@@ -664,14 +711,17 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 			}
 			
 			h->inodeId = inodeId;
-			h->readOnly = (oflag & (O_WRONLY | O_RDWR)) ? 0 : 1;
+			h->reading = (oflag & (O_RDONLY | O_RDWR)) ? 1 : 0;
+			h->writing = (oflag & (O_WRONLY | O_RDWR)) ? 1 : 0;
 			h->append =  (oflag & O_APPEND) ? 1 : 0;
 			h->position = 0;
+			h->shareRead = shareRead;
+			h->shareWrite = shareWrite;
 
 			/* Hook inode to object */
                         obj->myInode = (void*) &yaffsfs_inode[inodeId];
 
-                        if((oflag & O_TRUNC) && !h->readOnly)
+                        if((oflag & O_TRUNC) && h->writing)
                                 yaffs_ResizeFile(obj,0);
 		} else {
 			yaffsfs_PutHandle(handle);
@@ -686,6 +736,11 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 	yaffsfs_Unlock();
 
 	return handle;
+}
+
+int yaffs_open(const YCHAR *path, int oflag, int mode)
+{
+	return yaffs_open_sharing(path, oflag, mode, YAFFS_SHARE_READ | YAFFS_SHARE_WRITE);
 }
 
 int yaffs_Dofsync(int fd,int datasync)
@@ -865,7 +920,7 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 		totalWritten = -1;
-	} else if( h && obj && (h->readOnly || obj->myDev->readOnly)){
+	} else if( h && obj && (!h->writing || obj->myDev->readOnly)){
 		yaffsfs_SetError(-EINVAL);
 		totalWritten=-1;
 	} else if( h && obj){

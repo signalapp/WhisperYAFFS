@@ -35,6 +35,9 @@
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 10))
 #define YAFFS_COMPILE_BACKGROUND
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6, 23))
+#define YAFFS_COMPILE_FREEZER
+#endif
 #endif
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28))
@@ -83,6 +86,8 @@
 #ifdef YAFFS_COMPILE_BACKGROUND
 #include <linux/kthread.h>
 #include <linux/delay.h>
+#endif
+#ifdef YAFFS_COMPILE_FREEZER
 #include <linux/freezer.h>
 #endif
 
@@ -492,7 +497,8 @@ static  int yaffs_vfs_setsize(struct inode *inode, loff_t newsize)
 	truncate_setsize(inode,newsize);
 	return 0;
 #else
-	return simple_setsize(inode, newsize);
+	truncate_inode_pages(&inode->i_data,newsize);
+	return 0;
 #endif
 
 }
@@ -2319,8 +2325,9 @@ static int yaffs_BackgroundThread(void *data)
 		(TSTR("yaffs_background starting for dev %p\n"),
 		(void *)dev));
 
+#ifdef YAFFS_COMPILE_FREEZER
 	set_freezable();
-
+#endif
 	while(context->bgRunning){
 		T(YAFFS_TRACE_BACKGROUND,
 			(TSTR("yaffs_background\n")));
@@ -2328,9 +2335,10 @@ static int yaffs_BackgroundThread(void *data)
 		if(kthread_should_stop())
 			break;
 
+#ifdef YAFFS_COMPILE_FREEZER
 		if(try_to_freeze())
 			continue;
-
+#endif
 		yaffs_GrossLock(dev);
 
 		now = jiffies;

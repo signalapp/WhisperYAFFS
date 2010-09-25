@@ -5535,9 +5535,8 @@ static int yaffs_CheckStructures(void)
 /*      yaffs_CheckStruct(yaffs_Tags,8,"yaffs_Tags"); */
 /*      yaffs_CheckStruct(yaffs_TagsUnion,8,"yaffs_TagsUnion"); */
 /*      yaffs_CheckStruct(yaffs_Spare,16,"yaffs_Spare"); */
-#ifndef CONFIG_YAFFS_TNODE_LIST_DEBUG
 /*	yaffs_CheckStruct(yaffs_Tnode, 2 * YAFFS_NTNODES_LEVEL0, "yaffs_Tnode"); */
-#endif
+
 #ifndef CONFIG_YAFFS_WINCE
 	yaffs_CheckStruct(yaffs_ObjectHeader, 512, "yaffs_ObjectHeader");
 #endif

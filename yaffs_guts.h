@@ -351,12 +351,7 @@ typedef struct {
 /*--------------------------- Tnode -------------------------- */
 
 union yaffs_Tnode_union {
-#ifdef CONFIG_YAFFS_TNODE_LIST_DEBUG
-	union yaffs_Tnode_union *internal[YAFFS_NTNODES_INTERNAL + 1];
-#else
 	union yaffs_Tnode_union *internal[YAFFS_NTNODES_INTERNAL];
-#endif
-/*	__u16 level0[YAFFS_NTNODES_LEVEL0]; */
 
 };
 

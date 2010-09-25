@@ -22,15 +22,17 @@ VERSION=0
 PATCHLEVEL=0
 SUBLEVEL=0
 COPYORLINK=$1
-LINUXDIR=$2
+MULTIORSINGLE=$2
+LINUXDIR=$3
 
 # To be a Linux directory, it must have a Makefile
 
 
 # Display usage of this script
 usage () {
-	echo "usage:  $0  c/l kernelpath"
+	echo "usage:  $0  c/l m/s kernelpath"
 	echo " if c/l is c, then copy. If l then link"
+	echo " if m/s is m, then use multi version code. If s then use single version code"
 	exit 1
 }
 
@@ -47,6 +49,15 @@ elif [ $COPYORLINK = c ]; then
    CPY="cp"
 else
    echo "unknown copy or link type"
+   usage;
+fi
+
+if [ $MULTIORSINGLE = m ]; then
+   VFSGLUE="yaffs_vfs_multi.c"
+elif [ $MULTIORSINGLE = s ]; then
+   VFSGLUE="yaffs_vfs.c"
+else
+   echo "unknown multi/single version selection"
    usage;
 fi
 
@@ -120,4 +131,6 @@ else
    $CPY  $PWD/Makefile.kernel $LINUXDIR/fs/yaffs2/Makefile
    $CPY $PWD/Kconfig $LINUXDIR/fs/yaffs2
    $CPY $PWD/*.c $PWD/*.h  $LINUXDIR/fs/yaffs2
+   rm $LINUXDIR/fs/yaffs2/yaffs_vfs.c $LINUXDIR/fs/yaffs2/yaffs_vfs_multi.c
+   $CPY $PWD/$VFSGLUE $LINUXDIR/fs/yaffs2/yaffs_vfs_glue.c
 fi

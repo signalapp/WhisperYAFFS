@@ -2448,6 +2448,10 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	param->refreshPeriod = 500;
 #endif
 
+#ifdef CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED
+	param->alwaysCheckErased = 1;
+#endif
+
 	if(options.empty_lost_and_found_overridden)
 		param->emptyLostAndFound = options.empty_lost_and_found;
 
@@ -2638,6 +2642,7 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_Device * dev)
 	buf += sprintf(buf, "refreshPeriod...... %d\n", dev->param.refreshPeriod);
 	buf += sprintf(buf, "nShortOpCaches..... %d\n", dev->param.nShortOpCaches);
 	buf += sprintf(buf, "nReservedBlocks.... %d\n", dev->param.nReservedBlocks);
+	buf += sprintf(buf, "alwaysCheckErased...%d\n", dev->param.alwaysCheckErased);
 
 	buf += sprintf(buf, "\n");
 

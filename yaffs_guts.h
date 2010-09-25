@@ -601,7 +601,7 @@ struct yaffs_DeviceParamStruct {
 #ifdef CONFIG_YAFFS_AUTO_UNICODE
 	int autoUnicode;
 #endif
-	
+	int alwaysCheckErased; /* Force chunk erased check always on */
 };
 
 typedef struct yaffs_DeviceParamStruct yaffs_DeviceParam;

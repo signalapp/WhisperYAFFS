@@ -431,9 +431,9 @@ static int yaffs_WriteNewChunkWithTagsToNAND(struct yaffs_DeviceStruct *dev,
 		/* let's give it a try */
 		attempts++;
 
-#ifdef CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED
-		bi->skipErasedCheck = 0;
-#endif
+		if(dev->param.alwaysCheckErased)
+			bi->skipErasedCheck = 0;
+
 		if (!bi->skipErasedCheck) {
 			erasedOk = yaffs_CheckChunkErased(dev, chunk);
 			if (erasedOk != YAFFS_OK) {

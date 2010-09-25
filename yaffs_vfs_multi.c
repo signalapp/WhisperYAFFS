@@ -31,6 +31,10 @@
  * >> inode->u.generic_ip points to the associated yaffs_Object.
  */
 
+/*
+ * There are two variants of the VFS glue code. This variant should compile
+ * for any version of Linux.
+ */
 #include <linux/version.h>
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 10))

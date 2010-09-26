@@ -10,7 +10,7 @@ iterations=100000
 LAUNCHDIR=`pwd`
 RUNDIR=`pwd`/tmp
 mkdir $RUNDIR
-sudo mount -t tmpfs none $RUNDIR
+sudo mount -t tmpfs -osize=2G none $RUNDIR
 sudo chmod a+wr $RUNDIR
 
 

@@ -145,6 +145,48 @@ Blocks containing data that is written but never erased will not get
 back into the free list, so wear is levelled over only blocks which
 are free or become free, not blocks which never change.
 
+Integrating YAFFS2 into a Linux 2.6.x kernel
+--------------------------------------------
+
+We'll start by assuming you have a building linux 2.6.x source tree called
+linux-dir and have the
+yaffs2 source code in a directory calls yaffs-dir.
+
+yaffs-dir has a handy shell script called patch-ker.sh will painlessly do all the patching
+for you.
+
+patch-ker.sh takes three parameters:
+c/l	copy or link: c will copy yaffs files into the kernel tree, l will
+create symbolic links.
+m/s	multi-version or single version vfs glue layer. Suggest you use m.
+linux-tree
+
+eg.
+
+cd yaffs-dir
+./patch-ker.sh  c m linux-tree
+
+You will now have to do "make menuconfig" or similar in the Linux tree to
+set up the yaffs2 configs. The configs are found under:
+File systems/Miscellaneous file systems/ yaffs2
+
+
+Updating YAFFS2 in a Linux 2.6.x. kernel
+----------------------------------------
+
+Updating the yaffs in a kernel tree is much the same as above. The only
+difference is that you will have to first get rid of the old yaffs2 code.
+Just run patch-ker.sh as above which will tell you what to do.
+
+eg.
+
+cd yaffs-dir
+./patch-ker.sh c m linux-tree
+ complains that linux-tree/fs/yaffs2 already exists
+rm -rf linuux-tree/fs/yaffs2
+./patch-ker.sh c m linux-tree
+
+Now go and do the linux menuconfig again to set up any new configs.
 
 
 Some helpful info

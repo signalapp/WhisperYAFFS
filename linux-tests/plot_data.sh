@@ -44,7 +44,10 @@ tail -$plot_samples $log_file > $trunc_file
 
 plot_str=" plot '$trunc_file' using 1:3 with linespoints title 'free', '' using 1:4 with linespoints title 'erased'"
 
-echo "set title 'yaffs free space and erased space'"
+echo "set title 'yaffs free space vs erased space'"
+echo "set xlabel 'seconds'"
+echo "set ylabel 'chunks'"
+
 
 echo $plot_str
  

@@ -56,6 +56,14 @@ if [ $MULTIORSINGLE = m ]; then
    VFSGLUE="yaffs_vfs_multi.c"
 elif [ $MULTIORSINGLE = s ]; then
    VFSGLUE="yaffs_vfs.c"
+   echo ""
+   echo "*** Warning ***"
+   echo "You have chosen to use the single kernel variant of the yaffs VFS glue code"
+   echo "that only works with the latest Linux kernel tree. If you are using an older"
+   echo "version of Linux then you probably wanted to use the multi-version variant by"
+   echo "re-running the patch-ker.sh script using m as a the second argument."
+   echo " ie $0 $COPYORLINK m $LINUXDIR"
+   echo ""
 else
    echo "unknown multi/single version selection"
    usage;
@@ -123,8 +131,8 @@ YAFFSDIR=$LINUXDIR/fs/yaffs2
 
 if [ -e $YAFFSDIR ]
 then
-   echo "$YAFFSDIR exists, not patching."
-   echo "If you want to replace what is already there then delete $YAFFSDIR"
+   echo "$YAFFSDIR exists, so not patching. If you want to replace what is"
+   echo "already there then delete $YAFFSDIR and re-run this script"
    echo " eg.  \"rm -rf $YAFFSDIR\" "
 else
    mkdir $LINUXDIR/fs/yaffs2

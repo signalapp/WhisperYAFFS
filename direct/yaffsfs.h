@@ -167,14 +167,14 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int shareMode) ;
 
 
 struct yaffs_DeviceStruct;
-void yaffs_AddDevice(struct yaffs_DeviceStruct *dev);
+void yaffs_add_device(struct yaffs_DeviceStruct *dev);
 
-int yaffs_StartUp(void);
+int yaffs_start_up(void);
 
 
 /* Function only for debugging */
 void * yaffs_getdev(const YCHAR *path);
-int yaffs_DumpDevStruct(const YCHAR *path);
+int yaffs_dump_dev(const YCHAR *path);
 
 #endif
 

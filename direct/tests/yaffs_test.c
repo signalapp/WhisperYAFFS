@@ -45,7 +45,7 @@ int n_cycles = -1;
 int fuzz_test=0;
 
 
-int yaffs_test_maxMallocs;
+int yaffs_test_max_mallocs;
 
 extern int ops_multiplier;
 
@@ -227,7 +227,7 @@ int main(int argc, char **argv)
 			n_cycles = atoi(optarg);
 			break;
 		case 't':
-			yaffs_traceMask = strtol(optarg,NULL,0);
+			yaffs_trace_mask = strtol(optarg,NULL,0);
 			break;
 		case 'z':fuzz_test=1;
 			break;
@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 	argv += optind;
 	
 	if(random_mallocs){
-		yaffs_test_maxMallocs = 0xFFF & random_seed;
+		yaffs_test_max_mallocs = 0xFFF & random_seed;
 	}
 	
 	if(argc == 1) {
@@ -257,7 +257,7 @@ int main(int argc, char **argv)
 			simulate_power_failure ? "power_fail" : "",
 			random_seed, n_cycles);
 
-		yaffs_StartUp();
+		yaffs_start_up();
 		result = yaffs_mount(mount_point);
 		if(result < 0){
 			printf("Mount of %s failed\n",mount_point);

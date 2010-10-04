@@ -18,22 +18,22 @@
 #include "yaffs_getblockinfo.h"
 #include "yaffs_nand.h"
 
-int yaffs_SkipVerification(yaffs_Device *dev)
+int yaffs_skip_verification(yaffs_Device *dev)
 {
 	dev=dev;
-	return !(yaffs_traceMask & (YAFFS_TRACE_VERIFY | YAFFS_TRACE_VERIFY_FULL));
+	return !(yaffs_trace_mask & (YAFFS_TRACE_VERIFY | YAFFS_TRACE_VERIFY_FULL));
 }
 
-static int yaffs_SkipFullVerification(yaffs_Device *dev)
+static int yaffs_skip_full_verification(yaffs_Device *dev)
 {
 	dev=dev;
-	return !(yaffs_traceMask & (YAFFS_TRACE_VERIFY_FULL));
+	return !(yaffs_trace_mask & (YAFFS_TRACE_VERIFY_FULL));
 }
 
-static int yaffs_SkipNANDVerification(yaffs_Device *dev)
+static int yaffs_skip_nand_verification(yaffs_Device *dev)
 {
 	dev=dev;
-	return !(yaffs_traceMask & (YAFFS_TRACE_VERIFY_NAND));
+	return !(yaffs_trace_mask & (YAFFS_TRACE_VERIFY_NAND));
 }
 
 
@@ -51,12 +51,12 @@ static const char *blockStateName[] = {
 };
 
 
-void yaffs_VerifyBlock(yaffs_Device *dev, yaffs_BlockInfo *bi, int n)
+void yaffs_verify_blk(yaffs_Device *dev, yaffs_BlockInfo *bi, int n)
 {
 	int actuallyUsed;
 	int inUse;
 
-	if (yaffs_SkipVerification(dev))
+	if (yaffs_skip_verification(dev))
 		return;
 
 	/* Report illegal runtime states */
@@ -83,7 +83,7 @@ void yaffs_VerifyBlock(yaffs_Device *dev, yaffs_BlockInfo *bi, int n)
 
 
 	/* Check chunk bitmap legal */
-	inUse = yaffs_CountChunkBits(dev, n);
+	inUse = yaffs_count_chunk_bits(dev, n);
 	if (inUse != bi->pagesInUse)
 		T(YAFFS_TRACE_VERIFY, (TSTR("Block %d has inconsistent values pagesInUse %d counted chunk bits %d"TENDSTR),
 			n, bi->pagesInUse, inUse));
@@ -92,9 +92,9 @@ void yaffs_VerifyBlock(yaffs_Device *dev, yaffs_BlockInfo *bi, int n)
 
 
 
-void yaffs_VerifyCollectedBlock(yaffs_Device *dev, yaffs_BlockInfo *bi, int n)
+void yaffs_verify_collected_blk(yaffs_Device *dev, yaffs_BlockInfo *bi, int n)
 {
-	yaffs_VerifyBlock(dev, bi, n);
+	yaffs_verify_blk(dev, bi, n);
 
 	/* After collection the block should be in the erased state */
 
@@ -105,20 +105,20 @@ void yaffs_VerifyCollectedBlock(yaffs_Device *dev, yaffs_BlockInfo *bi, int n)
 	}
 }
 
-void yaffs_VerifyBlocks(yaffs_Device *dev)
+void yaffs_verify_blocks(yaffs_Device *dev)
 {
 	int i;
 	int nBlocksPerState[YAFFS_NUMBER_OF_BLOCK_STATES];
 	int nIllegalBlockStates = 0;
 
-	if (yaffs_SkipVerification(dev))
+	if (yaffs_skip_verification(dev))
 		return;
 
 	memset(nBlocksPerState, 0, sizeof(nBlocksPerState));
 
 	for (i = dev->internalStartBlock; i <= dev->internalEndBlock; i++) {
-		yaffs_BlockInfo *bi = yaffs_GetBlockInfo(dev, i);
-		yaffs_VerifyBlock(dev, bi, i);
+		yaffs_BlockInfo *bi = yaffs_get_block_info(dev, i);
+		yaffs_verify_blk(dev, bi, i);
 
 		if (bi->blockState < YAFFS_NUMBER_OF_BLOCK_STATES)
 			nBlocksPerState[bi->blockState]++;
@@ -161,9 +161,9 @@ void yaffs_VerifyBlocks(yaffs_Device *dev)
  * Verify the object header. oh must be valid, but obj and tags may be NULL in which
  * case those tests will not be performed.
  */
-void yaffs_VerifyObjectHeader(yaffs_Object *obj, yaffs_ObjectHeader *oh, yaffs_ExtendedTags *tags, int parentCheck)
+void yaffs_verify_oh(yaffs_Object *obj, yaffs_ObjectHeader *oh, yaffs_ExtendedTags *tags, int parentCheck)
 {
-	if (obj && yaffs_SkipVerification(obj->myDev))
+	if (obj && yaffs_skip_verification(obj->myDev))
 		return;
 
 	if (!(tags && obj && oh)) {
@@ -218,7 +218,7 @@ void yaffs_VerifyObjectHeader(yaffs_Object *obj, yaffs_ObjectHeader *oh, yaffs_E
 
 #if 0
 /* Not being used, but don't want to throw away yet */
-int yaffs_VerifyTnodeWorker(yaffs_Object *obj, yaffs_Tnode *tn,
+int yaffs_verify_tnode_worker(yaffs_Object *obj, yaffs_Tnode *tn,
 					__u32 level, int chunkOffset)
 {
 	int i;
@@ -230,7 +230,7 @@ int yaffs_VerifyTnodeWorker(yaffs_Object *obj, yaffs_Tnode *tn,
 
 			for (i = 0; i < YAFFS_NTNODES_INTERNAL && ok; i++) {
 				if (tn->internal[i]) {
-					ok = yaffs_VerifyTnodeWorker(obj,
+					ok = yaffs_verify_tnode_worker(obj,
 							tn->internal[i],
 							level - 1,
 							(chunkOffset<<YAFFS_TNODES_INTERNAL_BITS) + i);
@@ -243,11 +243,11 @@ int yaffs_VerifyTnodeWorker(yaffs_Object *obj, yaffs_Tnode *tn,
 			chunkOffset <<=  YAFFS_TNODES_LEVEL0_BITS;
 
 			for (i = 0; i < YAFFS_NTNODES_LEVEL0; i++) {
-				__u32 theChunk = yaffs_GetChunkGroupBase(dev, tn, i);
+				__u32 theChunk = yaffs_get_group_base(dev, tn, i);
 
 				if (theChunk > 0) {
 					/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),tags.objectId,tags.chunkId,theChunk)); */
-					yaffs_ReadChunkWithTagsFromNAND(dev, theChunk, NULL, &tags);
+					yaffs_rd_chunk_tags_nand(dev, theChunk, NULL, &tags);
 					if (tags.objectId != objectId || tags.chunkId != chunkOffset) {
 						T(~0, (TSTR("Object %d chunkId %d NAND mismatch chunk %d tags (%d:%d)"TENDSTR),
 							objectId, chunkOffset, theChunk,
@@ -265,7 +265,7 @@ int yaffs_VerifyTnodeWorker(yaffs_Object *obj, yaffs_Tnode *tn,
 
 #endif
 
-void yaffs_VerifyFile(yaffs_Object *obj)
+void yaffs_verify_file(yaffs_Object *obj)
 {
 	int requiredTallness;
 	int actualTallness;
@@ -280,7 +280,7 @@ void yaffs_VerifyFile(yaffs_Object *obj)
 	if (!obj)
 		return;
 
-	if (yaffs_SkipVerification(obj->myDev))
+	if (yaffs_skip_verification(obj->myDev))
 		return;
 
 	dev = obj->myDev;
@@ -302,17 +302,17 @@ void yaffs_VerifyFile(yaffs_Object *obj)
 	 * checking the tags for every chunk match.
 	 */
 
-	if (yaffs_SkipNANDVerification(dev))
+	if (yaffs_skip_nand_verification(dev))
 		return;
 
 	for (i = 1; i <= lastChunk; i++) {
-		tn = yaffs_FindLevel0Tnode(dev, &obj->variant.fileVariant, i);
+		tn = yaffs_find_tnode_0(dev, &obj->variant.fileVariant, i);
 
 		if (tn) {
-			__u32 theChunk = yaffs_GetChunkGroupBase(dev, tn, i);
+			__u32 theChunk = yaffs_get_group_base(dev, tn, i);
 			if (theChunk > 0) {
 				/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),objectId,i,theChunk)); */
-				yaffs_ReadChunkWithTagsFromNAND(dev, theChunk, NULL, &tags);
+				yaffs_rd_chunk_tags_nand(dev, theChunk, NULL, &tags);
 				if (tags.objectId != objectId || tags.chunkId != i) {
 					T(~0, (TSTR("Object %d chunkId %d NAND mismatch chunk %d tags (%d:%d)"TENDSTR),
 						objectId, i, theChunk,
@@ -324,29 +324,29 @@ void yaffs_VerifyFile(yaffs_Object *obj)
 }
 
 
-void yaffs_VerifyHardLink(yaffs_Object *obj)
+void yaffs_verify_link(yaffs_Object *obj)
 {
-	if (obj && yaffs_SkipVerification(obj->myDev))
+	if (obj && yaffs_skip_verification(obj->myDev))
 		return;
 
 	/* Verify sane equivalent object */
 }
 
-void yaffs_VerifySymlink(yaffs_Object *obj)
+void yaffs_verify_symlink(yaffs_Object *obj)
 {
-	if (obj && yaffs_SkipVerification(obj->myDev))
+	if (obj && yaffs_skip_verification(obj->myDev))
 		return;
 
 	/* Verify symlink string */
 }
 
-void yaffs_VerifySpecial(yaffs_Object *obj)
+void yaffs_verify_special(yaffs_Object *obj)
 {
-	if (obj && yaffs_SkipVerification(obj->myDev))
+	if (obj && yaffs_skip_verification(obj->myDev))
 		return;
 }
 
-void yaffs_VerifyObject(yaffs_Object *obj)
+void yaffs_verify_obj(yaffs_Object *obj)
 {
 	yaffs_Device *dev;
 
@@ -366,7 +366,7 @@ void yaffs_VerifyObject(yaffs_Object *obj)
 
 	dev = obj->myDev;
 
-	if (yaffs_SkipVerification(dev))
+	if (yaffs_skip_verification(dev))
 		return;
 
 	/* Check sane object header chunk */
@@ -377,7 +377,7 @@ void yaffs_VerifyObject(yaffs_Object *obj)
 	chunkInRange = (((unsigned)(obj->hdrChunk)) >= chunkMin && ((unsigned)(obj->hdrChunk)) <= chunkMax);
 	chunkIdOk = chunkInRange || (obj->hdrChunk == 0);
 	chunkValid = chunkInRange &&
-			yaffs_CheckChunkBit(dev,
+			yaffs_check_chunk_bit(dev,
 					obj->hdrChunk / dev->param.nChunksPerBlock,
 					obj->hdrChunk % dev->param.nChunksPerBlock);
 	chunkShouldNotBeDeleted = chunkInRange && !chunkValid;
@@ -391,19 +391,19 @@ void yaffs_VerifyObject(yaffs_Object *obj)
 			chunkShouldNotBeDeleted ? ",marked as deleted" : ""));
 	}
 
-	if (chunkValid && !yaffs_SkipNANDVerification(dev)) {
+	if (chunkValid && !yaffs_skip_nand_verification(dev)) {
 		yaffs_ExtendedTags tags;
 		yaffs_ObjectHeader *oh;
-		__u8 *buffer = yaffs_GetTempBuffer(dev, __LINE__);
+		__u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
 
 		oh = (yaffs_ObjectHeader *)buffer;
 
-		yaffs_ReadChunkWithTagsFromNAND(dev, obj->hdrChunk, buffer,
+		yaffs_rd_chunk_tags_nand(dev, obj->hdrChunk, buffer,
 				&tags);
 
-		yaffs_VerifyObjectHeader(obj, oh, &tags, 1);
+		yaffs_verify_oh(obj, oh, &tags, 1);
 
-		yaffs_ReleaseTempBuffer(dev, buffer, __LINE__);
+		yaffs_release_temp_buffer(dev, buffer, __LINE__);
 	}
 
 	/* Verify it has a parent */
@@ -423,19 +423,19 @@ void yaffs_VerifyObject(yaffs_Object *obj)
 
 	switch (obj->variantType) {
 	case YAFFS_OBJECT_TYPE_FILE:
-		yaffs_VerifyFile(obj);
+		yaffs_verify_file(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_SYMLINK:
-		yaffs_VerifySymlink(obj);
+		yaffs_verify_symlink(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_DIRECTORY:
-		yaffs_VerifyDirectory(obj);
+		yaffs_verify_dir(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_HARDLINK:
-		yaffs_VerifyHardLink(obj);
+		yaffs_verify_link(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_SPECIAL:
-		yaffs_VerifySpecial(obj);
+		yaffs_verify_special(obj);
 		break;
 	case YAFFS_OBJECT_TYPE_UNKNOWN:
 	default:
@@ -446,13 +446,13 @@ void yaffs_VerifyObject(yaffs_Object *obj)
 	}
 }
 
-void yaffs_VerifyObjects(yaffs_Device *dev)
+void yaffs_verify_objects(yaffs_Device *dev)
 {
 	yaffs_Object *obj;
 	int i;
 	struct ylist_head *lh;
 
-	if (yaffs_SkipVerification(dev))
+	if (yaffs_skip_verification(dev))
 		return;
 
 	/* Iterate through the objects in each hash entry */
@@ -461,14 +461,14 @@ void yaffs_VerifyObjects(yaffs_Device *dev)
 		ylist_for_each(lh, &dev->objectBucket[i].list) {
 			if (lh) {
 				obj = ylist_entry(lh, yaffs_Object, hashLink);
-				yaffs_VerifyObject(obj);
+				yaffs_verify_obj(obj);
 			}
 		}
 	}
 }
 
 
-void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
+void yaffs_verify_obj_in_dir(yaffs_Object *obj)
 {
 	struct ylist_head *lh;
 	yaffs_Object *listObj;
@@ -481,7 +481,7 @@ void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
 		return;
 	}
 
-	if (yaffs_SkipVerification(obj->myDev))
+	if (yaffs_skip_verification(obj->myDev))
 		return;
 
 	if (!obj->parent) {
@@ -500,7 +500,7 @@ void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
 	ylist_for_each(lh, &obj->parent->variant.directoryVariant.children) {
 		if (lh) {
 			listObj = ylist_entry(lh, yaffs_Object, siblings);
-			yaffs_VerifyObject(listObj);
+			yaffs_verify_obj(listObj);
 			if (obj == listObj)
 				count++;
 		}
@@ -512,7 +512,7 @@ void yaffs_VerifyObjectInDirectory(yaffs_Object *obj)
 	}
 }
 
-void yaffs_VerifyDirectory(yaffs_Object *directory)
+void yaffs_verify_dir(yaffs_Object *directory)
 {
 	struct ylist_head *lh;
 	yaffs_Object *listObj;
@@ -522,7 +522,7 @@ void yaffs_VerifyDirectory(yaffs_Object *directory)
 		return;
 	}
 
-	if (yaffs_SkipFullVerification(directory->myDev))
+	if (yaffs_skip_full_verification(directory->myDev))
 		return;
 
 	if (directory->variantType != YAFFS_OBJECT_TYPE_DIRECTORY) {
@@ -539,22 +539,22 @@ void yaffs_VerifyDirectory(yaffs_Object *directory)
 				T(YAFFS_TRACE_ALWAYS, (TSTR("Object in directory list has wrong parent %p" TENDSTR), listObj->parent));
 				YBUG();
 			}
-			yaffs_VerifyObjectInDirectory(listObj);
+			yaffs_verify_obj_in_dir(listObj);
 		}
 	}
 }
 
-static int yaffs_freeVerificationFailures;
+static int yaffs_free_verification_failures;
 
-void yaffs_VerifyFreeChunks(yaffs_Device *dev)
+void yaffs_verify_free_chunks(yaffs_Device *dev)
 {
 	int counted;
 	int difference;
 
-	if (yaffs_SkipVerification(dev))
+	if (yaffs_skip_verification(dev))
 		return;
 
-	counted = yaffs_CountFreeChunks(dev);
+	counted = yaffs_count_free_chunks(dev);
 
 	difference = dev->nFreeChunks - counted;
 
@@ -562,11 +562,11 @@ void yaffs_VerifyFreeChunks(yaffs_Device *dev)
 		T(YAFFS_TRACE_ALWAYS,
 		  (TSTR("Freechunks verification failure %d %d %d" TENDSTR),
 		   dev->nFreeChunks, counted, difference));
-		yaffs_freeVerificationFailures++;
+		yaffs_free_verification_failures++;
 	}
 }
 
-int yaffs_VerifyFileSanity(yaffs_Object *in)
+int yaffs_verify_file_sane(yaffs_Object *in)
 {
 #if 0
 	int chunk;
@@ -589,21 +589,21 @@ int yaffs_VerifyFileSanity(yaffs_Object *in)
 	    (fSize + in->myDev->nDataBytesPerChunk - 1) / in->myDev->nDataBytesPerChunk;
 
 	for (chunk = 1; chunk <= nChunks; chunk++) {
-		tn = yaffs_FindLevel0Tnode(in->myDev, &in->variant.fileVariant,
+		tn = yaffs_find_tnode_0(in->myDev, &in->variant.fileVariant,
 					   chunk);
 
 		if (tn) {
 
-			theChunk = yaffs_GetChunkGroupBase(dev, tn, chunk);
+			theChunk = yaffs_get_group_base(dev, tn, chunk);
 
-			if (yaffs_CheckChunkBits
+			if (yaffs_check_chunk_bits
 			    (dev, theChunk / dev->param.nChunksPerBlock,
 			     theChunk % dev->param.nChunksPerBlock)) {
 
-				yaffs_ReadChunkTagsFromNAND(in->myDev, theChunk,
+				yaffs_rd_chunk_tags_nand(in->myDev, theChunk,
 							    tags,
 							    &chunkDeleted);
-				if (yaffs_TagsMatch
+				if (yaffs_tags_match
 				    (tags, in->objectId, chunk, chunkDeleted)) {
 					/* found it; */
 

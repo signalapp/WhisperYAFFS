@@ -17,7 +17,7 @@
 
 #include "yaffs_getblockinfo.h"
 
-int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
+int yaffs_rd_chunk_tags_nand(yaffs_Device *dev, int chunkInNAND,
 					   __u8 *buffer,
 					   yaffs_ExtendedTags *tags)
 {
@@ -36,7 +36,7 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 		result = dev->param.readChunkWithTagsFromNAND(dev, realignedChunkInNAND, buffer,
 						      tags);
 	else
-		result = yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(dev,
+		result = yaffs_tags_compat_rd(dev,
 									realignedChunkInNAND,
 									buffer,
 									tags);
@@ -44,14 +44,14 @@ int yaffs_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 	   tags->eccResult > YAFFS_ECC_RESULT_NO_ERROR) {
 
 		yaffs_BlockInfo *bi;
-		bi = yaffs_GetBlockInfo(dev, chunkInNAND/dev->param.nChunksPerBlock);
-		yaffs_HandleChunkError(dev, bi);
+		bi = yaffs_get_block_info(dev, chunkInNAND/dev->param.nChunksPerBlock);
+		yaffs_handle_chunk_error(dev, bi);
 	}
 
 	return result;
 }
 
-int yaffs_WriteChunkWithTagsToNAND(yaffs_Device *dev,
+int yaffs_wr_chunk_tags_nand(yaffs_Device *dev,
 						   int chunkInNAND,
 						   const __u8 *buffer,
 						   yaffs_ExtendedTags *tags)
@@ -65,7 +65,7 @@ int yaffs_WriteChunkWithTagsToNAND(yaffs_Device *dev,
 	if (tags) {
 		tags->sequenceNumber = dev->sequenceNumber;
 		tags->chunkUsed = 1;
-		if (!yaffs_ValidateTags(tags)) {
+		if (!yaffs_validate_tags(tags)) {
 			T(YAFFS_TRACE_ERROR,
 			  (TSTR("Writing uninitialised tags" TENDSTR)));
 			YBUG();
@@ -82,13 +82,13 @@ int yaffs_WriteChunkWithTagsToNAND(yaffs_Device *dev,
 		return dev->param.writeChunkWithTagsToNAND(dev, chunkInNAND, buffer,
 						     tags);
 	else
-		return yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(dev,
+		return yaffs_tags_compat_wr(dev,
 								       chunkInNAND,
 								       buffer,
 								       tags);
 }
 
-int yaffs_MarkBlockBad(yaffs_Device *dev, int blockNo)
+int yaffs_mark_bad(yaffs_Device *dev, int blockNo)
 {
 	blockNo -= dev->blockOffset;
 
@@ -96,10 +96,10 @@ int yaffs_MarkBlockBad(yaffs_Device *dev, int blockNo)
 	if (dev->param.markNANDBlockBad)
 		return dev->param.markNANDBlockBad(dev, blockNo);
 	else
-		return yaffs_TagsCompatabilityMarkNANDBlockBad(dev, blockNo);
+		return yaffs_tags_compat_mark_bad(dev, blockNo);
 }
 
-int yaffs_QueryInitialBlockState(yaffs_Device *dev,
+int yaffs_query_init_block_state(yaffs_Device *dev,
 						 int blockNo,
 						 yaffs_BlockState *state,
 						 __u32 *sequenceNumber)
@@ -109,13 +109,13 @@ int yaffs_QueryInitialBlockState(yaffs_Device *dev,
 	if (dev->param.queryNANDBlock)
 		return dev->param.queryNANDBlock(dev, blockNo, state, sequenceNumber);
 	else
-		return yaffs_TagsCompatabilityQueryNANDBlock(dev, blockNo,
+		return yaffs_tags_compat_query_block(dev, blockNo,
 							     state,
 							     sequenceNumber);
 }
 
 
-int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,
+int yaffs_erase_block(struct yaffs_DeviceStruct *dev,
 				  int blockInNAND)
 {
 	int result;
@@ -129,7 +129,7 @@ int yaffs_EraseBlockInNAND(struct yaffs_DeviceStruct *dev,
 	return result;
 }
 
-int yaffs_InitialiseNAND(struct yaffs_DeviceStruct *dev)
+int yaffs_init_nand(struct yaffs_DeviceStruct *dev)
 {
 	if(dev->param.initialiseNAND)
 		return dev->param.initialiseNAND(dev);

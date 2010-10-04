@@ -17,18 +17,18 @@
 #include "yaffs_getblockinfo.h"
 #include "yaffs_trace.h"
 
-static void yaffs_HandleReadDataError(yaffs_Device *dev, int chunkInNAND);
+static void yaffs_handle_rd_data_error(yaffs_Device *dev, int chunkInNAND);
 #ifdef NOTYET
-static void yaffs_CheckWrittenBlock(yaffs_Device *dev, int chunkInNAND);
-static void yaffs_HandleWriteChunkOk(yaffs_Device *dev, int chunkInNAND,
+static void yaffs_check_written_block(yaffs_Device *dev, int chunkInNAND);
+static void yaffs_handle_chunk_wr_ok(yaffs_Device *dev, int chunkInNAND,
 				     const __u8 *data,
 				     const yaffs_Spare *spare);
-static void yaffs_HandleUpdateChunk(yaffs_Device *dev, int chunkInNAND,
+static void yaffs_handle_chunk_update(yaffs_Device *dev, int chunkInNAND,
 				    const yaffs_Spare *spare);
-static void yaffs_HandleWriteChunkError(yaffs_Device *dev, int chunkInNAND);
+static void yaffs_handle_chunk_wr_error(yaffs_Device *dev, int chunkInNAND);
 #endif
 
-static const char yaffs_countBitsTable[256] = {
+static const char yaffs_count_bits_table[256] = {
 	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
@@ -47,22 +47,22 @@ static const char yaffs_countBitsTable[256] = {
 	4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
 };
 
-int yaffs_CountBits(__u8 x)
+int yaffs_count_bits(__u8 x)
 {
 	int retVal;
-	retVal = yaffs_countBitsTable[x];
+	retVal = yaffs_count_bits_table[x];
 	return retVal;
 }
 
 /********** Tags ECC calculations  *********/
 
-void yaffs_CalcECC(const __u8 *data, yaffs_Spare *spare)
+void yaffs_calc_ecc(const __u8 *data, yaffs_Spare *spare)
 {
-	yaffs_ECCCalculate(data, spare->ecc1);
-	yaffs_ECCCalculate(&data[256], spare->ecc2);
+	yaffs_ecc_cacl(data, spare->ecc1);
+	yaffs_ecc_cacl(&data[256], spare->ecc2);
 }
 
-void yaffs_CalcTagsECC(yaffs_Tags *tags)
+void yaffs_calc_tags_ecc(yaffs_Tags *tags)
 {
 	/* Calculate an ecc */
 
@@ -85,11 +85,11 @@ void yaffs_CalcTagsECC(yaffs_Tags *tags)
 
 }
 
-int yaffs_CheckECCOnTags(yaffs_Tags *tags)
+int yaffs_check_tags_ecc(yaffs_Tags *tags)
 {
 	unsigned ecc = tags->ecc;
 
-	yaffs_CalcTagsECC(tags);
+	yaffs_calc_tags_ecc(tags);
 
 	ecc ^= tags->ecc;
 
@@ -102,7 +102,7 @@ int yaffs_CheckECCOnTags(yaffs_Tags *tags)
 		b[ecc / 8] ^= (1 << (ecc & 7));
 
 		/* Now recvalc the ecc */
-		yaffs_CalcTagsECC(tags);
+		yaffs_calc_tags_ecc(tags);
 
 		return 1;	/* recovered error */
 	} else if (ecc) {
@@ -116,12 +116,12 @@ int yaffs_CheckECCOnTags(yaffs_Tags *tags)
 
 /********** Tags **********/
 
-static void yaffs_LoadTagsIntoSpare(yaffs_Spare *sparePtr,
+static void yaffs_load_tags_to_spare(yaffs_Spare *sparePtr,
 				yaffs_Tags *tagsPtr)
 {
 	yaffs_TagsUnion *tu = (yaffs_TagsUnion *) tagsPtr;
 
-	yaffs_CalcTagsECC(tagsPtr);
+	yaffs_calc_tags_ecc(tagsPtr);
 
 	sparePtr->tagByte0 = tu->asBytes[0];
 	sparePtr->tagByte1 = tu->asBytes[1];
@@ -133,7 +133,7 @@ static void yaffs_LoadTagsIntoSpare(yaffs_Spare *sparePtr,
 	sparePtr->tagByte7 = tu->asBytes[7];
 }
 
-static void yaffs_GetTagsFromSpare(yaffs_Device *dev, yaffs_Spare *sparePtr,
+static void yaffs_get_tags_from_spare(yaffs_Device *dev, yaffs_Spare *sparePtr,
 				yaffs_Tags *tagsPtr)
 {
 	yaffs_TagsUnion *tu = (yaffs_TagsUnion *) tagsPtr;
@@ -148,19 +148,19 @@ static void yaffs_GetTagsFromSpare(yaffs_Device *dev, yaffs_Spare *sparePtr,
 	tu->asBytes[6] = sparePtr->tagByte6;
 	tu->asBytes[7] = sparePtr->tagByte7;
 
-	result = yaffs_CheckECCOnTags(tagsPtr);
+	result = yaffs_check_tags_ecc(tagsPtr);
 	if (result > 0)
 		dev->tagsEccFixed++;
 	else if (result < 0)
 		dev->tagsEccUnfixed++;
 }
 
-static void yaffs_SpareInitialise(yaffs_Spare *spare)
+static void yaffs_spare_init(yaffs_Spare *spare)
 {
 	memset(spare, 0xFF, sizeof(yaffs_Spare));
 }
 
-static int yaffs_WriteChunkToNAND(struct yaffs_DeviceStruct *dev,
+static int yaffs_wr_nand(struct yaffs_DeviceStruct *dev,
 				int chunkInNAND, const __u8 *data,
 				yaffs_Spare *spare)
 {
@@ -174,7 +174,7 @@ static int yaffs_WriteChunkToNAND(struct yaffs_DeviceStruct *dev,
 	return dev->param.writeChunkToNAND(dev, chunkInNAND, data, spare);
 }
 
-static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
+static int yaffs_rd_chunk_nand(struct yaffs_DeviceStruct *dev,
 				   int chunkInNAND,
 				   __u8 *data,
 				   yaffs_Spare *spare,
@@ -198,12 +198,12 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 			int eccResult1, eccResult2;
 			__u8 calcEcc[3];
 
-			yaffs_ECCCalculate(data, calcEcc);
+			yaffs_ecc_cacl(data, calcEcc);
 			eccResult1 =
-			    yaffs_ECCCorrect(data, spare->ecc1, calcEcc);
-			yaffs_ECCCalculate(&data[256], calcEcc);
+			    yaffs_ecc_correct(data, spare->ecc1, calcEcc);
+			yaffs_ecc_cacl(&data[256], calcEcc);
 			eccResult2 =
-			    yaffs_ECCCorrect(&data[256], spare->ecc2, calcEcc);
+			    yaffs_ecc_correct(&data[256], spare->ecc2, calcEcc);
 
 			if (eccResult1 > 0) {
 				T(YAFFS_TRACE_ERROR,
@@ -235,7 +235,7 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 
 			if (eccResult1 || eccResult2) {
 				/* We had a data problem on this page */
-				yaffs_HandleReadDataError(dev, chunkInNAND);
+				yaffs_handle_rd_data_error(dev, chunkInNAND);
 			}
 
 			if (eccResult1 < 0 || eccResult2 < 0)
@@ -282,7 +282,7 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 
 			if (nspare.eccres1 || nspare.eccres2) {
 				/* We had a data problem on this page */
-				yaffs_HandleReadDataError(dev, chunkInNAND);
+				yaffs_handle_rd_data_error(dev, chunkInNAND);
 			}
 
 			if (nspare.eccres1 < 0 || nspare.eccres2 < 0)
@@ -298,7 +298,7 @@ static int yaffs_ReadChunkFromNAND(struct yaffs_DeviceStruct *dev,
 }
 
 #ifdef NOTYET
-static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,
+static int yaffs_check_chunk_erased(struct yaffs_DeviceStruct *dev,
 				  int chunkInNAND)
 {
 	static int init;
@@ -329,12 +329,12 @@ static int yaffs_CheckChunkErased(struct yaffs_DeviceStruct *dev,
  * Functions for robustisizing
  */
 
-static void yaffs_HandleReadDataError(yaffs_Device *dev, int chunkInNAND)
+static void yaffs_handle_rd_data_error(yaffs_Device *dev, int chunkInNAND)
 {
 	int blockInNAND = chunkInNAND / dev->param.nChunksPerBlock;
 
 	/* Mark the block for retirement */
-	yaffs_GetBlockInfo(dev, blockInNAND + dev->blockOffset)->needsRetiring = 1;
+	yaffs_get_block_info(dev, blockInNAND + dev->blockOffset)->needsRetiring = 1;
 	T(YAFFS_TRACE_ERROR | YAFFS_TRACE_BAD_BLOCKS,
 	  (TSTR("**>>Block %d marked for retirement" TENDSTR), blockInNAND));
 
@@ -346,32 +346,32 @@ static void yaffs_HandleReadDataError(yaffs_Device *dev, int chunkInNAND)
 }
 
 #ifdef NOTYET
-static void yaffs_CheckWrittenBlock(yaffs_Device *dev, int chunkInNAND)
+static void yaffs_check_written_block(yaffs_Device *dev, int chunkInNAND)
 {
 }
 
-static void yaffs_HandleWriteChunkOk(yaffs_Device *dev, int chunkInNAND,
+static void yaffs_handle_chunk_wr_ok(yaffs_Device *dev, int chunkInNAND,
 				     const __u8 *data,
 				     const yaffs_Spare *spare)
 {
 }
 
-static void yaffs_HandleUpdateChunk(yaffs_Device *dev, int chunkInNAND,
+static void yaffs_handle_chunk_update(yaffs_Device *dev, int chunkInNAND,
 				    const yaffs_Spare *spare)
 {
 }
 
-static void yaffs_HandleWriteChunkError(yaffs_Device *dev, int chunkInNAND)
+static void yaffs_handle_chunk_wr_error(yaffs_Device *dev, int chunkInNAND)
 {
 	int blockInNAND = chunkInNAND / dev->param.nChunksPerBlock;
 
 	/* Mark the block for retirement */
-	yaffs_GetBlockInfo(dev, blockInNAND)->needsRetiring = 1;
+	yaffs_get_block_info(dev, blockInNAND)->needsRetiring = 1;
 	/* Delete the chunk */
-	yaffs_DeleteChunk(dev, chunkInNAND, 1, __LINE__);
+	yaffs_chunk_del(dev, chunkInNAND, 1, __LINE__);
 }
 
-static int yaffs_VerifyCompare(const __u8 *d0, const __u8 *d1,
+static int yaffs_verify_cmp(const __u8 *d0, const __u8 *d1,
 			       const yaffs_Spare *s0, const yaffs_Spare *s1)
 {
 
@@ -396,7 +396,7 @@ static int yaffs_VerifyCompare(const __u8 *d0, const __u8 *d1,
 }
 #endif				/* NOTYET */
 
-int yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(yaffs_Device *dev,
+int yaffs_tags_compat_wr(yaffs_Device *dev,
 						int chunkInNAND,
 						const __u8 *data,
 						const yaffs_ExtendedTags *eTags)
@@ -404,7 +404,7 @@ int yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(yaffs_Device *dev,
 	yaffs_Spare spare;
 	yaffs_Tags tags;
 
-	yaffs_SpareInitialise(&spare);
+	yaffs_spare_init(&spare);
 
 	if (eTags->chunkDeleted)
 		spare.pageStatus = 0;
@@ -423,16 +423,16 @@ int yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(yaffs_Device *dev,
 		tags.serialNumber = eTags->serialNumber;
 
 		if (!dev->param.useNANDECC && data)
-			yaffs_CalcECC(data, &spare);
+			yaffs_calc_ecc(data, &spare);
 
-		yaffs_LoadTagsIntoSpare(&spare, &tags);
+		yaffs_load_tags_to_spare(&spare, &tags);
 
 	}
 
-	return yaffs_WriteChunkToNAND(dev, chunkInNAND, data, &spare);
+	return yaffs_wr_nand(dev, chunkInNAND, data, &spare);
 }
 
-int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device *dev,
+int yaffs_tags_compat_rd(yaffs_Device *dev,
 						     int chunkInNAND,
 						     __u8 *data,
 						     yaffs_ExtendedTags *eTags)
@@ -450,13 +450,13 @@ int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device *dev,
 		init = 1;
 	}
 
-	if (yaffs_ReadChunkFromNAND
+	if (yaffs_rd_chunk_nand
 	    (dev, chunkInNAND, data, &spare, &eccResult, 1)) {
 		/* eTags may be NULL */
 		if (eTags) {
 
 			int deleted =
-			    (yaffs_CountBits(spare.pageStatus) < 7) ? 1 : 0;
+			    (yaffs_count_bits(spare.pageStatus) < 7) ? 1 : 0;
 
 			eTags->chunkDeleted = deleted;
 			eTags->eccResult = eccResult;
@@ -467,7 +467,7 @@ int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device *dev,
 			     0) ? 1 : 0;
 
 			if (eTags->chunkUsed) {
-				yaffs_GetTagsFromSpare(dev, &spare, &tags);
+				yaffs_get_tags_from_spare(dev, &spare, &tags);
 
 				eTags->objectId = tags.objectId;
 				eTags->chunkId = tags.chunkId;
@@ -486,7 +486,7 @@ int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	}
 }
 
-int yaffs_TagsCompatabilityMarkNANDBlockBad(struct yaffs_DeviceStruct *dev,
+int yaffs_tags_compat_mark_bad(struct yaffs_DeviceStruct *dev,
 					    int blockInNAND)
 {
 
@@ -496,16 +496,16 @@ int yaffs_TagsCompatabilityMarkNANDBlockBad(struct yaffs_DeviceStruct *dev,
 
 	spare.blockStatus = 'Y';
 
-	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->param.nChunksPerBlock, NULL,
+	yaffs_wr_nand(dev, blockInNAND * dev->param.nChunksPerBlock, NULL,
 			       &spare);
-	yaffs_WriteChunkToNAND(dev, blockInNAND * dev->param.nChunksPerBlock + 1,
+	yaffs_wr_nand(dev, blockInNAND * dev->param.nChunksPerBlock + 1,
 			       NULL, &spare);
 
 	return YAFFS_OK;
 
 }
 
-int yaffs_TagsCompatabilityQueryNANDBlock(struct yaffs_DeviceStruct *dev,
+int yaffs_tags_compat_query_block(struct yaffs_DeviceStruct *dev,
 					  int blockNo,
 					  yaffs_BlockState *state,
 					  __u32 *sequenceNumber)
@@ -523,12 +523,12 @@ int yaffs_TagsCompatabilityQueryNANDBlock(struct yaffs_DeviceStruct *dev,
 
 	*sequenceNumber = 0;
 
-	yaffs_ReadChunkFromNAND(dev, blockNo * dev->param.nChunksPerBlock, NULL,
+	yaffs_rd_chunk_nand(dev, blockNo * dev->param.nChunksPerBlock, NULL,
 				&spare0, &dummy, 1);
-	yaffs_ReadChunkFromNAND(dev, blockNo * dev->param.nChunksPerBlock + 1, NULL,
+	yaffs_rd_chunk_nand(dev, blockNo * dev->param.nChunksPerBlock + 1, NULL,
 				&spare1, &dummy, 1);
 
-	if (yaffs_CountBits(spare0.blockStatus & spare1.blockStatus) < 7)
+	if (yaffs_count_bits(spare0.blockStatus & spare1.blockStatus) < 7)
 		*state = YAFFS_BLOCK_STATE_DEAD;
 	else if (memcmp(&spareFF, &spare0, sizeof(spareFF)) == 0)
 		*state = YAFFS_BLOCK_STATE_EMPTY;

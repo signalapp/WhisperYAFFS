@@ -827,79 +827,79 @@ typedef struct {
 	int size;
 	int flags;
 	int result;
-}yaffs_XAttrMod;
+}yaffs_xattr_mod;
 
 
 /*----------------------- YAFFS Functions -----------------------*/
 
-int yaffs_GutsInitialise(yaffs_Device *dev);
-void yaffs_Deinitialise(yaffs_Device *dev);
+int yaffs_guts_initialise(yaffs_Device *dev);
+void yaffs_deinitialise(yaffs_Device *dev);
 
-int yaffs_GetNumberOfFreeChunks(yaffs_Device *dev);
+int yaffs_get_n_free_chunks(yaffs_Device *dev);
 
-int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName,
+int yaffs_rename_obj(yaffs_Object *oldDir, const YCHAR *oldName,
 		       yaffs_Object *newDir, const YCHAR *newName);
 
 int yaffs_Unlink(yaffs_Object *dir, const YCHAR *name);
-int yaffs_DeleteObject(yaffs_Object *obj);
+int yaffs_del_obj(yaffs_Object *obj);
 
-int yaffs_GetObjectName(yaffs_Object *obj, YCHAR *name, int buffSize);
-int yaffs_GetObjectFileLength(yaffs_Object *obj);
-int yaffs_GetObjectInode(yaffs_Object *obj);
-unsigned yaffs_GetObjectType(yaffs_Object *obj);
-int yaffs_GetObjectLinkCount(yaffs_Object *obj);
+int yaffs_get_obj_name(yaffs_Object *obj, YCHAR *name, int buffSize);
+int yaffs_get_obj_length(yaffs_Object *obj);
+int yaffs_get_obj_inode(yaffs_Object *obj);
+unsigned yaffs_get_obj_type(yaffs_Object *obj);
+int yaffs_get_obj_link_count(yaffs_Object *obj);
 
-int yaffs_SetAttributes(yaffs_Object *obj, struct iattr *attr);
-int yaffs_GetAttributes(yaffs_Object *obj, struct iattr *attr);
+int yaffs_set_attribs(yaffs_Object *obj, struct iattr *attr);
+int yaffs_get_attribs(yaffs_Object *obj, struct iattr *attr);
 
 /* File operations */
-int yaffs_ReadDataFromFile(yaffs_Object *obj, __u8 *buffer, loff_t offset,
+int yaffs_file_rd(yaffs_Object *obj, __u8 *buffer, loff_t offset,
 				int nBytes);
-int yaffs_WriteDataToFile(yaffs_Object *obj, const __u8 *buffer, loff_t offset,
+int yaffs_wr_file(yaffs_Object *obj, const __u8 *buffer, loff_t offset,
 				int nBytes, int writeThrough);
-int yaffs_ResizeFile(yaffs_Object *obj, loff_t newSize);
+int yaffs_resize_file(yaffs_Object *obj, loff_t newSize);
 
-yaffs_Object *yaffs_MknodFile(yaffs_Object *parent, const YCHAR *name,
+yaffs_Object *yaffs_create_file(yaffs_Object *parent, const YCHAR *name,
 				__u32 mode, __u32 uid, __u32 gid);
 
-int yaffs_FlushFile(yaffs_Object *obj, int updateTime, int dataSync);
+int yaffs_flush_file(yaffs_Object *obj, int updateTime, int dataSync);
 
 /* Flushing and checkpointing */
-void yaffs_FlushEntireDeviceCache(yaffs_Device *dev);
+void yaffs_flush_whole_cache(yaffs_Device *dev);
 
-int yaffs_CheckpointSave(yaffs_Device *dev);
-int yaffs_CheckpointRestore(yaffs_Device *dev);
+int yaffs_checkpoint_save(yaffs_Device *dev);
+int yaffs_checkpoint_restore(yaffs_Device *dev);
 
 /* Directory operations */
-yaffs_Object *yaffs_MknodDirectory(yaffs_Object *parent, const YCHAR *name,
+yaffs_Object *yaffs_create_dir(yaffs_Object *parent, const YCHAR *name,
 				__u32 mode, __u32 uid, __u32 gid);
-yaffs_Object *yaffs_FindObjectByName(yaffs_Object *theDir, const YCHAR *name);
+yaffs_Object *yaffs_find_by_name(yaffs_Object *theDir, const YCHAR *name);
 int yaffs_ApplyToDirectoryChildren(yaffs_Object *theDir,
 				   int (*fn) (yaffs_Object *));
 
-yaffs_Object *yaffs_FindObjectByNumber(yaffs_Device *dev, __u32 number);
+yaffs_Object *yaffs_find_by_number(yaffs_Device *dev, __u32 number);
 
 /* Link operations */
 yaffs_Object *yaffs_Link(yaffs_Object *parent, const YCHAR *name,
 			 yaffs_Object *equivalentObject);
 
-yaffs_Object *yaffs_GetEquivalentObject(yaffs_Object *obj);
+yaffs_Object *yaffs_get_equivalent_obj(yaffs_Object *obj);
 
 /* Symlink operations */
-yaffs_Object *yaffs_MknodSymLink(yaffs_Object *parent, const YCHAR *name,
+yaffs_Object *yaffs_create_symlink(yaffs_Object *parent, const YCHAR *name,
 				 __u32 mode, __u32 uid, __u32 gid,
 				 const YCHAR *alias);
-YCHAR *yaffs_GetSymlinkAlias(yaffs_Object *obj);
+YCHAR *yaffs_get_symlink_alias(yaffs_Object *obj);
 
 /* Special inodes (fifos, sockets and devices) */
-yaffs_Object *yaffs_MknodSpecial(yaffs_Object *parent, const YCHAR *name,
+yaffs_Object *yaffs_create_special(yaffs_Object *parent, const YCHAR *name,
 				 __u32 mode, __u32 uid, __u32 gid, __u32 rdev);
 
 
-int yaffs_SetXAttribute(yaffs_Object *obj, const YCHAR *name, const void * value, int size, int flags);
-int yaffs_GetXAttribute(yaffs_Object *obj, const YCHAR *name, void *value, int size);
-int yaffs_ListXAttributes(yaffs_Object *obj, char *buffer, int size);
-int yaffs_RemoveXAttribute(yaffs_Object *obj, const YCHAR *name);
+int yaffs_set_xattrib(yaffs_Object *obj, const YCHAR *name, const void * value, int size, int flags);
+int yaffs_get_xattrib(yaffs_Object *obj, const YCHAR *name, void *value, int size);
+int yaffs_list_xattrib(yaffs_Object *obj, char *buffer, int size);
+int yaffs_remove_xattrib(yaffs_Object *obj, const YCHAR *name);
 
 /* Special directories */
 yaffs_Object *yaffs_Root(yaffs_Device *dev);
@@ -910,60 +910,60 @@ yaffs_Object *yaffs_LostNFound(yaffs_Device *dev);
 void yfsd_WinFileTimeNow(__u32 target[2]);
 #endif
 
-void yaffs_HandleDeferedFree(yaffs_Object *obj);
+void yaffs_handle_defered_free(yaffs_Object *obj);
 
-void yaffs_UpdateDirtyDirectories(yaffs_Device *dev);
+void yaffs_update_dirty_dirs(yaffs_Device *dev);
 
-int yaffs_BackgroundGarbageCollect(yaffs_Device *dev, unsigned urgency);
+int yaffs_bg_gc(yaffs_Device *dev, unsigned urgency);
 
 /* Debug dump  */
-int yaffs_DumpObject(yaffs_Object *obj);
+int yaffs_dump_obj(yaffs_Object *obj);
 
-void yaffs_GutsTest(yaffs_Device *dev);
+void yaffs_guts_test(yaffs_Device *dev);
 
 /* A few useful functions to be used within the core files*/
-void yaffs_DeleteChunk(yaffs_Device *dev, int chunkId, int markNAND, int lyn);
-int yaffs_CheckFF(__u8 *buffer, int nBytes);
-void yaffs_HandleChunkError(yaffs_Device *dev, yaffs_BlockInfo *bi);
+void yaffs_chunk_del(yaffs_Device *dev, int chunkId, int markNAND, int lyn);
+int yaffs_check_ff(__u8 *buffer, int nBytes);
+void yaffs_handle_chunk_error(yaffs_Device *dev, yaffs_BlockInfo *bi);
 
-__u8 *yaffs_GetTempBuffer(yaffs_Device *dev, int lineNo);
-void yaffs_ReleaseTempBuffer(yaffs_Device *dev, __u8 *buffer, int lineNo);
+__u8 *yaffs_get_temp_buffer(yaffs_Device *dev, int lineNo);
+void yaffs_release_temp_buffer(yaffs_Device *dev, __u8 *buffer, int lineNo);
 
-yaffs_Object *yaffs_FindOrCreateObjectByNumber(yaffs_Device *dev,
+yaffs_Object *yaffs_find_or_create_by_number(yaffs_Device *dev,
 					        int number,
 					        yaffs_ObjectType type);
-int yaffs_PutChunkIntoFile(yaffs_Object *in, int chunkInInode,
+int yaffs_put_chunk_in_file(yaffs_Object *in, int chunkInInode,
 			        int chunkInNAND, int inScan);
-void yaffs_SetObjectName(yaffs_Object *obj, const YCHAR *name);
-void yaffs_SetObjectNameFromOH(yaffs_Object *obj, const yaffs_ObjectHeader *oh);
-void yaffs_AddObjectToDirectory(yaffs_Object *directory,
+void yaffs_set_obj_name(yaffs_Object *obj, const YCHAR *name);
+void yaffs_set_obj_name_from_oh(yaffs_Object *obj, const yaffs_ObjectHeader *oh);
+void yaffs_add_obj_to_dir(yaffs_Object *directory,
 					yaffs_Object *obj);
-YCHAR *yaffs_CloneString(const YCHAR *str);
-void yaffs_HardlinkFixup(yaffs_Device *dev, yaffs_Object *hardList);
-void yaffs_BlockBecameDirty(yaffs_Device *dev, int blockNo);
-int yaffs_UpdateObjectHeader(yaffs_Object *in, const YCHAR *name,
+YCHAR *yaffs_clone_str(const YCHAR *str);
+void yaffs_link_fixup(yaffs_Device *dev, yaffs_Object *hardList);
+void yaffs_block_became_dirty(yaffs_Device *dev, int blockNo);
+int yaffs_update_oh(yaffs_Object *in, const YCHAR *name,
 				int force, int isShrink, int shadows,
-                                yaffs_XAttrMod *xop);
-void yaffs_HandleShadowedObject(yaffs_Device *dev, int objId,
+                                yaffs_xattr_mod *xop);
+void yaffs_handle_shadowed_obj(yaffs_Device *dev, int objId,
 				int backwardScanning);
-int yaffs_CheckSpaceForAllocation(yaffs_Device *dev, int nChunks);
-yaffs_Tnode *yaffs_GetTnode(yaffs_Device *dev);
-yaffs_Tnode *yaffs_AddOrFindLevel0Tnode(yaffs_Device *dev,
+int yaffs_check_alloc_available(yaffs_Device *dev, int nChunks);
+yaffs_Tnode *yaffs_get_tnode(yaffs_Device *dev);
+yaffs_Tnode *yaffs_add_find_tnode_0(yaffs_Device *dev,
 					yaffs_FileStructure *fStruct,
 					__u32 chunkId,
 					yaffs_Tnode *passedTn);
 
-int yaffs_DoWriteDataToFile(yaffs_Object *in, const __u8 *buffer, loff_t offset,
+int yaffs_do_file_wr(yaffs_Object *in, const __u8 *buffer, loff_t offset,
 			int nBytes, int writeThrough);
-void yaffs_ResizeDown( yaffs_Object *obj, loff_t newSize);
-void yaffs_SkipRestOfBlock(yaffs_Device *dev);
+void yaffs_resize_file_down( yaffs_Object *obj, loff_t newSize);
+void yaffs_skip_rest_of_block(yaffs_Device *dev);
 
-int yaffs_CountFreeChunks(yaffs_Device *dev);
+int yaffs_count_free_chunks(yaffs_Device *dev);
 
-yaffs_Tnode *yaffs_FindLevel0Tnode(yaffs_Device *dev,
+yaffs_Tnode *yaffs_find_tnode_0(yaffs_Device *dev,
 				yaffs_FileStructure *fStruct,
 				__u32 chunkId);
 
-__u32 yaffs_GetChunkGroupBase(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos);
+__u32 yaffs_get_group_base(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos);
 
 #endif

@@ -257,7 +257,7 @@ int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_UnpackTags2(tags,(yaffs_PackedTags2 *)x, !dev->param.noTagsECC);
+		yaffs_unpack_tags2(tags,(yaffs_PackedTags2 *)x, !dev->param.noTagsECC);
 	}
 
 	return YAFFS_OK;

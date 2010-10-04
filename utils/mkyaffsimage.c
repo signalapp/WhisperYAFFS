@@ -113,7 +113,7 @@ static int find_obj_in_list(dev_t dev, ino_t ino)
 }
 
 // NCB added 10/9/2002
-static __u16 yaffs_CalcNameSum(const char *name)
+static __u16 yaffs_calc_name_sum(const char *name)
 {
 	__u16 sum = 0;
 	__u16 i = 1;
@@ -130,13 +130,13 @@ static __u16 yaffs_CalcNameSum(const char *name)
 }
 
 
-static void yaffs_CalcECC(const __u8 *data, yaffs_Spare *spare)
+static void yaffs_calc_ecc(const __u8 *data, yaffs_Spare *spare)
 {
-	yaffs_ECCCalculate(data , spare->ecc1);
-	yaffs_ECCCalculate(&data[256] , spare->ecc2);
+	yaffs_ecc_cacl(data , spare->ecc1);
+	yaffs_ecc_cacl(&data[256] , spare->ecc2);
 }
 
-static void yaffs_CalcTagsECC(yaffs_Tags *tags)
+static void yaffs_calc_tags_ecc(yaffs_Tags *tags)
 {
 	// Todo don't do anything yet. Need to calculate ecc
 	unsigned char *b = ((yaffs_TagsUnion *)tags)->asBytes;
@@ -181,11 +181,11 @@ static void yaffs_CalcTagsECC(yaffs_Tags *tags)
         b[7] |= ((ecc & 0x3F) << 2);
     }
 }
-static void yaffs_LoadTagsIntoSpare(yaffs_Spare *sparePtr, yaffs_Tags *tagsPtr)
+static void yaffs_load_tags_to_spare(yaffs_Spare *sparePtr, yaffs_Tags *tagsPtr)
 {
 	yaffs_TagsUnion *tu = (yaffs_TagsUnion *)tagsPtr;
 	
-	//yaffs_CalcTagsECC(tagsPtr);
+	//yaffs_calc_tags_ecc(tagsPtr);
 	
 	sparePtr->tagByte0 = tu->asBytes[0];
 	sparePtr->tagByte1 = tu->asBytes[1];
@@ -249,9 +249,9 @@ static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
         little_to_big_endian(&t);
     }
 	
-	yaffs_CalcTagsECC(&t);
-	yaffs_LoadTagsIntoSpare(&s,&t);
-	yaffs_CalcECC(data,&s);
+	yaffs_calc_tags_ecc(&t);
+	yaffs_load_tags_to_spare(&s,&t);
+	yaffs_calc_ecc(data,&s);
 	
 	nPages++;
 	

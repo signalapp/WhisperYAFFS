@@ -173,7 +173,7 @@ int yramdisk_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 		yaffs_PackedTags1 pt;
 		
 		memcpy(&pt,&ramdisk.block[blk]->page[pg].data[512],sizeof(pt));
-		yaffs_UnpackTags1(tags,&pt);
+		yaffs_unpack_tags1(tags,&pt);
 		
 	}
 

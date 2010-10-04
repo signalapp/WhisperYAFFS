@@ -17,23 +17,23 @@
 #define __YAFFS_TAGSCOMPAT_H__
 
 #include "yaffs_guts.h"
-int yaffs_TagsCompatabilityWriteChunkWithTagsToNAND(yaffs_Device *dev,
+int yaffs_tags_compat_wr(yaffs_Device *dev,
 						int chunkInNAND,
 						const __u8 *data,
 						const yaffs_ExtendedTags *tags);
-int yaffs_TagsCompatabilityReadChunkWithTagsFromNAND(yaffs_Device *dev,
+int yaffs_tags_compat_rd(yaffs_Device *dev,
 						int chunkInNAND,
 						__u8 *data,
 						yaffs_ExtendedTags *tags);
-int yaffs_TagsCompatabilityMarkNANDBlockBad(struct yaffs_DeviceStruct *dev,
+int yaffs_tags_compat_mark_bad(struct yaffs_DeviceStruct *dev,
 					    int blockNo);
-int yaffs_TagsCompatabilityQueryNANDBlock(struct yaffs_DeviceStruct *dev,
+int yaffs_tags_compat_query_block(struct yaffs_DeviceStruct *dev,
 					  int blockNo,
 					  yaffs_BlockState *state,
 					  __u32 *sequenceNumber);
 
-void yaffs_CalcTagsECC(yaffs_Tags *tags);
-int yaffs_CheckECCOnTags(yaffs_Tags *tags);
-int yaffs_CountBits(__u8 byte);
+void yaffs_calc_tags_ecc(yaffs_Tags *tags);
+int yaffs_check_tags_ecc(yaffs_Tags *tags);
+int yaffs_count_bits(__u8 byte);
 
 #endif

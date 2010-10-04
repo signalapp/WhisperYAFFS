@@ -45,5 +45,5 @@ int yaffs_O_WRONLY(void) { return O_WRONLY;}
 int yaffs_O_RDWR(void) { return O_RDWR;}
 int yaffs_O_TRUNC(void) { return O_TRUNC;}
 
-int yaffs_set_trace(unsigned int tm) { return yaffs_traceMask=tm; }
-int yaffs_get_trace(void) { return yaffs_traceMask; }
+int yaffs_set_trace(unsigned int tm) { return yaffs_trace_mask=tm; }
+int yaffs_get_trace(void) { return yaffs_trace_mask; }

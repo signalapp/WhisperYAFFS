@@ -919,7 +919,7 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	yaffs_StartUp();
+	yaffs_start_up();
 	yaffs_mount(BASE_NAME);
 	
 	fname = BASE_NAME "/fsxdata";

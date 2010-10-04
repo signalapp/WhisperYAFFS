@@ -185,7 +185,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	}
 
 	if (tags)
-		yaffs_UnpackTags2(tags, &pt);
+		yaffs_unpack_tags2(tags, &pt);
 
 	if (retval == 0)
 		return YAFFS_OK;

@@ -102,19 +102,19 @@ void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ExtendedTags *t, int tag
 	yaffs_PackTags2TagsPart(&pt->t, t);
 
 	if(tagsECC)
-		yaffs_ECCCalculateOther((unsigned char *)&pt->t,
+		yaffs_ecc_calc_other((unsigned char *)&pt->t,
 					sizeof(yaffs_PackedTags2TagsPart),
 					&pt->ecc);
 }
 
 
-void yaffs_UnpackTags2TagsPart(yaffs_ExtendedTags *t,
+void yaffs_unpack_tags2tags_part(yaffs_ExtendedTags *t,
 		yaffs_PackedTags2TagsPart *ptt)
 {
 
 	memset(t, 0, sizeof(yaffs_ExtendedTags));
 
-	yaffs_InitialiseTags(t);
+	yaffs_init_tags(t);
 
 	if (ptt->sequenceNumber != 0xFFFFFFFF) {
 		t->blockBad = 0;
@@ -156,7 +156,7 @@ void yaffs_UnpackTags2TagsPart(yaffs_ExtendedTags *t,
 }
 
 
-void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt, int tagsECC)
+void yaffs_unpack_tags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt, int tagsECC)
 {
 
 	yaffs_ECCResult eccResult = YAFFS_ECC_RESULT_NO_ERROR;
@@ -167,10 +167,10 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt, int tagsECC
 		
 		yaffs_ECCOther ecc;
 		int result;
-		yaffs_ECCCalculateOther((unsigned char *)&pt->t,
+		yaffs_ecc_calc_other((unsigned char *)&pt->t,
 					sizeof(yaffs_PackedTags2TagsPart),
 					&ecc);
-		result = yaffs_ECCCorrectOther((unsigned char *)&pt->t,
+		result = yaffs_ecc_correct_other((unsigned char *)&pt->t,
 						sizeof(yaffs_PackedTags2TagsPart),
 						&pt->ecc, &ecc);
 		switch (result) {
@@ -188,7 +188,7 @@ void yaffs_UnpackTags2(yaffs_ExtendedTags *t, yaffs_PackedTags2 *pt, int tagsECC
 		}
 	}
 
-	yaffs_UnpackTags2TagsPart(t, &pt->t);
+	yaffs_unpack_tags2tags_part(t, &pt->t);
 
 	t->eccResult = eccResult;
 

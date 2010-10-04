@@ -36,8 +36,8 @@ struct yaffs_LinuxContext {
 	unsigned mount_id;
 };
 
-#define yaffs_DeviceToLC(dev) ((struct yaffs_LinuxContext *)((dev)->osContext))
-#define yaffs_DeviceToMtd(dev) ((struct mtd_info *)((dev)->driverContext))
+#define yaffs_dev_to_lc(dev) ((struct yaffs_LinuxContext *)((dev)->osContext))
+#define yaffs_dev_to_mtd(dev) ((struct mtd_info *)((dev)->driverContext))
 
 #endif
 

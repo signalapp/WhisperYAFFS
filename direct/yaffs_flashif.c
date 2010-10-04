@@ -160,7 +160,7 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 	{
 		yaffs_PackedTags pt;
 		memcpy(&pt,&ramdisk.block[blk]->page[pg].data[512],sizeof(yaffs_PackedTags));
-		yaffs_UnpackTags(tags,&pt);
+		yaffs_unpack_tags(tags,&pt);
 	}
 
 	return YAFFS_OK;

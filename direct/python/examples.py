@@ -73,7 +73,7 @@ def yaffs_o_excl_test(dir):
     
 root = "/yaffs2"
 
-yaffs_StartUp()
+yaffs_start_up()
 yaffs_mount(root)
 
 yaffs_mkdir(root+"/dd",0666)

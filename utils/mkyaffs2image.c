@@ -37,7 +37,7 @@
 #include "yaffs_tagsvalidity.h"
 #include "yaffs_packedtags2.h"
 
-unsigned yaffs_traceMask=0;
+unsigned yaffs_trace_mask=0;
 
 #define MAX_OBJECTS 10000
 
@@ -190,7 +190,7 @@ static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
 	if (write(outFile,data,chunkSize) != chunkSize)
 		fatal("write");
 
-	yaffs_InitialiseTags(&t);
+	yaffs_init_tags(&t);
 	
 	t.chunkId = chunkId;
 //	t.serialNumber = 0;

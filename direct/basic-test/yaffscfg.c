@@ -25,7 +25,7 @@
 
 #include "yramsim.h"
 
-unsigned yaffs_traceMask = 0xFFFFFFFF;
+unsigned yaffs_trace_mask = 0xFFFFFFFF;
 
 
 void yaffsfs_SetError(int err)
@@ -87,7 +87,7 @@ static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 };
 
 
-int yaffs_StartUp(void)
+int yaffs_start_up(void)
 {
 	// Stuff to configure YAFFS
 	// Stuff to initialise anything special (eg lock semaphore).

@@ -27,7 +27,7 @@
 #include "yaffs_trace.h"
 #include "yaffs_guts.h"
 #include "yaffs_packedtags1.h"
-#include "yaffs_tagscompat.h"	/* for yaffs_CalcTagsECC */
+#include "yaffs_tagscompat.h"	/* for yaffs_calc_tags_ecc */
 #include "yaffs_linux.h"
 
 #include "linux/kernel.h"
@@ -91,7 +91,7 @@ static struct nand_ecclayout nand_oob_16 = {
 int nandmtd1_WriteChunkWithTagsToNAND(yaffs_Device *dev,
 	int chunkInNAND, const __u8 *data, const yaffs_ExtendedTags *etags)
 {
-	struct mtd_info *mtd = yaffs_DeviceToMtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunkBytes = dev->nDataBytesPerChunk;
 	loff_t addr = ((loff_t)chunkInNAND) * chunkBytes;
 	struct mtd_oob_ops ops;
@@ -103,7 +103,7 @@ int nandmtd1_WriteChunkWithTagsToNAND(yaffs_Device *dev,
 	compile_time_assertion(sizeof(yaffs_Tags) == 8);
 
 	yaffs_PackTags1(&pt1, etags);
-	yaffs_CalcTagsECC((yaffs_Tags *)&pt1);
+	yaffs_calc_tags_ecc((yaffs_Tags *)&pt1);
 
 	/* When deleting a chunk, the upper layer provides only skeletal
 	 * etags, one with chunkDeleted set.  However, we need to update the
@@ -169,7 +169,7 @@ static int rettags(yaffs_ExtendedTags *etags, int eccResult, int retval)
 int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	int chunkInNAND, __u8 *data, yaffs_ExtendedTags *etags)
 {
-	struct mtd_info *mtd = yaffs_DeviceToMtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunkBytes = dev->nDataBytesPerChunk;
 	loff_t addr = ((loff_t)chunkInNAND) * chunkBytes;
 	int eccres = YAFFS_ECC_RESULT_NO_ERROR;
@@ -224,7 +224,7 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 
 	/* Check for a blank/erased chunk.
 	 */
-	if (yaffs_CheckFF((__u8 *)&pt1, 8)) {
+	if (yaffs_check_ff((__u8 *)&pt1, 8)) {
 		/* when blank, upper layers want eccResult to be <= NO_ERROR */
 		return rettags(etags, YAFFS_ECC_RESULT_NO_ERROR, YAFFS_OK);
 	}
@@ -237,12 +237,12 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	deleted = !pt1.deleted;
 	pt1.deleted = 1;
 #else
-	deleted = (yaffs_CountBits(((__u8 *)&pt1)[8]) < 7);
+	deleted = (yaffs_count_bits(((__u8 *)&pt1)[8]) < 7);
 #endif
 
 	/* Check the packed tags mini-ECC and correct if necessary/possible.
 	 */
-	retval = yaffs_CheckECCOnTags((yaffs_Tags *)&pt1);
+	retval = yaffs_check_tags_ecc((yaffs_Tags *)&pt1);
 	switch (retval) {
 	case 0:
 		/* no tags error, use MTD result */
@@ -260,10 +260,10 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
 	}
 
 	/* Unpack the tags to extended form and set ECC result.
-	 * [set shouldBeFF just to keep yaffs_UnpackTags1 happy]
+	 * [set shouldBeFF just to keep yaffs_unpack_tags1 happy]
 	 */
 	pt1.shouldBeFF = 0xFFFFFFFF;
-	yaffs_UnpackTags1(etags, &pt1);
+	yaffs_unpack_tags1(etags, &pt1);
 	etags->eccResult = eccres;
 
 	/* Set deleted state */
@@ -280,7 +280,7 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_Device *dev,
  */
 int nandmtd1_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 {
-	struct mtd_info *mtd = yaffs_DeviceToMtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int blocksize = dev->param.nChunksPerBlock * dev->nDataBytesPerChunk;
 	int retval;
 
@@ -321,7 +321,7 @@ static int nandmtd1_TestPrerequists(struct mtd_info *mtd)
 int nandmtd1_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
 	yaffs_BlockState *pState, __u32 *pSequenceNumber)
 {
-	struct mtd_info *mtd = yaffs_DeviceToMtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunkNo = blockNo * dev->param.nChunksPerBlock;
 	loff_t addr = (loff_t)chunkNo * dev->nDataBytesPerChunk;
 	yaffs_ExtendedTags etags;

@@ -23,7 +23,7 @@
 #include "yaffs_trace.h"
 #include "yramsim.h"
 
-unsigned yaffs_traceMask = 
+unsigned yaffs_trace_mask = 
 
 	YAFFS_TRACE_SCAN |  
 	YAFFS_TRACE_GC |
@@ -96,7 +96,7 @@ void yaffsfs_LocalInitialisation(void)
 // Configuration
 
 
-int yaffs_StartUp(void)
+int yaffs_start_up(void)
 {
 	// Stuff to configure YAFFS
 	// Stuff to initialise anything special (eg lock semaphore).

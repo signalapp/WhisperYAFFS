@@ -16,21 +16,21 @@
 
 #include "yaffs_guts.h"
 
-void yaffs2_CalcOldestDirtySequence(yaffs_Device *dev);
-void yaffs2_FindOldestDirtySequence(yaffs_Device *dev);
-void yaffs2_ClearOldestDirtySequence(yaffs_Device *dev, yaffs_BlockInfo *bi);
-void yaffs2_UpdateOldestDirtySequence(yaffs_Device *dev, unsigned blockNo, yaffs_BlockInfo *bi);
-int yaffs2_BlockNotDisqualifiedFromGC(yaffs_Device *dev, yaffs_BlockInfo *bi);
-__u32 yaffs2_FindRefreshBlock(yaffs_Device *dev);
-int yaffs2_CheckpointRequired(yaffs_Device *dev);
-int yaffs2_CalcCheckpointBlocksRequired(yaffs_Device *dev);
+void yaffs_calc_oldest_dirty_seq(yaffs_Device *dev);
+void yaffs2_find_oldest_dirty_seq(yaffs_Device *dev);
+void yaffs2_clear_oldest_dirty_seq(yaffs_Device *dev, yaffs_BlockInfo *bi);
+void yaffs2_update_oldest_dirty_seq(yaffs_Device *dev, unsigned blockNo, yaffs_BlockInfo *bi);
+int yaffs_block_ok_for_gc(yaffs_Device *dev, yaffs_BlockInfo *bi);
+__u32 yaffs2_find_refresh_block(yaffs_Device *dev);
+int yaffs2_checkpt_required(yaffs_Device *dev);
+int yaffs_calc_checkpt_blocks_required(yaffs_Device *dev);
 
 
-void yaffs2_InvalidateCheckpoint(yaffs_Device *dev);
-int yaffs2_CheckpointSave(yaffs_Device *dev);
-int yaffs2_CheckpointRestore(yaffs_Device *dev);
+void yaffs2_checkpt_invalidate(yaffs_Device *dev);
+int yaffs2_checkpt_save(yaffs_Device *dev);
+int yaffs2_checkpt_restore(yaffs_Device *dev);
 
-int yaffs2_HandleHole(yaffs_Object *obj, loff_t newSize);
-int yaffs2_ScanBackwards(yaffs_Device *dev);
+int yaffs2_handle_hole(yaffs_Object *obj, loff_t newSize);
+int yaffs2_scan_backwards(yaffs_Device *dev);
 
 #endif

@@ -25,7 +25,7 @@
 
 #include "yaffs_guts.h" /* Only for dumping device innards */
 
-extern int yaffs_traceMask;
+extern int yaffs_trace_mask;
 
 void dumpDir(const char *dname);
 
@@ -278,7 +278,7 @@ void yaffs_backward_scan_test(const char *path)
 {
 	char fn[100];
 	
-	yaffs_StartUp();	
+	yaffs_start_up();	
 	
 	yaffs_mount(path);
 	
@@ -299,7 +299,7 @@ void null_name_test(const char *path)
 {
 	char fn[100];
 	int h;
-	yaffs_StartUp();
+	yaffs_start_up();
 
 	yaffs_mount(path);
 
@@ -320,7 +320,7 @@ void yaffs_device_flush_test(const char *path)
 	int h;
 	int i;
 	
-	yaffs_StartUp();	
+	yaffs_start_up();	
 	
 	yaffs_mount(path);
 	
@@ -349,7 +349,7 @@ void short_scan_test(const char *path, int fsize, int niterations)
 	
 	sprintf(fn,"%s/%s",path,"f1");
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	for(i = 0; i < niterations; i++)
 	{
 		printf("\n*****************\nIteration %d\n",i);
@@ -374,7 +374,7 @@ void scan_pattern_test(const char *path, int fsize, int niterations)
 	sprintf(fn[1],"%s/%s",path,"f1");
 	sprintf(fn[2],"%s/%s",path,"f2");
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	for(i = 0; i < niterations; i++)
 	{
@@ -656,7 +656,7 @@ int long_test(int argc, char *argv[])
 	mode_t temp_mode;
 	struct yaffs_stat ystat;
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount("/boot");
 	yaffs_mount("/data");
@@ -866,11 +866,11 @@ int long_test(int argc, char *argv[])
 	yaffs_unlink("/boot/zlf");
 	
 	
-	yaffs_DumpDevStruct("/boot");
+	yaffs_dump_dev("/boot");
 	
 	fill_disk_and_delete("/boot",20,20);
 	
-	yaffs_DumpDevStruct("/boot");
+	yaffs_dump_dev("/boot");
 	
 	fill_files("/boot",1,10000,0);
 	fill_files("/boot",1,10000,5000);
@@ -884,8 +884,8 @@ int long_test(int argc, char *argv[])
 	leave_unlinked_file("/data",20000,5000);
 	leave_unlinked_file("/data",20000,5000);
 	
-	yaffs_DumpDevStruct("/boot");
-	yaffs_DumpDevStruct("/data");
+	yaffs_dump_dev("/boot");
+	yaffs_dump_dev("/data");
 	
 		
 		
@@ -909,7 +909,7 @@ int huge_directory_test_on_path(char *path)
 	char str[100];
 
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(path);
 	
@@ -967,7 +967,7 @@ void rename_over_test(const char *mountpt)
 	sprintf(b,"%s/b",mountpt);
 	sprintf(c,"%s/c",mountpt);
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(mountpt);
 	
@@ -1004,7 +1004,7 @@ int resize_stress_test(const char *path)
    char abuffer[1000];
    char bbuffer[1000];
    
-   yaffs_StartUp();
+   yaffs_start_up();
    
    yaffs_mount(path);
    
@@ -1065,7 +1065,7 @@ int overwrite_test(const char *path)
    int j;   
    int a;
    int b;
-   yaffs_StartUp();
+   yaffs_start_up();
    
    yaffs_mount(path);
    
@@ -1090,7 +1090,7 @@ int root_perm_remount(const char *path)
 {
    struct yaffs_stat s;
    
-   yaffs_StartUp();
+   yaffs_start_up();
    
    yaffs_mount(path);
    
@@ -1121,7 +1121,7 @@ int resize_stress_test_no_grow_complex(const char *path,int iters)
    char bbuffer[1000];
 
    
-   yaffs_StartUp();
+   yaffs_start_up();
    
    yaffs_mount(path);
    
@@ -1195,7 +1195,7 @@ int resize_stress_test_no_grow(const char *path,int iters)
    char abuffer[1000];
    char bbuffer[1000];
    
-   yaffs_StartUp();
+   yaffs_start_up();
    
    yaffs_mount(path);
    
@@ -1260,7 +1260,7 @@ int resize_stress_test_no_grow(const char *path,int iters)
 int directory_rename_test(void)
 {
 	int r;
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount("/ram");
 	yaffs_mkdir("/ram/a",0);
@@ -1300,7 +1300,7 @@ int cache_read_test(void)
 	int sizeOfFiles = 500000;
 	char buffer[100];
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount("/boot");
 	
@@ -1339,7 +1339,7 @@ int cache_bypass_bug_test(void)
 	memset(buffer1,0,sizeof(buffer1));
 	memset(buffer2,0,sizeof(buffer2));
 		
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount("/boot");
 	
@@ -1379,7 +1379,7 @@ int free_space_check(void)
 {
 	int f;
 	
-		yaffs_StartUp();
+		yaffs_start_up();
 		yaffs_mount("/boot");
 	    fill_disk("/boot/",2);
 	    f = yaffs_freespace("/boot");
@@ -1397,7 +1397,7 @@ int truncate_test(void)
 
 	char y[10];
 
-	yaffs_StartUp();
+	yaffs_start_up();
 	yaffs_mount("/boot");
 
 	yaffs_unlink("/boot/trunctest");
@@ -1435,7 +1435,7 @@ int truncate_test(void)
 void fill_disk_test(const char *mountpt)
 {
 	int i;
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	for(i = 0; i < 5; i++)
 	{
@@ -1450,7 +1450,7 @@ void fill_disk_test(const char *mountpt)
 void fill_files_test(const char *mountpt)
 {
 	int i;
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	for(i = 0; i < 5; i++)
 	{
@@ -1464,7 +1464,7 @@ void fill_files_test(const char *mountpt)
 void fill_empty_files_test(const char *mountpt)
 {
 	int i;
-	yaffs_StartUp();
+	yaffs_start_up();
 	char name[100];
 	int result = 0;
 	
@@ -1493,7 +1493,7 @@ void fill_empty_files_test(const char *mountpt)
 void long_name_test(const char *mountpt)
 {
 	int i;
-	yaffs_StartUp();
+	yaffs_start_up();
 	char fullName[1000];
 	char name[300];
 	int result = 0;
@@ -1548,7 +1548,7 @@ void lookup_test(const char *mountpt)
 	yaffs_DIR *d;
 	yaffs_dirent *de;
 
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(mountpt);
 				
@@ -1607,7 +1607,7 @@ void link_test0(const char *mountpt)
 	int result = 0;
 	
 
-	yaffs_StartUp();
+	yaffs_start_up();
 	yaffs_mount(mountpt);
 	
 		
@@ -1656,7 +1656,7 @@ void link_test1(const char *mountpt)
 	sprintf(b,"%s/bbb",mountpt);
 	sprintf(c,"%s/ccc",mountpt);
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(mountpt);
 	
@@ -1691,7 +1691,7 @@ void handle_test(const char *mountpt)
 
 	sprintf(a,"%s/aaa",mountpt);
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(mountpt);
 
@@ -1725,7 +1725,7 @@ void freespace_test(const char *mountpt)
 	int f3;
 	sprintf(a,"%s/aaa",mountpt);
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(mountpt);
 	
@@ -1766,7 +1766,7 @@ void simple_rw_test(const char *mountpt)
 
 	sprintf(a,"%s/aaa",mountpt);
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(mountpt);
 	
@@ -1819,7 +1819,7 @@ void scan_deleted_files_test(const char *mountpt)
 	int h;
 	
 	sprintf(sub,"%s/sdir",mountpt);
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	for(j = 0; j < 10; j++)
 	{
@@ -1952,7 +1952,7 @@ void check_resize_gc_bug(const char *mountpt)
 
 	
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	yaffs_mount(mountpt);
 	yaffs_unlink(a);
 	yaffs_unlink(b);
@@ -1982,7 +1982,7 @@ void multi_mount_test(const char *mountpt,int nmounts)
 	
 	sprintf(a,"%s/a",mountpt);
 
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	for(i = 0; i < nmounts; i++){
 		int h0;
@@ -2059,7 +2059,7 @@ void small_mount_test(const char *mountpt,int nmounts)
 	
 	sprintf(a,"%s/a",mountpt);
 
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	
 	
@@ -2131,7 +2131,7 @@ void small_overwrite_test(const char *mountpt,int nmounts)
 	
 	sprintf(a,"%s/a",mountpt);
 
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	
 	
@@ -2186,7 +2186,7 @@ void seek_overwrite_test(const char *mountpt,int nmounts)
 	
 	sprintf(a,"%s/f",mountpt);
 
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(mountpt);
 	
@@ -2232,7 +2232,7 @@ void checkpoint_fill_test(const char *mountpt,int nmounts)
 
 	
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	for(i = 0; i < nmounts; i++){
 		printf("############### Iteration %d   Start\n",i);
@@ -2306,7 +2306,7 @@ void checkpoint_upgrade_test(const char *mountpt,int nmounts)
 	
 	
 	printf("Create start condition\n");
-	yaffs_StartUp();
+	yaffs_start_up();
 	yaffs_mount(mountpt);
 	yaffs_mkdir(a,0);
 	sprintf(b,"%s/zz",a);
@@ -2361,7 +2361,7 @@ void huge_array_test(const char *mountpt,int n)
 	
 
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 
 	yaffs_mount(mountpt);
 	
@@ -2436,7 +2436,7 @@ void random_small_file_test(const char *mountpt,int iterations)
 	int r;
 	
 	
-	yaffs_StartUp();
+	yaffs_start_up();
 
 	yaffs_mount(mountpt);
 	
@@ -2495,7 +2495,7 @@ void random_small_file_test(const char *mountpt,int iterations)
 void rmdir_test(const char *mountpt)
 {
 	char name[100];
-	yaffs_StartUp();
+	yaffs_start_up();
 	
 	yaffs_mount(mountpt);
 	
@@ -2556,7 +2556,7 @@ void basic_xattr_test(const char *mountpt)
 	int result;
 	int val1;
 
-	yaffs_StartUp();
+	yaffs_start_up();
 
 	yaffs_mount(mountpt);
 
@@ -2606,7 +2606,7 @@ void big_xattr_test(const char *mountpt)
 	int result;
 	char val[1000];
 
-	yaffs_StartUp();
+	yaffs_start_up();
 
 	yaffs_mount(mountpt);
 
@@ -2660,9 +2660,9 @@ void test_flash_traffic(const char *mountpt)
 	int i;
 	yaffs_Device *dev;
 
-	yaffs_traceMask = 0;
+	yaffs_trace_mask = 0;
 
-	yaffs_StartUp();
+	yaffs_start_up();
 
 	yaffs_mount(mountpt);
 	

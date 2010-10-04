@@ -62,7 +62,7 @@ typedef struct
 
 static yflash_Device filedisk;
 
-int yaffs_testPartialWrite = 0;
+int yaffs_test_partial_write = 0;
 
 extern int random_seed;
 extern int simulate_power_failure;
@@ -198,7 +198,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 		written = write(h,data,dev->param.totalBytesPerChunk);
 
 		
-		if(yaffs_testPartialWrite){
+		if(yaffs_test_partial_write){
 			close(h);
 			exit(1);
 		}
@@ -235,7 +235,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 			lseek(h,pos,SEEK_SET);
 			written = write(h,localBuffer,dev->nDataBytesPerChunk);
 		
-			if(yaffs_testPartialWrite){
+			if(yaffs_test_partial_write){
 				close(h);
 				exit(1);
 			}
@@ -314,7 +314,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 			lseek(h,pos,SEEK_SET);
 			written = write(h,localBuffer,dev->nDataBytesPerChunk);
 		
-			if(yaffs_testPartialWrite){
+			if(yaffs_test_partial_write){
 				close(h);
 				exit(1);
 			}
@@ -371,7 +371,7 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 
 }
 
-int yaffs_CheckAllFF(const __u8 *ptr, int n)
+int yaffs_check_all_ff(const __u8 *ptr, int n)
 {
 	while(n)
 	{
@@ -408,7 +408,7 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *d
 		/* Got to suck the tags out of the data area */
 		if(!data) {
 			localData=1;
-			data = yaffs_GetTempBuffer(dev,__LINE__);
+			data = yaffs_get_temp_buffer(dev,__LINE__);
 		}
 
 		
@@ -423,13 +423,13 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *d
 
 		nRead = read(h, data,dev->param.totalBytesPerChunk);
 
-		yaffs_UnpackTags2TagsPart(tags,pt2tp);
+		yaffs_unpack_tags2tags_part(tags,pt2tp);
 		
 		if(nread != dev->param.totalBytesPerChunk)
 			retval = YAFFS_FAIL;
 			
 		if(localData)
-			yaffs_ReleaseTempBuffer(dev,data,__LINE__);
+			yaffs_release_temp_buffer(dev,data,__LINE__);
 
 
 
@@ -461,9 +461,9 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *d
 				nread= read(h,tags,sizeof(yaffs_ExtendedTags));
 				if(nread != sizeof(yaffs_ExtendedTags))
 					 retval =  YAFFS_FAIL;
-				if(yaffs_CheckAllFF((__u8 *)tags,sizeof(yaffs_ExtendedTags)))
+				if(yaffs_check_all_ff((__u8 *)tags,sizeof(yaffs_ExtendedTags)))
 				{
-					yaffs_InitialiseTags(tags);
+					yaffs_init_tags(tags);
 				}
 				else
 				{
@@ -474,7 +474,7 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *d
 			{
 				yaffs_PackedTags2 pt;
 				nread= read(h,&pt,sizeof(pt));
-				yaffs_UnpackTags2(tags,&pt, !dev->param.noTagsECC);
+				yaffs_unpack_tags2(tags,&pt, !dev->param.noTagsECC);
 #ifdef SIMULATE_FAILURES
 				if((chunkInNAND >> 6) == 100) {
 					if(fail300 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){

@@ -33,5 +33,5 @@ typedef struct {
 } yaffs_PackedTags1;
 
 void yaffs_PackTags1(yaffs_PackedTags1 *pt, const yaffs_ExtendedTags *t);
-void yaffs_UnpackTags1(yaffs_ExtendedTags *t, const yaffs_PackedTags1 *pt);
+void yaffs_unpack_tags1(yaffs_ExtendedTags *t, const yaffs_PackedTags1 *pt);
 #endif

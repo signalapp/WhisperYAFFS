@@ -29,7 +29,7 @@ static Y_INLINE __u8 *yaffs_BlockBits(yaffs_Device *dev, int blk)
 		(dev->chunkBitmapStride * (blk - dev->internalStartBlock));
 }
 
-void yaffs_VerifyChunkBitId(yaffs_Device *dev, int blk, int chunk)
+void yaffs_verify_chunk_bit_id(yaffs_Device *dev, int blk, int chunk)
 {
 	if (blk < dev->internalStartBlock || blk > dev->internalEndBlock ||
 			chunk < 0 || chunk >= dev->param.nChunksPerBlock) {
@@ -40,40 +40,40 @@ void yaffs_VerifyChunkBitId(yaffs_Device *dev, int blk, int chunk)
 	}
 }
 
-void yaffs_ClearChunkBits(yaffs_Device *dev, int blk)
+void yaffs_clear_chunk_bits(yaffs_Device *dev, int blk)
 {
 	__u8 *blkBits = yaffs_BlockBits(dev, blk);
 
 	memset(blkBits, 0, dev->chunkBitmapStride);
 }
 
-void yaffs_ClearChunkBit(yaffs_Device *dev, int blk, int chunk)
+void yaffs_clear_chunk_bit(yaffs_Device *dev, int blk, int chunk)
 {
 	__u8 *blkBits = yaffs_BlockBits(dev, blk);
 
-	yaffs_VerifyChunkBitId(dev, blk, chunk);
+	yaffs_verify_chunk_bit_id(dev, blk, chunk);
 
 	blkBits[chunk / 8] &= ~(1 << (chunk & 7));
 }
 
-void yaffs_SetChunkBit(yaffs_Device *dev, int blk, int chunk)
+void yaffs_set_chunk_bit(yaffs_Device *dev, int blk, int chunk)
 {
 	__u8 *blkBits = yaffs_BlockBits(dev, blk);
 
-	yaffs_VerifyChunkBitId(dev, blk, chunk);
+	yaffs_verify_chunk_bit_id(dev, blk, chunk);
 
 	blkBits[chunk / 8] |= (1 << (chunk & 7));
 }
 
-int yaffs_CheckChunkBit(yaffs_Device *dev, int blk, int chunk)
+int yaffs_check_chunk_bit(yaffs_Device *dev, int blk, int chunk)
 {
 	__u8 *blkBits = yaffs_BlockBits(dev, blk);
-	yaffs_VerifyChunkBitId(dev, blk, chunk);
+	yaffs_verify_chunk_bit_id(dev, blk, chunk);
 
 	return (blkBits[chunk / 8] & (1 << (chunk & 7))) ? 1 : 0;
 }
 
-int yaffs_StillSomeChunkBits(yaffs_Device *dev, int blk)
+int yaffs_still_some_chunks(yaffs_Device *dev, int blk)
 {
 	__u8 *blkBits = yaffs_BlockBits(dev, blk);
 	int i;
@@ -85,7 +85,7 @@ int yaffs_StillSomeChunkBits(yaffs_Device *dev, int blk)
 	return 0;
 }
 
-int yaffs_CountChunkBits(yaffs_Device *dev, int blk)
+int yaffs_count_chunk_bits(yaffs_Device *dev, int blk)
 {
 	__u8 *blkBits = yaffs_BlockBits(dev, blk);
 	int i;

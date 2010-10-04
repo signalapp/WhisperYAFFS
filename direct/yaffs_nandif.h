@@ -55,7 +55,7 @@ typedef struct {
 } ynandif_Geometry;
 
 struct yaffs_DeviceStruct * 
-	yaffs_AddDeviceFromGeometry(const YCHAR *name,
+	yaffs_add_dev_from_geometry(const YCHAR *name,
 					const ynandif_Geometry *geometry);
 
 #if 0

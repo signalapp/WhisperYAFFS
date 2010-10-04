@@ -276,5 +276,5 @@ struct yaffs_DeviceStruct *yramsim_CreateRamSim(const YCHAR *name,
 	g->markBlockBad = yramsim_MarkBlockBad,
 	g->privateData = (void *)sim;
 
-	return yaffs_AddDeviceFromGeometry(name,g);
+	return yaffs_add_dev_from_geometry(name,g);
 }

@@ -93,7 +93,7 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 		
 		if(!data) {
 			localData = 1;
-			data = yaffs_GetTempBuffer(dev,__LINE__);
+			data = yaffs_get_temp_buffer(dev,__LINE__);
 		}
 		spare = NULL;
 		spareSize = 0;
@@ -113,12 +113,12 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 		if(tags){
 			yaffs_PackedTags2TagsPart * pt2tp;
 			pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->nDataBytesPerChunk];	
-			yaffs_UnpackTags2TagsPart(tags,pt2tp);
+			yaffs_unpack_tags2tags_part(tags,pt2tp);
 		}
 	}
 	else {
 		if (tags){
-			yaffs_UnpackTags2(tags, &pt,!dev->param.noTagsECC);
+			yaffs_unpack_tags2(tags, &pt,!dev->param.noTagsECC);
 		}
 	}
 
@@ -134,7 +134,7 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 	}
 
 	if(localData)
-		yaffs_ReleaseTempBuffer(dev,data,__LINE__);
+		yaffs_release_temp_buffer(dev,data,__LINE__);
 	
 	return retval;
 }
@@ -213,7 +213,7 @@ int ynandif_DeinitialiseNAND(yaffs_Device *dev)
 
 
 struct yaffs_DeviceStruct * 
-	yaffs_AddDeviceFromGeometry(const YCHAR *name,
+	yaffs_add_dev_from_geometry(const YCHAR *name,
 					const ynandif_Geometry *geometry)
 {
 	YCHAR *clonedName = YMALLOC(sizeof(YCHAR) * (yaffs_strnlen(name,YAFFS_MAX_NAME_LENGTH)+1));
@@ -242,7 +242,7 @@ struct yaffs_DeviceStruct *
 		dev->param.nReservedBlocks		   = 5;
 		dev->driverContext			   = (void *)geometry;
 
-		yaffs_AddDevice(dev);
+		yaffs_add_device(dev);
 
 		return dev;
 	}

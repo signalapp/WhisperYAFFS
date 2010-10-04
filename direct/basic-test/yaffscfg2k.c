@@ -29,7 +29,7 @@
 
 #include <errno.h>
 
-unsigned yaffs_traceMask = 
+unsigned yaffs_trace_mask = 
 
 	YAFFS_TRACE_SCAN |  
 	YAFFS_TRACE_GC |
@@ -110,7 +110,7 @@ struct yaffs_DeviceStruct ram1Dev;
 struct yaffs_DeviceStruct flashDev;
 struct yaffs_DeviceStruct m18_1Dev;
 
-int yaffs_StartUp(void)
+int yaffs_start_up(void)
 {
 	// Stuff to configure YAFFS
 	// Stuff to initialise anything special (eg lock semaphore).
@@ -133,7 +133,7 @@ int yaffs_StartUp(void)
 	ram1Dev.param.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
 	ram1Dev.param.initialiseNAND = yramdisk_InitialiseNAND;
 	
-	yaffs_AddDevice(&ram1Dev);
+	yaffs_add_device(&ram1Dev);
 
 	// /M18-1 yaffs1 on M18 nor sim
 	memset(&m18_1Dev,0,sizeof(m18_1Dev));
@@ -154,7 +154,7 @@ int yaffs_StartUp(void)
 
 //	m18_1Dev.param.disableSoftDelete = 1;
 
-	yaffs_AddDevice(&m18_1Dev);
+	yaffs_add_device(&m18_1Dev);
 
 	// /yaffs2  yaffs2 file emulation
 	// 2kpage/64chunk per block
@@ -181,7 +181,7 @@ int yaffs_StartUp(void)
 	flashDev.param.queryNANDBlock = yflash2_QueryNANDBlock;
 	flashDev.param.enableXattr = 1;
 
-	yaffs_AddDevice(&flashDev);
+	yaffs_add_device(&flashDev);
 
 // todo	yaffs_initialise(yaffsfs_config);
 	

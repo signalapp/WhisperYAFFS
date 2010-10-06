@@ -29,7 +29,7 @@ CFLAGS +=    -O0
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
 
 
-COMMONTESTOBJS = yaffsnewcfg.o yramsim.o \
+COMMONTESTOBJS = yaffscfg2k.o yramsim.o yaffs_fileem2k.o\
 		 yaffs_nandif.o \
 		 yaffsfs.o  yaffs_ecc.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \

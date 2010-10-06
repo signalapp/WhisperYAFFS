@@ -19,26 +19,26 @@
 
 
 
-int yaffs_rd_chunk_tags_nand(yaffs_Device *dev, int chunkInNAND,
+int yaffs_rd_chunk_tags_nand(yaffs_dev_t *dev, int nand_chunk,
 					__u8 *buffer,
-					yaffs_ExtendedTags *tags);
+					yaffs_ext_tags *tags);
 
-int yaffs_wr_chunk_tags_nand(yaffs_Device *dev,
-						int chunkInNAND,
+int yaffs_wr_chunk_tags_nand(yaffs_dev_t *dev,
+						int nand_chunk,
 						const __u8 *buffer,
-						yaffs_ExtendedTags *tags);
+						yaffs_ext_tags *tags);
 
-int yaffs_mark_bad(yaffs_Device *dev, int blockNo);
+int yaffs_mark_bad(yaffs_dev_t *dev, int block_no);
 
-int yaffs_query_init_block_state(yaffs_Device *dev,
-						int blockNo,
-						yaffs_BlockState *state,
-						unsigned *sequenceNumber);
+int yaffs_query_init_block_state(yaffs_dev_t *dev,
+						int block_no,
+						yaffs_block_state_t *state,
+						unsigned *seq_number);
 
-int yaffs_erase_block(struct yaffs_DeviceStruct *dev,
-				  int blockInNAND);
+int yaffs_erase_block(struct yaffs_dev_s *dev,
+				  int flash_block);
 
-int yaffs_init_nand(struct yaffs_DeviceStruct *dev);
+int yaffs_init_nand(struct yaffs_dev_s *dev);
 
 #endif
 

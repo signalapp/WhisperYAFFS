@@ -18,13 +18,13 @@
 
 
 #include "yaffs_guts.h"
-int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber);
-int yflash_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_Spare *spare);
-int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags);
-int yflash_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_Spare *spare);
-int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags);
-int yflash_InitialiseNAND(yaffs_Device *dev);
-int yflash_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo);
-int yflash_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, __u32 *sequenceNumber);
+int yflash_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber);
+int yflash_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_spare *spare);
+int yflash_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags);
+int yflash_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_spare *spare);
+int yflash_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags);
+int yflash_InitialiseNAND(yaffs_dev_t *dev);
+int yflash_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no);
+int yflash_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, __u32 *seq_number);
 
 #endif

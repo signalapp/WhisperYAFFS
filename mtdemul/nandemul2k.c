@@ -99,18 +99,18 @@ static void nandemul_yield(int n)
 }
 
 
-static void nandemul2k_Read(void *buffer, int page, int start, int nBytes)
+static void nandemul2k_Read(void *buffer, int page, int start, int n_bytes)
 {
 	int pg = page%PAGES_PER_BLOCK;
 	int blk = page/PAGES_PER_BLOCK;
-	if(buffer && nBytes > 0)
+	if(buffer && n_bytes > 0)
 	{
-		memcpy(buffer,&ned.block[blk]->page[pg]->data[start],nBytes);
+		memcpy(buffer,&ned.block[blk]->page[pg]->data[start],n_bytes);
 	}
 	
 }
 
-static void nandemul2k_Program(const void *buffer, int page, int start, int nBytes)
+static void nandemul2k_Program(const void *buffer, int page, int start, int n_bytes)
 {
 	int pg = page%PAGES_PER_BLOCK;
 	int blk = page/PAGES_PER_BLOCK;
@@ -119,12 +119,12 @@ static void nandemul2k_Program(const void *buffer, int page, int start, int nByt
 
 	p = &ned.block[blk]->page[pg]->data[start];
 	
-	while(buffer && nBytes>0)
+	while(buffer && n_bytes>0)
 	{
 		*p = *p & *b;
 		p++;
 		b++;
-		nBytes--;
+		n_bytes--;
 	}
 }
 

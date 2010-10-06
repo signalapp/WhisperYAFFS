@@ -23,19 +23,19 @@
 
 #include "yaffs_linux.h"
 
-int nandmtd_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
+int nandmtd_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	__u32 addr =
-	    ((loff_t) blockNumber) * dev->param.totalBytesPerChunk
-		* dev->param.nChunksPerBlock;
+	    ((loff_t) blockNumber) * dev->param.total_bytes_per_chunk
+		* dev->param.chunks_per_block;
 	struct erase_info ei;
 	
 	int retval = 0;
 
 	ei.mtd = mtd;
 	ei.addr = addr;
-	ei.len = dev->param.totalBytesPerChunk * dev->param.nChunksPerBlock;
+	ei.len = dev->param.total_bytes_per_chunk * dev->param.chunks_per_block;
 	ei.time = 1000;
 	ei.retries = 2;
 	ei.callback = NULL;
@@ -49,7 +49,7 @@ int nandmtd_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 		return YAFFS_FAIL;
 }
 
-int nandmtd_InitialiseNAND(yaffs_Device *dev)
+int nandmtd_InitialiseNAND(yaffs_dev_t *dev)
 {
 	return YAFFS_OK;
 }

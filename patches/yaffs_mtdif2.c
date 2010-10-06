@@ -28,7 +28,7 @@ const char *yaffs_mtdif2_c_version =
 #include "yaffs_packedtags2.h"
 
 
-void nandmtd2_pt2buf(yaffs_Device *dev, yaffs_PackedTags2 *pt, int is_raw)
+void nandmtd2_pt2buf(yaffs_dev_t *dev, yaffs_PackedTags2 *pt, int is_raw)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	__u8 *ptab = (__u8 *)pt; /* packed tags as bytes */
@@ -69,7 +69,7 @@ void nandmtd2_pt2buf(yaffs_Device *dev, yaffs_PackedTags2 *pt, int is_raw)
 
 }
 
-void nandmtd2_buf2pt(yaffs_Device *dev, yaffs_PackedTags2 *pt, int is_raw)
+void nandmtd2_buf2pt(yaffs_dev_t *dev, yaffs_PackedTags2 *pt, int is_raw)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	int	i, j = 0, k, n;
@@ -107,22 +107,22 @@ void nandmtd2_buf2pt(yaffs_Device *dev, yaffs_PackedTags2 *pt, int is_raw)
 		
 }
 
-int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
+int nandmtd2_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
 				      const __u8 * data,
-				      const yaffs_ExtendedTags * tags)
+				      const yaffs_ext_tags * tags)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	size_t dummy;
 	int retval = 0;
 
-	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
+	loff_t addr = ((loff_t) nand_chunk) * dev->n_bytesPerChunk;
 
 	yaffs_PackedTags2 pt;
 
 	T(YAFFS_TRACE_MTD,
 	  (TSTR
 	   ("nandmtd2_WriteChunkWithTagsToNAND chunk %d data %p tags %p"
-	    TENDSTR), chunkInNAND, data, tags));
+	    TENDSTR), nand_chunk, data, tags));
 
 	if (tags) {
 		yaffs_PackTags2(&pt, tags);
@@ -131,7 +131,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 	if (data && tags) {
 	                nandmtd2_pt2buf(dev, &pt, 0);
 			retval =
-			    mtd->write_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->write_ecc(mtd, addr, dev->n_bytesPerChunk,
 					   &dummy, data, dev->spareBuffer,
 					   NULL);
 
@@ -149,32 +149,32 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device * dev, int chunkInNAND,
 		return YAFFS_FAIL;
 }
 
-int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
-				       __u8 * data, yaffs_ExtendedTags * tags)
+int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_dev_t * dev, int nand_chunk,
+				       __u8 * data, yaffs_ext_tags * tags)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	size_t dummy;
 	int retval = 0;
 
-	loff_t addr = ((loff_t) chunkInNAND) * dev->nBytesPerChunk;
+	loff_t addr = ((loff_t) nand_chunk) * dev->n_bytesPerChunk;
 
 	yaffs_PackedTags2 pt;
 
 	T(YAFFS_TRACE_MTD,
 	  (TSTR
 	   ("nandmtd2_ReadChunkWithTagsToNAND chunk %d data %p tags %p"
-	    TENDSTR), chunkInNAND, data, tags));
+	    TENDSTR), nand_chunk, data, tags));
 
 	if (0 && data && tags) {
 			retval =
-			    mtd->read_ecc(mtd, addr, dev->nBytesPerChunk,
+			    mtd->read_ecc(mtd, addr, dev->n_bytesPerChunk,
 					  &dummy, data, dev->spareBuffer,
 					  NULL);
 			nandmtd2_buf2pt(dev, &pt, 0);
 	} else {
 		if (data)
 			retval =
-			    mtd->read(mtd, addr, dev->nBytesPerChunk, &dummy,
+			    mtd->read(mtd, addr, dev->n_bytesPerChunk, &dummy,
 				      data);
 		if (tags) {
 			retval =
@@ -193,17 +193,17 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device * dev, int chunkInNAND,
 		return YAFFS_FAIL;
 }
 
-int nandmtd2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
+int nandmtd2_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	int retval;
 	T(YAFFS_TRACE_MTD,
-	  (TSTR("nandmtd2_MarkNANDBlockBad %d" TENDSTR), blockNo));
+	  (TSTR("nandmtd2_MarkNANDBlockBad %d" TENDSTR), block_no));
 
 	retval =
 	    mtd->block_markbad(mtd,
-			       blockNo * dev->nChunksPerBlock *
-			       dev->nBytesPerChunk);
+			       block_no * dev->chunks_per_block *
+			       dev->n_bytesPerChunk);
 
 	if (retval == 0)
 		return YAFFS_OK;
@@ -212,41 +212,41 @@ int nandmtd2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 
 }
 
-int nandmtd2_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo,
-			    yaffs_BlockState * state, int *sequenceNumber)
+int nandmtd2_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no,
+			    yaffs_block_state_t * state, int *seq_number)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	int retval;
 
 	T(YAFFS_TRACE_MTD,
-	  (TSTR("nandmtd2_QueryNANDBlock %d" TENDSTR), blockNo));
+	  (TSTR("nandmtd2_QueryNANDBlock %d" TENDSTR), block_no));
 	retval =
 	    mtd->block_isbad(mtd,
-			     blockNo * dev->nChunksPerBlock *
-			     dev->nBytesPerChunk);
+			     block_no * dev->chunks_per_block *
+			     dev->n_bytesPerChunk);
 
 	if (retval) {
 		T(YAFFS_TRACE_MTD, (TSTR("block is bad" TENDSTR)));
 
 		*state = YAFFS_BLOCK_STATE_DEAD;
-		*sequenceNumber = 0;
+		*seq_number = 0;
 	} else {
-		yaffs_ExtendedTags t;
+		yaffs_ext_tags t;
 		nandmtd2_ReadChunkWithTagsFromNAND(dev,
-						   blockNo *
-						   dev->nChunksPerBlock, NULL,
+						   block_no *
+						   dev->chunks_per_block, NULL,
 						   &t);
 
-		if (t.chunkUsed) {
-			*sequenceNumber = t.sequenceNumber;
+		if (t.chunk_used) {
+			*seq_number = t.seq_number;
 			*state = YAFFS_BLOCK_STATE_NEEDS_SCANNING;
 		} else {
-			*sequenceNumber = 0;
+			*seq_number = 0;
 			*state = YAFFS_BLOCK_STATE_EMPTY;
 		}
 
 		T(YAFFS_TRACE_MTD,
-		  (TSTR("block is OK seq %d state %d" TENDSTR), *sequenceNumber,
+		  (TSTR("block is OK seq %d state %d" TENDSTR), *seq_number,
 		   *state));
 	}
 

@@ -26,9 +26,9 @@ typedef struct {
 
 SimData *simDevs[N_RAM_SIM_DEVS];
 
-static SimData *DevToSim(yaffs_Device *dev)
+static SimData *DevToSim(yaffs_dev_t *dev)
 {
-	ynandif_Geometry *geom = (ynandif_Geometry *)(dev->driverContext);
+	ynandif_Geometry *geom = (ynandif_Geometry *)(dev->driver_context);
 	SimData * sim = (SimData*)(geom->privateData);
 	return sim;
 }
@@ -62,7 +62,7 @@ static int yramsim_erase_internal(SimData *sim, unsigned blockId,int force)
 
 
 
-static int yramsim_initialise(yaffs_Device *dev)
+static int yramsim_initialise(yaffs_dev_t *dev)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -70,12 +70,12 @@ static int yramsim_initialise(yaffs_Device *dev)
 }
 
 
-static int yramsim_deinitialise(yaffs_Device *dev)
+static int yramsim_deinitialise(yaffs_dev_t *dev)
 {
 	return 1;
 }
 
-static int yramsim_rd_chunk (yaffs_Device *dev, unsigned pageId,
+static int yramsim_rd_chunk (yaffs_dev_t *dev, unsigned pageId,
 					  unsigned char *data, unsigned dataLength,
 					  unsigned char *spare, unsigned spareLength,
 					  int *eccStatus)
@@ -110,7 +110,7 @@ static int yramsim_rd_chunk (yaffs_Device *dev, unsigned pageId,
 	return 1;
 }
 
-static int yramsim_wr_chunk (yaffs_Device *dev,unsigned pageId,
+static int yramsim_wr_chunk (yaffs_dev_t *dev,unsigned pageId,
 					   const unsigned char *data, unsigned dataLength,
 					   const unsigned char *spare, unsigned spareLength)
 {
@@ -142,7 +142,7 @@ static int yramsim_wr_chunk (yaffs_Device *dev,unsigned pageId,
 }
 
 
-static int yramsim_erase(yaffs_Device *dev,unsigned blockId)
+static int yramsim_erase(yaffs_dev_t *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 
@@ -150,7 +150,7 @@ static int yramsim_erase(yaffs_Device *dev,unsigned blockId)
 	return yramsim_erase_internal(sim,blockId,0);
 }
 
-static int yramsim_check_block_ok(yaffs_Device *dev,unsigned blockId)
+static int yramsim_check_block_ok(yaffs_dev_t *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -161,7 +161,7 @@ static int yramsim_check_block_ok(yaffs_Device *dev,unsigned blockId)
 	return blockList[blockId]->blockOk ? 1 : 0;
 }
 
-static int yramsim_mark_block_bad(yaffs_Device *dev,unsigned blockId)
+static int yramsim_mark_block_bad(yaffs_dev_t *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -236,9 +236,9 @@ static SimData *yramsim_alloc_sim_data(__u32 devId, __u32 nBlocks)
 }
 
 
-struct yaffs_DeviceStruct *yramsim_CreateRamSim(const YCHAR *name,
+struct yaffs_dev_s *yramsim_CreateRamSim(const YCHAR *name,
 				__u32 devId, __u32 nBlocks,
-				__u32 startBlock, __u32 endBlock)
+				__u32 start_block, __u32 end_block)
 {
 	SimData *sim;
 	ynandif_Geometry *g;
@@ -253,19 +253,19 @@ struct yaffs_DeviceStruct *yramsim_CreateRamSim(const YCHAR *name,
 		return NULL;
 	}
 
-	if(startBlock >= sim->nBlocks)
-		startBlock = 0;
-	if(endBlock == 0 || endBlock >= sim->nBlocks)
-		endBlock = sim->nBlocks - 1;
+	if(start_block >= sim->nBlocks)
+		start_block = 0;
+	if(end_block == 0 || end_block >= sim->nBlocks)
+		end_block = sim->nBlocks - 1;
 
 	memset(g,0,sizeof(ynandif_Geometry));
-	g->startBlock = startBlock;
-	g->endBlock = endBlock;
+	g->start_block = start_block;
+	g->end_block = end_block;
 	g->dataSize = DATA_SIZE;
 	g->spareSize= SPARE_SIZE;
 	g->pagesPerBlock = PAGES_PER_BLOCK;
 	g->hasECC = 1;
-	g->inbandTags = 0;
+	g->inband_tags = 0;
 	g->useYaffs2 = 1;
 	g->initialise = yramsim_initialise;
 	g->deinitialise = yramsim_deinitialise;

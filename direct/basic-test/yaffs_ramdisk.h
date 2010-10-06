@@ -22,10 +22,10 @@
 
 
 #include "yaffs_guts.h"
-int yramdisk_erase(yaffs_Device *dev, int blockNumber);
-int yramdisk_wr_chunk(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags);
-int yramdisk_rd_chunk(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags);
-int yramdisk_initialise(yaffs_Device *dev);
-int yramdisk_mark_block_bad(yaffs_Device *dev,int blockNumber);
-int yramdisk_query_block(yaffs_Device *dev, int blockNo, yaffs_BlockState *state, int *sequenceNumber);
+int yramdisk_erase(yaffs_dev_t *dev, int blockNumber);
+int yramdisk_wr_chunk(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags);
+int yramdisk_rd_chunk(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags);
+int yramdisk_initialise(yaffs_dev_t *dev);
+int yramdisk_mark_block_bad(yaffs_dev_t *dev,int blockNumber);
+int yramdisk_query_block(yaffs_dev_t *dev, int block_no, yaffs_block_state_t *state, int *seq_number);
 #endif

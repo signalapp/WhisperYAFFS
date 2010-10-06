@@ -16,24 +16,24 @@
 
 #include "yaffs_guts.h"
 
-void yaffs_verify_blk(yaffs_Device *dev, yaffs_BlockInfo *bi, int n);
-void yaffs_verify_collected_blk(yaffs_Device *dev, yaffs_BlockInfo *bi, int n);
-void yaffs_verify_blocks(yaffs_Device *dev);
+void yaffs_verify_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n);
+void yaffs_verify_collected_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n);
+void yaffs_verify_blocks(yaffs_dev_t *dev);
 
-void yaffs_verify_oh(yaffs_Object *obj, yaffs_ObjectHeader *oh, yaffs_ExtendedTags *tags, int parentCheck);
-void yaffs_verify_file(yaffs_Object *obj);
-void yaffs_verify_link(yaffs_Object *obj);
-void yaffs_verify_symlink(yaffs_Object *obj);
-void yaffs_verify_special(yaffs_Object *obj);
-void yaffs_verify_obj(yaffs_Object *obj);
-void yaffs_verify_objects(yaffs_Device *dev);
-void yaffs_verify_obj_in_dir(yaffs_Object *obj);
-void yaffs_verify_dir(yaffs_Object *directory);
-void yaffs_verify_free_chunks(yaffs_Device *dev);
+void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tags, int parentCheck);
+void yaffs_verify_file(yaffs_obj_t *obj);
+void yaffs_verify_link(yaffs_obj_t *obj);
+void yaffs_verify_symlink(yaffs_obj_t *obj);
+void yaffs_verify_special(yaffs_obj_t *obj);
+void yaffs_verify_obj(yaffs_obj_t *obj);
+void yaffs_verify_objects(yaffs_dev_t *dev);
+void yaffs_verify_obj_in_dir(yaffs_obj_t *obj);
+void yaffs_verify_dir(yaffs_obj_t *directory);
+void yaffs_verify_free_chunks(yaffs_dev_t *dev);
 
-int yaffs_verify_file_sane(yaffs_Object *obj);
+int yaffs_verify_file_sane(yaffs_obj_t *obj);
 
-int yaffs_skip_verification(yaffs_Device *dev);
+int yaffs_skip_verification(yaffs_dev_t *dev);
 
 #endif
 

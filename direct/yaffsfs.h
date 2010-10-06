@@ -94,8 +94,8 @@ int yaffs_pwrite(int fd, const void *buf, unsigned int nbyte, unsigned int offse
 
 off_t yaffs_lseek(int fd, off_t offset, int whence) ;
 
-int yaffs_truncate(const YCHAR *path, off_t newSize);
-int yaffs_ftruncate(int fd, off_t newSize);
+int yaffs_truncate(const YCHAR *path, off_t new_size);
+int yaffs_ftruncate(int fd, off_t new_size);
 
 int yaffs_unlink(const YCHAR *path) ;
 int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath) ;
@@ -140,10 +140,10 @@ void yaffs_rewinddir(yaffs_DIR *dirp) ;
 int yaffs_closedir(yaffs_DIR *dirp) ;
 
 int yaffs_mount(const YCHAR *path) ;
-int yaffs_mount2(const YCHAR *path, int readOnly);
+int yaffs_mount2(const YCHAR *path, int read_only);
 int yaffs_unmount(const YCHAR *path) ;
 int yaffs_unmount2(const YCHAR *path, int force);
-int yaffs_remount(const YCHAR *path, int force, int readOnly);
+int yaffs_remount(const YCHAR *path, int force, int read_only);
 
 
 int yaffs_sync(const YCHAR *path) ;
@@ -166,8 +166,8 @@ int yaffs_n_handles(const YCHAR *path);
 int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int shareMode) ;
 
 
-struct yaffs_DeviceStruct;
-void yaffs_add_device(struct yaffs_DeviceStruct *dev);
+struct yaffs_dev_s;
+void yaffs_add_device(struct yaffs_dev_s *dev);
 
 int yaffs_start_up(void);
 

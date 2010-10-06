@@ -67,16 +67,16 @@ void yaffsfs_LocalInitialisation(void)
 // /boot 2MB boot disk (flash)
 // /flash 14MB flash disk (flash)
 // NB Though /boot and /flash occupy the same physical device they
-// are still disticnt "yaffs_Devices. You may think of these as "partitions"
+// are still disticnt "yaffs_dev_ts. You may think of these as "partitions"
 // using non-overlapping areas in the same device.
 // 
 
 #include "yaffs_ramdisk.h"
 #include "yaffs_flashif.h"
 
-static yaffs_Device ramDev;
-static yaffs_Device bootDev;
-static yaffs_Device flashDev;
+static yaffs_dev_t ramDev;
+static yaffs_dev_t bootDev;
+static yaffs_dev_t flashDev;
 
 static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 
@@ -99,46 +99,46 @@ int yaffs_start_up(void)
 	// Set up devices
 
 	// /ram
-	ramDev.nDataBytesPerChunk = 512;
-	ramDev.nChunksPerBlock = 32;
-	ramDev.nReservedBlocks = 2; // Set this smaller for RAM
-	ramDev.startBlock = 1; // Can't use block 0
-	ramDev.endBlock = 127; // Last block in 2MB.	
-	ramDev.useNANDECC = 1;
-	ramDev.nShortOpCaches = 0;	// Disable caching on this device.
+	ramDev.data_bytes_per_chunk = 512;
+	ramDev.chunks_per_block = 32;
+	ramDev.n_reserved_blocks = 2; // Set this smaller for RAM
+	ramDev.start_block = 1; // Can't use block 0
+	ramDev.end_block = 127; // Last block in 2MB.	
+	ramDev.use_nand_ecc = 1;
+	ramDev.n_caches = 0;	// Disable caching on this device.
 	ramDev.genericDevice = (void *) 0;	// Used to identify the device in fstat.
-	ramDev.writeChunkWithTagsToNAND = yramdisk_wr_chunk;
-	ramDev.readChunkWithTagsFromNAND = yramdisk_rd_chunk;
-	ramDev.eraseBlockInNAND = yramdisk_erase;
-	ramDev.initialiseNAND = yramdisk_initialise;
+	ramDev.write_chunk_tags_fn = yramdisk_wr_chunk;
+	ramDev.read_chunk_tags_fn = yramdisk_rd_chunk;
+	ramDev.erase_fn = yramdisk_erase;
+	ramDev.initialise_flash_fn = yramdisk_initialise;
 
 	// /boot
-	bootDev.nDataBytesPerChunk = 512;
-	bootDev.nChunksPerBlock = 32;
-	bootDev.nReservedBlocks = 5;
-	bootDev.startBlock = 1; // Can't use block 0
-	bootDev.endBlock = 127; // Last block in 2MB.	
-	bootDev.useNANDECC = 0; // use YAFFS's ECC
-	bootDev.nShortOpCaches = 10; // Use caches
+	bootDev.data_bytes_per_chunk = 512;
+	bootDev.chunks_per_block = 32;
+	bootDev.n_reserved_blocks = 5;
+	bootDev.start_block = 1; // Can't use block 0
+	bootDev.end_block = 127; // Last block in 2MB.	
+	bootDev.use_nand_ecc = 0; // use YAFFS's ECC
+	bootDev.n_caches = 10; // Use caches
 	bootDev.genericDevice = (void *) 1;	// Used to identify the device in fstat.
-	bootDev.writeChunkToNAND = yflash_WriteChunkToNAND;
-	bootDev.readChunkFromNAND = yflash_ReadChunkFromNAND;
-	bootDev.eraseBlockInNAND = yflash_EraseBlockInNAND;
-	bootDev.initialiseNAND = yflash_InitialiseNAND;
+	bootDev.write_chunk_fn = yflash_WriteChunkToNAND;
+	bootDev.read_chunk_fn = yflash_ReadChunkFromNAND;
+	bootDev.erase_fn = yflash_EraseBlockInNAND;
+	bootDev.initialise_flash_fn = yflash_InitialiseNAND;
 
 		// /flash
-	flashDev.nDataBytesPerChunk =  512;
-	flashDev.nChunksPerBlock = 32;
-	flashDev.nReservedBlocks = 5;
-	flashDev.startBlock = 128; // First block after 2MB
-	flashDev.endBlock = 1023; // Last block in 16MB
-	flashDev.useNANDECC = 0; // use YAFFS's ECC
-	flashDev.nShortOpCaches = 10; // Use caches
+	flashDev.data_bytes_per_chunk =  512;
+	flashDev.chunks_per_block = 32;
+	flashDev.n_reserved_blocks = 5;
+	flashDev.start_block = 128; // First block after 2MB
+	flashDev.end_block = 1023; // Last block in 16MB
+	flashDev.use_nand_ecc = 0; // use YAFFS's ECC
+	flashDev.n_caches = 10; // Use caches
 	flashDev.genericDevice = (void *) 2;	// Used to identify the device in fstat.
-	flashDev.writeChunkToNAND = yflash_WriteChunkToNAND;
-	flashDev.readChunkFromNAND = yflash_ReadChunkFromNAND;
-	flashDev.eraseBlockInNAND = yflash_EraseBlockInNAND;
-	flashDev.initialiseNAND = yflash_InitialiseNAND;
+	flashDev.write_chunk_fn = yflash_WriteChunkToNAND;
+	flashDev.read_chunk_fn = yflash_ReadChunkFromNAND;
+	flashDev.erase_fn = yflash_EraseBlockInNAND;
+	flashDev.initialise_flash_fn = yflash_InitialiseNAND;
 
 	yaffs_initialise(yaffsfs_config);
 #endif

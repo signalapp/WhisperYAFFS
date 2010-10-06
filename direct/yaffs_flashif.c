@@ -50,7 +50,7 @@ typedef struct
 
 static yflash_Device ramdisk;
 
-static int  CheckInit(yaffs_Device *dev)
+static int  CheckInit(yaffs_dev_t *dev)
 {
 	static int initialised = 0;
 	
@@ -108,7 +108,7 @@ static int  CheckInit(yaffs_Device *dev)
 	return 1;
 }
 
-int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, yaffs_ExtendedTags *tags)
+int yflash_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -116,8 +116,8 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 
 	CheckInit(dev);
 	
-	blk = chunkInNAND/32;
-	pg = chunkInNAND%32;
+	blk = nand_chunk/32;
+	pg = nand_chunk%32;
 	
 	
 	if(data)
@@ -138,7 +138,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8
 }
 
 
-int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_Tags *tags)
+int yflash_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_tags_t *tags)
 {
 	int blk;
 	int pg;
@@ -146,8 +146,8 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 	
 	CheckInit(dev);
 	
-	blk = chunkInNAND/32;
-	pg = chunkInNAND%32;
+	blk = nand_chunk/32;
+	pg = nand_chunk%32;
 	
 	
 	if(data)
@@ -167,7 +167,7 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *da
 }
 
 
-int yflash_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
+int yflash_CheckChunkErased(yaffs_dev_t *dev,int nand_chunk)
 {
 	int blk;
 	int pg;
@@ -176,8 +176,8 @@ int yflash_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
 	
 	CheckInit(dev);
 	
-	blk = chunkInNAND/32;
-	pg = chunkInNAND%32;
+	blk = nand_chunk/32;
+	pg = nand_chunk%32;
 	
 	
 	for(i = 0; i < 528; i++)
@@ -192,7 +192,7 @@ int yflash_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
 
 }
 
-int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
+int yflash_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 {
 	
 	CheckInit(dev);
@@ -210,19 +210,19 @@ int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	
 }
 
-int yflash_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
+int yflash_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 {
 	return YAFFS_OK;
 	
 }
-int yflash_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, int *sequenceNumber)
+int yflash_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, int *seq_number)
 {
 	*state = YAFFS_BLOCK_STATE_EMPTY;
-	*sequenceNumber = 0;
+	*seq_number = 0;
 }
 
 
-int yflash_InitialiseNAND(yaffs_Device *dev)
+int yflash_InitialiseNAND(yaffs_dev_t *dev)
 {
 	return YAFFS_OK;
 }

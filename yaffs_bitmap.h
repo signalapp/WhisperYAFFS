@@ -20,12 +20,12 @@
 
 #include "yaffs_guts.h"
 
-void yaffs_verify_chunk_bit_id(yaffs_Device *dev, int blk, int chunk);
-void yaffs_clear_chunk_bits(yaffs_Device *dev, int blk);
-void yaffs_clear_chunk_bit(yaffs_Device *dev, int blk, int chunk);
-void yaffs_set_chunk_bit(yaffs_Device *dev, int blk, int chunk);
-int yaffs_check_chunk_bit(yaffs_Device *dev, int blk, int chunk);
-int yaffs_still_some_chunks(yaffs_Device *dev, int blk);
-int yaffs_count_chunk_bits(yaffs_Device *dev, int blk);
+void yaffs_verify_chunk_bit_id(yaffs_dev_t *dev, int blk, int chunk);
+void yaffs_clear_chunk_bits(yaffs_dev_t *dev, int blk);
+void yaffs_clear_chunk_bit(yaffs_dev_t *dev, int blk, int chunk);
+void yaffs_set_chunk_bit(yaffs_dev_t *dev, int blk, int chunk);
+int yaffs_check_chunk_bit(yaffs_dev_t *dev, int blk, int chunk);
+int yaffs_still_some_chunks(yaffs_dev_t *dev, int blk);
+int yaffs_count_chunk_bits(yaffs_dev_t *dev, int blk);
 
 #endif

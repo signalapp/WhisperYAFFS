@@ -87,9 +87,9 @@ void MakeFullNames(const char *prefix)
   MakeName(fullTempMainName,prefix,"tmp-main");
 }
 
-static void FatalError(int lineNo)
+static void FatalError(int line_no)
 {
-  printf("Integrity error %d\n",lineNo);
+  printf("Integrity error %d\n",line_no);
 
   if(fuzz_test)
   	return;

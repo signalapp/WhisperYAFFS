@@ -40,7 +40,7 @@ typedef struct yaffs_AllocatorStruct yaffs_Allocator;
 
 int mount_id;
 
-void yaffs_deinit_raw_tnodes_and_objs(yaffs_Device *dev)
+void yaffs_deinit_raw_tnodes_and_objs(yaffs_dev_t *dev)
 {
 	yaffs_Allocator *allocator = (yaffs_Allocator *)dev->allocator;
 
@@ -100,7 +100,7 @@ static void (*fake_ctor_list[10]) (void *) = {
 	fake_ctor9,
 };
 
-void yaffs_init_raw_tnodes_and_objs(yaffs_Device *dev)
+void yaffs_init_raw_tnodes_and_objs(yaffs_dev_t *dev)
 {
 	yaffs_Allocator *allocator;
 	unsigned mount_id = yaffs_dev_to_lc(dev)->mount_id;
@@ -129,7 +129,7 @@ void yaffs_init_raw_tnodes_and_objs(yaffs_Device *dev)
 
 		allocator->tnode_cache =
 			kmem_cache_create(allocator->tnode_name,
-				dev->tnodeSize,
+				dev->tnode_size,
 				0, 0,
 				fake_ctor_list[mount_id]);
 		if(allocator->tnode_cache)
@@ -145,7 +145,7 @@ void yaffs_init_raw_tnodes_and_objs(yaffs_Device *dev)
 
 		allocator->object_cache = 
 			kmem_cache_create(allocator->object_name,
-				sizeof(yaffs_Object),
+				sizeof(yaffs_obj_t),
 				0, 0,
 				fake_ctor_list[mount_id]);
 
@@ -163,7 +163,7 @@ void yaffs_init_raw_tnodes_and_objs(yaffs_Device *dev)
 }
 
 
-yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_Device *dev)
+yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_dev_t *dev)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	if(!allocator || !allocator->tnode_cache){
@@ -173,13 +173,13 @@ yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_Device *dev)
 	return kmem_cache_alloc(allocator->tnode_cache, GFP_NOFS);
 }
 
-void yaffs_free_raw_tnode(yaffs_Device *dev, yaffs_tnode_t *tn)
+void yaffs_free_raw_tnode(yaffs_dev_t *dev, yaffs_tnode_t *tn)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	kmem_cache_free(allocator->tnode_cache,tn);
 }
 
-yaffs_Object *yaffs_alloc_raw_obj(yaffs_Device *dev)
+yaffs_obj_t *yaffs_alloc_raw_obj(yaffs_dev_t *dev)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	if(!allocator){
@@ -193,7 +193,7 @@ yaffs_Object *yaffs_alloc_raw_obj(yaffs_Device *dev)
 	return kmem_cache_alloc(allocator->object_cache, GFP_NOFS);
 }
 
-void yaffs_free_raw_obj(yaffs_Device *dev, yaffs_Object *obj)
+void yaffs_free_raw_obj(yaffs_dev_t *dev, yaffs_obj_t *obj)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	kmem_cache_free(allocator->object_cache,obj);

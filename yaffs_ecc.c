@@ -245,7 +245,7 @@ int yaffs_ecc_correct(unsigned char *data, unsigned char *read_ecc,
 /*
  * ECCxxxOther does ECC calcs on arbitrary n bytes of data
  */
-void yaffs_ecc_calc_other(const unsigned char *data, unsigned nBytes,
+void yaffs_ecc_calc_other(const unsigned char *data, unsigned n_bytes,
 				yaffs_ECCOther *eccOther)
 {
 	unsigned int i;
@@ -255,7 +255,7 @@ void yaffs_ecc_calc_other(const unsigned char *data, unsigned nBytes,
 	unsigned line_parity_prime = 0;
 	unsigned char b;
 
-	for (i = 0; i < nBytes; i++) {
+	for (i = 0; i < n_bytes; i++) {
 		b = column_parity_table[*data++];
 		col_parity ^= b;
 
@@ -272,7 +272,7 @@ void yaffs_ecc_calc_other(const unsigned char *data, unsigned nBytes,
 	eccOther->lineParityPrime = line_parity_prime;
 }
 
-int yaffs_ecc_correct_other(unsigned char *data, unsigned nBytes,
+int yaffs_ecc_correct_other(unsigned char *data, unsigned n_bytes,
 			yaffs_ECCOther *read_ecc,
 			const yaffs_ECCOther *test_ecc)
 {
@@ -301,7 +301,7 @@ int yaffs_ecc_correct_other(unsigned char *data, unsigned nBytes,
 		if (cDelta & 0x02)
 			bit |= 0x01;
 
-		if (lDelta >= nBytes)
+		if (lDelta >= n_bytes)
 			return -1;
 
 		data[lDelta] ^= (1 << bit);

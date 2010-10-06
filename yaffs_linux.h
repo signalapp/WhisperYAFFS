@@ -21,7 +21,7 @@
 
 struct yaffs_LinuxContext {
 	struct ylist_head	contextList; /* List of these we have mounted */
-	struct yaffs_DeviceStruct *dev;
+	struct yaffs_dev_s *dev;
 	struct super_block * superBlock;
 	struct task_struct *bgThread; /* Background thread for this device */
 	int bgRunning;
@@ -36,8 +36,8 @@ struct yaffs_LinuxContext {
 	unsigned mount_id;
 };
 
-#define yaffs_dev_to_lc(dev) ((struct yaffs_LinuxContext *)((dev)->osContext))
-#define yaffs_dev_to_mtd(dev) ((struct mtd_info *)((dev)->driverContext))
+#define yaffs_dev_to_lc(dev) ((struct yaffs_LinuxContext *)((dev)->os_context))
+#define yaffs_dev_to_mtd(dev) ((struct mtd_info *)((dev)->driver_context))
 
 #endif
 

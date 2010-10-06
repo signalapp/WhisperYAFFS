@@ -2642,15 +2642,15 @@ void big_xattr_test(const char *mountpt)
 }
 
 
-void dump_dev_stats(yaffs_Device *dev, const char * str)
+void dump_dev_stats(yaffs_dev_t *dev, const char * str)
 {
 	printf("%s\n",str);
 	printf( "space free %d erased %d "
 		"nand reads %d writes %d erases %d "
 		"gc all %d passive %d oldestdirty %d blocks %d copies %d \n",
-		dev->nFreeChunks, dev->nErasedBlocks * dev->param.nChunksPerBlock,
-		dev->nPageReads, dev->nPageWrites, dev->nBlockErasures,
-		dev->allGCs, dev->passiveGCs, dev->oldestDirtyGCs, dev->nGCBlocks, dev->nGCCopies);
+		dev->n_free_chunks, dev->n_erased_blocks * dev->param.chunks_per_block,
+		dev->n_page_reads, dev->n_page_writes, dev->n_erasures,
+		dev->all_gcs, dev->passive_gc_count, dev->oldest_dirty_gc_count, dev->n_gc_blocks, dev->n_gc_copies);
 }
 
 void test_flash_traffic(const char *mountpt)
@@ -2658,7 +2658,7 @@ void test_flash_traffic(const char *mountpt)
 	char name0[100];
 	char name1[100];
 	int i;
-	yaffs_Device *dev;
+	yaffs_dev_t *dev;
 
 	yaffs_trace_mask = 0;
 

@@ -36,9 +36,9 @@ void yaffs_ecc_cacl(const unsigned char *data, unsigned char *ecc);
 int yaffs_ecc_correct(unsigned char *data, unsigned char *read_ecc,
 		const unsigned char *test_ecc);
 
-void yaffs_ecc_calc_other(const unsigned char *data, unsigned nBytes,
+void yaffs_ecc_calc_other(const unsigned char *data, unsigned n_bytes,
 			yaffs_ECCOther *ecc);
-int yaffs_ecc_correct_other(unsigned char *data, unsigned nBytes,
+int yaffs_ecc_correct_other(unsigned char *data, unsigned n_bytes,
 			yaffs_ECCOther *read_ecc,
 			const yaffs_ECCOther *test_ecc);
 #endif

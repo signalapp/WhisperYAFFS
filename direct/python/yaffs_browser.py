@@ -131,7 +131,7 @@ def back_a_directory(self=0):
     
     
     
-        
+ 
 def yaffs_ls(dname):
     ls_dict=[]
 
@@ -171,6 +171,65 @@ button_open.grid(column=0, row=0)
 button_back=tk.Button(toolbar_frame, command=back_a_directory, text="back")
 button_back.grid(column=1, row=0)
 toolbar_frame.grid(row=0, column=0,  columnspan=3)
+
+def delete_selected(selected_dir=0):
+    if selected_dir==0:
+        print"using current_directory_dict"
+        global current_directory_dict
+        x=name_list_box.curselection()
+        x=int(x[0])
+        print current_directory_dict[x]["type"]
+        if current_directory_dict[x]["type"]=="file":
+            path=current_directory_dict[x]["path"]
+            path =path
+            output=yaffs_unlink(path)
+            print "unlinking output:", output
+        elif current_directory_dict[x]["type"]=="dir":
+            path=current_directory_dict[x]["path"]
+            inside_dir=yaffs_ls(path)
+            print "files and folder inside dir", inside_dir
+            print "len of dir", len(inside_dir)
+            if inside_dir!=[]: ##if the dir is not empty
+                ## remove stuff in dir
+                for i in range(0,len(inside_dir)):
+                    print "calling self*****"
+                    delete_selected(inside_dir[i])
+                
+            path =path[0:len(path)-1] ##this is to remove the "/" off the end of the of the file 
+            print "removing:", path
+            output=yaffs_rmdir(path)
+            print "rmdir output:", output
+    else :
+        print "using passed dir"
+        print "dir passed", selected_dir
+        current_directory_dict =selected_dir
+
+        print "after copying", current_directory_dict
+        print current_directory_dict["type"]
+        if current_directory_dict["type"]=="file":
+            path=current_directory_dict["path"]
+            path =path
+            output=yaffs_unlink(path)
+            print "unlinking output:", output
+        elif current_directory_dict["type"]=="dir":
+            path=current_directory_dict["path"]
+            inside_dir=yaffs_ls(path)
+            print "files and folder inside dir", inside_dir
+            print "len of dir", len(inside_dir)
+            if inside_dir!=[]: ##if the dir is not empty
+                ## remove stuff in dir
+                for i in range(0,len(inside_dir)):
+                    print "calling self*****"
+                    delete_selected(inside_dir[i])
+                
+            path =path[0:len(path)-1] ##this is to remove the "/" off the end of the of the file 
+            print "removing:", path
+            output=yaffs_rmdir(path)
+            print "rmdir output:", output
+            
+    
+    
+    load_dir()
 
 
 
@@ -264,8 +323,8 @@ browser_menu_bar=tk.Menu(root_window)
 browser_file_menu=tk.Menu(browser_menu_bar)
 
 browser_file_menu.add_command(label="Reload", command=load_dir)
-browser_file_menu.add_command(label="Open")
-browser_file_menu.add_command(label="Save")
+#browser_file_menu.add_command(label="Open")
+#browser_file_menu.add_command(label="Save")
 browser_menu_bar.add_cascade(label="File", menu=browser_file_menu)
 root_window.config(menu=browser_menu_bar)
 
@@ -274,7 +333,7 @@ browser_edit_menu=tk.Menu(browser_menu_bar)
 
 browser_edit_menu.add_command(label="New File", command=new_file)
 browser_edit_menu.add_command(label="New Folder", command=new_folder)
-browser_edit_menu.add_command(label="Rename File")
+browser_edit_menu.add_command(label="delete selected", command=delete_selected)
 browser_menu_bar.add_cascade(label="Edit", menu=browser_edit_menu)
 
 

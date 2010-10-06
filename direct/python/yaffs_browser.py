@@ -27,12 +27,15 @@ class editor():
         yaffs_lseek(self.yaffs_handle, 0, 0)
         data_to_be_written=self.file_editor_text.get("1.0", tk.END)
         print "data to be saved", data_to_be_written
-        x=len(data_to_be_written)
-        print "length of data to be written",x  
-        output=yaffs_write(self.yaffs_handle,data_to_be_written , x)
+        length_of_file=len(data_to_be_written)
+        print "length of data to be written",length_of_file 
+        output=yaffs_write(self.yaffs_handle,data_to_be_written , length_of_file)
         print "output", output
+        yaffs_ftruncate(self.yaffs_handle, length_of_file)
         yaffs_close(self.yaffs_handle)
+        
         self.yaffs_handle = yaffs_open(self.file_path,66,0666)
+        load_dir()
         
     def __init__(self):
         global current_directory_dict
@@ -54,7 +57,8 @@ class editor():
         print "file contents", self.file_contents.raw
         self.file_editor_text.insert(tk.END, self.file_contents.raw)
         self.file_editor_text.pack()
-
+        ##self.file_editor_text.bind("<Control-s>", self.save_file)
+        ##doesn't work because it can't pass "self"
 
 def load_dir():
     global current_directory_dict
@@ -67,20 +71,11 @@ def load_dir():
         name_list_box.insert(x,(current_directory_dict[x]["inodes"]+"  "+ current_directory_dict[x]["type"]+"  "+ current_directory_dict[x]["size"]+"  "+ current_directory_dict[x]["path"]))
     name_list_box.grid(column=0, row=1)
     return current_directory_dict
-def save_file():
-    print file_editor_text.get(0, end)
-    pass
+
 def load_file():
     global open_windows_list
     open_windows_list.append(editor())
-    
 
-
-    
-
-   # file_editor_text.insert(0, "this is a text box\n")
-    #use file_editor_text_box.get(0,  END) to retreve text
-    
 def load_command(self=0):
     global current_directory_dict
     print "you loaded a file/dir"
@@ -99,7 +94,9 @@ def load_command(self=0):
         mount_list_text_variable.set(current_directory_dict[x]["path"])
         print mount_list_text_variable.get()
         print "old directory dict", current_directory_dict
-        current_directory_dict=load_dir()
+        #current_directory_dict=load_dir()
+        load_dir()
+
         print "new directory dict passed back"
 
     elif current_directory_dict[x]["type"]=="file" :
@@ -166,7 +163,6 @@ def yaffs_ls(dname):
         print "Could not open directory"
         return -1
 
-    
 
 ##toolbar 
 toolbar_frame=tk.Frame(root_window)
@@ -175,6 +171,75 @@ button_open.grid(column=0, row=0)
 button_back=tk.Button(toolbar_frame, command=back_a_directory, text="back")
 button_back.grid(column=1, row=0)
 toolbar_frame.grid(row=0, column=0,  columnspan=3)
+
+
+
+class new_file():
+    path_entry_box=0
+    new_file_window=0
+    def open_the_file(self):
+        global mount_list_text_variable
+        print "trying to create", mount_list_text_variable.get()+self.path_entry_box.get()
+        yaffs_handle=yaffs_open(self.path_entry_box.get(),66,0666)
+        yaffs_close(yaffs_handle)
+        self.new_file_window.destroy()
+        load_dir()
+
+    def cancel(self):
+        ##del self
+        self.new_file_window.destroy()
+    def __init__(self):
+        global mount_list_text_variable
+        self.new_file_window =tk.Toplevel(takefocus=True)
+        path_frame=tk.Frame(self.new_file_window)
+        path_label=tk.Label(path_frame, text="file path")
+        path_label.pack(side=tk.LEFT)
+        text=tk.StringVar()
+        text.set(mount_list_text_variable.get())
+        print "############################",mount_list_text_variable.get()
+        self.path_entry_box= tk.Entry(path_frame, textvariable=text)
+        self.path_entry_box.pack(side=tk.RIGHT)
+        path_frame.pack()
+        button_frame=tk.Frame(self.new_file_window)
+        create_button=tk.Button(button_frame, text="Create", command=self.open_the_file)
+        create_button.pack(side=tk.LEFT)
+        cancel_button=tk.Button(button_frame, text="Cancel", command=self.cancel)
+        cancel_button.pack(side=tk.RIGHT)
+        button_frame.pack()
+
+class new_folder():
+    path_entry_box=0
+    new_folder_window=0
+    def create_the_folder(self):
+        global mount_list_text_variable
+        print "trying to create", mount_list_text_variable.get()+self.path_entry_box.get()
+        yaffs_mkdir(self.path_entry_box.get(),0666)
+        self.new_folder_window.destroy()
+
+        load_dir()
+
+    def cancel(self):
+        ##del self
+        self.new_folder_window.destroy()
+    def __init__(self):
+        global mount_list_text_variable
+        self.new_folder_window =tk.Toplevel(takefocus=True)
+        path_frame=tk.Frame(self.new_folder_window)
+        path_label=tk.Label(path_frame, text="directory path")
+        path_label.pack(side=tk.LEFT)
+        text=tk.StringVar()
+        text.set(mount_list_text_variable.get())
+        print "############################",mount_list_text_variable.get()
+        self.path_entry_box= tk.Entry(path_frame, textvariable=text)
+        self.path_entry_box.pack(side=tk.RIGHT)
+        path_frame.pack()
+        button_frame=tk.Frame(self.new_folder_window)
+        create_button=tk.Button(button_frame, text="Create", command=self.create_the_folder)
+        create_button.pack(side=tk.LEFT)
+        cancel_button=tk.Button(button_frame, text="Cancel", command=self.cancel)
+        cancel_button.pack(side=tk.RIGHT)
+        button_frame.pack()
+
 
 
 
@@ -188,28 +253,37 @@ mount_list_entry_box.pack(side=tk.RIGHT)
 mount_list_frame.grid(row=1, column=0, columnspan=2)
 
 
-
-
 list_frame=tk.Frame(root_window)
-
-
-
-name_list_box=tk.Listbox(list_frame,exportselection=0, height=20, width=30)
-
+name_list_box=tk.Listbox(list_frame,exportselection=0, height=30, width=50)
 load_dir()
-
-#print "current_dir_dict", current_directory_dict
-
-
 list_frame.grid()
 
 name_list_box.bind("<Double-Button-1>", load_command)
+
+browser_menu_bar=tk.Menu(root_window)
+browser_file_menu=tk.Menu(browser_menu_bar)
+
+browser_file_menu.add_command(label="Reload", command=load_dir)
+browser_file_menu.add_command(label="Open")
+browser_file_menu.add_command(label="Save")
+browser_menu_bar.add_cascade(label="File", menu=browser_file_menu)
+root_window.config(menu=browser_menu_bar)
+
+
+browser_edit_menu=tk.Menu(browser_menu_bar)
+
+browser_edit_menu.add_command(label="New File", command=new_file)
+browser_edit_menu.add_command(label="New Folder", command=new_folder)
+browser_edit_menu.add_command(label="Rename File")
+browser_menu_bar.add_cascade(label="Edit", menu=browser_edit_menu)
+
+
 
 
 
 
 root_window.mainloop()
-yaffs_unmount("yaffs2/")
 
-print"saving"
+print"unmounting yaffs:", yaffs_unmount("yaffs2/")
+
 

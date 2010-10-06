@@ -4,11 +4,11 @@
 
 #include "yaffs_guts.h"
 
-void ynorsim_Read32(__u32 *addr, __u32 *data, int nwords);
-void ynorsim_Write32(__u32 *addr, __u32 *data, int nwords);
-void ynorsim_EraseBlock(__u32 *addr);
-void ynorsim_Shutdown(void);
-void ynorsim_Initialise(void);
-__u32 * ynorsim_GetBase(void);
+void ynorsim_rd32(__u32 *addr, __u32 *data, int nwords);
+void ynorsim_wr32(__u32 *addr, __u32 *data, int nwords);
+void ynorsim_erase(__u32 *addr);
+void ynorsim_shutdown(void);
+void ynorsim_initialise(void);
+__u32 * ynorsim_get_base(void);
 
 #endif

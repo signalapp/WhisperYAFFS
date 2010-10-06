@@ -43,23 +43,23 @@ const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.6 2010-01-11 04:
 typedef struct 
 {
 	__u8 data[528]; // Data + spare
-} yramdisk_Page;
+} yramdisk_page;
 
 typedef struct
 {
-	yramdisk_Page page[32]; // The pages in the block
+	yramdisk_page page[32]; // The pages in the block
 	
-} yramdisk_Block;
+} yramdisk_block;
 
 
 
 typedef struct
 {
-	yramdisk_Block **block;
+	yramdisk_block **block;
 	int nBlocks;
-} yramdisk_Device;
+} yramdisk_device;
 
-static yramdisk_Device ramdisk;
+static yramdisk_device ramdisk;
 
 static int  CheckInit(yaffs_Device *dev)
 {
@@ -80,7 +80,7 @@ static int  CheckInit(yaffs_Device *dev)
 	
 	ramdisk.nBlocks = (SIZE_IN_MB * 1024 * 1024)/(16 * 1024);
 	
-	ramdisk.block = YMALLOC(sizeof(yramdisk_Block *) * ramdisk.nBlocks);
+	ramdisk.block = YMALLOC(sizeof(yramdisk_block *) * ramdisk.nBlocks);
 	
 	if(!ramdisk.block) return 0;
 	
@@ -91,13 +91,13 @@ static int  CheckInit(yaffs_Device *dev)
 	
 	for(i=0; i <ramdisk.nBlocks && !fail; i++)
 	{
-		if((ramdisk.block[i] = YMALLOC(sizeof(yramdisk_Block))) == 0)
+		if((ramdisk.block[i] = YMALLOC(sizeof(yramdisk_block))) == 0)
 		{
 			fail = 1;
 		}
 		else
 		{
-			yramdisk_EraseBlockInNAND(dev,i);
+			yramdisk_erase(dev,i);
 			nAllocated++;
 		}
 	}
@@ -119,7 +119,7 @@ static int  CheckInit(yaffs_Device *dev)
 	return 1;
 }
 
-int yramdisk_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
+int yramdisk_wr_chunk(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
 {
 	int blk;
 	int pg;
@@ -150,7 +150,7 @@ int yramdisk_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __
 }
 
 
-int yramdisk_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
+int yramdisk_rd_chunk(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
 {
 	int blk;
 	int pg;
@@ -181,7 +181,7 @@ int yramdisk_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 }
 
 
-int yramdisk_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
+int yramdisk_check_chunk_erased(yaffs_Device *dev,int chunkInNAND)
 {
 	int blk;
 	int pg;
@@ -206,7 +206,7 @@ int yramdisk_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
 
 }
 
-int yramdisk_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
+int yramdisk_erase(yaffs_Device *dev, int blockNumber)
 {
 	
 	CheckInit(dev);
@@ -218,13 +218,13 @@ int yramdisk_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	}
 	else
 	{
-		memset(ramdisk.block[blockNumber],0xFF,sizeof(yramdisk_Block));
+		memset(ramdisk.block[blockNumber],0xFF,sizeof(yramdisk_block));
 		return YAFFS_OK;
 	}
 	
 }
 
-int yramdisk_InitialiseNAND(yaffs_Device *dev)
+int yramdisk_initialise(yaffs_Device *dev)
 {
 	//dev->useNANDECC = 1; // force on useNANDECC which gets faked. 
 						 // This saves us doing ECC checks.

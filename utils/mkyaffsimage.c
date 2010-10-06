@@ -139,7 +139,7 @@ static void yaffs_calc_ecc(const __u8 *data, yaffs_Spare *spare)
 static void yaffs_calc_tags_ecc(yaffs_Tags *tags)
 {
 	// Todo don't do anything yet. Need to calculate ecc
-	unsigned char *b = ((yaffs_TagsUnion *)tags)->asBytes;
+	unsigned char *b = ((yaffs_tags_union_t *)tags)->asBytes;
 	unsigned  i,j;
 	unsigned  ecc = 0;
 	unsigned bit = 0;
@@ -183,18 +183,18 @@ static void yaffs_calc_tags_ecc(yaffs_Tags *tags)
 }
 static void yaffs_load_tags_to_spare(yaffs_Spare *sparePtr, yaffs_Tags *tagsPtr)
 {
-	yaffs_TagsUnion *tu = (yaffs_TagsUnion *)tagsPtr;
+	yaffs_tags_union_t *tu = (yaffs_tags_union_t *)tagsPtr;
 	
 	//yaffs_calc_tags_ecc(tagsPtr);
 	
-	sparePtr->tagByte0 = tu->asBytes[0];
-	sparePtr->tagByte1 = tu->asBytes[1];
-	sparePtr->tagByte2 = tu->asBytes[2];
-	sparePtr->tagByte3 = tu->asBytes[3];
-	sparePtr->tagByte4 = tu->asBytes[4];
-	sparePtr->tagByte5 = tu->asBytes[5];
-	sparePtr->tagByte6 = tu->asBytes[6];
-	sparePtr->tagByte7 = tu->asBytes[7];
+	sparePtr->tb0 = tu->asBytes[0];
+	sparePtr->tb1 = tu->asBytes[1];
+	sparePtr->tb2 = tu->asBytes[2];
+	sparePtr->tb3 = tu->asBytes[3];
+	sparePtr->tb4 = tu->asBytes[4];
+	sparePtr->tb5 = tu->asBytes[5];
+	sparePtr->tb6 = tu->asBytes[6];
+	sparePtr->tb7 = tu->asBytes[7];
 }
 
 /* This little function converts a little endian tag to a big endian tag.
@@ -203,8 +203,8 @@ static void yaffs_load_tags_to_spare(yaffs_Spare *sparePtr, yaffs_Tags *tagsPtr)
  */
 static void little_to_big_endian(yaffs_Tags *tagsPtr)
 {
-    yaffs_TagsUnion * tags = (yaffs_TagsUnion* )tagsPtr; // Work in bytes.
-    yaffs_TagsUnion   temp;
+    yaffs_tags_union_t * tags = (yaffs_tags_union_t* )tagsPtr; // Work in bytes.
+    yaffs_tags_union_t   temp;
 
     memset(&temp, 0, sizeof(temp));
     // Ick, I hate magic numbers.

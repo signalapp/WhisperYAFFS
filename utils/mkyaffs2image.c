@@ -148,8 +148,8 @@ static int find_obj_in_list(dev_t dev, ino_t ino)
 static void little_to_big_endian(yaffs_Tags *tagsPtr)
 {
 #if 0 // FIXME NCB
-    yaffs_TagsUnion * tags = (yaffs_TagsUnion* )tagsPtr; // Work in bytes.
-    yaffs_TagsUnion   temp;
+    yaffs_tags_union_t * tags = (yaffs_tags_union_t* )tagsPtr; // Work in bytes.
+    yaffs_tags_union_t   temp;
 
     memset(&temp, 0, sizeof(temp));
     // Ick, I hate magic numbers.

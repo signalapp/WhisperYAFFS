@@ -48,14 +48,14 @@ static void NorError(void)
   while(1){}
 }
 
-static void ynorsim_SaveImage(void)
+static void ynorsim_save_image(void)
 {
   int h = open(YNORSIM_FNAME, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
   write(h,word,sizeof(word));
   close(h);
 }
 
-static void ynorsim_RestoreImage(void)
+static void ynorsim_restore_image(void)
 {
   int h = open(YNORSIM_FNAME, O_RDONLY, S_IREAD | S_IWRITE);
   memset(word,0xFF,sizeof(word));
@@ -64,9 +64,9 @@ static void ynorsim_RestoreImage(void)
 }
 
 
-static void ynorsim_PowerFail(void)
+static void ynorsim_power_fail(void)
 {
-  ynorsim_SaveImage();
+  ynorsim_save_image();
   exit(1);
 }
 
@@ -76,7 +76,7 @@ static int nops_so_far;
 
 int ops_multiplier = 500;
 
-static void ynorsim_MaybePowerFail(void)
+static void ynorsim_maybe_power_fail(void)
 {
 
    nops_so_far++;
@@ -86,21 +86,21 @@ static void ynorsim_MaybePowerFail(void)
    if(simulate_power_failure &&
       remaining_ops < 1){
        printf("Simulated power failure after %d operations\n",nops_so_far);
-    	ynorsim_PowerFail();
+    	ynorsim_power_fail();
   }
 }
 
-static void ynorsim_Ready(void)
+static void ynorsim_ready(void)
 {
   if(initialised) 
     return;
   srand(random_seed);
   remaining_ops = 1000000000;
   remaining_ops = (rand() % 10000) * ops_multiplier * YNORSIM_BIT_CHANGES;
-  ynorsim_RestoreImage();
+  ynorsim_restore_image();
 }
 
-void ynorsim_Read32(__u32 *addr,__u32 *buf, int nwords)
+void ynorsim_rd32(__u32 *addr,__u32 *buf, int nwords)
 { 
    while(nwords > 0){
      *buf = *addr;
@@ -110,7 +110,7 @@ void ynorsim_Read32(__u32 *addr,__u32 *buf, int nwords)
    }
 }
 
-void ynorsim_WriteOneWord32(__u32 *addr,__u32 val)
+void ynorsim_wr_one_word32(__u32 *addr,__u32 val)
 {
   __u32 tmp;
   __u32 m;
@@ -128,43 +128,43 @@ void ynorsim_WriteOneWord32(__u32 *addr,__u32 val)
     if(!(m & val)){
       tmp &= ~m;
       *addr = tmp;
-      ynorsim_MaybePowerFail();
+      ynorsim_maybe_power_fail();
     }
        
   }
   
   *addr = tmp & val;
-  ynorsim_MaybePowerFail();
+  ynorsim_maybe_power_fail();
 }
 
-void ynorsim_Write32(__u32 *addr, __u32 *buf, int nwords)
+void ynorsim_wr32(__u32 *addr, __u32 *buf, int nwords)
 {
   while(nwords >0){
-    ynorsim_WriteOneWord32(addr,*buf);
+    ynorsim_wr_one_word32(addr,*buf);
     addr++;
     buf++;
     nwords--;
   }
 }
 
-void ynorsim_EraseBlock(__u32 *addr)
+void ynorsim_erase(__u32 *addr)
 {
   /* Todo... bit flipping */
   memset(addr,0xFF,YNORSIM_BLOCK_SIZE_U32 * 4);
 }
 
-void ynorsim_Initialise(void)
+void ynorsim_initialise(void)
 {
-  ynorsim_Ready();
+  ynorsim_ready();
 }
 
-void ynorsim_Shutdown(void)
+void ynorsim_shutdown(void)
 {
-  ynorsim_SaveImage();
+  ynorsim_save_image();
   initialised=0;
 }
 
-__u32 *ynorsim_GetBase(void)
+__u32 *ynorsim_get_base(void)
 {
   return word;
 }

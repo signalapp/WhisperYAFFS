@@ -163,7 +163,7 @@ void yaffs_init_raw_tnodes_and_objs(yaffs_Device *dev)
 }
 
 
-yaffs_Tnode *yaffs_alloc_raw_tnode(yaffs_Device *dev)
+yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_Device *dev)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	if(!allocator || !allocator->tnode_cache){
@@ -173,7 +173,7 @@ yaffs_Tnode *yaffs_alloc_raw_tnode(yaffs_Device *dev)
 	return kmem_cache_alloc(allocator->tnode_cache, GFP_NOFS);
 }
 
-void yaffs_free_raw_tnode(yaffs_Device *dev, yaffs_Tnode *tn)
+void yaffs_free_raw_tnode(yaffs_Device *dev, yaffs_tnode_t *tn)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	kmem_cache_free(allocator->tnode_cache,tn);

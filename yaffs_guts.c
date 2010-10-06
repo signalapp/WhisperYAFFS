@@ -644,9 +644,9 @@ void yaffs_set_obj_name_from_oh(yaffs_Object *obj, const yaffs_ObjectHeader *oh)
  */
 
 
-yaffs_Tnode *yaffs_get_tnode(yaffs_Device *dev)
+yaffs_tnode_t *yaffs_get_tnode(yaffs_Device *dev)
 {
-	yaffs_Tnode *tn = yaffs_alloc_raw_tnode(dev);
+	yaffs_tnode_t *tn = yaffs_alloc_raw_tnode(dev);
 	if (tn){
 		memset(tn, 0, dev->tnodeSize);
 		dev->nTnodes++;
@@ -658,7 +658,7 @@ yaffs_Tnode *yaffs_get_tnode(yaffs_Device *dev)
 }
 
 /* FreeTnode frees up a tnode and puts it back on the free list */
-static void yaffs_free_tnode(yaffs_Device *dev, yaffs_Tnode *tn)
+static void yaffs_free_tnode(yaffs_Device *dev, yaffs_tnode_t *tn)
 {
 	yaffs_free_raw_tnode(dev,tn);
 	dev->nTnodes--;
@@ -673,7 +673,7 @@ static void yaffs_deinit_tnodes_and_objs(yaffs_Device *dev)
 }
 
 
-void yaffs_load_tnode_0(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos,
+void yaffs_load_tnode_0(yaffs_Device *dev, yaffs_tnode_t *tn, unsigned pos,
 		unsigned val)
 {
 	__u32 *map = (__u32 *)tn;
@@ -703,7 +703,7 @@ void yaffs_load_tnode_0(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos,
 	}
 }
 
-__u32 yaffs_get_group_base(yaffs_Device *dev, yaffs_Tnode *tn,
+__u32 yaffs_get_group_base(yaffs_Device *dev, yaffs_tnode_t *tn,
 		unsigned pos)
 {
 	__u32 *map = (__u32 *)tn;
@@ -740,11 +740,11 @@ __u32 yaffs_get_group_base(yaffs_Device *dev, yaffs_Tnode *tn,
  */
 
 /* FindLevel0Tnode finds the level 0 tnode, if one exists. */
-yaffs_Tnode *yaffs_find_tnode_0(yaffs_Device *dev,
+yaffs_tnode_t *yaffs_find_tnode_0(yaffs_Device *dev,
 					yaffs_FileStructure *fStruct,
 					__u32 chunkId)
 {
-	yaffs_Tnode *tn = fStruct->top;
+	yaffs_tnode_t *tn = fStruct->top;
 	__u32 i;
 	int requiredTallness;
 	int level = fStruct->topLevel;
@@ -794,15 +794,15 @@ yaffs_Tnode *yaffs_find_tnode_0(yaffs_Device *dev,
  *  be plugged into the ttree.
  */
 
-yaffs_Tnode *yaffs_add_find_tnode_0(yaffs_Device *dev,
+yaffs_tnode_t *yaffs_add_find_tnode_0(yaffs_Device *dev,
 					yaffs_FileStructure *fStruct,
 					__u32 chunkId,
-					yaffs_Tnode *passedTn)
+					yaffs_tnode_t *passedTn)
 {
 	int requiredTallness;
 	int i;
 	int l;
-	yaffs_Tnode *tn;
+	yaffs_tnode_t *tn;
 
 	__u32 x;
 
@@ -924,7 +924,7 @@ static int yaffs_find_chunk_in_group(yaffs_Device *dev, int theChunk,
  * Returns 0 if it stopped early due to hitting the limit and the delete is incomplete.
  */
 
-static int yaffs_del_worker(yaffs_Object *in, yaffs_Tnode *tn, __u32 level,
+static int yaffs_del_worker(yaffs_Object *in, yaffs_tnode_t *tn, __u32 level,
 			      int chunkOffset, int *limit)
 {
 	int i;
@@ -1035,7 +1035,7 @@ static void yaffs_soft_del_chunk(yaffs_Device *dev, int chunk)
  * Thus, essentially this is the same as DeleteWorker except that the chunks are soft deleted.
  */
 
-static int yaffs_soft_del_worker(yaffs_Object *in, yaffs_Tnode *tn,
+static int yaffs_soft_del_worker(yaffs_Object *in, yaffs_tnode_t *tn,
 				  __u32 level, int chunkOffset)
 {
 	int i;
@@ -1131,7 +1131,7 @@ static void yaffs_soft_del_file(yaffs_Object *obj)
  * If there is no data in a subtree then it is pruned.
  */
 
-static yaffs_Tnode *yaffs_prune_worker(yaffs_Device *dev, yaffs_Tnode *tn,
+static yaffs_tnode_t *yaffs_prune_worker(yaffs_Device *dev, yaffs_tnode_t *tn,
 				__u32 level, int del0)
 {
 	int i;
@@ -1181,7 +1181,7 @@ static int yaffs_prune_tree(yaffs_Device *dev,
 	int i;
 	int hasData;
 	int done = 0;
-	yaffs_Tnode *tn;
+	yaffs_tnode_t *tn;
 
 	if (fStruct->topLevel > 0) {
 		fStruct->top =
@@ -1440,7 +1440,7 @@ yaffs_Object *yaffs_new_obj(yaffs_Device *dev, int number,
 				    yaffs_ObjectType type)
 {
 	yaffs_Object *theObject=NULL;
-	yaffs_Tnode *tn = NULL;
+	yaffs_tnode_t *tn = NULL;
 
 	if (number < 0)
 		number = yaffs_new_obj_id(dev);
@@ -1467,7 +1467,7 @@ yaffs_Object *yaffs_new_obj(yaffs_Device *dev, int number,
 		yaffs_hash_obj(theObject);
 		theObject->variantType = type;
 #ifdef CONFIG_YAFFS_WINCE
-		yfsd_WinFileTimeNow(theObject->win_atime);
+		yfsd_win_file_time_now(theObject->win_atime);
 		theObject->win_ctime[0] = theObject->win_mtime[0] =
 		    theObject->win_atime[0];
 		theObject->win_ctime[1] = theObject->win_mtime[1] =
@@ -1592,7 +1592,7 @@ static yaffs_Object *yaffs_create_obj(yaffs_ObjectType type,
 		in->yst_mode = mode;
 
 #ifdef CONFIG_YAFFS_WINCE
-		yfsd_WinFileTimeNow(in->win_atime);
+		yfsd_win_file_time_now(in->win_atime);
 		in->win_ctime[0] = in->win_mtime[0] = in->win_atime[0];
 		in->win_ctime[1] = in->win_mtime[1] = in->win_atime[1];
 
@@ -2660,7 +2660,7 @@ static int yaffs_find_chunk_in_file(yaffs_Object *in, int chunkInInode,
 				 yaffs_ExtendedTags *tags)
 {
 	/*Get the Tnode, then get the level 0 offset chunk offset */
-	yaffs_Tnode *tn;
+	yaffs_tnode_t *tn;
 	int theChunk = -1;
 	yaffs_ExtendedTags localTags;
 	int retVal = -1;
@@ -2688,7 +2688,7 @@ static int yaffs_find_del_file_chunk(yaffs_Object *in, int chunkInInode,
 					  yaffs_ExtendedTags *tags)
 {
 	/* Get the Tnode, then get the level 0 offset chunk offset */
-	yaffs_Tnode *tn;
+	yaffs_tnode_t *tn;
 	int theChunk = -1;
 	yaffs_ExtendedTags localTags;
 
@@ -2729,7 +2729,7 @@ int yaffs_put_chunk_in_file(yaffs_Object *in, int chunkInInode,
 	 * chunkInNAND = 0 is a dummy insert to make sure the tnodes are there.
 	 */
 
-	yaffs_Tnode *tn;
+	yaffs_tnode_t *tn;
 	yaffs_Device *dev = in->myDev;
 	int existingChunk;
 	yaffs_ExtendedTags existingTags;
@@ -3855,7 +3855,7 @@ int yaffs_flush_file(yaffs_Object *in, int updateTime, int dataSync)
 		else {
 			if (updateTime) {
 #ifdef CONFIG_YAFFS_WINCE
-				yfsd_WinFileTimeNow(in->win_mtime);
+				yfsd_win_file_time_now(in->win_mtime);
 #else
 
 				in->yst_mtime = Y_CURRENT_TIME;
@@ -4116,7 +4116,7 @@ static int yaffs_unlink_obj(yaffs_Object *obj)
 	return YAFFS_FAIL;
 
 }
-int yaffs_Unlink(yaffs_Object *dir, const YCHAR *name)
+int yaffs_unlinker(yaffs_Object *dir, const YCHAR *name)
 {
 	yaffs_Object *obj;
 
@@ -5247,8 +5247,8 @@ int yaffs_guts_initialise(yaffs_Device *dev)
 		dev->chunkGroupBits = bits - dev->tnodeWidth;
 
 	dev->tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
-	if(dev->tnodeSize < sizeof(yaffs_Tnode))
-		dev->tnodeSize = sizeof(yaffs_Tnode);
+	if(dev->tnodeSize < sizeof(yaffs_tnode_t))
+		dev->tnodeSize = sizeof(yaffs_tnode_t);
 
 	dev->chunkGroupSize = 1 << dev->chunkGroupBits;
 
@@ -5533,9 +5533,9 @@ int yaffs_get_n_free_chunks(yaffs_Device *dev)
 static int yaffs_check_structures(void)
 {
 /*      yaffs_check_struct(yaffs_Tags,8,"yaffs_Tags"); */
-/*      yaffs_check_struct(yaffs_TagsUnion,8,"yaffs_TagsUnion"); */
+/*      yaffs_check_struct(yaffs_tags_union_t,8,"yaffs_tags_union_t"); */
 /*      yaffs_check_struct(yaffs_Spare,16,"yaffs_Spare"); */
-/*	yaffs_check_struct(yaffs_Tnode, 2 * YAFFS_NTNODES_LEVEL0, "yaffs_Tnode"); */
+/*	yaffs_check_struct(yaffs_tnode_t, 2 * YAFFS_NTNODES_LEVEL0, "yaffs_tnode_t"); */
 
 #ifndef CONFIG_YAFFS_WINCE
 	yaffs_check_struct(yaffs_ObjectHeader, 512, "yaffs_ObjectHeader");

@@ -142,7 +142,7 @@ typedef struct {
 typedef union {
 	yaffs_Tags asTags;
 	__u8 asBytes[8];
-} yaffs_TagsUnion;
+} yaffs_tags_union_t;
 
 #endif
 
@@ -203,17 +203,17 @@ typedef struct {
 
 /* Spare structure for YAFFS1 */
 typedef struct {
-	__u8 tagByte0;
-	__u8 tagByte1;
-	__u8 tagByte2;
-	__u8 tagByte3;
+	__u8 tb0;
+	__u8 tb1;
+	__u8 tb2;
+	__u8 tb3;
 	__u8 pageStatus;	/* set to 0 to delete the chunk */
 	__u8 blockStatus;
-	__u8 tagByte4;
-	__u8 tagByte5;
+	__u8 tb4;
+	__u8 tb5;
 	__u8 ecc1[3];
-	__u8 tagByte6;
-	__u8 tagByte7;
+	__u8 tb6;
+	__u8 tb7;
 	__u8 ecc2[3];
 } yaffs_Spare;
 
@@ -350,12 +350,12 @@ typedef struct {
 
 /*--------------------------- Tnode -------------------------- */
 
-union yaffs_Tnode_union {
-	union yaffs_Tnode_union *internal[YAFFS_NTNODES_INTERNAL];
+union yaffs_tnode_union {
+	union yaffs_tnode_union *internal[YAFFS_NTNODES_INTERNAL];
 
 };
 
-typedef union yaffs_Tnode_union yaffs_Tnode;
+typedef union yaffs_tnode_union yaffs_tnode_t;
 
 
 /*------------------------  Object -----------------------------*/
@@ -371,7 +371,7 @@ typedef struct {
 	__u32 scannedFileSize;
 	__u32 shrinkSize;
 	int topLevel;
-	yaffs_Tnode *top;
+	yaffs_tnode_t *top;
 } yaffs_FileStructure;
 
 typedef struct {
@@ -509,7 +509,7 @@ typedef struct {
 	__u8 *buffer;
 	int line;	/* track from whence this buffer was allocated */
 	int maxLine;
-} yaffs_TempBuffer;
+} yaffs_buffer_t;
 
 /*----------------- Device ---------------------------------*/
 
@@ -730,7 +730,7 @@ struct yaffs_DeviceStruct {
 	int nBackgroundDeletions;	/* Count of background deletions. */
 
 	/* Temporary buffer management */
-	yaffs_TempBuffer tempBuffer[YAFFS_N_TEMP_BUFFERS];
+	yaffs_buffer_t tempBuffer[YAFFS_N_TEMP_BUFFERS];
 	int maxTemp;
 	int tempInUse;
 	int unmanagedTempAllocations;
@@ -840,7 +840,7 @@ int yaffs_get_n_free_chunks(yaffs_Device *dev);
 int yaffs_rename_obj(yaffs_Object *oldDir, const YCHAR *oldName,
 		       yaffs_Object *newDir, const YCHAR *newName);
 
-int yaffs_Unlink(yaffs_Object *dir, const YCHAR *name);
+int yaffs_unlinker(yaffs_Object *dir, const YCHAR *name);
 int yaffs_del_obj(yaffs_Object *obj);
 
 int yaffs_get_obj_name(yaffs_Object *obj, YCHAR *name, int buffSize);
@@ -907,7 +907,7 @@ yaffs_Object *yaffs_LostNFound(yaffs_Device *dev);
 
 #ifdef CONFIG_YAFFS_WINCE
 /* CONFIG_YAFFS_WINCE special stuff */
-void yfsd_WinFileTimeNow(__u32 target[2]);
+void yfsd_win_file_time_now(__u32 target[2]);
 #endif
 
 void yaffs_handle_defered_free(yaffs_Object *obj);
@@ -947,11 +947,11 @@ int yaffs_update_oh(yaffs_Object *in, const YCHAR *name,
 void yaffs_handle_shadowed_obj(yaffs_Device *dev, int objId,
 				int backwardScanning);
 int yaffs_check_alloc_available(yaffs_Device *dev, int nChunks);
-yaffs_Tnode *yaffs_get_tnode(yaffs_Device *dev);
-yaffs_Tnode *yaffs_add_find_tnode_0(yaffs_Device *dev,
+yaffs_tnode_t *yaffs_get_tnode(yaffs_Device *dev);
+yaffs_tnode_t *yaffs_add_find_tnode_0(yaffs_Device *dev,
 					yaffs_FileStructure *fStruct,
 					__u32 chunkId,
-					yaffs_Tnode *passedTn);
+					yaffs_tnode_t *passedTn);
 
 int yaffs_do_file_wr(yaffs_Object *in, const __u8 *buffer, loff_t offset,
 			int nBytes, int writeThrough);
@@ -960,10 +960,10 @@ void yaffs_skip_rest_of_block(yaffs_Device *dev);
 
 int yaffs_count_free_chunks(yaffs_Device *dev);
 
-yaffs_Tnode *yaffs_find_tnode_0(yaffs_Device *dev,
+yaffs_tnode_t *yaffs_find_tnode_0(yaffs_Device *dev,
 				yaffs_FileStructure *fStruct,
 				__u32 chunkId);
 
-__u32 yaffs_get_group_base(yaffs_Device *dev, yaffs_Tnode *tn, unsigned pos);
+__u32 yaffs_get_group_base(yaffs_Device *dev, yaffs_tnode_t *tn, unsigned pos);
 
 #endif

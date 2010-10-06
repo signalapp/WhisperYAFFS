@@ -70,12 +70,12 @@ const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.6 2010-02-18 01:18
 
 /* Compile this for a simulation */
 #include "ynorsim.h"
-#define ynorif1_FlashInit() ynorsim_Initialise()
-#define ynorif1_FlashDeinit() ynorsim_Shutdown()
-#define ynorif1_FlashWrite32(addr,buf,nwords) ynorsim_Write32(addr,buf,nwords) 
-#define ynorif1_FlashRead32(addr,buf,nwords) ynorsim_Read32(addr,buf,nwords) 
-#define ynorif1_FlashEraseBlock(addr) ynorsim_EraseBlock(addr)
-#define DEVICE_BASE     ynorsim_GetBase()
+#define ynorif1_FlashInit() ynorsim_initialise()
+#define ynorif1_FlashDeinit() ynorsim_shutdown()
+#define ynorif1_FlashWrite32(addr,buf,nwords) ynorsim_wr32(addr,buf,nwords) 
+#define ynorif1_FlashRead32(addr,buf,nwords) ynorsim_rd32(addr,buf,nwords) 
+#define ynorif1_FlashEraseBlock(addr) ynorsim_erase(addr)
+#define DEVICE_BASE     ynorsim_get_base()
 #else
 
 /* Compile this for running on blob, hacked for yaffs access */

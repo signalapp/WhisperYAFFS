@@ -107,10 +107,10 @@ int yaffs_start_up(void)
 	ramDev.useNANDECC = 1;
 	ramDev.nShortOpCaches = 0;	// Disable caching on this device.
 	ramDev.genericDevice = (void *) 0;	// Used to identify the device in fstat.
-	ramDev.writeChunkWithTagsToNAND = yramdisk_WriteChunkWithTagsToNAND;
-	ramDev.readChunkWithTagsFromNAND = yramdisk_ReadChunkWithTagsFromNAND;
-	ramDev.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
-	ramDev.initialiseNAND = yramdisk_InitialiseNAND;
+	ramDev.writeChunkWithTagsToNAND = yramdisk_wr_chunk;
+	ramDev.readChunkWithTagsFromNAND = yramdisk_rd_chunk;
+	ramDev.eraseBlockInNAND = yramdisk_erase;
+	ramDev.initialiseNAND = yramdisk_initialise;
 
 	// /boot
 	bootDev.nDataBytesPerChunk = 512;

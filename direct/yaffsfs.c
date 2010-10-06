@@ -1102,7 +1102,7 @@ int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 	else if(isDirectory && obj->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
 		yaffsfs_SetError(-ENOTDIR);
 	else {
-		result = yaffs_Unlink(dir,name);
+		result = yaffs_unlinker(dir,name);
 
 		if(result == YAFFS_FAIL && isDirectory)
 			yaffsfs_SetError(-ENOTEMPTY);

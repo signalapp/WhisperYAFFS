@@ -39,7 +39,7 @@ static void CheckInitialised(void)
 
 }
 
-static int yramsim_EraseBlockInternal(SimData *sim, unsigned blockId,int force)
+static int yramsim_erase_internal(SimData *sim, unsigned blockId,int force)
 {
 	if(blockId < 0 || blockId >= sim->nBlocks){
 		return 0;
@@ -62,7 +62,7 @@ static int yramsim_EraseBlockInternal(SimData *sim, unsigned blockId,int force)
 
 
 
-static int yramsim_Initialise(yaffs_Device *dev)
+static int yramsim_initialise(yaffs_Device *dev)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -70,12 +70,12 @@ static int yramsim_Initialise(yaffs_Device *dev)
 }
 
 
-static int yramsim_Deinitialise(yaffs_Device *dev)
+static int yramsim_deinitialise(yaffs_Device *dev)
 {
 	return 1;
 }
 
-static int yramsim_ReadChunk (yaffs_Device *dev, unsigned pageId,
+static int yramsim_rd_chunk (yaffs_Device *dev, unsigned pageId,
 					  unsigned char *data, unsigned dataLength,
 					  unsigned char *spare, unsigned spareLength,
 					  int *eccStatus)
@@ -110,7 +110,7 @@ static int yramsim_ReadChunk (yaffs_Device *dev, unsigned pageId,
 	return 1;
 }
 
-static int yramsim_WriteChunk (yaffs_Device *dev,unsigned pageId,
+static int yramsim_wr_chunk (yaffs_Device *dev,unsigned pageId,
 					   const unsigned char *data, unsigned dataLength,
 					   const unsigned char *spare, unsigned spareLength)
 {
@@ -142,15 +142,15 @@ static int yramsim_WriteChunk (yaffs_Device *dev,unsigned pageId,
 }
 
 
-static int yramsim_EraseBlock(yaffs_Device *dev,unsigned blockId)
+static int yramsim_erase(yaffs_Device *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 
 	CheckInitialised();
-	return yramsim_EraseBlockInternal(sim,blockId,0);
+	return yramsim_erase_internal(sim,blockId,0);
 }
 
-static int yramsim_CheckBlockOk(yaffs_Device *dev,unsigned blockId)
+static int yramsim_check_block_ok(yaffs_Device *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -161,7 +161,7 @@ static int yramsim_CheckBlockOk(yaffs_Device *dev,unsigned blockId)
 	return blockList[blockId]->blockOk ? 1 : 0;
 }
 
-static int yramsim_MarkBlockBad(yaffs_Device *dev,unsigned blockId)
+static int yramsim_mark_block_bad(yaffs_Device *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -175,7 +175,7 @@ static int yramsim_MarkBlockBad(yaffs_Device *dev,unsigned blockId)
 }
 
 
-static SimData *yramsim_AllocSimData(__u32 devId, __u32 nBlocks)
+static SimData *yramsim_alloc_sim_data(__u32 devId, __u32 nBlocks)
 {
 	int ok = 1;
 
@@ -214,7 +214,7 @@ static SimData *yramsim_AllocSimData(__u32 devId, __u32 nBlocks)
 		b=  malloc(sizeof(Block));
 		if(b){
 			blockList[i] = b;
-			yramsim_EraseBlockInternal(sim,i,1);
+			yramsim_erase_internal(sim,i,1);
 		}
 		else
 			ok = 0;
@@ -243,7 +243,7 @@ struct yaffs_DeviceStruct *yramsim_CreateRamSim(const YCHAR *name,
 	SimData *sim;
 	ynandif_Geometry *g;
 
-	sim = yramsim_AllocSimData(devId, nBlocks);
+	sim = yramsim_alloc_sim_data(devId, nBlocks);
 
 	g = YMALLOC(sizeof(ynandif_Geometry));
 
@@ -267,13 +267,13 @@ struct yaffs_DeviceStruct *yramsim_CreateRamSim(const YCHAR *name,
 	g->hasECC = 1;
 	g->inbandTags = 0;
 	g->useYaffs2 = 1;
-	g->initialise = yramsim_Initialise;
-	g->deinitialise = yramsim_Deinitialise;
-	g->readChunk = yramsim_ReadChunk,
-	g->writeChunk = yramsim_WriteChunk,
-	g->eraseBlock = yramsim_EraseBlock,
-	g->checkBlockOk = yramsim_CheckBlockOk,
-	g->markBlockBad = yramsim_MarkBlockBad,
+	g->initialise = yramsim_initialise;
+	g->deinitialise = yramsim_deinitialise;
+	g->readChunk = yramsim_rd_chunk,
+	g->writeChunk = yramsim_wr_chunk,
+	g->eraseBlock = yramsim_erase,
+	g->checkBlockOk = yramsim_check_block_ok,
+	g->markBlockBad = yramsim_mark_block_bad,
 	g->privateData = (void *)sim;
 
 	return yaffs_add_dev_from_geometry(name,g);

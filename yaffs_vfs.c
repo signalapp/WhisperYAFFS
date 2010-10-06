@@ -1405,7 +1405,7 @@ static int yaffs_unlink(struct inode *dir, struct dentry *dentry)
 
 	yaffs_gross_lock(dev);
 
-	retVal = yaffs_Unlink(obj, dentry->d_name.name);
+	retVal = yaffs_unlinker(obj, dentry->d_name.name);
 
 	if (retVal == YAFFS_OK) {
 		dentry->d_inode->i_nlink--;
@@ -2196,7 +2196,7 @@ static int yaffs_parse_options(yaffs_options *options, const char *options_str)
 	return error;
 }
 
-static struct super_block *yaffs_internal_read_super(int yaffsVersion,
+static struct super_block *yaffs_internal_read_super(int yaffs_version,
 						struct super_block *sb,
 						void *data, int silent)
 {
@@ -2257,7 +2257,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 	sb->s_blocksize_bits = PAGE_CACHE_SHIFT;
 
 	T(YAFFS_TRACE_OS,
-		(TSTR("yaffs_read_super: Using yaffs%d\n"), yaffsVersion));
+		(TSTR("yaffs_read_super: Using yaffs%d\n"), yaffs_version));
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_read_super: block size %d\n"),
 		(int)(sb->s_blocksize)));
@@ -2301,22 +2301,22 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 
 #ifdef CONFIG_YAFFS_AUTO_YAFFS2
 
-	if (yaffsVersion == 1 && WRITE_SIZE(mtd) >= 2048) {
+	if (yaffs_version == 1 && WRITE_SIZE(mtd) >= 2048) {
 		T(YAFFS_TRACE_ALWAYS,
 			(TSTR("yaffs: auto selecting yaffs2\n")));
-		yaffsVersion = 2;
+		yaffs_version = 2;
 	}
 
 	/* Added NCB 26/5/2006 for completeness */
-	if (yaffsVersion == 2 && !options.inband_tags && WRITE_SIZE(mtd) == 512) {
+	if (yaffs_version == 2 && !options.inband_tags && WRITE_SIZE(mtd) == 512) {
 		T(YAFFS_TRACE_ALWAYS,
 			(TSTR("yaffs: auto selecting yaffs1\n")));
-		yaffsVersion = 1;
+		yaffs_version = 1;
 	}
 
 #endif
 
-	if (yaffsVersion == 2) {
+	if (yaffs_version == 2) {
 		/* Check for version 2 style functions */
 		if (!mtd->erase ||
 		    !mtd->block_isbad ||
@@ -2456,7 +2456,7 @@ static struct super_block *yaffs_internal_read_super(int yaffsVersion,
 		param->emptyLostAndFound = options.empty_lost_and_found;
 
 	/* ... and the functions. */
-	if (yaffsVersion == 2) {
+	if (yaffs_version == 2) {
 		param->writeChunkWithTagsToNAND =
 		    nandmtd2_WriteChunkWithTagsToNAND;
 		param->readChunkWithTagsFromNAND =

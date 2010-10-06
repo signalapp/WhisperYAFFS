@@ -66,7 +66,7 @@ void yaffs_calc_tags_ecc(yaffs_Tags *tags)
 {
 	/* Calculate an ecc */
 
-	unsigned char *b = ((yaffs_TagsUnion *) tags)->asBytes;
+	unsigned char *b = ((yaffs_tags_union_t *) tags)->asBytes;
 	unsigned i, j;
 	unsigned ecc = 0;
 	unsigned bit = 0;
@@ -95,7 +95,7 @@ int yaffs_check_tags_ecc(yaffs_Tags *tags)
 
 	if (ecc && ecc <= 64) {
 		/* TODO: Handle the failure better. Retire? */
-		unsigned char *b = ((yaffs_TagsUnion *) tags)->asBytes;
+		unsigned char *b = ((yaffs_tags_union_t *) tags)->asBytes;
 
 		ecc--;
 
@@ -119,34 +119,34 @@ int yaffs_check_tags_ecc(yaffs_Tags *tags)
 static void yaffs_load_tags_to_spare(yaffs_Spare *sparePtr,
 				yaffs_Tags *tagsPtr)
 {
-	yaffs_TagsUnion *tu = (yaffs_TagsUnion *) tagsPtr;
+	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tagsPtr;
 
 	yaffs_calc_tags_ecc(tagsPtr);
 
-	sparePtr->tagByte0 = tu->asBytes[0];
-	sparePtr->tagByte1 = tu->asBytes[1];
-	sparePtr->tagByte2 = tu->asBytes[2];
-	sparePtr->tagByte3 = tu->asBytes[3];
-	sparePtr->tagByte4 = tu->asBytes[4];
-	sparePtr->tagByte5 = tu->asBytes[5];
-	sparePtr->tagByte6 = tu->asBytes[6];
-	sparePtr->tagByte7 = tu->asBytes[7];
+	sparePtr->tb0 = tu->asBytes[0];
+	sparePtr->tb1 = tu->asBytes[1];
+	sparePtr->tb2 = tu->asBytes[2];
+	sparePtr->tb3 = tu->asBytes[3];
+	sparePtr->tb4 = tu->asBytes[4];
+	sparePtr->tb5 = tu->asBytes[5];
+	sparePtr->tb6 = tu->asBytes[6];
+	sparePtr->tb7 = tu->asBytes[7];
 }
 
 static void yaffs_get_tags_from_spare(yaffs_Device *dev, yaffs_Spare *sparePtr,
 				yaffs_Tags *tagsPtr)
 {
-	yaffs_TagsUnion *tu = (yaffs_TagsUnion *) tagsPtr;
+	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tagsPtr;
 	int result;
 
-	tu->asBytes[0] = sparePtr->tagByte0;
-	tu->asBytes[1] = sparePtr->tagByte1;
-	tu->asBytes[2] = sparePtr->tagByte2;
-	tu->asBytes[3] = sparePtr->tagByte3;
-	tu->asBytes[4] = sparePtr->tagByte4;
-	tu->asBytes[5] = sparePtr->tagByte5;
-	tu->asBytes[6] = sparePtr->tagByte6;
-	tu->asBytes[7] = sparePtr->tagByte7;
+	tu->asBytes[0] = sparePtr->tb0;
+	tu->asBytes[1] = sparePtr->tb1;
+	tu->asBytes[2] = sparePtr->tb2;
+	tu->asBytes[3] = sparePtr->tb3;
+	tu->asBytes[4] = sparePtr->tb4;
+	tu->asBytes[5] = sparePtr->tb5;
+	tu->asBytes[6] = sparePtr->tb6;
+	tu->asBytes[7] = sparePtr->tb7;
 
 	result = yaffs_check_tags_ecc(tagsPtr);
 	if (result > 0)
@@ -376,14 +376,14 @@ static int yaffs_verify_cmp(const __u8 *d0, const __u8 *d1,
 {
 
 	if (memcmp(d0, d1, YAFFS_BYTES_PER_CHUNK) != 0 ||
-	    s0->tagByte0 != s1->tagByte0 ||
-	    s0->tagByte1 != s1->tagByte1 ||
-	    s0->tagByte2 != s1->tagByte2 ||
-	    s0->tagByte3 != s1->tagByte3 ||
-	    s0->tagByte4 != s1->tagByte4 ||
-	    s0->tagByte5 != s1->tagByte5 ||
-	    s0->tagByte6 != s1->tagByte6 ||
-	    s0->tagByte7 != s1->tagByte7 ||
+	    s0->tb0 != s1->tb0 ||
+	    s0->tb1 != s1->tb1 ||
+	    s0->tb2 != s1->tb2 ||
+	    s0->tb3 != s1->tb3 ||
+	    s0->tb4 != s1->tb4 ||
+	    s0->tb5 != s1->tb5 ||
+	    s0->tb6 != s1->tb6 ||
+	    s0->tb7 != s1->tb7 ||
 	    s0->ecc1[0] != s1->ecc1[0] ||
 	    s0->ecc1[1] != s1->ecc1[1] ||
 	    s0->ecc1[2] != s1->ecc1[2] ||

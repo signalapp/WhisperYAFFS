@@ -451,7 +451,7 @@ static int taffs2_checkpt_obj_to_obj(yaffs_Object *obj, yaffs_CheckpointObject *
 
 
 
-static int yaffs2_checkpt_tnode_worker(yaffs_Object *in, yaffs_Tnode *tn,
+static int yaffs2_checkpt_tnode_worker(yaffs_Object *in, yaffs_tnode_t *tn,
 					__u32 level, int chunkOffset)
 {
 	int i;
@@ -505,7 +505,7 @@ static int yaffs2_rd_checkpt_tnodes(yaffs_Object *obj)
 	int ok = 1;
 	yaffs_Device *dev = obj->myDev;
 	yaffs_FileStructure *fileStructPtr = &obj->variant.fileVariant;
-	yaffs_Tnode *tn;
+	yaffs_tnode_t *tn;
 	int nread = 0;
 
 	ok = (yaffs2_checkpt_rd(dev, &baseChunk, sizeof(baseChunk)) == sizeof(baseChunk));

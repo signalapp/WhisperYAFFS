@@ -128,10 +128,10 @@ int yaffs_start_up(void)
 	//ram1Dev.param.useNANDECC = 1;
 	ram1Dev.param.nShortOpCaches = 0;	// Disable caching on this device.
 	ram1Dev.driverContext = (void *) 0;	// Used to identify the device in fstat.
-	ram1Dev.param.writeChunkWithTagsToNAND = yramdisk_WriteChunkWithTagsToNAND;
-	ram1Dev.param.readChunkWithTagsFromNAND = yramdisk_ReadChunkWithTagsFromNAND;
-	ram1Dev.param.eraseBlockInNAND = yramdisk_EraseBlockInNAND;
-	ram1Dev.param.initialiseNAND = yramdisk_InitialiseNAND;
+	ram1Dev.param.writeChunkWithTagsToNAND = yramdisk_wr_chunk;
+	ram1Dev.param.readChunkWithTagsFromNAND = yramdisk_rd_chunk;
+	ram1Dev.param.eraseBlockInNAND = yramdisk_erase;
+	ram1Dev.param.initialiseNAND = yramdisk_initialise;
 	
 	yaffs_add_device(&ram1Dev);
 

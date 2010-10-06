@@ -218,7 +218,7 @@ void yaffs_verify_oh(yaffs_Object *obj, yaffs_ObjectHeader *oh, yaffs_ExtendedTa
 
 #if 0
 /* Not being used, but don't want to throw away yet */
-int yaffs_verify_tnode_worker(yaffs_Object *obj, yaffs_Tnode *tn,
+int yaffs_verify_tnode_worker(yaffs_Object *obj, yaffs_tnode_t *tn,
 					__u32 level, int chunkOffset)
 {
 	int i;
@@ -274,7 +274,7 @@ void yaffs_verify_file(yaffs_Object *obj)
 	__u32 i;
 	yaffs_Device *dev;
 	yaffs_ExtendedTags tags;
-	yaffs_Tnode *tn;
+	yaffs_tnode_t *tn;
 	__u32 objectId;
 
 	if (!obj)
@@ -574,7 +574,7 @@ int yaffs_verify_file_sane(yaffs_Object *in)
 	int fSize;
 	int failed = 0;
 	int objId;
-	yaffs_Tnode *tn;
+	yaffs_tnode_t *tn;
 	yaffs_Tags localTags;
 	yaffs_Tags *tags = &localTags;
 	int theChunk;

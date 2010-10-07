@@ -167,7 +167,7 @@ def yaffs_ls(dname):
             se = sep.contents
             fullname = dname + se.d_name
             st = yaffs_stat_struct()
-            result = yaffs_stat(fullname,byref(st))
+            result = yaffs_lstat(fullname,byref(st))
             perms = st.st_mode & 0777
             ftype = st.st_mode & yaffs_S_IFMT
             isFile = True if ftype == yaffs_S_IFREG else False

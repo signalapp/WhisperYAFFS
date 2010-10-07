@@ -169,26 +169,27 @@ def yaffs_ls(dname):
             st = yaffs_stat_struct()
             result = yaffs_stat(fullname,byref(st))
             perms = st.st_mode & 0777
-            isFile = True if st.st_mode & 0x8000 else False
-            isDir  = True if st.st_mode & 0x4000 else False
-            isSymlink=False if st.st_mode & 0x120000 else True
+            ftype = st.st_mode & yaffs_S_IFMT
+            isFile = True if ftype == yaffs_S_IFREG else False
+            isDir  = True if ftype == yaffs_S_IFDIR else False
+            isSymlink= True if ftype == yaffs_S_IFLNK else False
 
             if isFile :
                 ls_dict.append ({"type" :"file",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname})
                 print "file st.st_mode:", st.st_mode
-                print "st.st_mode andded with st.st_mode & 0x8000", st.st_mode & 0x8000
+
             elif isDir :
                 print "dir st.st_mode:", st.st_mode
-                print "st.st_mode andded with st.st_mode & 0x4000", st.st_mode & 0x4000
+
                 ls_dict.append({"type":"dir", "inodes" :str(se.d_ino), "permissions":str( hex(perms)),"size":"0",   "path": fullname+"/"})
             elif isSymlink:
+                print "symlink st.st_mode:", st.st_mode
 
                 ls_dict.append ({"type" :"link",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname})
 
             else :
                 print "unknown st.st_mode:", st.st_mode
-                print "st.st_mode andded with st.st_mode & 0x120000", st.st_mode & 0x120000
-            	ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":str( hex(perms)), "size":"0",   "path": fullname})
+                ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":str( hex(perms)), "size":"0",   "path": fullname})
             sep = yaffs_readdir(dc)
         yaffs_closedir(dc)
         return ls_dict
@@ -353,9 +354,6 @@ class new_symlink():
         else :
             ##file does not exist
             print "target file does not exist, cannot create symlink"
-        
-        
-        
         load_dir()
 
     def cancel(self):
@@ -386,6 +384,63 @@ class new_symlink():
         
         button_frame=tk.Frame(self.new_file_window)
         create_button=tk.Button(button_frame, text="Create", command=self.create_the_symlink)
+        create_button.pack(side=tk.LEFT)
+        cancel_button=tk.Button(button_frame, text="Cancel", command=self.cancel)
+        cancel_button.pack(side=tk.RIGHT)
+        button_frame.pack()
+
+
+
+class new_hardlink():
+    path_entry_box=0
+    target_text=0
+    new_text=0
+    new_file_window=0
+    def create_the_hardlink(self):
+        global mount_list_text_variable
+        ##check the symlink's target is a file.
+        target_path=self.target_text.get()
+        new_path=self.new_text.get()
+        print "creating a hardlink \n target:", target_path
+        target_file_exists=yaffs_access(target_path, 0) ##yaffs_access will return 0 on success and -1 on failure.
+        if target_file_exists>=0:
+            ##file exists,create symlink
+            print "target file exist, creating hardlink"
+            yaffs_link(target_path, new_path)
+            self.new_file_window.destroy()
+        else :
+            ##file does not exist
+            print "target file does not exist, cannot create hardlink"
+        load_dir()
+
+    def cancel(self):
+        ##del self
+        self.new_file_window.destroy()
+    def __init__(self):
+        global mount_list_text_variable
+        self.new_file_window =tk.Toplevel(takefocus=True)
+        target_frame=tk.Frame(self.new_file_window)
+        target_label=tk.Label(target_frame, text="target")
+        target_label.pack(side=tk.LEFT)
+        self.target_text=tk.StringVar()
+        self.target_text.set(mount_list_text_variable.get())
+        #print "############################",mount_list_text_variable.get()
+        self.target_entry_box= tk.Entry(target_frame, textvariable=self.target_text)
+        self.target_entry_box.pack(side=tk.RIGHT)
+        target_frame.pack()
+        
+        new_frame=tk.Frame(self.new_file_window)
+        new_label=tk.Label(new_frame, text="file path")
+        new_label.pack(side=tk.LEFT)
+        self.new_text=tk.StringVar()
+        self.new_text.set(mount_list_text_variable.get())
+        #print "############################",mount_list_text_variable.get()
+        self.new_entry_box= tk.Entry(new_frame, textvariable=self.new_text)
+        self.new_entry_box.pack(side=tk.RIGHT)
+        new_frame.pack()
+        
+        button_frame=tk.Frame(self.new_file_window)
+        create_button=tk.Button(button_frame, text="Create", command=self.create_the_hardlink)
         create_button.pack(side=tk.LEFT)
         cancel_button=tk.Button(button_frame, text="Cancel", command=self.cancel)
         cancel_button.pack(side=tk.RIGHT)
@@ -424,6 +479,8 @@ browser_edit_menu=tk.Menu(browser_menu_bar)
 browser_edit_menu.add_command(label="New File", command=new_file)
 browser_edit_menu.add_command(label="New Folder", command=new_folder)
 browser_edit_menu.add_command(label="New Symlink", command=new_symlink)
+browser_edit_menu.add_command(label="New Hardlink", command=new_hardlink)
+
 
 browser_edit_menu.add_command(label="delete selected", command=delete_selected)
 browser_menu_bar.add_cascade(label="Edit", menu=browser_edit_menu)

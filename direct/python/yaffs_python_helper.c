@@ -47,3 +47,13 @@ int yaffs_O_TRUNC(void) { return O_TRUNC;}
 
 int yaffs_set_trace(unsigned int tm) { return yaffs_traceMask=tm; }
 int yaffs_get_trace(void) { return yaffs_traceMask; }
+
+int yaffs_S_IFMT(void){return S_IFMT;}
+int yaffs_S_IFLNK(void){return S_IFLNK;}
+int yaffs_S_IFDIR(void){return S_IFDIR;}
+int yaffs_S_IFREG(void){return S_IFREG;}
+int yaffs_S_IREAD(void){return S_IREAD;}
+int yaffs_S_IWRITE(void){return S_IWRITE;}
+int yaffs_S_IEXEC(void){return S_IEXEC;}
+int yaffs_XATTR_CREATE(void){return XATTR_CREATE;}
+int yaffs_XATTR_REPLACE(void){return XATTR_REPLACE;}

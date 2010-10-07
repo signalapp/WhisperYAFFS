@@ -31,7 +31,7 @@
 #define YAFFSFS_RW_SIZE  (1<<YAFFSFS_RW_SHIFT)
 
 /* Some forward references */
-static yaffs_Object *yaffsfs_FindObject(yaffs_Object *relativeDirectory, const YCHAR *path, int symDepth);
+static yaffs_Object *yaffsfs_FindObject(yaffs_Object *relativeDirectory, const YCHAR *path, int symDepth, int getEquiv);
 static void yaffsfs_RemoveObjectCallback(yaffs_Object *obj);
 
 unsigned int yaffs_wr_attempts;
@@ -436,13 +436,10 @@ static yaffs_Object *yaffsfs_FollowLink(yaffs_Object *obj,int symDepth)
 
 		if(yaffsfs_IsPathDivider(*alias))
 			/* Starts with a /, need to scan from root up */
-			obj = yaffsfs_FindObject(NULL,alias,symDepth++);
+			obj = yaffsfs_FindObject(NULL,alias,symDepth++,1);
 		else
 			/* Relative to here, so use the parent of the symlink as a start */
-			obj = yaffsfs_FindObject(obj->parent,alias,symDepth++);
-
-		if(obj)
-			obj = yaffs_GetEquivalentObject(obj);
+			obj = yaffsfs_FindObject(obj->parent,alias,symDepth++,1);
 	}
 	return obj;
 }
@@ -527,17 +524,22 @@ static yaffs_Object *yaffsfs_FindDirectory(yaffs_Object *relativeDirectory,
 /*
  * yaffsfs_FindObject turns a path for an existing object into the object
  */
-static yaffs_Object *yaffsfs_FindObject(yaffs_Object *relativeDirectory, const YCHAR *path,int symDepth)
+static yaffs_Object *yaffsfs_FindObject(yaffs_Object *relativeDirectory, const YCHAR *path,int symDepth,int getEquiv)
 {
 	yaffs_Object *dir;
+	yaffs_Object *obj;
 	YCHAR *name;
 
 	dir = yaffsfs_FindDirectory(relativeDirectory,path,&name,symDepth);
 
 	if(dir && *name)
-		return yaffs_FindObjectByName(dir,name);
+		obj = yaffs_FindObjectByName(dir,name);
+	else
+		obj = dir;
+	if(getEquiv)
+		obj = yaffs_GetEquivalentObject(obj);
 
-	return dir;
+	return obj;
 }
 
 
@@ -608,7 +610,7 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 		yh = yaffsfs_GetHandlePointer(handle);
 
 		/* try to find the exisiting object */
-		obj = yaffsfs_FindObject(NULL,path,0);
+		obj = yaffsfs_FindObject(NULL,path,0,1);
 
 		obj = yaffsfs_FollowLink(obj,symDepth++);
 
@@ -996,9 +998,7 @@ int yaffs_truncate(const YCHAR *path,off_t newSize)
 
 	yaffsfs_Lock();
 
-	obj = yaffsfs_FindObject(NULL,path,0);
-	if(obj)
-		obj = yaffs_GetEquivalentObject(obj);
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(!obj)
 		yaffsfs_SetError(-ENOENT);
@@ -1090,7 +1090,7 @@ int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 
 	yaffsfs_Lock();
 
-	obj = yaffsfs_FindObject(NULL,path,0);
+	obj = yaffsfs_FindObject(NULL,path,0,0);
 	dir = yaffsfs_FindDirectory(NULL,path,&name,0);
 	if(!dir)
 		yaffsfs_SetError(-ENOTDIR);
@@ -1141,7 +1141,7 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 
 	olddir = yaffsfs_FindDirectory(NULL,oldPath,&oldname,0);
 	newdir = yaffsfs_FindDirectory(NULL,newPath,&newname,0);
-	obj = yaffsfs_FindObject(NULL,oldPath,0);
+	obj = yaffsfs_FindObject(NULL,oldPath,0,0);
 
 	if(!olddir || !newdir || !obj) {
 		/* bad file */
@@ -1186,8 +1186,7 @@ static int yaffsfs_DoStat(yaffs_Object *obj,struct yaffs_stat *buf)
 {
 	int retVal = -1;
 
-	if(obj)
-		obj = yaffs_GetEquivalentObject(obj);
+	obj = yaffs_GetEquivalentObject(obj);
 
 	if(obj && buf){
 	    	buf->st_dev = (int)obj->myDev->osContext;
@@ -1232,7 +1231,8 @@ static int yaffsfs_DoStatOrLStat(const YCHAR *path, struct yaffs_stat *buf,int d
 	int retVal = -1;
 
 	yaffsfs_Lock();
-	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(!doLStat && obj)
 		obj = yaffsfs_FollowLink(obj,0);
@@ -1290,7 +1290,8 @@ static int yaffs_do_setxattr(const YCHAR *path, const char *name, const void *da
 	int retVal = -1;
 
 	yaffsfs_Lock();
-	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(follow)
 		obj = yaffsfs_FollowLink(obj,0);
@@ -1354,7 +1355,8 @@ static int yaffs_do_getxattr(const YCHAR *path, const char *name, void *data, in
 	int retVal = -1;
 
 	yaffsfs_Lock();
-	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(follow)
 		obj = yaffsfs_FollowLink(obj,0);
@@ -1417,7 +1419,8 @@ static int yaffs_do_listxattr(const YCHAR *path, char *data, int size, int follo
 	int retVal = -1;
 
 	yaffsfs_Lock();
-	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(follow)
 		obj = yaffsfs_FollowLink(obj,0);
@@ -1479,7 +1482,8 @@ static int yaffs_do_removexattr(const YCHAR *path, const char *name, int follow)
 	int retVal = -1;
 
 	yaffsfs_Lock();
-	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(follow)
 		obj = yaffsfs_FollowLink(obj,0);
@@ -1638,7 +1642,8 @@ int yaffs_access(const YCHAR *path, int amode)
 	int retval = 0;
 
 	yaffsfs_Lock();
-	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(obj)	{
 		int access_ok = 1;
@@ -1674,7 +1679,8 @@ int yaffs_chmod(const YCHAR *path, mode_t mode)
 	int retVal = -1;
 
 	yaffsfs_Lock();
-	obj = yaffsfs_FindObject(NULL,path,0);
+
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(!obj)
 		yaffsfs_SetError(-ENOENT);
@@ -2089,7 +2095,7 @@ yaffs_DIR *yaffs_opendir(const YCHAR *dirname)
 
 	yaffsfs_Lock();
 
-	obj = yaffsfs_FindObject(NULL,dirname,0);
+	obj = yaffsfs_FindObject(NULL,dirname,0,1);
 
 	if(obj && obj->variantType == YAFFS_OBJECT_TYPE_DIRECTORY){
 
@@ -2217,7 +2223,7 @@ int yaffs_readlink(const YCHAR *path, YCHAR *buf, int bufsiz)
 
 	yaffsfs_Lock();
 
-	obj = yaffsfs_FindObject(NULL,path,0);
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	if(!obj) {
 		yaffsfs_SetError(-ENOENT);
@@ -2246,8 +2252,8 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 
 	yaffsfs_Lock();
 
-	obj = yaffsfs_FindObject(NULL,oldpath,0);
-	target = yaffsfs_FindObject(NULL,newpath,0);
+	obj = yaffsfs_FindObject(NULL,oldpath,0,1);
+	target = yaffsfs_FindObject(NULL,newpath,0,0);
 
 	if(!obj) {
 		yaffsfs_SetError(-ENOENT);
@@ -2315,9 +2321,7 @@ int yaffs_n_handles(const YCHAR *path)
 {
 	yaffs_Object *obj;
 
-	obj = yaffsfs_FindObject(NULL,path,0);
-	if(obj)
-		obj = yaffs_GetEquivalentObject(obj);
+	obj = yaffsfs_FindObject(NULL,path,0,1);
 
 	return yaffsfs_CountHandles(obj);
 }

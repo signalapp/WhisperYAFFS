@@ -531,7 +531,7 @@ void dumpDirFollow(const char *dname)
 		{
 			sprintf(str,"%s/%s",dname,de->d_name);
 			
-			yaffs_stat(str,&s);
+			yaffs_lstat(str,&s);
 			
 			printf("%s ino %d length %d mode %X ",de->d_name,(int)s.st_ino,(int)s.st_size,s.st_mode);
 			switch(s.st_mode & S_IFMT)
@@ -741,7 +741,7 @@ int long_test(int argc, char *argv[])
 	dumpDir("/boot");
 
 	// Check stat
-	r = yaffs_stat("/boot/file with a long name",&ystat);
+	r = yaffs_lstat("/boot/file with a long name",&ystat);
 	
 	// Check rename
 	
@@ -828,7 +828,7 @@ int long_test(int argc, char *argv[])
 	
 	// Check chmod
 	
-	yaffs_stat("/boot/yyfile",&ystat);
+	yaffs_lstat("/boot/yyfile",&ystat);
 	temp_mode = ystat.st_mode;
 	
 	yaffs_chmod("/boot/yyfile",0x55555);
@@ -1094,12 +1094,12 @@ int root_perm_remount(const char *path)
    
    yaffs_mount(path);
    
-   yaffs_stat(path,&s);
+   yaffs_lstat(path,&s);
    printf("root perms after mount %x\n",s.st_mode);
    
    yaffs_chmod(path, 0777);
 
-   yaffs_stat(path,&s);
+   yaffs_lstat(path,&s);
    printf("root perms after setting to 0777 is  %x\n",s.st_mode);
    
    yaffs_unmount(path);

@@ -5,12 +5,12 @@ from yaffsfs import *
 import ctypes
 
 yaffs_StartUp()
-yaffs_mount("yaffs2/")
+yaffs_mount("/yaffs2/")
 root_window =tk.Tk()
 root_window.title("YAFFS Browser")
 mount_list_text_variable=tk.StringVar()
 
-mount_list_text_variable.set("yaffs2/")
+mount_list_text_variable.set("/yaffs2/")
 current_directory_dict={}
 open_windows_list=[]
 
@@ -69,14 +69,17 @@ class editor():
         self.yaffs_handle = yaffs_open(current_directory_dict[self.id]["path"],66,0666)
         length_of_file=yaffs_lseek(self.yaffs_handle, 0, 2) ##seeks to the end of the file
         yaffs_lseek(self.yaffs_handle, 0, 0)## returns the handle to the front of th file
+        print "length of file to be opened:", length_of_file
         if isLink==True:
-            self.file_contents=ctypes.create_string_buffer(100)
-            yaffs_readlink(self.file_path,self.file_contents,100)
+            print "opening symlink"
+            self.file_contents=ctypes.create_string_buffer(1000)
+            yaffs_readlink(self.file_path,self.file_contents,1000)
             self.isLink=True
         else:
+            print"opening file"
             self.file_contents=ctypes.create_string_buffer(length_of_file)
             yaffs_read(self.yaffs_handle,self.file_contents,length_of_file)
-        print "file contents", self.file_contents.raw
+            print "file contents", self.file_contents.raw
         self.file_editor_text.insert(tk.END, self.file_contents.raw)
         self.file_editor_text.pack()
         ##self.file_editor_text.bind("<Control-s>", self.save_file)

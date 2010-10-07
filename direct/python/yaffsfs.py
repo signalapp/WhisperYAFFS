@@ -245,3 +245,20 @@ yaffs_StartUp = ylib.yaffs_StartUp
 yaffs_StartUp.argtypes = []
 yaffs_StartUp.restype = c_int
 
+yaffs_O_CREAT=ylib.yaffs_O_CREAT()
+yaffs_O_RDONLY=ylib.yaffs_O_RDONLY()
+yaffs_O_WRONLY=ylib.yaffs_O_WRONLY()
+yaffs_O_RDWR=ylib.yaffs_O_RDWR()
+yaffs_O_TRUNC=ylib.yaffs_O_TRUNC()
+
+
+yaffs_S_IFMT=ylib.yaffs_S_IFMT()
+yaffs_S_IFLNK= ylib.yaffs_S_IFLNK()
+yaffs_S_IFDIR =ylib.yaffs_S_IFDIR()
+yaffs_S_IFREG=ylib.yaffs_S_IFREG()
+yaffs_S_IREAD=ylib.yaffs_S_IREAD()
+yaffs_S_IWRITE=ylib.yaffs_S_IWRITE()
+yaffs_S_IEXEC=ylib.yaffs_S_IEXEC()  
+yaffs_XATTR_CREATE=ylib.yaffs_XATTR_CREATE()
+yaffs_XATTR_REPLACE=ylib.yaffs_XATTR_REPLACE()
+yaffs_S_IEXEC=ylib.yaffs_S_IEXEC()

@@ -2683,6 +2683,34 @@ void test_flash_traffic(const char *mountpt)
 
 }
 
+void link_follow_test(const char *mountpt)
+{
+	char fn[100];
+	char sn[100];
+	char hn[100];
+	int result;
+	int h;
+	
+	yaffs_traceMask = 0;
+
+	yaffs_StartUp();
+
+	yaffs_mount(mountpt);
+
+	sprintf(fn,"%s/file",mountpt);
+	sprintf(sn,"%s/sym",mountpt);
+	sprintf(hn,"%s/hl-sym",mountpt);
+	
+	h = yaffs_open(fn,O_CREAT| O_RDWR, S_IREAD | S_IWRITE);
+	result = yaffs_close(h);
+
+	result = yaffs_symlink(fn,sn);
+	result = yaffs_link(sn,hn);
+
+	h =yaffs_open(hn,O_RDWR,0);
+
+}
+
 int random_seed;
 int simulate_power_failure;
 
@@ -2747,6 +2775,7 @@ int main(int argc, char *argv[])
 	 //null_name_test("yaffs2");
 
 	 test_flash_traffic("yaffs2");
+	 link_follow_test("/yaffs2");
 
 	 return 0;
 	

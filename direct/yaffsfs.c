@@ -428,6 +428,9 @@ static yaffs_Object *yaffsfs_FindRoot(const YCHAR *path, YCHAR **restOfPath)
 static yaffs_Object *yaffsfs_FollowLink(yaffs_Object *obj,int symDepth)
 {
 
+	if(obj)
+		obj = yaffs_GetEquivalentObject(obj);
+
 	while(obj && obj->variantType == YAFFS_OBJECT_TYPE_SYMLINK){
 		YCHAR *alias = obj->variant.symLinkVariant.alias;
 
@@ -437,6 +440,9 @@ static yaffs_Object *yaffsfs_FollowLink(yaffs_Object *obj,int symDepth)
 		else
 			/* Relative to here, so use the parent of the symlink as a start */
 			obj = yaffsfs_FindObject(obj->parent,alias,symDepth++);
+
+		if(obj)
+			obj = yaffs_GetEquivalentObject(obj);
 	}
 	return obj;
 }
@@ -500,8 +506,7 @@ static yaffs_Object *yaffsfs_DoFindDirectory(yaffs_Object *startDir,
 			else{
 				dir = yaffs_FindObjectByName(dir,str);
 
-				while(dir && dir->variantType == YAFFS_OBJECT_TYPE_SYMLINK)
-					dir = yaffsfs_FollowLink(dir,symDepth);
+				dir = yaffsfs_FollowLink(dir,symDepth);
 
 
 				if(dir && dir->variantType != YAFFS_OBJECT_TYPE_DIRECTORY)
@@ -570,7 +575,7 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 	yaffs_Object *dir = NULL;
 	YCHAR *name;
 	int handle = -1;
-	yaffsfs_Handle *h = NULL;
+	yaffsfs_Handle *yh = NULL;
 	int openDenied = 0;
 	int symDepth = 0;
 	int errorReported = 0;
@@ -600,16 +605,12 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 
 	if(handle >= 0){
 
-		h = yaffsfs_GetHandlePointer(handle);
+		yh = yaffsfs_GetHandlePointer(handle);
 
 		/* try to find the exisiting object */
 		obj = yaffsfs_FindObject(NULL,path,0);
 
-		if(obj && obj->variantType == YAFFS_OBJECT_TYPE_SYMLINK)
-			obj = yaffsfs_FollowLink(obj,symDepth++);
-
-		if(obj)
-			obj = yaffs_GetEquivalentObject(obj);
+		obj = yaffsfs_FollowLink(obj,symDepth++);
 
 		if(obj &&
 			obj->variantType != YAFFS_OBJECT_TYPE_FILE &&
@@ -651,24 +652,24 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 
 			/* Check sharing of an existing object. */
 			{
-				yaffsfs_Handle *h;
+				yaffsfs_Handle *hx;
 				int i;
 				sharedReadAllowed = 1;
 				sharedWriteAllowed = 1;
 				alreadyReading = 0;
 				alreadyWriting = 0;
 				for( i = 0; i < YAFFSFS_N_HANDLES; i++){
-					h = &yaffsfs_handle[i];
-					if(h->useCount > 0 &&
-						h->inodeId >= 0 &&
-						yaffsfs_inode[h->inodeId].iObj == obj){
-						if(!h->shareRead)
+					hx = &yaffsfs_handle[i];
+					if(hx->useCount > 0 &&
+						hx->inodeId >= 0 &&
+						yaffsfs_inode[hx->inodeId].iObj == obj){
+						if(!hx->shareRead)
 							sharedReadAllowed = 0;
-						if(!h->shareWrite)
+						if(!hx->shareWrite)
 							sharedWriteAllowed = 0;
-						if(h->reading)
+						if(hx->reading)
 							alreadyReading = 1;
-						if(h->writing)
+						if(hx->writing)
 							alreadyWriting = 0;
 					}
 				}
@@ -710,18 +711,18 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 				 */
 			}
 			
-			h->inodeId = inodeId;
-			h->reading = (oflag & (O_RDONLY | O_RDWR)) ? 1 : 0;
-			h->writing = (oflag & (O_WRONLY | O_RDWR)) ? 1 : 0;
-			h->append =  (oflag & O_APPEND) ? 1 : 0;
-			h->position = 0;
-			h->shareRead = shareRead;
-			h->shareWrite = shareWrite;
+			yh->inodeId = inodeId;
+			yh->reading = (oflag & (O_RDONLY | O_RDWR)) ? 1 : 0;
+			yh->writing = (oflag & (O_WRONLY | O_RDWR)) ? 1 : 0;
+			yh->append =  (oflag & O_APPEND) ? 1 : 0;
+			yh->position = 0;
+			yh->shareRead = shareRead;
+			yh->shareWrite = shareWrite;
 
 			/* Hook inode to object */
                         obj->myInode = (void*) &yaffsfs_inode[inodeId];
 
-                        if((oflag & O_TRUNC) && h->writing)
+                        if((oflag & O_TRUNC) && yh->writing)
                                 yaffs_ResizeFile(obj,0);
 		} else {
 			yaffsfs_PutHandle(handle);

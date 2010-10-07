@@ -20,24 +20,41 @@ class editor():
     save_button=[]
     file_contents=0
     file_path=0
+    isLink=0
     def save_file(self):
-        #global current_directory_dict
-        print "saving the file"
-        print self.file_editor_text.get("1.0", tk.END) ##"1.0" is the index of the first line of text
-        yaffs_lseek(self.yaffs_handle, 0, 0)
-        data_to_be_written=self.file_editor_text.get("1.0", tk.END)
-        print "data to be saved", data_to_be_written
-        length_of_file=len(data_to_be_written)
-        print "length of data to be written",length_of_file 
-        output=yaffs_write(self.yaffs_handle,data_to_be_written , length_of_file)
-        print "output", output
-        yaffs_ftruncate(self.yaffs_handle, length_of_file)
-        yaffs_close(self.yaffs_handle)
-        
-        self.yaffs_handle = yaffs_open(self.file_path,66,0666)
+        if  self.isLink==True:
+            target_path=self.file_editor_text.get("1.0", tk.END) ##"1.0" is the index of the first line of text
+            target_path=target_path[0:len(target_path)-1]
+            new_path=self.file_path
+            print "creating a symlink \n target:##", target_path, "##"
+            target_file_exists=yaffs_access(target_path, 0) ##yaffs_access will return 0 on success and -1 on failure.
+            if target_file_exists>=0:
+                ##file exists,create symlink
+                print "target file exist, creating symlink"
+                yaffs_unlink(new_path)
+                output=yaffs_symlink(target_path, new_path)
+                print "yaffs symlink output=", output
+                self.file_editor_root.destroy()
+            else :
+                ##file does not exist
+                print "target file does not exist, cannot create symlink"
+        else :
+            #global current_directory_dict
+            print "saving the file"
+            print self.file_editor_text.get("1.0", tk.END) ##"1.0" is the index of the first line of text
+            yaffs_lseek(self.yaffs_handle, 0, 0)
+            data_to_be_written=self.file_editor_text.get("1.0", tk.END)
+            print "data to be saved", data_to_be_written
+            length_of_file=len(data_to_be_written)
+            print "length of data to be written",length_of_file 
+            output=yaffs_write(self.yaffs_handle,data_to_be_written , length_of_file)
+            print "output", output
+            yaffs_ftruncate(self.yaffs_handle, length_of_file)
+            yaffs_close(self.yaffs_handle)
+            self.yaffs_handle = yaffs_open(self.file_path,66,0666)
         load_dir()
         
-    def __init__(self):
+    def __init__(self, isLink=0):
         global current_directory_dict
         x=name_list_box.curselection()
         self.id=int(x[0])
@@ -52,8 +69,13 @@ class editor():
         self.yaffs_handle = yaffs_open(current_directory_dict[self.id]["path"],66,0666)
         length_of_file=yaffs_lseek(self.yaffs_handle, 0, 2) ##seeks to the end of the file
         yaffs_lseek(self.yaffs_handle, 0, 0)## returns the handle to the front of th file
-        self.file_contents=ctypes.create_string_buffer(length_of_file)
-        yaffs_read(self.yaffs_handle,self.file_contents,length_of_file)
+        if isLink==True:
+            self.file_contents=ctypes.create_string_buffer(100)
+            yaffs_readlink(self.file_path,self.file_contents,100)
+            self.isLink=True
+        else:
+            self.file_contents=ctypes.create_string_buffer(length_of_file)
+            yaffs_read(self.yaffs_handle,self.file_contents,length_of_file)
         print "file contents", self.file_contents.raw
         self.file_editor_text.insert(tk.END, self.file_contents.raw)
         self.file_editor_text.pack()
@@ -72,13 +94,13 @@ def load_dir():
     name_list_box.grid(column=0, row=1)
     return current_directory_dict
 
-def load_file():
+def load_file(link=0):
     global open_windows_list
-    open_windows_list.append(editor())
+    open_windows_list.append(editor(link))
 
 def load_command(self=0):
     global current_directory_dict
-    print "you loaded a file/dir"
+    print "you loaded a file/dir/link"
     x=name_list_box.curselection()
     x=int(x[0])
     print "cursor selection", x
@@ -103,8 +125,9 @@ def load_command(self=0):
         ##open file
         print "open file"
         load_file()
-    
-
+    elif current_directory_dict[x]["type"]=="link": 
+        print "loading a symlink"
+        load_file(1)
     ##mount_list_text_variable.set(mount_list_text_variable.get()+str(list[0][0]))
     
 def back_a_directory(self=0):
@@ -148,14 +171,24 @@ def yaffs_ls(dname):
             perms = st.st_mode & 0777
             isFile = True if st.st_mode & 0x8000 else False
             isDir  = True if st.st_mode & 0x4000 else False
+            isSymlink=False if st.st_mode & 0x120000 else True
 
             if isFile :
                 ls_dict.append ({"type" :"file",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname})
+                print "file st.st_mode:", st.st_mode
+                print "st.st_mode andded with st.st_mode & 0x8000", st.st_mode & 0x8000
             elif isDir :
+                print "dir st.st_mode:", st.st_mode
+                print "st.st_mode andded with st.st_mode & 0x4000", st.st_mode & 0x4000
                 ls_dict.append({"type":"dir", "inodes" :str(se.d_ino), "permissions":str( hex(perms)),"size":"0",   "path": fullname+"/"})
+            elif isSymlink:
 
-#            else :
-#            	ls_dict.append( "Other ("+hex(st.st_mode)+") "+se.d_ino, hex(perms)+ fullname)
+                ls_dict.append ({"type" :"link",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname})
+
+            else :
+                print "unknown st.st_mode:", st.st_mode
+                print "st.st_mode andded with st.st_mode & 0x120000", st.st_mode & 0x120000
+            	ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":str( hex(perms)), "size":"0",   "path": fullname})
             sep = yaffs_readdir(dc)
         yaffs_closedir(dc)
         return ls_dict
@@ -300,6 +333,63 @@ class new_folder():
         button_frame.pack()
 
 
+class new_symlink():
+    path_entry_box=0
+    target_text=0
+    new_text=0
+    new_file_window=0
+    def create_the_symlink(self):
+        global mount_list_text_variable
+        ##check the symlink's target is a file.
+        target_path=self.target_text.get()
+        new_path=self.new_text.get()
+        print "creating a symlink \n target:", target_path
+        target_file_exists=yaffs_access(target_path, 0) ##yaffs_access will return 0 on success and -1 on failure.
+        if target_file_exists>=0:
+            ##file exists,create symlink
+            print "target file exist, creating symlink"
+            yaffs_symlink(target_path, new_path)
+            self.new_file_window.destroy()
+        else :
+            ##file does not exist
+            print "target file does not exist, cannot create symlink"
+        
+        
+        
+        load_dir()
+
+    def cancel(self):
+        ##del self
+        self.new_file_window.destroy()
+    def __init__(self):
+        global mount_list_text_variable
+        self.new_file_window =tk.Toplevel(takefocus=True)
+        target_frame=tk.Frame(self.new_file_window)
+        target_label=tk.Label(target_frame, text="target")
+        target_label.pack(side=tk.LEFT)
+        self.target_text=tk.StringVar()
+        self.target_text.set(mount_list_text_variable.get())
+        #print "############################",mount_list_text_variable.get()
+        self.target_entry_box= tk.Entry(target_frame, textvariable=self.target_text)
+        self.target_entry_box.pack(side=tk.RIGHT)
+        target_frame.pack()
+        
+        new_frame=tk.Frame(self.new_file_window)
+        new_label=tk.Label(new_frame, text="file path")
+        new_label.pack(side=tk.LEFT)
+        self.new_text=tk.StringVar()
+        self.new_text.set(mount_list_text_variable.get())
+        #print "############################",mount_list_text_variable.get()
+        self.new_entry_box= tk.Entry(new_frame, textvariable=self.new_text)
+        self.new_entry_box.pack(side=tk.RIGHT)
+        new_frame.pack()
+        
+        button_frame=tk.Frame(self.new_file_window)
+        create_button=tk.Button(button_frame, text="Create", command=self.create_the_symlink)
+        create_button.pack(side=tk.LEFT)
+        cancel_button=tk.Button(button_frame, text="Cancel", command=self.cancel)
+        cancel_button.pack(side=tk.RIGHT)
+        button_frame.pack()
 
 
 ##mount list entry box init
@@ -333,6 +423,8 @@ browser_edit_menu=tk.Menu(browser_menu_bar)
 
 browser_edit_menu.add_command(label="New File", command=new_file)
 browser_edit_menu.add_command(label="New Folder", command=new_folder)
+browser_edit_menu.add_command(label="New Symlink", command=new_symlink)
+
 browser_edit_menu.add_command(label="delete selected", command=delete_selected)
 browser_menu_bar.add_cascade(label="Edit", menu=browser_edit_menu)
 

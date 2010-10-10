@@ -60,7 +60,7 @@ class editor():
         self.id=int(x[0])
         self.file_editor_root =tk.Toplevel()
         self.save_button=tk.Button(self.file_editor_root, text="save", command=self.save_file)
-        self.save_button.pack()
+        self.save_button.pack(fill=tk.BOTH)
 
         self.file_path=current_directory_dict[self.id]["path"]
         print "file path", self.file_path
@@ -81,7 +81,7 @@ class editor():
             yaffs_read(self.yaffs_handle,self.file_contents,length_of_file)
             print "file contents", self.file_contents.raw
         self.file_editor_text.insert(tk.END, self.file_contents.raw)
-        self.file_editor_text.pack()
+        self.file_editor_text.pack(fill=tk.BOTH)
         ##self.file_editor_text.bind("<Control-s>", self.save_file)
         ##doesn't work because it can't pass "self"
 
@@ -93,7 +93,7 @@ def load_dir():
     print "new directory", current_directory_dict
     ##copy directory into file box
     for x in range(0,len(current_directory_dict)):
-        name_list_box.insert(x,(current_directory_dict[x]["inodes"]+"  "+ current_directory_dict[x]["type"]+"  "+ current_directory_dict[x]["size"]+"  "+ current_directory_dict[x]["path"]))
+        name_list_box.insert(x,(current_directory_dict[x]["inodes"]+"  "+ current_directory_dict[x]["type"]+"  "+ current_directory_dict[x]["size"]+"  "+ current_directory_dict[x]["path"]+"  "+current_directory_dict[x]["extra_data"]))
     name_list_box.grid(column=0, row=1)
     return current_directory_dict
 
@@ -178,21 +178,28 @@ def yaffs_ls(dname):
             isSymlink= True if ftype == yaffs_S_IFLNK else False
 
             if isFile :
-                ls_dict.append ({"type" :"file",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname})
+                ls_dict.append ({"type" :"file",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname,"extra_data":""})
                 print "file st.st_mode:", st.st_mode
 
             elif isDir :
                 print "dir st.st_mode:", st.st_mode
 
-                ls_dict.append({"type":"dir", "inodes" :str(se.d_ino), "permissions":str( hex(perms)),"size":"0",   "path": fullname+"/"})
+                ls_dict.append({"type":"dir", "inodes" :str(se.d_ino), "permissions":str( hex(perms)),"size":"0",   "path": fullname+"/", "extra_data":""})
             elif isSymlink:
                 print "symlink st.st_mode:", st.st_mode
+                file_contents=ctypes.create_string_buffer(30)
+                yaffs_readlink(fullname,file_contents,30)
+                string=repr(file_contents.value)
+                print "len of str", len(string)
+#                string.lstrip()
 
-                ls_dict.append ({"type" :"link",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname})
+                print "string", string, "###"
+
+                ls_dict.append ({"type" :"link",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname, "extra_data":"> "+string})
 
             else :
                 print "unknown st.st_mode:", st.st_mode
-                ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":str( hex(perms)), "size":"0",   "path": fullname})
+                ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":str( hex(perms)), "size":"0",   "path": fullname,"extra_data":""})
             sep = yaffs_readdir(dc)
         yaffs_closedir(dc)
         return ls_dict
@@ -461,9 +468,9 @@ mount_list_frame.grid(row=1, column=0, columnspan=2)
 
 
 list_frame=tk.Frame(root_window)
-name_list_box=tk.Listbox(list_frame,exportselection=0, height=30, width=50)
+name_list_box=tk.Listbox(list_frame,exportselection=0, height=30, width=80)
 load_dir()
-list_frame.grid()
+list_frame.grid(sticky=tk.W+tk.E+tk.N+tk.S)
 
 name_list_box.bind("<Double-Button-1>", load_command)
 

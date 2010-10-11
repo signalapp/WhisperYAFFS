@@ -70,7 +70,7 @@ class editor():
         length_of_file=yaffs_lseek(self.yaffs_handle, 0, 2) ##seeks to the end of the file
         yaffs_lseek(self.yaffs_handle, 0, 0)## returns the handle to the front of th file
         print "length of file to be opened:", length_of_file
-        if isLink==True:
+        if isLink==True and False ==True : ##this alows the symlink to be edited and is no longer used. to renable it delete "and False ==True"
             print "opening symlink"
             self.file_contents=ctypes.create_string_buffer(1000)
             yaffs_readlink(self.file_path,self.file_contents,1000)

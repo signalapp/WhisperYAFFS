@@ -1,5 +1,8 @@
-# Main Makefile for out-of-tree yaffs2.ko building
+# Main Makefile for out-of-tree yaffs2 .ko building
 #
+# You can make two flavours of the .ko
+#  make YAFFS_CURRENT=1  : makes yaffs2.ko using the current version code
+#  make                  : makes yaffs2multi.ko using the multi-version code
 #
 # YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
 #
@@ -12,11 +15,16 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 
+ifdef YAFFS_CURRENT
+	YAFFS_O := yaffs2.o
+else
+	YAFFS_O := yaffs2multi.o
+endif
 
 ifneq ($(KERNELRELEASE),)
 	EXTRA_CFLAGS += -DYAFFS_OUT_OF_TREE
 
-	obj-m := yaffs2.o yaffs2multi.o
+	obj-m := $(YAFFS_O)
 
 	yaffs2-objs := yaffs_mtdif.o yaffs_mtdif2.o
 	yaffs2-objs += yaffs_mtdif1.o yaffs_packedtags1.o

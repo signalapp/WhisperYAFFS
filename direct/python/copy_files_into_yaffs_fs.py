@@ -124,11 +124,30 @@ def copy_scanned_files_into_yaffs():
             print "inode",files_in_snapshot[i]["inode"],"size",files_in_snapshot[i]["size"],"path:", files_in_snapshot[i]["path"], "    num of hard links",  files_in_snapshot[i]["num_of_hardlinks"] 
 
         else :
-            file_path=files_in_snapshot[i]["path"][len(path):]
-            current_handle=yaffs_open("yaffs2/"+file_path, 66, files_in_snapshot[i]["mode"]) 
+            print "\n \n \n"
+            file_path="/yaffs2/"+files_in_snapshot[i]["path"][len(path):]
+            print "creating file:", file_path
+            print "mode", files_in_snapshot[i]["mode"]
+            current_handle=yaffs_open(file_path, yaffs_O_CREAT | yaffs_O_TRUNC| yaffs_O_RDWR, files_in_snapshot[i]["mode"]) 
+            data_file=open(files_in_snapshot[i]["path"], "r")
+            yaffs_lseek(current_handle, 0, 0)
+            data_to_be_written= data_file.read()
+            
+            
+            #print "data to be saved", data_to_be_written
+            length_of_file=len(data_to_be_written)
+            print "length of data to be written",length_of_file 
+            output=yaffs_write(current_handle,data_to_be_written , length_of_file)
+            print "writing file:", output
+            yaffs_ftruncate(current_handle, length_of_file)
+            
             output=yaffs_close(current_handle)
             print "created a file", files_in_snapshot[i]["path"][len(path):], "  ", output
-            print "inode",files_in_snapshot[i]["inode"],"size",files_in_snapshot[i]["size"],"path:", files_in_snapshot[i]["path"]
+            
+            if output==-1:
+                print "ran out of space exiting"
+                return 0
+            #print "inode",files_in_snapshot[i]["inode"],"size",files_in_snapshot[i]["size"],"path:", files_in_snapshot[i]["path"]
 
 #        current_open_file=open(files_in_snapshot[i], "r")
 #        #current_open_file.f.read(3)
@@ -143,19 +162,22 @@ def copy_scanned_files_into_yaffs():
     for i in range(0, len(unknown_in_snapshot)):
         print "unknown objects in snapshot:", unknown_in_snapshot[i]
 
+if __name__=="__main__":
+        
+    #path=raw_input("path")
+    path="/home/timothy/work/yaffs/git/yaffs2"
+    path="/home/timothy/my_stuff/old_laptop/timothy/programming_lejos/"
 
-#path=raw_input("path")
-path="/home/timothy/work/yaffs/git/yaffs2"
-#path="/home/timothy"
+    #path="/home/timothy"
 
-#x=raw_input("search hidden files and directories?[y/n]")
-x="n"
-if x=="y" or x=="yes":
-    search_hidden_directories=True
-else :
-    search_hidden_directories=False
-scan_dir(path)
-copy_scanned_files_into_yaffs()
-#print_scanned_dir_list()
+    #x=raw_input("search hidden files and directories?[y/n]")
+    x="n"
+    if x=="y" or x=="yes":
+        search_hidden_directories=True
+    else :
+        search_hidden_directories=False
+    scan_dir(path)
+    copy_scanned_files_into_yaffs()
+    #print_scanned_dir_list()
 
-print"unmounting yaffs:", yaffs_unmount("yaffs2/")
+    print"unmounting yaffs:", yaffs_unmount("yaffs2/")

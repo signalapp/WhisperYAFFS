@@ -62,7 +62,7 @@ typedef struct
 
 static yflash_Device filedisk;
 
-static int  CheckInit(yaffs_Device *dev)
+static int  CheckInit(yaffs_dev_t *dev)
 {
 	static int initialised = 0;
 	
@@ -118,7 +118,7 @@ static int  CheckInit(yaffs_Device *dev)
 	return 1;
 }
 
-int yflash_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_Spare *spare)
+int yflash_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_spare *spare)
 {
 	int written;
 
@@ -128,7 +128,7 @@ int yflash_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, 
 	
 	if(data)
 	{
-		lseek(filedisk.handle,chunkInNAND * 528,SEEK_SET);
+		lseek(filedisk.handle,nand_chunk * 528,SEEK_SET);
 		written = write(filedisk.handle,data,512);
 		
 		if(written != 512) return YAFFS_FAIL;
@@ -136,7 +136,7 @@ int yflash_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, 
 	
 	if(spare)
 	{
-		lseek(filedisk.handle,chunkInNAND * 528 + 512,SEEK_SET);
+		lseek(filedisk.handle,nand_chunk * 528 + 512,SEEK_SET);
 		written = write(filedisk.handle,spare,16);
 		
 		if(written != 16) return YAFFS_FAIL;
@@ -148,7 +148,7 @@ int yflash_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, 
 }
 
 
-int yflash_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_Spare *spare)
+int yflash_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_spare *spare)
 {
 	int nread;
 
@@ -158,7 +158,7 @@ int yflash_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaff
 	
 	if(data)
 	{
-		lseek(filedisk.handle,chunkInNAND * 528,SEEK_SET);
+		lseek(filedisk.handle,nand_chunk * 528,SEEK_SET);
 		nread = read(filedisk.handle,data,512);
 		
 		if(nread != 512) return YAFFS_FAIL;
@@ -166,7 +166,7 @@ int yflash_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaff
 	
 	if(spare)
 	{
-		lseek(filedisk.handle,chunkInNAND * 528 + 512,SEEK_SET);
+		lseek(filedisk.handle,nand_chunk * 528 + 512,SEEK_SET);
 		nread= read(filedisk.handle,spare,16);
 		
 		if(nread != 16) return YAFFS_FAIL;
@@ -178,7 +178,7 @@ int yflash_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaff
 }
 
 
-int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
+int yflash_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 {
 
 	int i;
@@ -208,7 +208,7 @@ int yflash_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	
 }
 
-int yflash_InitialiseNAND(yaffs_Device *dev)
+int yflash_InitialiseNAND(yaffs_dev_t *dev)
 {
 	
 	return YAFFS_OK;

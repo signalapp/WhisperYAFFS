@@ -191,7 +191,7 @@ static int  CheckInit(void)
 	return 1;
 }
 
-int nandemul2k_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
+int nandemul2k_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -200,8 +200,8 @@ int nandemul2k_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const 
 	__u8 *x;
 
 	
-	blk = chunkInNAND/PAGES_PER_BLOCK;
-	pg = chunkInNAND%PAGES_PER_BLOCK;
+	blk = nand_chunk/PAGES_PER_BLOCK;
+	pg = nand_chunk%PAGES_PER_BLOCK;
 	
 	
 	if(data)
@@ -221,7 +221,7 @@ int nandemul2k_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const 
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_PackTags2((yaffs_PackedTags2 *)x,tags, !dev->param.noTagsECC);
+		yaffs_PackTags2((yaffs_PackedTags2 *)x,tags, !dev->param.no_tags_ecc);
 			
 	}
 	
@@ -234,7 +234,7 @@ int nandemul2k_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const 
 }
 
 
-int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
+int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -243,8 +243,8 @@ int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8
 
 	
 	
-	blk = chunkInNAND/PAGES_PER_BLOCK;
-	pg = chunkInNAND%PAGES_PER_BLOCK;
+	blk = nand_chunk/PAGES_PER_BLOCK;
+	pg = nand_chunk%PAGES_PER_BLOCK;
 	
 	
 	if(data)
@@ -257,14 +257,14 @@ int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_UnpackTags2(tags,(yaffs_PackedTags2 *)x, !dev->param.noTagsECC);
+		yaffs_unpack_tags2(tags,(yaffs_PackedTags2 *)x, !dev->param.no_tags_ecc);
 	}
 
 	return YAFFS_OK;
 }
 
 
-static int nandemul2k_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
+static int nandemul2k_CheckChunkErased(yaffs_dev_t *dev,int nand_chunk)
 {
 	int blk;
 	int pg;
@@ -272,8 +272,8 @@ static int nandemul2k_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
 
 	
 	
-	blk = chunkInNAND/PAGES_PER_BLOCK;
-	pg = chunkInNAND%PAGES_PER_BLOCK;
+	blk = nand_chunk/PAGES_PER_BLOCK;
+	pg = nand_chunk%PAGES_PER_BLOCK;
 	
 	
 	for(i = 0; i < PAGE_TOTAL_SIZE; i++)
@@ -288,7 +288,7 @@ static int nandemul2k_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
 
 }
 
-int nandemul2k_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
+int nandemul2k_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 {
 	
 	
@@ -308,18 +308,18 @@ int nandemul2k_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	return YAFFS_OK;
 }
 
-int nandemul2k_InitialiseNAND(yaffs_Device *dev)
+int nandemul2k_InitialiseNAND(yaffs_dev_t *dev)
 {
 	CheckInit();
 	return YAFFS_OK;
 }
  
-int nandemul2k_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
+int nandemul2k_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 {
 	
 	__u8 *x;
 	
-	x = &ned.block[blockNo]->page[0]->data[PAGE_DATA_SIZE];
+	x = &ned.block[block_no]->page[0]->data[PAGE_DATA_SIZE];
 	
 	memset(x,0,sizeof(yaffs_PackedTags2));
 	
@@ -328,28 +328,28 @@ int nandemul2k_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	
 }
 
-int nandemul2k_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, __u32  *sequenceNumber)
+int nandemul2k_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, __u32  *seq_number)
 {
-	yaffs_ExtendedTags tags;
+	yaffs_ext_tags tags;
 	int chunkNo;
 
-	*sequenceNumber = 0;
+	*seq_number = 0;
 	
-	chunkNo = blockNo * dev->param.nChunksPerBlock;
+	chunkNo = block_no * dev->param.chunks_per_block;
 	
 	nandemul2k_ReadChunkWithTagsFromNAND(dev,chunkNo,NULL,&tags);
-	if(tags.blockBad)
+	if(tags.block_bad)
 	{
 		*state = YAFFS_BLOCK_STATE_DEAD;
 	}
-	else if(!tags.chunkUsed)
+	else if(!tags.chunk_used)
 	{
 		*state = YAFFS_BLOCK_STATE_EMPTY;
 	}
-	else if(tags.chunkUsed)
+	else if(tags.chunk_used)
 	{
 		*state = YAFFS_BLOCK_STATE_NEEDS_SCANNING;
-		*sequenceNumber = tags.sequenceNumber;
+		*seq_number = tags.seq_number;
 	}
 	return YAFFS_OK;
 }

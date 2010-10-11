@@ -62,7 +62,7 @@ typedef struct
 
 static yflash_Device filedisk;
 
-int yaffs_testPartialWrite = 0;
+int yaffs_test_partial_write = 0;
 
 extern int random_seed;
 extern int simulate_power_failure;
@@ -73,7 +73,7 @@ static int nops_so_far;
 int ops_multiplier;
 
 
-static void yflash2_MaybePowerFail(unsigned int chunkInNAND, int failPoint)
+static void yflash2_MaybePowerFail(unsigned int nand_chunk, int failPoint)
 {
 
    nops_so_far++;
@@ -83,8 +83,8 @@ static void yflash2_MaybePowerFail(unsigned int chunkInNAND, int failPoint)
    if(simulate_power_failure &&
       remaining_ops < 1){
        printf("Simulated power failure after %d operations\n",nops_so_far);
-       printf("  power failed on chunkInNAND %d, at fail point %d\n",
-       			chunkInNAND, failPoint);
+       printf("  power failed on nand_chunk %d, at fail point %d\n",
+       			nand_chunk, failPoint);
     	exit(0);
   }
 }
@@ -171,7 +171,7 @@ int yflash2_GetNumberOfBlocks(void)
 	return filedisk.nBlocks;
 }
 
-int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
+int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags)
 {
 	int written;
 	int pos;
@@ -180,30 +180,30 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 	int nRead;
 	int error;
 	
-	T(YAFFS_TRACE_MTD,(TSTR("write chunk %d data %x tags %x" TENDSTR),chunkInNAND,(unsigned)data, (unsigned)tags));
+	T(YAFFS_TRACE_MTD,(TSTR("write chunk %d data %x tags %x" TENDSTR),nand_chunk,(unsigned)data, (unsigned)tags));
 
 	CheckInit();
 	
 	
-	if(dev->param.inbandTags){
+	if(dev->param.inband_tags){
 		
 		yaffs_PackedTags2TagsPart * pt2tp;
-		pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->nDataBytesPerChunk];
+		pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->data_bytes_per_chunk];
 		yaffs_PackTags2TagsPart(pt2tp,tags);
 		
-		pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
-		h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
+		pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
+		h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 				  			
 		lseek(h,pos,SEEK_SET);
-		written = write(h,data,dev->param.totalBytesPerChunk);
+		written = write(h,data,dev->param.total_bytes_per_chunk);
 
 		
-		if(yaffs_testPartialWrite){
+		if(yaffs_test_partial_write){
 			close(h);
 			exit(1);
 		}
 		
-		if(written != dev->param.totalBytesPerChunk) return YAFFS_FAIL;
+		if(written != dev->param.total_bytes_per_chunk) return YAFFS_FAIL;
 
 
 	}
@@ -215,60 +215,60 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 
 		if(data)
 		{
-			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
-			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
+			pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
+			h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 		
 			
-			memcpy(localBuffer,data, dev->nDataBytesPerChunk);
+			memcpy(localBuffer,data, dev->data_bytes_per_chunk);
 			
 			n_partials = rand()%20;
 			
 			for(i = 0; i < n_partials; i++){
-				bpos = rand() % dev->nDataBytesPerChunk;
+				bpos = rand() % dev->data_bytes_per_chunk;
 				
 				localBuffer[bpos] |= (1 << (rand() & 7));
 			}
 		  
-			if(REPORT_ERROR && memcmp(localBuffer,data,dev->nDataBytesPerChunk))
+			if(REPORT_ERROR && memcmp(localBuffer,data,dev->data_bytes_per_chunk))
 				printf("nand simulator: data does not match\n");
 			
 			lseek(h,pos,SEEK_SET);
-			written = write(h,localBuffer,dev->nDataBytesPerChunk);
+			written = write(h,localBuffer,dev->data_bytes_per_chunk);
 		
-			if(yaffs_testPartialWrite){
+			if(yaffs_test_partial_write){
 				close(h);
 				exit(1);
 			}
 
 
-			if(written != dev->nDataBytesPerChunk) return YAFFS_FAIL;
+			if(written != dev->data_bytes_per_chunk) return YAFFS_FAIL;
 		}
-		// yflash2_MaybePowerFail(chunkInNAND,1);
+		// yflash2_MaybePowerFail(nand_chunk,1);
 	
 		if(tags)
 		{
-			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE + PAGE_DATA_SIZE ;
-			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
+			pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE + PAGE_DATA_SIZE ;
+			h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 		
 			lseek(h,pos,SEEK_SET);
 
-			if( 0 && dev->param.isYaffs2)
+			if( 0 && dev->param.is_yaffs2)
 			{
 			
-				written = write(h,tags,sizeof(yaffs_ExtendedTags));
-				if(written != sizeof(yaffs_ExtendedTags)) return YAFFS_FAIL;
+				written = write(h,tags,sizeof(yaffs_ext_tags));
+				if(written != sizeof(yaffs_ext_tags)) return YAFFS_FAIL;
 			}
 			else
 			{
 				yaffs_PackedTags2 pt;
-				yaffs_PackTags2(&pt,tags, !dev->param.noTagsECC);
+				yaffs_PackTags2(&pt,tags, !dev->param.no_tags_ecc);
 				__u8 * ptab = (__u8 *)&pt;
 
 				nRead = read(h,localBuffer,sizeof(pt));
 				for(i = error = 0; REPORT_ERROR && i < sizeof(pt) && !error; i++){
 					if(localBuffer[i] != 0xFF){
 						printf("nand simulation: chunk %d oob byte %d was %0x2\n",
-							chunkInNAND,i,localBuffer[i]);
+							nand_chunk,i,localBuffer[i]);
 							error = 1;
 					}
 				}
@@ -294,59 +294,59 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 			}
 		}
 		
-		//yflash2_MaybePowerFail(chunkInNAND,2);
+		//yflash2_MaybePowerFail(nand_chunk,2);
 		
 		/* Next do the whole write */
 		if(data)
 		{
-			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
-			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
+			pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
+			h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 		
 			
 			memset(localBuffer,0xFF, PAGE_SIZE);		
-			for(i = 0; i < dev->nDataBytesPerChunk; i++){
+			for(i = 0; i < dev->data_bytes_per_chunk; i++){
 				localBuffer[i] &= data[i];
 			}
 		  
-			if(REPORT_ERROR && memcmp(localBuffer,data,dev->nDataBytesPerChunk))
+			if(REPORT_ERROR && memcmp(localBuffer,data,dev->data_bytes_per_chunk))
 				printf("nand simulator: data does not match\n");
 			
 			lseek(h,pos,SEEK_SET);
-			written = write(h,localBuffer,dev->nDataBytesPerChunk);
+			written = write(h,localBuffer,dev->data_bytes_per_chunk);
 		
-			if(yaffs_testPartialWrite){
+			if(yaffs_test_partial_write){
 				close(h);
 				exit(1);
 			}
 
 
-			if(written != dev->nDataBytesPerChunk) return YAFFS_FAIL;
+			if(written != dev->data_bytes_per_chunk) return YAFFS_FAIL;
 		}
 	
 		if(tags)
 		{
-			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE + PAGE_DATA_SIZE ;
-			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
+			pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE + PAGE_DATA_SIZE ;
+			h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 		
 			lseek(h,pos,SEEK_SET);
 
-			if( 0 && dev->param.isYaffs2)
+			if( 0 && dev->param.is_yaffs2)
 			{
 			
-				written = write(h,tags,sizeof(yaffs_ExtendedTags));
-				if(written != sizeof(yaffs_ExtendedTags)) return YAFFS_FAIL;
+				written = write(h,tags,sizeof(yaffs_ext_tags));
+				if(written != sizeof(yaffs_ext_tags)) return YAFFS_FAIL;
 			}
 			else
 			{
 				yaffs_PackedTags2 pt;
-				yaffs_PackTags2(&pt,tags,!dev->param.noTagsECC);
+				yaffs_PackTags2(&pt,tags,!dev->param.no_tags_ecc);
 				__u8 * ptab = (__u8 *)&pt;
 
 				nRead = read(h,localBuffer,sizeof(pt));
 				for(i = error = 0; REPORT_ERROR && i < sizeof(pt) && !error; i++){
 					if(localBuffer[i] != 0xFF){
 						printf("nand simulation: chunk %d oob byte %d was %0x2\n",
-							chunkInNAND,i,localBuffer[i]);
+							nand_chunk,i,localBuffer[i]);
 							error = 1;
 					}
 				}
@@ -364,14 +364,14 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u
 			}
 		}
 		
-		yflash2_MaybePowerFail(chunkInNAND,3);
+		yflash2_MaybePowerFail(nand_chunk,3);
 	
 	}
 	return YAFFS_OK;	
 
 }
 
-int yaffs_CheckAllFF(const __u8 *ptr, int n)
+int yaffs_check_all_ff(const __u8 *ptr, int n)
 {
 	while(n)
 	{
@@ -388,7 +388,7 @@ static int fail320 = 1;
 
 static int failRead10 = 2;
 
-int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
+int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags)
 {
 	int nread;
 	int pos;
@@ -397,39 +397,39 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *d
 	int retval = YAFFS_OK;
 	int nRead;
 	
-	T(YAFFS_TRACE_MTD,(TSTR("read chunk %d data %x tags %x" TENDSTR),chunkInNAND,(unsigned)data, (unsigned)tags));
+	T(YAFFS_TRACE_MTD,(TSTR("read chunk %d data %x tags %x" TENDSTR),nand_chunk,(unsigned)data, (unsigned)tags));
 	
 	CheckInit();
 	
 	
 	
 	
-	if(dev->param.inbandTags){
+	if(dev->param.inband_tags){
 		/* Got to suck the tags out of the data area */
 		if(!data) {
 			localData=1;
-			data = yaffs_GetTempBuffer(dev,__LINE__);
+			data = yaffs_get_temp_buffer(dev,__LINE__);
 		}
 
 		
 		yaffs_PackedTags2TagsPart * pt2tp;
-		pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->nDataBytesPerChunk];
+		pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->data_bytes_per_chunk];
 
 		
-		pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
-		h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
+		pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
+		h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
 		
 		lseek(h,pos,SEEK_SET);
 
-		nRead = read(h, data,dev->param.totalBytesPerChunk);
+		nRead = read(h, data,dev->param.total_bytes_per_chunk);
 
-		yaffs_UnpackTags2TagsPart(tags,pt2tp);
+		yaffs_unpack_tags2tags_part(tags,pt2tp);
 		
-		if(nread != dev->param.totalBytesPerChunk)
+		if(nread != dev->param.total_bytes_per_chunk)
 			retval = YAFFS_FAIL;
 			
 		if(localData)
-			yaffs_ReleaseTempBuffer(dev,data,__LINE__);
+			yaffs_release_temp_buffer(dev,data,__LINE__);
 
 
 
@@ -440,57 +440,57 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *d
 		if(data)
 		{
 
-			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
-			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];		
+			pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
+			h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];		
 			lseek(h,pos,SEEK_SET);
-			nread = read(h,data,dev->nDataBytesPerChunk);
+			nread = read(h,data,dev->data_bytes_per_chunk);
 		
 		
-			if(nread != dev->nDataBytesPerChunk) 
+			if(nread != dev->data_bytes_per_chunk) 
 				retval = YAFFS_FAIL;
 		}
 	
 		if(tags)
 		{
-			pos = (chunkInNAND % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE + PAGE_DATA_SIZE;
-			h = filedisk.handle[(chunkInNAND / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];		
+			pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE + PAGE_DATA_SIZE;
+			h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];		
 			lseek(h,pos,SEEK_SET);
 
-			if(0 && dev->param.isYaffs2)
+			if(0 && dev->param.is_yaffs2)
 			{
-				nread= read(h,tags,sizeof(yaffs_ExtendedTags));
-				if(nread != sizeof(yaffs_ExtendedTags))
+				nread= read(h,tags,sizeof(yaffs_ext_tags));
+				if(nread != sizeof(yaffs_ext_tags))
 					 retval =  YAFFS_FAIL;
-				if(yaffs_CheckAllFF((__u8 *)tags,sizeof(yaffs_ExtendedTags)))
+				if(yaffs_check_all_ff((__u8 *)tags,sizeof(yaffs_ext_tags)))
 				{
-					yaffs_InitialiseTags(tags);
+					yaffs_init_tags(tags);
 				}
 				else
 				{
-					tags->chunkUsed = 1;
+					tags->chunk_used = 1;
 				}
 			}
 			else
 			{
 				yaffs_PackedTags2 pt;
 				nread= read(h,&pt,sizeof(pt));
-				yaffs_UnpackTags2(tags,&pt, !dev->param.noTagsECC);
+				yaffs_unpack_tags2(tags,&pt, !dev->param.no_tags_ecc);
 #ifdef SIMULATE_FAILURES
-				if((chunkInNAND >> 6) == 100) {
-					if(fail300 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){
-						tags->eccResult = YAFFS_ECC_RESULT_FIXED;
+				if((nand_chunk >> 6) == 100) {
+					if(fail300 && tags->ecc_result == YAFFS_ECC_RESULT_NO_ERROR){
+						tags->ecc_result = YAFFS_ECC_RESULT_FIXED;
 						fail300 = 0;
 					}
 				}
 				
-				if((chunkInNAND >> 6) == 110) {
-					if(fail320 && tags->eccResult == YAFFS_ECC_RESULT_NO_ERROR){
-						tags->eccResult = YAFFS_ECC_RESULT_FIXED;
+				if((nand_chunk >> 6) == 110) {
+					if(fail320 && tags->ecc_result == YAFFS_ECC_RESULT_NO_ERROR){
+						tags->ecc_result = YAFFS_ECC_RESULT_FIXED;
 						fail320 = 0;
 					}
 				}
 #endif
-				if(failRead10>0 && chunkInNAND == 10){
+				if(failRead10>0 && nand_chunk == 10){
 					failRead10--;
 					nread = 0;
 				}
@@ -508,7 +508,7 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *d
 }
 
 
-int yflash2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
+int yflash2_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 {
 	int written;
 	int h;
@@ -518,8 +518,8 @@ int yflash2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	CheckInit();
 	
 	memset(&pt,0,sizeof(pt));
-	h = filedisk.handle[(blockNo / ( BLOCKS_PER_HANDLE))];
-	lseek(h,((blockNo % BLOCKS_PER_HANDLE) * dev->param.nChunksPerBlock) * PAGE_SIZE + PAGE_DATA_SIZE,SEEK_SET);
+	h = filedisk.handle[(block_no / ( BLOCKS_PER_HANDLE))];
+	lseek(h,((block_no % BLOCKS_PER_HANDLE) * dev->param.chunks_per_block) * PAGE_SIZE + PAGE_DATA_SIZE,SEEK_SET);
 	written = write(h,&pt,sizeof(pt));
 		
 	if(written != sizeof(pt)) return YAFFS_FAIL;
@@ -529,7 +529,7 @@ int yflash2_MarkNANDBlockBad(struct yaffs_DeviceStruct *dev, int blockNo)
 	
 }
 
-int yflash2_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
+int yflash2_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 {
 
 	int i;
@@ -558,8 +558,8 @@ int yflash2_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 		
 
 		h = filedisk.handle[(blockNumber / ( BLOCKS_PER_HANDLE))];
-		lseek(h,((blockNumber % BLOCKS_PER_HANDLE) * dev->param.nChunksPerBlock) * PAGE_SIZE,SEEK_SET);		
-		for(i = 0; i < dev->param.nChunksPerBlock; i++)
+		lseek(h,((blockNumber % BLOCKS_PER_HANDLE) * dev->param.chunks_per_block) * PAGE_SIZE,SEEK_SET);		
+		for(i = 0; i < dev->param.chunks_per_block; i++)
 		{
 			write(h,pg,PAGE_SIZE);
 		}
@@ -570,7 +570,7 @@ int yflash2_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	
 }
 
-int yflash2_InitialiseNAND(yaffs_Device *dev)
+int yflash2_InitialiseNAND(yaffs_dev_t *dev)
 {
 	CheckInit();
 	
@@ -580,28 +580,28 @@ int yflash2_InitialiseNAND(yaffs_Device *dev)
 
 
 
-int yflash2_QueryNANDBlock(struct yaffs_DeviceStruct *dev, int blockNo, yaffs_BlockState *state, __u32 *sequenceNumber)
+int yflash2_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, __u32 *seq_number)
 {
-	yaffs_ExtendedTags tags;
+	yaffs_ext_tags tags;
 	int chunkNo;
 
-	*sequenceNumber = 0;
+	*seq_number = 0;
 	
-	chunkNo = blockNo * dev->param.nChunksPerBlock;
+	chunkNo = block_no * dev->param.chunks_per_block;
 	
 	yflash2_ReadChunkWithTagsFromNAND(dev,chunkNo,NULL,&tags);
-	if(tags.blockBad)
+	if(tags.block_bad)
 	{
 		*state = YAFFS_BLOCK_STATE_DEAD;
 	}
-	else if(!tags.chunkUsed)
+	else if(!tags.chunk_used)
 	{
 		*state = YAFFS_BLOCK_STATE_EMPTY;
 	}
-	else if(tags.chunkUsed)
+	else if(tags.chunk_used)
 	{
 		*state = YAFFS_BLOCK_STATE_NEEDS_SCANNING;
-		*sequenceNumber = tags.sequenceNumber;
+		*seq_number = tags.seq_number;
 	}
 	return YAFFS_OK;
 }

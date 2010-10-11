@@ -240,10 +240,10 @@ yaffs_n_handles = ylib.yaffs_n_handles
 yaffs_n_handles.argtypes = [c_char_p]
 yaffs_n_handles.restype = c_int
 
-#int yaffs_StartUp(void)
-yaffs_StartUp = ylib.yaffs_StartUp
-yaffs_StartUp.argtypes = []
-yaffs_StartUp.restype = c_int
+#int yaffs_start_up(void)
+yaffs_start_up = ylib.yaffs_start_up
+yaffs_start_up.argtypes = []
+yaffs_start_up.restype = c_int
 
 yaffs_O_CREAT=ylib.yaffs_O_CREAT()
 yaffs_O_RDONLY=ylib.yaffs_O_RDONLY()

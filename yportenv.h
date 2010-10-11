@@ -87,7 +87,7 @@
 #define Y_TIME_CONVERT(x) (x)
 #endif
 
-#define yaffs_SumCompare(x, y) ((x) == (y))
+#define yaffs_sum_cmp(x, y) ((x) == (y))
 #define yaffs_strcmp(a, b) strcmp(a, b)
 
 #define TENDSTR "\n"
@@ -145,7 +145,7 @@
 #define YAFFS_ROOT_MODE			0755
 #define YAFFS_LOSTNFOUND_MODE		0700
 
-#define yaffs_SumCompare(x, y) ((x) == (y))
+#define yaffs_sum_cmp(x, y) ((x) == (y))
 #define yaffs_strcmp(a, b) strcmp(a, b)
 
 #else

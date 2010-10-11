@@ -84,7 +84,7 @@
 #define YAFFS_ROOT_MODE				0666
 #define YAFFS_LOSTNFOUND_MODE		0666
 
-#define yaffs_SumCompare(x,y) ((x) == (y))
+#define yaffs_sum_cmp(x,y) ((x) == (y))
 #define yaffs_strcmp(a,b) strcmp(a,b)
 
 #include "yaffsfs.h"

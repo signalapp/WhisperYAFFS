@@ -19,11 +19,11 @@
 
 #include "yaffs_guts.h"
 
-int ynorif1_WriteChunkToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_Spare *spare);
-int ynorif1_ReadChunkFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_Spare *spare);
-int ynorif1_EraseBlockInNAND(yaffs_Device *dev, int blockNumber);
-int ynorif1_InitialiseNAND(yaffs_Device *dev);
-int ynorif1_DeinitialiseNAND(yaffs_Device *dev);
+int ynorif1_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_spare *spare);
+int ynorif1_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_spare *spare);
+int ynorif1_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber);
+int ynorif1_InitialiseNAND(yaffs_dev_t *dev);
+int ynorif1_Deinitialise_flash_fn(yaffs_dev_t *dev);
 
 #endif
 

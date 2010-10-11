@@ -23,9 +23,9 @@
 
 #define N_RAM_SIM_DEVS  2
 
-struct yaffs_DeviceStruct *yramsim_CreateRamSim(const YCHAR *name,
+struct yaffs_dev_s *yramsim_CreateRamSim(const YCHAR *name,
 						__u32 devId, __u32 nBlocks,
-						__u32 startBlock, __u32 endBlock);
+						__u32 start_block, __u32 end_block);
 
 #endif
 

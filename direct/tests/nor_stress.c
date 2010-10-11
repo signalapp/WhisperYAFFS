@@ -87,9 +87,9 @@ void MakeFullNames(const char *prefix)
   MakeName(fullTempMainName,prefix,"tmp-main");
 }
 
-static void FatalError(int lineNo)
+static void FatalError(int line_no)
 {
-  printf("Integrity error %d\n",lineNo);
+  printf("Integrity error %d\n",line_no);
 
   if(fuzz_test)
   	return;
@@ -258,7 +258,7 @@ static void dump_directory_tree(const char *dname)
 
 static unsigned xx[XX_SIZE];
 
-static int yWriteFile(const char *fname, unsigned sz32)
+static int y_wr_file(const char *fname, unsigned sz32)
 {
 	int h;
 	int r;
@@ -317,7 +317,7 @@ WRITE_ERROR:
 	
 }
 
-static int yVerifyFile(const char *fName)
+static int y_verify_file(const char *fName)
 {
 	unsigned checksum = 0;
 	unsigned totalSize;
@@ -400,7 +400,7 @@ static void DoUpdateMainFile(void)
         int sz32;
         sz32 = (myrand() % 1000)   + 20;
         
-	result = yWriteFile(fullTempMainName,sz32);
+	result = y_wr_file(fullTempMainName,sz32);
 	FSX();
 	if(!no_verification && result)
 	    FatalError(__LINE__);
@@ -414,7 +414,7 @@ static void DoVerifyMainFile(void)
         int result;
 	if(no_verification)
 		return;
-	result = yVerifyFile(fullMainName);
+	result = y_verify_file(fullMainName);
 	if(result)
 	    FatalError(__LINE__);
 

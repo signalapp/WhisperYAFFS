@@ -68,7 +68,7 @@
 #define CONFIG_YAFFS_XATTR
 
 /*
-Older-style on-NAND data format has a "pageStatus" byte to record
+Older-style on-NAND data format has a "page_status" byte to record
 chunk/page state.  This byte is zeroed when the page is discarded.
 Choose this option if you have existing on-NAND data in this format
 that you need to continue to support.  New data written also uses the
@@ -78,7 +78,7 @@ adjusted to use the older-style format.  See notes on tags formats and
 MTD versions in yaffs_mtdif1.c.
 */
 /* Default: Not selected */
-/* Meaning: Use older-style on-NAND data format with pageStatus byte */
+/* Meaning: Use older-style on-NAND data format with page_status byte */
 /* #define CONFIG_YAFFS_9BYTE_TAGS */
 
 #endif /* YAFFS_OUT_OF_TREE */

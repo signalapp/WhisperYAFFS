@@ -48,7 +48,7 @@ static objItem obj_list[MAX_OBJECTS];
 static int n_obj = 0;
 static int obj_id = YAFFS_NOBJECT_BUCKETS + 1;
 
-static int nObjects, nDirectories, nPages;
+static int n_obj, nDirectories, nPages;
 
 static int outFile;
 
@@ -113,7 +113,7 @@ static int find_obj_in_list(dev_t dev, ino_t ino)
 }
 
 // NCB added 10/9/2002
-static __u16 yaffs_CalcNameSum(const char *name)
+static __u16 yaffs_calc_name_sum(const char *name)
 {
 	__u16 sum = 0;
 	__u16 i = 1;
@@ -130,16 +130,16 @@ static __u16 yaffs_CalcNameSum(const char *name)
 }
 
 
-static void yaffs_CalcECC(const __u8 *data, yaffs_Spare *spare)
+static void yaffs_calc_ecc(const __u8 *data, yaffs_spare *spare)
 {
-	yaffs_ECCCalculate(data , spare->ecc1);
-	yaffs_ECCCalculate(&data[256] , spare->ecc2);
+	yaffs_ecc_cacl(data , spare->ecc1);
+	yaffs_ecc_cacl(&data[256] , spare->ecc2);
 }
 
-static void yaffs_CalcTagsECC(yaffs_Tags *tags)
+static void yaffs_calc_tags_ecc(yaffs_tags_t *tags)
 {
 	// Todo don't do anything yet. Need to calculate ecc
-	unsigned char *b = ((yaffs_TagsUnion *)tags)->asBytes;
+	unsigned char *b = ((yaffs_tags_union_t *)tags)->as_bytes;
 	unsigned  i,j;
 	unsigned  ecc = 0;
 	unsigned bit = 0;
@@ -181,81 +181,81 @@ static void yaffs_CalcTagsECC(yaffs_Tags *tags)
         b[7] |= ((ecc & 0x3F) << 2);
     }
 }
-static void yaffs_LoadTagsIntoSpare(yaffs_Spare *sparePtr, yaffs_Tags *tagsPtr)
+static void yaffs_load_tags_to_spare(yaffs_spare *sparePtr, yaffs_tags_t *tagsPtr)
 {
-	yaffs_TagsUnion *tu = (yaffs_TagsUnion *)tagsPtr;
+	yaffs_tags_union_t *tu = (yaffs_tags_union_t *)tagsPtr;
 	
-	//yaffs_CalcTagsECC(tagsPtr);
+	//yaffs_calc_tags_ecc(tagsPtr);
 	
-	sparePtr->tagByte0 = tu->asBytes[0];
-	sparePtr->tagByte1 = tu->asBytes[1];
-	sparePtr->tagByte2 = tu->asBytes[2];
-	sparePtr->tagByte3 = tu->asBytes[3];
-	sparePtr->tagByte4 = tu->asBytes[4];
-	sparePtr->tagByte5 = tu->asBytes[5];
-	sparePtr->tagByte6 = tu->asBytes[6];
-	sparePtr->tagByte7 = tu->asBytes[7];
+	sparePtr->tb0 = tu->as_bytes[0];
+	sparePtr->tb1 = tu->as_bytes[1];
+	sparePtr->tb2 = tu->as_bytes[2];
+	sparePtr->tb3 = tu->as_bytes[3];
+	sparePtr->tb4 = tu->as_bytes[4];
+	sparePtr->tb5 = tu->as_bytes[5];
+	sparePtr->tb6 = tu->as_bytes[6];
+	sparePtr->tb7 = tu->as_bytes[7];
 }
 
 /* This little function converts a little endian tag to a big endian tag.
  * NOTE: The tag is not usable after this other than calculating the CRC
  * with.
  */
-static void little_to_big_endian(yaffs_Tags *tagsPtr)
+static void little_to_big_endian(yaffs_tags_t *tagsPtr)
 {
-    yaffs_TagsUnion * tags = (yaffs_TagsUnion* )tagsPtr; // Work in bytes.
-    yaffs_TagsUnion   temp;
+    yaffs_tags_union_t * tags = (yaffs_tags_union_t* )tagsPtr; // Work in bytes.
+    yaffs_tags_union_t   temp;
 
     memset(&temp, 0, sizeof(temp));
     // Ick, I hate magic numbers.
-    temp.asBytes[0] = ((tags->asBytes[2] & 0x0F) << 4) | ((tags->asBytes[1] & 0xF0) >> 4);
-    temp.asBytes[1] = ((tags->asBytes[1] & 0x0F) << 4) | ((tags->asBytes[0] & 0xF0) >> 4);
-    temp.asBytes[2] = ((tags->asBytes[0] & 0x0F) << 4) | ((tags->asBytes[2] & 0x30) >> 2) | ((tags->asBytes[3] & 0xC0) >> 6);
-    temp.asBytes[3] = ((tags->asBytes[3] & 0x3F) << 2) | ((tags->asBytes[2] & 0xC0) >> 6);
-    temp.asBytes[4] = ((tags->asBytes[6] & 0x03) << 6) | ((tags->asBytes[5] & 0xFC) >> 2);
-    temp.asBytes[5] = ((tags->asBytes[5] & 0x03) << 6) | ((tags->asBytes[4] & 0xFC) >> 2);
-    temp.asBytes[6] = ((tags->asBytes[4] & 0x03) << 6) | (tags->asBytes[7] & 0x3F);
-    temp.asBytes[7] = (tags->asBytes[6] & 0xFC) | ((tags->asBytes[7] & 0xC0) >> 6);
+    temp.as_bytes[0] = ((tags->as_bytes[2] & 0x0F) << 4) | ((tags->as_bytes[1] & 0xF0) >> 4);
+    temp.as_bytes[1] = ((tags->as_bytes[1] & 0x0F) << 4) | ((tags->as_bytes[0] & 0xF0) >> 4);
+    temp.as_bytes[2] = ((tags->as_bytes[0] & 0x0F) << 4) | ((tags->as_bytes[2] & 0x30) >> 2) | ((tags->as_bytes[3] & 0xC0) >> 6);
+    temp.as_bytes[3] = ((tags->as_bytes[3] & 0x3F) << 2) | ((tags->as_bytes[2] & 0xC0) >> 6);
+    temp.as_bytes[4] = ((tags->as_bytes[6] & 0x03) << 6) | ((tags->as_bytes[5] & 0xFC) >> 2);
+    temp.as_bytes[5] = ((tags->as_bytes[5] & 0x03) << 6) | ((tags->as_bytes[4] & 0xFC) >> 2);
+    temp.as_bytes[6] = ((tags->as_bytes[4] & 0x03) << 6) | (tags->as_bytes[7] & 0x3F);
+    temp.as_bytes[7] = (tags->as_bytes[6] & 0xFC) | ((tags->as_bytes[7] & 0xC0) >> 6);
 
     // Now copy it back.
-    tags->asBytes[0] = temp.asBytes[0];
-    tags->asBytes[1] = temp.asBytes[1];
-    tags->asBytes[2] = temp.asBytes[2];
-    tags->asBytes[3] = temp.asBytes[3];
-    tags->asBytes[4] = temp.asBytes[4];
-    tags->asBytes[5] = temp.asBytes[5];
-    tags->asBytes[6] = temp.asBytes[6];
-    tags->asBytes[7] = temp.asBytes[7];
+    tags->as_bytes[0] = temp.as_bytes[0];
+    tags->as_bytes[1] = temp.as_bytes[1];
+    tags->as_bytes[2] = temp.as_bytes[2];
+    tags->as_bytes[3] = temp.as_bytes[3];
+    tags->as_bytes[4] = temp.as_bytes[4];
+    tags->as_bytes[5] = temp.as_bytes[5];
+    tags->as_bytes[6] = temp.as_bytes[6];
+    tags->as_bytes[7] = temp.as_bytes[7];
 }
 
-static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
+static int write_chunk(__u8 *data, __u32 obj_id, __u32 chunk_id, __u32 n_bytes)
 {
-	yaffs_Tags t;
-	yaffs_Spare s;
+	yaffs_tags_t t;
+	yaffs_spare s;
 
 	error = write(outFile,data,512);
 	if(error < 0) return error;
 
-	memset(&t,0xff,sizeof (yaffs_Tags));
-	memset(&s,0xff,sizeof (yaffs_Spare));
+	memset(&t,0xff,sizeof (yaffs_tags_t));
+	memset(&s,0xff,sizeof (yaffs_spare));
 	
-	t.chunkId = chunkId;
-	t.serialNumber = 0;
-	t.byteCountLSB = nBytes;
-	t.objectId = objId;
+	t.chunk_id = chunk_id;
+	t.serial_number = 0;
+	t.n_bytes_lsb = n_bytes;
+	t.obj_id = obj_id;
 
     if (convert_endian)
     {
         little_to_big_endian(&t);
     }
 	
-	yaffs_CalcTagsECC(&t);
-	yaffs_LoadTagsIntoSpare(&s,&t);
-	yaffs_CalcECC(data,&s);
+	yaffs_calc_tags_ecc(&t);
+	yaffs_load_tags_to_spare(&s,&t);
+	yaffs_calc_ecc(data,&s);
 	
 	nPages++;
 	
-	return write(outFile,&s,sizeof(yaffs_Spare));
+	return write(outFile,&s,sizeof(yaffs_spare));
 	
 }
 
@@ -268,20 +268,20 @@ static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
                      (((x) & 0xFF00) >> 8))
         
 // This one is easier, since the types are more standard. No funky shifts here.
-static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
+static void object_header_little_to_big_endian(yaffs_obj_header* oh)
 {
     oh->type = SWAP32(oh->type); // GCC makes enums 32 bits.
-    oh->parentObjectId = SWAP32(oh->parentObjectId); // int
-    oh->sum__NoLongerUsed = SWAP16(oh->sum__NoLongerUsed); // __u16 - Not used, but done for completeness.
+    oh->parent_obj_id = SWAP32(oh->parent_obj_id); // int
+    oh->sum_no_longer_used = SWAP16(oh->sum_no_longer_used); // __u16 - Not used, but done for completeness.
     // name = skip. Char array. Not swapped.
     oh->yst_mode = SWAP32(oh->yst_mode);
 #ifdef CONFIG_YAFFS_WINCE // WinCE doesn't implement this, but we need to just in case. 
     // In fact, WinCE would be *THE* place where this would be an issue!
-    oh->notForWinCE[0] = SWAP32(oh->notForWinCE[0]);
-    oh->notForWinCE[1] = SWAP32(oh->notForWinCE[1]);
-    oh->notForWinCE[2] = SWAP32(oh->notForWinCE[2]);
-    oh->notForWinCE[3] = SWAP32(oh->notForWinCE[3]);
-    oh->notForWinCE[4] = SWAP32(oh->notForWinCE[4]);
+    oh->not_for_wince[0] = SWAP32(oh->not_for_wince[0]);
+    oh->not_for_wince[1] = SWAP32(oh->not_for_wince[1]);
+    oh->not_for_wince[2] = SWAP32(oh->not_for_wince[2]);
+    oh->not_for_wince[3] = SWAP32(oh->not_for_wince[3]);
+    oh->not_for_wince[4] = SWAP32(oh->not_for_wince[4]);
 #else
     // Regular POSIX.
     oh->yst_uid = SWAP32(oh->yst_uid);
@@ -291,8 +291,8 @@ static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
     oh->yst_ctime = SWAP32(oh->yst_ctime);
 #endif
 
-    oh->fileSize = SWAP32(oh->fileSize); // Aiee. An int... signed, at that!
-    oh->equivalentObjectId = SWAP32(oh->equivalentObjectId);
+    oh->file_size = SWAP32(oh->file_size); // Aiee. An int... signed, at that!
+    oh->equiv_id = SWAP32(oh->equiv_id);
     // alias  - char array.
     oh->yst_rdev = SWAP32(oh->yst_rdev);
 
@@ -303,40 +303,40 @@ static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
     oh->win_atime[1] = SWAP32(oh->win_atime[1]);
     oh->win_mtime[0] = SWAP32(oh->win_mtime[0]);
     oh->win_mtime[1] = SWAP32(oh->win_mtime[1]);
-    oh->roomToGrow[0] = SWAP32(oh->roomToGrow[0]);
-    oh->roomToGrow[1] = SWAP32(oh->roomToGrow[1]);
-    oh->roomToGrow[2] = SWAP32(oh->roomToGrow[2]);
-    oh->roomToGrow[3] = SWAP32(oh->roomToGrow[3]);
-    oh->roomToGrow[4] = SWAP32(oh->roomToGrow[4]);
-    oh->roomToGrow[5] = SWAP32(oh->roomToGrow[5]);
+    oh->room_to_grow[0] = SWAP32(oh->room_to_grow[0]);
+    oh->room_to_grow[1] = SWAP32(oh->room_to_grow[1]);
+    oh->room_to_grow[2] = SWAP32(oh->room_to_grow[2]);
+    oh->room_to_grow[3] = SWAP32(oh->room_to_grow[3]);
+    oh->room_to_grow[4] = SWAP32(oh->room_to_grow[4]);
+    oh->room_to_grow[5] = SWAP32(oh->room_to_grow[5]);
 #else
-    oh->roomToGrow[0] = SWAP32(oh->roomToGrow[0]);
-    oh->roomToGrow[1] = SWAP32(oh->roomToGrow[1]);
-    oh->roomToGrow[2] = SWAP32(oh->roomToGrow[2]);
-    oh->roomToGrow[3] = SWAP32(oh->roomToGrow[3]);
-    oh->roomToGrow[4] = SWAP32(oh->roomToGrow[4]);
-    oh->roomToGrow[5] = SWAP32(oh->roomToGrow[5]);
-    oh->roomToGrow[6] = SWAP32(oh->roomToGrow[6]);
-    oh->roomToGrow[7] = SWAP32(oh->roomToGrow[7]);
-    oh->roomToGrow[8] = SWAP32(oh->roomToGrow[8]);
-    oh->roomToGrow[9] = SWAP32(oh->roomToGrow[9]);
-    oh->roomToGrow[10] = SWAP32(oh->roomToGrow[10]);
-    oh->roomToGrow[11] = SWAP32(oh->roomToGrow[11]);
+    oh->room_to_grow[0] = SWAP32(oh->room_to_grow[0]);
+    oh->room_to_grow[1] = SWAP32(oh->room_to_grow[1]);
+    oh->room_to_grow[2] = SWAP32(oh->room_to_grow[2]);
+    oh->room_to_grow[3] = SWAP32(oh->room_to_grow[3]);
+    oh->room_to_grow[4] = SWAP32(oh->room_to_grow[4]);
+    oh->room_to_grow[5] = SWAP32(oh->room_to_grow[5]);
+    oh->room_to_grow[6] = SWAP32(oh->room_to_grow[6]);
+    oh->room_to_grow[7] = SWAP32(oh->room_to_grow[7]);
+    oh->room_to_grow[8] = SWAP32(oh->room_to_grow[8]);
+    oh->room_to_grow[9] = SWAP32(oh->room_to_grow[9]);
+    oh->room_to_grow[10] = SWAP32(oh->room_to_grow[10]);
+    oh->room_to_grow[11] = SWAP32(oh->room_to_grow[11]);
 #endif
 }
 
-static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
+static int write_object_header(int obj_id, yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
 {
 	__u8 bytes[512];
 	
 	
-	yaffs_ObjectHeader *oh = (yaffs_ObjectHeader *)bytes;
+	yaffs_obj_header *oh = (yaffs_obj_header *)bytes;
 	
 	memset(bytes,0xff,512);
 	
 	oh->type = t;
 
-	oh->parentObjectId = parent;
+	oh->parent_obj_id = parent;
 	
 	strncpy(oh->name,name,YAFFS_MAX_NAME_LENGTH);
 	
@@ -355,12 +355,12 @@ static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, in
 	
 	if(t == YAFFS_OBJECT_TYPE_FILE)
 	{
-		oh->fileSize = s->st_size;
+		oh->file_size = s->st_size;
 	}
 	
 	if(t == YAFFS_OBJECT_TYPE_HARDLINK)
 	{
-		oh->equivalentObjectId = equivalentObj;
+		oh->equiv_id = equivalentObj;
 	}
 	
 	if(t == YAFFS_OBJECT_TYPE_SYMLINK)
@@ -373,7 +373,7 @@ static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, in
         object_header_little_to_big_endian(oh);
     }
 	
-	return write_chunk(bytes,objId,0,0xffff);
+	return write_chunk(bytes,obj_id,0,0xffff);
 	
 }
 
@@ -416,7 +416,7 @@ static int process_directory(int parent, const char *path)
 				{
 				
 					newObj = obj_id++;
-					nObjects++;
+					n_obj++;
 					
 					printf("Object %d, %s is a ",newObj,full_name);
 					
@@ -454,21 +454,21 @@ static int process_directory(int parent, const char *path)
 							{
 								int h;
 								__u8 bytes[512];
-								int nBytes;
+								int n_bytes;
 								int chunk = 0;
 								
 								h = open(full_name,O_RDONLY);
 								if(h >= 0)
 								{
 									memset(bytes,0xff,512);
-									while((nBytes = read(h,bytes,512)) > 0)
+									while((n_bytes = read(h,bytes,512)) > 0)
 									{
 										chunk++;
-										write_chunk(bytes,newObj,chunk,nBytes);
+										write_chunk(bytes,newObj,chunk,n_bytes);
 										memset(bytes,0xff,512);
 									}
-									if(nBytes < 0) 
-									   error = nBytes;
+									if(n_bytes < 0) 
+									   error = n_bytes;
 									   
 									printf("%d data chunks written\n",chunk);
 								}
@@ -580,7 +580,7 @@ int main(int argc, char *argv[])
 	{
 		printf("Operation complete.\n"
 		       "%d objects in %d directories\n"
-		       "%d NAND pages\n",nObjects, nDirectories, nPages);
+		       "%d NAND pages\n",n_obj, nDirectories, nPages);
 	}
 	
 	close(outFile);

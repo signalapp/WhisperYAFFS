@@ -15,7 +15,7 @@
  * yaffs_ramdisk.c: yaffs ram disk component
  * This provides a ram disk under yaffs.
  * NB this is not intended for NAND emulation.
- * Use this with dev->useNANDECC enabled, then ECC overheads are not required.
+ * Use this with dev->use_nand_ecc enabled, then ECC overheads are not required.
  */
 
 const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.6 2010-01-11 04:06:47 charles Exp $";
@@ -43,25 +43,25 @@ const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.6 2010-01-11 04:
 typedef struct 
 {
 	__u8 data[528]; // Data + spare
-} yramdisk_Page;
+} yramdisk_page;
 
 typedef struct
 {
-	yramdisk_Page page[32]; // The pages in the block
+	yramdisk_page page[32]; // The pages in the block
 	
-} yramdisk_Block;
+} yramdisk_block;
 
 
 
 typedef struct
 {
-	yramdisk_Block **block;
+	yramdisk_block **block;
 	int nBlocks;
-} yramdisk_Device;
+} yramdisk_device;
 
-static yramdisk_Device ramdisk;
+static yramdisk_device ramdisk;
 
-static int  CheckInit(yaffs_Device *dev)
+static int  CheckInit(yaffs_dev_t *dev)
 {
 	static int initialised = 0;
 	
@@ -80,7 +80,7 @@ static int  CheckInit(yaffs_Device *dev)
 	
 	ramdisk.nBlocks = (SIZE_IN_MB * 1024 * 1024)/(16 * 1024);
 	
-	ramdisk.block = YMALLOC(sizeof(yramdisk_Block *) * ramdisk.nBlocks);
+	ramdisk.block = YMALLOC(sizeof(yramdisk_block *) * ramdisk.nBlocks);
 	
 	if(!ramdisk.block) return 0;
 	
@@ -91,13 +91,13 @@ static int  CheckInit(yaffs_Device *dev)
 	
 	for(i=0; i <ramdisk.nBlocks && !fail; i++)
 	{
-		if((ramdisk.block[i] = YMALLOC(sizeof(yramdisk_Block))) == 0)
+		if((ramdisk.block[i] = YMALLOC(sizeof(yramdisk_block))) == 0)
 		{
 			fail = 1;
 		}
 		else
 		{
-			yramdisk_EraseBlockInNAND(dev,i);
+			yramdisk_erase(dev,i);
 			nAllocated++;
 		}
 	}
@@ -119,7 +119,7 @@ static int  CheckInit(yaffs_Device *dev)
 	return 1;
 }
 
-int yramdisk_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __u8 *data, const yaffs_ExtendedTags *tags)
+int yramdisk_wr_chunk(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -127,8 +127,8 @@ int yramdisk_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __
 
 	CheckInit(dev);
 	
-	blk = chunkInNAND/32;
-	pg = chunkInNAND%32;
+	blk = nand_chunk/32;
+	pg = nand_chunk%32;
 	
 	
 	if(data)
@@ -150,7 +150,7 @@ int yramdisk_WriteChunkWithTagsToNAND(yaffs_Device *dev,int chunkInNAND,const __
 }
 
 
-int yramdisk_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *data, yaffs_ExtendedTags *tags)
+int yramdisk_rd_chunk(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -158,8 +158,8 @@ int yramdisk_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 	
 	CheckInit(dev);
 	
-	blk = chunkInNAND/32;
-	pg = chunkInNAND%32;
+	blk = nand_chunk/32;
+	pg = nand_chunk%32;
 	
 	
 	if(data)
@@ -173,7 +173,7 @@ int yramdisk_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 		yaffs_PackedTags1 pt;
 		
 		memcpy(&pt,&ramdisk.block[blk]->page[pg].data[512],sizeof(pt));
-		yaffs_UnpackTags1(tags,&pt);
+		yaffs_unpack_tags1(tags,&pt);
 		
 	}
 
@@ -181,7 +181,7 @@ int yramdisk_ReadChunkWithTagsFromNAND(yaffs_Device *dev,int chunkInNAND, __u8 *
 }
 
 
-int yramdisk_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
+int yramdisk_check_chunk_erased(yaffs_dev_t *dev,int nand_chunk)
 {
 	int blk;
 	int pg;
@@ -190,8 +190,8 @@ int yramdisk_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
 	
 	CheckInit(dev);
 	
-	blk = chunkInNAND/32;
-	pg = chunkInNAND%32;
+	blk = nand_chunk/32;
+	pg = nand_chunk%32;
 	
 	
 	for(i = 0; i < 528; i++)
@@ -206,7 +206,7 @@ int yramdisk_CheckChunkErased(yaffs_Device *dev,int chunkInNAND)
 
 }
 
-int yramdisk_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
+int yramdisk_erase(yaffs_dev_t *dev, int blockNumber)
 {
 	
 	CheckInit(dev);
@@ -218,15 +218,15 @@ int yramdisk_EraseBlockInNAND(yaffs_Device *dev, int blockNumber)
 	}
 	else
 	{
-		memset(ramdisk.block[blockNumber],0xFF,sizeof(yramdisk_Block));
+		memset(ramdisk.block[blockNumber],0xFF,sizeof(yramdisk_block));
 		return YAFFS_OK;
 	}
 	
 }
 
-int yramdisk_InitialiseNAND(yaffs_Device *dev)
+int yramdisk_initialise(yaffs_dev_t *dev)
 {
-	//dev->useNANDECC = 1; // force on useNANDECC which gets faked. 
+	//dev->use_nand_ecc = 1; // force on use_nand_ecc which gets faked. 
 						 // This saves us doing ECC checks.
 	
 	return YAFFS_OK;

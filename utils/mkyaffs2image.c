@@ -37,7 +37,7 @@
 #include "yaffs_tagsvalidity.h"
 #include "yaffs_packedtags2.h"
 
-unsigned yaffs_traceMask=0;
+unsigned yaffs_trace_mask=0;
 
 #define MAX_OBJECTS 10000
 
@@ -61,7 +61,7 @@ static objItem obj_list[MAX_OBJECTS];
 static int n_obj = 0;
 static int obj_id = YAFFS_NOBJECT_BUCKETS + 1;
 
-static int nObjects, nDirectories, nPages;
+static int n_obj, nDirectories, nPages;
 
 static int outFile;
 
@@ -145,32 +145,32 @@ static int find_obj_in_list(dev_t dev, ino_t ino)
  * NOTE: The tag is not usable after this other than calculating the CRC
  * with.
  */
-static void little_to_big_endian(yaffs_Tags *tagsPtr)
+static void little_to_big_endian(yaffs_tags_t *tagsPtr)
 {
 #if 0 // FIXME NCB
-    yaffs_TagsUnion * tags = (yaffs_TagsUnion* )tagsPtr; // Work in bytes.
-    yaffs_TagsUnion   temp;
+    yaffs_tags_union_t * tags = (yaffs_tags_union_t* )tagsPtr; // Work in bytes.
+    yaffs_tags_union_t   temp;
 
     memset(&temp, 0, sizeof(temp));
     // Ick, I hate magic numbers.
-    temp.asBytes[0] = ((tags->asBytes[2] & 0x0F) << 4) | ((tags->asBytes[1] & 0xF0) >> 4);
-    temp.asBytes[1] = ((tags->asBytes[1] & 0x0F) << 4) | ((tags->asBytes[0] & 0xF0) >> 4);
-    temp.asBytes[2] = ((tags->asBytes[0] & 0x0F) << 4) | ((tags->asBytes[2] & 0x30) >> 2) | ((tags->asBytes[3] & 0xC0) >> 6);
-    temp.asBytes[3] = ((tags->asBytes[3] & 0x3F) << 2) | ((tags->asBytes[2] & 0xC0) >> 6);
-    temp.asBytes[4] = ((tags->asBytes[6] & 0x03) << 6) | ((tags->asBytes[5] & 0xFC) >> 2);
-    temp.asBytes[5] = ((tags->asBytes[5] & 0x03) << 6) | ((tags->asBytes[4] & 0xFC) >> 2);
-    temp.asBytes[6] = ((tags->asBytes[4] & 0x03) << 6) | (tags->asBytes[7] & 0x3F);
-    temp.asBytes[7] = (tags->asBytes[6] & 0xFC) | ((tags->asBytes[7] & 0xC0) >> 6);
+    temp.as_bytes[0] = ((tags->as_bytes[2] & 0x0F) << 4) | ((tags->as_bytes[1] & 0xF0) >> 4);
+    temp.as_bytes[1] = ((tags->as_bytes[1] & 0x0F) << 4) | ((tags->as_bytes[0] & 0xF0) >> 4);
+    temp.as_bytes[2] = ((tags->as_bytes[0] & 0x0F) << 4) | ((tags->as_bytes[2] & 0x30) >> 2) | ((tags->as_bytes[3] & 0xC0) >> 6);
+    temp.as_bytes[3] = ((tags->as_bytes[3] & 0x3F) << 2) | ((tags->as_bytes[2] & 0xC0) >> 6);
+    temp.as_bytes[4] = ((tags->as_bytes[6] & 0x03) << 6) | ((tags->as_bytes[5] & 0xFC) >> 2);
+    temp.as_bytes[5] = ((tags->as_bytes[5] & 0x03) << 6) | ((tags->as_bytes[4] & 0xFC) >> 2);
+    temp.as_bytes[6] = ((tags->as_bytes[4] & 0x03) << 6) | (tags->as_bytes[7] & 0x3F);
+    temp.as_bytes[7] = (tags->as_bytes[6] & 0xFC) | ((tags->as_bytes[7] & 0xC0) >> 6);
 
     // Now copy it back.
-    tags->asBytes[0] = temp.asBytes[0];
-    tags->asBytes[1] = temp.asBytes[1];
-    tags->asBytes[2] = temp.asBytes[2];
-    tags->asBytes[3] = temp.asBytes[3];
-    tags->asBytes[4] = temp.asBytes[4];
-    tags->asBytes[5] = temp.asBytes[5];
-    tags->asBytes[6] = temp.asBytes[6];
-    tags->asBytes[7] = temp.asBytes[7];
+    tags->as_bytes[0] = temp.as_bytes[0];
+    tags->as_bytes[1] = temp.as_bytes[1];
+    tags->as_bytes[2] = temp.as_bytes[2];
+    tags->as_bytes[3] = temp.as_bytes[3];
+    tags->as_bytes[4] = temp.as_bytes[4];
+    tags->as_bytes[5] = temp.as_bytes[5];
+    tags->as_bytes[6] = temp.as_bytes[6];
+    tags->as_bytes[7] = temp.as_bytes[7];
 #endif
 }
 
@@ -181,27 +181,27 @@ static void shuffle_oob(char *spareData, yaffs_PackedTags2 *pt)
 	memcpy(spareData, pt, sizeof(*pt));
 }
 
-static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
+static int write_chunk(__u8 *data, __u32 obj_id, __u32 chunk_id, __u32 n_bytes)
 {
-	yaffs_ExtendedTags t;
+	yaffs_ext_tags t;
 	yaffs_PackedTags2 pt;
 	char spareData[spareSize];
 
 	if (write(outFile,data,chunkSize) != chunkSize)
 		fatal("write");
 
-	yaffs_InitialiseTags(&t);
+	yaffs_init_tags(&t);
 	
-	t.chunkId = chunkId;
-//	t.serialNumber = 0;
-	t.serialNumber = 1;	// **CHECK**
-	t.byteCount = nBytes;
-	t.objectId = objId;
+	t.chunk_id = chunk_id;
+//	t.serial_number = 0;
+	t.serial_number = 1;	// **CHECK**
+	t.n_bytes = n_bytes;
+	t.obj_id = obj_id;
 	
-	t.sequenceNumber = YAFFS_LOWEST_SEQUENCE_NUMBER;
+	t.seq_number = YAFFS_LOWEST_SEQUENCE_NUMBER;
 
 // added NCB **CHECK**
-	t.chunkUsed = 1;
+	t.chunk_used = 1;
 
 	if (convert_endian)
 	{
@@ -230,12 +230,12 @@ static int write_chunk(__u8 *data, __u32 objId, __u32 chunkId, __u32 nBytes)
                      (((x) & 0xFF00) >> 8))
         
 // This one is easier, since the types are more standard. No funky shifts here.
-static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
+static void object_header_little_to_big_endian(yaffs_obj_header* oh)
 {
     int i;    
     oh->type = SWAP32(oh->type); // GCC makes enums 32 bits.
-    oh->parentObjectId = SWAP32(oh->parentObjectId); // int
-    oh->sum__NoLongerUsed = SWAP16(oh->sum__NoLongerUsed); // __u16 - Not used, but done for completeness.
+    oh->parent_obj_id = SWAP32(oh->parent_obj_id); // int
+    oh->sum_no_longer_used = SWAP16(oh->sum_no_longer_used); // __u16 - Not used, but done for completeness.
     // name = skip. Char array. Not swapped.
     oh->yst_mode = SWAP32(oh->yst_mode);
 #ifdef CONFIG_YAFFS_WINCE // WinCE doesn't implement this, but we need to just in case. 
@@ -243,9 +243,9 @@ static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
     // Why? WINCE is little-endian only.
 
     {
-        int n = sizeof(oh->notForWinCE)/sizeof(oh->notForWinCE[0]);
+        int n = sizeof(oh->not_for_wince)/sizeof(oh->not_for_wince[0]);
         for(i = 0; i < n; i++)
-            oh->notForWinCE[i] = SWAP32(oh->notForWinCE[i]);
+            oh->not_for_wince[i] = SWAP32(oh->not_for_wince[i]);
     }
 #else
     // Regular POSIX.
@@ -256,8 +256,8 @@ static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
     oh->yst_ctime = SWAP32(oh->yst_ctime);
 #endif
 
-    oh->fileSize = SWAP32(oh->fileSize); // Aiee. An int... signed, at that!
-    oh->equivalentObjectId = SWAP32(oh->equivalentObjectId);
+    oh->file_size = SWAP32(oh->file_size); // Aiee. An int... signed, at that!
+    oh->equiv_id = SWAP32(oh->equiv_id);
     // alias  - char array.
     oh->yst_rdev = SWAP32(oh->yst_rdev);
 
@@ -271,25 +271,25 @@ static void object_header_little_to_big_endian(yaffs_ObjectHeader* oh)
 #else
 
     {
-        int n = sizeof(oh->roomToGrow)/sizeof(oh->roomToGrow[0]);
+        int n = sizeof(oh->room_to_grow)/sizeof(oh->room_to_grow[0]);
         for(i=0; i < n; i++)
-            oh->roomToGrow[i] = SWAP32(oh->roomToGrow[i]);
+            oh->room_to_grow[i] = SWAP32(oh->room_to_grow[i]);
     }
 #endif
 }
 
-static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
+static int write_object_header(int obj_id, yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
 {
 	__u8 bytes[chunkSize];
 	
 	
-	yaffs_ObjectHeader *oh = (yaffs_ObjectHeader *)bytes;
+	yaffs_obj_header *oh = (yaffs_obj_header *)bytes;
 	
 	memset(bytes,0xff,sizeof(bytes));
 	
 	oh->type = t;
 
-	oh->parentObjectId = parent;
+	oh->parent_obj_id = parent;
 	
 	if (strlen(name)+1 > sizeof(oh->name))
 	{
@@ -314,12 +314,12 @@ static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, in
 	
 	if(t == YAFFS_OBJECT_TYPE_FILE)
 	{
-		oh->fileSize = s->st_size;
+		oh->file_size = s->st_size;
 	}
 	
 	if(t == YAFFS_OBJECT_TYPE_HARDLINK)
 	{
-		oh->equivalentObjectId = equivalentObj;
+		oh->equiv_id = equivalentObj;
 	}
 	
 	if(t == YAFFS_OBJECT_TYPE_SYMLINK)
@@ -338,7 +338,7 @@ static int write_object_header(int objId, yaffs_ObjectType t, struct stat *s, in
     		object_header_little_to_big_endian(oh);
 	}
 	
-	return write_chunk(bytes,objId,0,0xffff);
+	return write_chunk(bytes,obj_id,0,0xffff);
 	
 }
 
@@ -407,7 +407,7 @@ static int process_directory(int parent, const char *path)
 				{
 				
 					newObj = obj_id++;
-					nObjects++;
+					n_obj++;
 					
 					printf("Object %d, %s is a ",newObj,full_name);
 					
@@ -447,20 +447,20 @@ static int process_directory(int parent, const char *path)
 							{
 								int h;
 								__u8 bytes[chunkSize];
-								int nBytes;
+								int n_bytes;
 								int chunk = 0;
 								
 								h = open(full_name,O_RDONLY);
 								if(h >= 0)
 								{
 									memset(bytes,0xff,sizeof(bytes));
-									while((nBytes = read(h,bytes,sizeof(bytes))) > 0)
+									while((n_bytes = read(h,bytes,sizeof(bytes))) > 0)
 									{
 										chunk++;
-										write_chunk(bytes,newObj,chunk,nBytes);
+										write_chunk(bytes,newObj,chunk,n_bytes);
 										memset(bytes,0xff,sizeof(bytes));
 									}
-									if(nBytes < 0) 
+									if(n_bytes < 0) 
 									   warn("read");
 									   
 									printf("%d data chunks written\n",chunk);
@@ -575,7 +575,7 @@ int main(int argc, char *argv[])
 	{
 		printf("Operation complete.\n"
 		       "%d objects in %d directories\n"
-		       "%d NAND pages\n",nObjects, nDirectories, nPages);
+		       "%d NAND pages\n",n_obj, nDirectories, nPages);
 	}
 	
 	exit(error);

@@ -2630,19 +2630,19 @@ static struct proc_dir_entry *debug_proc_entry;
 
 static char *yaffs_dump_dev_part0(char *buf, yaffs_dev_t * dev)
 {
-	buf += sprintf(buf, "start_block......... %d\n", dev->param.start_block);
-	buf += sprintf(buf, "end_block........... %d\n", dev->param.end_block);
+	buf += sprintf(buf, "start_block........... %d\n", dev->param.start_block);
+	buf += sprintf(buf, "end_block............. %d\n", dev->param.end_block);
 	buf += sprintf(buf, "total_bytes_per_chunk. %d\n", dev->param.total_bytes_per_chunk);
-	buf += sprintf(buf, "use_nand_ecc......... %d\n", dev->param.use_nand_ecc);
-	buf += sprintf(buf, "no_tags_ecc.......... %d\n", dev->param.no_tags_ecc);
-	buf += sprintf(buf, "is_yaffs2........... %d\n", dev->param.is_yaffs2);
-	buf += sprintf(buf, "inband_tags......... %d\n", dev->param.inband_tags);
-	buf += sprintf(buf, "empty_lost_n_found.. %d\n", dev->param.empty_lost_n_found);
-	buf += sprintf(buf, "disable_lazy_load.... %d\n", dev->param.disable_lazy_load);
-	buf += sprintf(buf, "refresh_period...... %d\n", dev->param.refresh_period);
-	buf += sprintf(buf, "n_caches..... %d\n", dev->param.n_caches);
-	buf += sprintf(buf, "n_reserved_blocks.... %d\n", dev->param.n_reserved_blocks);
-	buf += sprintf(buf, "always_check_erased...%d\n", dev->param.always_check_erased);
+	buf += sprintf(buf, "use_nand_ecc.......... %d\n", dev->param.use_nand_ecc);
+	buf += sprintf(buf, "no_tags_ecc........... %d\n", dev->param.no_tags_ecc);
+	buf += sprintf(buf, "is_yaffs2............. %d\n", dev->param.is_yaffs2);
+	buf += sprintf(buf, "inband_tags........... %d\n", dev->param.inband_tags);
+	buf += sprintf(buf, "empty_lost_n_found.... %d\n", dev->param.empty_lost_n_found);
+	buf += sprintf(buf, "disable_lazy_load..... %d\n", dev->param.disable_lazy_load);
+	buf += sprintf(buf, "refresh_period........ %d\n", dev->param.refresh_period);
+	buf += sprintf(buf, "n_caches.............. %d\n", dev->param.n_caches);
+	buf += sprintf(buf, "n_reserved_blocks..... %d\n", dev->param.n_reserved_blocks);
+	buf += sprintf(buf, "always_check_erased... %d\n", dev->param.always_check_erased);
 
 	buf += sprintf(buf, "\n");
 
@@ -2652,37 +2652,36 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_dev_t * dev)
 
 static char *yaffs_dump_dev_part1(char *buf, yaffs_dev_t * dev)
 {
-	buf += sprintf(buf, "data_bytes_per_chunk. %d\n", dev->data_bytes_per_chunk);
-	buf += sprintf(buf, "chunk_grp_bits..... %d\n", dev->chunk_grp_bits);
-	buf += sprintf(buf, "chunk_grp_size..... %d\n", dev->chunk_grp_size);
-	buf += sprintf(buf, "n_erased_blocks...... %d\n", dev->n_erased_blocks);
-	buf += sprintf(buf, "blocks_in_checkpt. %d\n", dev->blocks_in_checkpt);
+	buf += sprintf(buf, "data_bytes_per_chunk.. %d\n", dev->data_bytes_per_chunk);
+	buf += sprintf(buf, "chunk_grp_bits........ %d\n", dev->chunk_grp_bits);
+	buf += sprintf(buf, "chunk_grp_size........ %d\n", dev->chunk_grp_size);
+	buf += sprintf(buf, "n_erased_blocks....... %d\n", dev->n_erased_blocks);
+	buf += sprintf(buf, "blocks_in_checkpt..... %d\n", dev->blocks_in_checkpt);
 	buf += sprintf(buf, "\n");
-	buf += sprintf(buf, "n_tnodes............ %d\n", dev->n_tnodes);
-	buf += sprintf(buf, "n_obj........... %d\n", dev->n_obj);
-	buf += sprintf(buf, "n_free_chunks........ %d\n", dev->n_free_chunks);
+	buf += sprintf(buf, "n_tnodes.............. %d\n", dev->n_tnodes);
+	buf += sprintf(buf, "n_obj................. %d\n", dev->n_obj);
+	buf += sprintf(buf, "n_free_chunks......... %d\n", dev->n_free_chunks);
 	buf += sprintf(buf, "\n");
-	buf += sprintf(buf, "n_page_writes........ %u\n", dev->n_page_writes);
-	buf += sprintf(buf, "n_page_reads......... %u\n", dev->n_page_reads);
-	buf += sprintf(buf, "n_erasures..... %u\n", dev->n_erasures);
-	buf += sprintf(buf, "n_gc_copies.......... %u\n", dev->n_gc_copies);
-	buf += sprintf(buf, "all_gcs............. %u\n", dev->all_gcs);
-	buf += sprintf(buf, "passive_gc_count......... %u\n", dev->passive_gc_count);
-	buf += sprintf(buf, "oldest_dirty_gc_count..... %u\n", dev->oldest_dirty_gc_count);
-	buf += sprintf(buf, "n_gc_blocks.......... %u\n", dev->n_gc_blocks);
-	buf += sprintf(buf, "bg_gcs...... %u\n", dev->bg_gcs);
-	buf += sprintf(buf, "n_retired_writes..... %u\n", dev->n_retired_writes);
-	buf += sprintf(buf, "nRetireBlocks...... %u\n", dev->n_retired_blocks);
+	buf += sprintf(buf, "n_page_writes......... %u\n", dev->n_page_writes);
+	buf += sprintf(buf, "n_page_reads.......... %u\n", dev->n_page_reads);
+	buf += sprintf(buf, "n_erasures............ %u\n", dev->n_erasures);
+	buf += sprintf(buf, "n_gc_copies........... %u\n", dev->n_gc_copies);
+	buf += sprintf(buf, "all_gcs............... %u\n", dev->all_gcs);
+	buf += sprintf(buf, "passive_gc_count...... %u\n", dev->passive_gc_count);
+	buf += sprintf(buf, "oldest_dirty_gc_count. %u\n", dev->oldest_dirty_gc_count);
+	buf += sprintf(buf, "n_gc_blocks........... %u\n", dev->n_gc_blocks);
+	buf += sprintf(buf, "bg_gcs................ %u\n", dev->bg_gcs);
+	buf += sprintf(buf, "n_retired_writes...... %u\n", dev->n_retired_writes);
+	buf += sprintf(buf, "nRetireBlocks......... %u\n", dev->n_retired_blocks);
 	buf += sprintf(buf, "n_ecc_fixed........... %u\n", dev->n_ecc_fixed);
 	buf += sprintf(buf, "n_ecc_unfixed......... %u\n", dev->n_ecc_unfixed);
-	buf += sprintf(buf, "n_tags_ecc_fixed....... %u\n", dev->n_tags_ecc_fixed);
-	buf += sprintf(buf, "n_tags_ecc_unfixed..... %u\n", dev->n_tags_ecc_unfixed);
-	buf += sprintf(buf, "cache_hits.......... %u\n", dev->cache_hits);
-	buf += sprintf(buf, "n_deleted_files...... %u\n", dev->n_deleted_files);
-	buf += sprintf(buf, "n_unlinked_files..... %u\n", dev->n_unlinked_files);
-	buf += sprintf(buf, "refresh_count....... %u\n", dev->refresh_count);
-	buf +=
-	    sprintf(buf, "nBackgroudDeletions %u\n", dev->n_bg_deletions);
+	buf += sprintf(buf, "n_tags_ecc_fixed...... %u\n", dev->n_tags_ecc_fixed);
+	buf += sprintf(buf, "n_tags_ecc_unfixed.... %u\n", dev->n_tags_ecc_unfixed);
+	buf += sprintf(buf, "cache_hits............ %u\n", dev->cache_hits);
+	buf += sprintf(buf, "n_deleted_files....... %u\n", dev->n_deleted_files);
+	buf += sprintf(buf, "n_unlinked_files...... %u\n", dev->n_unlinked_files);
+	buf += sprintf(buf, "refresh_count......... %u\n", dev->refresh_count);
+	buf += sprintf(buf, "n_bg_deletions........ %u\n", dev->n_bg_deletions);
 
 	return buf;
 }

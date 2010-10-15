@@ -255,6 +255,11 @@ yaffs_get_trace=ylib.yaffs_get_trace
 yaffs_get_trace.argtypes=[]
 yaffs_get_trace.restypes=c_uint
 
+#int yaffs_get_error(void)
+yaffs_get_error=ylib.yaffs_get_error
+yaffs_get_error.argtypes=[]
+yaffs_get_error.restypes=c_int
+
 yaffs_O_CREAT=ylib.yaffs_O_CREAT()
 yaffs_O_RDONLY=ylib.yaffs_O_RDONLY()
 yaffs_O_WRONLY=ylib.yaffs_O_WRONLY()

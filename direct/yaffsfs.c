@@ -2326,6 +2326,11 @@ int yaffs_n_handles(const YCHAR *path)
 	return yaffsfs_CountHandles(obj);
 }
 
+int yaffs_get_error(void)
+{
+	return yaffsfs_GetLastError();
+}
+
 int yaffs_DumpDevStruct(const YCHAR *path)
 {
 #if 0

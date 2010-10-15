@@ -171,10 +171,13 @@ void yaffs_AddDevice(struct yaffs_DeviceStruct *dev);
 
 int yaffs_StartUp(void);
 
+/* Function to get the last error */
+int yaffs_get_error(void);
 
 /* Function only for debugging */
 void * yaffs_getdev(const YCHAR *path);
 int yaffs_DumpDevStruct(const YCHAR *path);
+
 
 #endif
 

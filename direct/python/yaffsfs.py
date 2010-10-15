@@ -245,6 +245,16 @@ yaffs_StartUp = ylib.yaffs_StartUp
 yaffs_StartUp.argtypes = []
 yaffs_StartUp.restype = c_int
 
+#int yaffs_set_trace(unsigned int tm) { return yaffs_traceMask=tm; }
+yaffs_set_trace=ylib.yaffs_set_trace
+yaffs_set_trace.argtypes=[c_uint]
+yaffs_set_trace.restype=c_uint
+
+#int yaffs_get_trace(void) { return yaffs_traceMask; }
+yaffs_get_trace=ylib.yaffs_get_trace
+yaffs_get_trace.argtypes=[]
+yaffs_get_trace.restypes=c_uint
+
 yaffs_O_CREAT=ylib.yaffs_O_CREAT()
 yaffs_O_RDONLY=ylib.yaffs_O_RDONLY()
 yaffs_O_WRONLY=ylib.yaffs_O_WRONLY()

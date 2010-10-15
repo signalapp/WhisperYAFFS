@@ -96,13 +96,21 @@ def load_dir():
         name_list_box.insert(x,(current_directory_dict[x]["inodes"]+"  "+ current_directory_dict[x]["type"]+"  "+ current_directory_dict[x]["size"]+"  "+ current_directory_dict[x]["path"]+"  "+current_directory_dict[x]["extra_data"]))
     name_list_box.grid(column=0, row=1)
     return current_directory_dict
-
+    
+def remount_yaffs():
+    ##this isn't working. somethihg need to be changed in the config of the simulator to release the handle of the emfile
+    print "remounting yaffs"
+    print"unmounting yaffs:", yaffs_unmount("yaffs2/")
+    print "mounting yaffs", yaffs_mount("/yaffs2/")
+    load_dir()
+    
 def load_file(link=0):
     global open_windows_list
     open_windows_list.append(editor(link))
 
 def load_command(self=0):
-    global current_directory_dict
+    global current_directory_dictls
+    
     print "you loaded a file/dir/link"
     x=name_list_box.curselection()
     x=int(x[0])
@@ -271,8 +279,6 @@ def delete_selected(selected_dir=0):
             output=yaffs_rmdir(path)
             print "rmdir output:", output
             
-    
-    
     load_dir()
 
 
@@ -478,6 +484,8 @@ browser_menu_bar=tk.Menu(root_window)
 browser_file_menu=tk.Menu(browser_menu_bar)
 
 browser_file_menu.add_command(label="Reload", command=load_dir)
+browser_file_menu.add_command(label="Remount yaffs", command=remount_yaffs)
+
 #browser_file_menu.add_command(label="Open")
 #browser_file_menu.add_command(label="Save")
 browser_menu_bar.add_cascade(label="File", menu=browser_file_menu)

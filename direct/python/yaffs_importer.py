@@ -1,6 +1,7 @@
 import os
 from yaffsfs import *
 import sys
+import ctypes
 
 
 dir_in_snapshot=[]
@@ -8,6 +9,14 @@ files_in_snapshot=[]
 symlinks_in_snapshot=[]
 unknown_in_snapshot=[]
 is_mount_in_snapshot=[]
+def check_for_yaffs_errors(output):
+    if output<0:
+        ##error has happened
+        error=ctypes.c_int()
+        error=yaffs_get_error()
+        debug_message("error######################################",0)
+        debug_message(("error code", error),  0)
+
 def debug_message(message, debug_level):
     """notew that debug level 0 will always be printed"""
     """level 0 error messages"""
@@ -48,38 +57,61 @@ def subtract_paths(path1, path2):
     
 def create_file(file):
     debug_message( "\n \n \n", 2)
-    file_path="/yaffs2/"+file["path"][len(path):]
+    file_path=yaffs_root_dir_path+file["path"][len(path):]
     debug_message( ("creating file:", file_path), 2)
     debug_message (("mode", file["mode"]), 2)
-    current_handle=yaffs_open(file_path, yaffs_O_CREAT | yaffs_O_TRUNC| yaffs_O_RDWR, file["mode"]) 
+    debug_message("opening file",2)
+#    output=yaffs_unlink(path)
+#    print"unlinking", output
+#    check_for_yaffs_errors(output)
+    current_handle=yaffs_open(file_path, yaffs_O_CREAT | yaffs_O_TRUNC| yaffs_O_RDWR, yaffs_S_IWRITE)  ##opens a file with mode set to write
+    debug_message(("current_handle", current_handle), 2)
     data_file=open(file["path"], "r")
-    yaffs_lseek(current_handle, 0, 0)
+    output=yaffs_lseek(current_handle, 0, 0)
+    if output==-1:
+        debug_message("error with yaffs lseeking", 2)
+        
+        check_for_yaffs_errors(output)
     data_to_be_written= data_file.read()
     
     
-    debug_message( ("data to be saved########################################################################/n"+ data_to_be_written), 2)
-    debug_message("###########################################################################################",2)
+#    debug_message( ("data to be saved########################################################################/n"+ data_to_be_written), 2)
+#    debug_message("###########################################################################################",2)
     length_of_file=len(data_to_be_written)
     debug_message (("length of data to be written",length_of_file), 2) 
     output=yaffs_write(current_handle,data_to_be_written , length_of_file)
-    debug_message(( "writing file:", output), 2)
-    yaffs_ftruncate(current_handle, length_of_file)
-    
+    if output>=0:
+        debug_message(( "writing file:", output), 2)
+    else :
+        debug_message(( "error writing file:", output), 0)
+        check_for_yaffs_errors(output)
+    output=yaffs_ftruncate(current_handle, length_of_file)
+    if output>=0:
+        debug_message(( "truncating file:", output), 2)
+    else :
+        debug_message(( "error truncating file:", output), 0)
+        check_for_yaffs_errors(output)
     output=yaffs_close(current_handle)
-    debug_message( ("created a file", file["path"][len(path):], "  ", output), 1)
-    
-    if output==-1:
-        debug_message ("ran out of space exiting", 0)
-        return 0
-        
-        
+    if output>=0:
+        debug_message(( "closing file:", output), 2)
+    else :
+        debug_message(( "error closing file:", output), 0)
+        check_for_yaffs_errors(output)
+    ##changes the mode of the yaffs file to be the same as the scanned file
+#    yaffs_chmod(file_path, file["mode"]);
+#    if output>=0:
+#        debug_message(( "chmoding file:", output), 2)
+#    else :
+#        debug_message(( "error chmoding file:", output), 0)
+#        check_for_yaffs_errors(output)
+
 def remove_file_from_path(path):
     slash_id=[]
     for i in range(0, len(path)):
         if path[i]=="/":
             slash_id.append(i)
     new_path=path[:slash_id[len(slash_id)-1]]
-    debug_message( ("removed file from path", new_path), 1)
+    debug_message( ("removed file from path", new_path), 2)
     return new_path
 def is_dir_hidden(dir):
     """this code tests if a directory is hidden (has a ./<name> format) and returns true if it is hidden"""
@@ -179,7 +211,7 @@ def copy_scanned_files_into_yaffs():
     for i in range(0, len(dir_in_snapshot)):
 
         
-        dir_path=join_paths("/yaffs2/",subtract_paths(dir_in_snapshot[i]["path"], path) )
+        dir_path=join_paths(yaffs_root_dir_path,subtract_paths(dir_in_snapshot[i]["path"], path) )
         output=yaffs_mkdir(dir_path,dir_in_snapshot[i]["mode"] )
         debug_message(("made directory:", dir_path,   "  output", output), 1)
         debug_message(("mode" ,dir_in_snapshot[i]["mode"]), 2)
@@ -214,11 +246,11 @@ def copy_scanned_files_into_yaffs():
             inode_blacklist.append(list[0]["inode"])
             ##create a file from the first hardlink.
             create_file(list[0])
-            target_path="/yaffs2/"+list[0]["path"][len(path):]
+            target_path=yaffs_root_dir_path+list[0]["path"][len(path):]
             for i in range(1, len(list)):
                 debug_message("creating_symlink", 2)
                 debug_message(("target path", target_path), 2)
-                hardlink_path="/yaffs2/"+list[i]["path"][len(path):]
+                hardlink_path=yaffs_root_dir_path+list[i]["path"][len(path):]
                 debug_message(("hardlink path", hardlink_path), 2)
                 output=yaffs_link(target_path,hardlink_path)
                 debug_message(("creating hardlink:", list[i]["path"], "output:", output), 1)
@@ -230,8 +262,8 @@ def copy_scanned_files_into_yaffs():
 
     for i in range(0, len(symlinks_in_snapshot)):
         debug_message(("symlinks in snapshot:", symlinks_in_snapshot[i]), 2)
-        target_path=join_paths("/yaffs2/", subtract_paths(symlinks_in_snapshot[i]["target"],  path))
-        new_path=join_paths("/yaffs2/", subtract_paths(symlinks_in_snapshot[i]["path"], path))
+        target_path=join_paths(yaffs_root_dir_path, subtract_paths(symlinks_in_snapshot[i]["target"],  path))
+        new_path=join_paths(yaffs_root_dir_path, subtract_paths(symlinks_in_snapshot[i]["path"], path))
         output=yaffs_symlink(target_path, new_path)
         debug_message(("created symlink",new_path , " > ", target_path, "  output:", output), 1)
         ##yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath);
@@ -239,7 +271,24 @@ def copy_scanned_files_into_yaffs():
     
     for i in range(0, len(unknown_in_snapshot)):
         debug_message( ("unknown object in snapshot:", unknown_in_snapshot[i]), 0)
-
+        
+def import_into_yaffs(file_path, yaffs_path="/yaffs2/", debug_level=1,  copy_hidden_dir=False,new_yaffs_trace_val=0 ):
+    global current_debug_level
+    global search_hidden_directories
+    global yaffs_root_dir_path
+    global path
+    
+    current_debug_level=debug_level
+    search_hidden_directories=copy_hidden_dir
+    yaffs_root_dir_path=yaffs_path
+    path=file_path
+    old_yaffs_trace_val=yaffs_get_trace()
+    yaffs_set_trace(new_yaffs_trace_val)
+    scan_dir(path)
+    copy_scanned_files_into_yaffs()
+    yaffs_set_trace(old_yaffs_trace_val)
+    
+    
 if __name__=="__main__":
     yaffs_StartUp()
     yaffs_mount("/yaffs2/")
@@ -248,7 +297,7 @@ if __name__=="__main__":
     #print "absolute path:", absolute_path
     current_debug_level=1
     search_hidden_directories=True
-
+    yaffs_root_dir_path="/yaffs2/"
     #print sys.argv
     path=sys.argv[1]
     for i in range(2, len(sys.argv)):
@@ -267,4 +316,4 @@ if __name__=="__main__":
     copy_scanned_files_into_yaffs()
     #print_scanned_dir_list()
 
-    print"unmounting yaffs:", yaffs_unmount("yaffs2/")
+    print"unmounting yaffs:", yaffs_unmount("/yaffs2/")

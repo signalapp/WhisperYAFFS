@@ -61,10 +61,11 @@ def create_file(file):
     debug_message( ("creating file:", file_path), 2)
     debug_message (("mode", file["mode"]), 2)
     debug_message("opening file",2)
-#    output=yaffs_unlink(path)
-#    print"unlinking", output
-#    check_for_yaffs_errors(output)
-    current_handle=yaffs_open(file_path, yaffs_O_CREAT | yaffs_O_TRUNC| yaffs_O_RDWR, yaffs_S_IWRITE)  ##opens a file with mode set to write
+#    yaffs_ls(file["path"])
+    output=yaffs_unlink(path)
+    print"unlinking", output
+    check_for_yaffs_errors(output)
+    current_handle=yaffs_open(file_path, yaffs_O_CREAT | yaffs_O_TRUNC| yaffs_O_RDWR, yaffs_S_IREAD | yaffs_S_IWRITE)  ##opens a file with mode set to write
     debug_message(("current_handle", current_handle), 2)
     data_file=open(file["path"], "r")
     output=yaffs_lseek(current_handle, 0, 0)
@@ -98,12 +99,12 @@ def create_file(file):
         debug_message(( "error closing file:", output), 0)
         check_for_yaffs_errors(output)
     ##changes the mode of the yaffs file to be the same as the scanned file
-#    yaffs_chmod(file_path, file["mode"]);
-#    if output>=0:
-#        debug_message(( "chmoding file:", output), 2)
-#    else :
-#        debug_message(( "error chmoding file:", output), 0)
-#        check_for_yaffs_errors(output)
+    yaffs_chmod(file_path, file["mode"]);
+    if output>=0:
+        debug_message(( "chmoding file:", output), 2)
+    else :
+        debug_message(( "error chmoding file:", output), 0)
+        check_for_yaffs_errors(output)
 
 def remove_file_from_path(path):
     slash_id=[]

@@ -25,8 +25,10 @@ def debug_message(message, debug_level):
     """level 3 shows minor tasks such as join_paths, ect"""
     """level 4 is used for bug hunting and shows each step in detail"""
     if current_debug_level>=debug_level:
+#        for i in range(0, len(message)):
+#            print message, 
+#        print"\n \n \n"
         print message
-        
 def join_paths(path1, path2):
     new_path=path1
     if path1[len(path1)-1]=="/"and path2[0]=="/":
@@ -42,6 +44,10 @@ def join_paths(path1, path2):
     
 def subtract_paths(path1, path2):
     if len(path1)>len(path2):
+        if path1[len(path1)-1]!="/":
+            path1 +="/"
+        if path2[len(path2)-1]!="/":
+            path2 += "/"
         debug_message("the two path1 is longer than path2 and can therefore be subtracted.", 4)
         ##if the two paths are diretly subtractable
         if path1[0:len (path2)-1]==path2:
@@ -53,7 +59,7 @@ def subtract_paths(path1, path2):
         elif path1[1:len (path2)]==path2[1:]:
             debug_message("the path2 has one more charecter at the begining. assuming that the first chareter is a slash", 4)##fix this assumption.
 
-            new_path=path1[len(path2)+1:]
+            new_path=path1[len(path2)-1:]
         else :
             debug_message("error:could not subtract paths", 0)
             debug_message( ("paths do not match:"+ path1+ "  "+path2), 0)
@@ -125,7 +131,7 @@ def create_dir(dir, scanned_path, yaffs_path):
     debug_message( "\n \n \n", 2)
     absolute_dir_path=join_paths(yaffs_path, subtract_paths(dir["path"],scanned_path)) 
     debug_message( ("creating dir:", absolute_dir_path), 2)
-    debug_message (("mode", dir["mode"]), 2)
+    debug_message (("mode(in octal", oct(dir["mode"])), 2)
 
 
     ##if there is already a dir in yaffs then remove the dir . this is to clean the yaffs folder if it already exists.
@@ -134,7 +140,12 @@ def create_dir(dir, scanned_path, yaffs_path):
         output=yaffs_unlink(absolute_dir_path)
         debug_message(("unlinking", absolute_dir_path, output), 2)
         check_for_yaffs_errors(output)
-    
+        
+    ##shis is a bug in yaffs which will not make a dir if there is a slash on the end
+    if absolute_dir_path[len(absolute_dir_path)-1]=="/":
+        absolute_dir_path=absolute_dir_path[0:len(absolute_dir_path)-1]
+        debug_message (("path has slash on the end. removing slash new path is:",absolute_dir_path) , 4)
+        
     output=yaffs_mkdir(absolute_dir_path, dir["mode"] )
     if output>=0:
         debug_message(( "creating dir:", output), 2)
@@ -153,6 +164,7 @@ def remove_file_from_path(path):
     new_path=path[:slash_id[len(slash_id)-1]]
     debug_message( ("removed file from path", new_path), 2)
     return new_path
+    
 def is_dir_hidden(dir):
     """this code tests if a directory is hidden (has a ./<name> format) and returns true if it is hidden"""
     slash_id=[]
@@ -246,19 +258,25 @@ def scan_dir(path, search_hidden_directories=True, ):
 ##
 
 
-def copy_scanned_files_into_yaffs(files_in_snapshot,dir_in_snapshot,  symlinks_in_snapshot, unknown_in_snapshot,   path, yaffs_root_dir_path ):
+def copy_scanned_files_into_yaffs(files_in_snapshot, dir_in_snapshot,  symlinks_in_snapshot, unknown_in_snapshot,   path, yaffs_root_dir_path="/yaffs2/", yaffs_mount_point_path="/yaffs2/" ):
 #files_in_snapshot, dir_in_snapshot, symlinks_in_snapshot, unknown_in_snapshot
 #########################################copy directories into yaffs so the files can be created in these directories
     debug_message("making directories in yaffs", 1)
-    for i in range(0, len(dir_in_snapshot)):
+    if yaffs_root_dir_path!=yaffs_mount_point_path:
+        slash_id=[]
+        debug_message("making directories to the place in yaffs where the directories will copied to", 2)
+        root_branch_path=subtract_paths(yaffs_root_dir_path, yaffs_mount_point_path)
+        for i in range(0, len(root_branch_path)):
 
-        
-        dir_path=join_paths(yaffs_root_dir_path,subtract_paths(dir_in_snapshot[i]["path"], path) )
-        create_dir(dir_in_snapshot[i], path, yaffs_root_dir_path)
-#        output=yaffs_mkdir(dir_path,dir_in_snapshot[i]["mode"] )
-#        debug_message(("made directory:", dir_path,   "  output", output), 1)
-#        debug_message(("mode" ,dir_in_snapshot[i]["mode"]), 2)
+            if root_branch_path[i]=="/" and i != 0:
+               slash_id.append(i)
+        debug_message(("slash_id", slash_id),4) 
+        for i in range(0, len(slash_id)):
+            create_dir({"path":root_branch_path[:slash_id[i]], "mode": yaffs_S_IREAD | yaffs_S_IWRITE}, "/", yaffs_mount_point_path) 
     
+    for i in range(0, len(dir_in_snapshot)):
+        create_dir(dir_in_snapshot[i], path, yaffs_root_dir_path)
+  
     
     
 #########################################copy file into yaffs
@@ -316,7 +334,7 @@ def copy_scanned_files_into_yaffs(files_in_snapshot,dir_in_snapshot,  symlinks_i
         debug_message( ("unknown object in snapshot:", unknown_in_snapshot[i]), 0)
     
     
-def import_into_yaffs(file_path, yaffs_path="/yaffs2/", debug_level=1,  copy_hidden_dir=True,new_yaffs_trace_val=0 ):
+def import_into_yaffs(file_path, yaffs_path="/yaffs2/", debug_level=1,  copy_hidden_dir=True ,new_yaffs_trace_val=0 ):
 #    global current_debug_level
 #    global search_hidden_directories
 #    global yaffs_root_dir_path
@@ -343,7 +361,7 @@ if __name__=="__main__":
     #print "absolute path:", absolute_path
     current_debug_level=1
     search_hidden_directories=True
-    yaffs_root_dir_path="/yaffs2/"
+    yaffs_root_dir_path="/yaffs2/scanning/"
     #print sys.argv
     path=sys.argv[1]
     for i in range(2, len(sys.argv)):

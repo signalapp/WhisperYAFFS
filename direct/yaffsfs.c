@@ -571,6 +571,8 @@ int yaffs_dup(int fd)
 
 }
 
+
+
 int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 {
 	yaffs_obj_t *obj = NULL;
@@ -581,6 +583,7 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 	int openDenied = 0;
 	int symDepth = 0;
 	int errorReported = 0;
+	int rwflags = oflag & ( O_RDWR | O_RDONLY | O_WRONLY);
 	__u8 shareRead = (sharing & YAFFS_SHARE_READ) ?  1 : 0;
 	__u8 shareWrite = (sharing & YAFFS_SHARE_WRITE) ? 1 : 0;
 	__u8 sharedReadAllowed;
@@ -600,6 +603,10 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 
 	/* Todo: Are there any more flag combos to sanitise ? */
 
+	/* Figure out if reading or writing is requested */
+
+	readRequested = (rwflags == O_RDWR || rwflags == O_RDONLY) ? 1 : 0;
+	writeRequested = (rwflags == O_RDWR || rwflags == O_WRONLY) ? 1 : 0;
 
 	yaffsfs_Lock();
 
@@ -640,16 +647,10 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 			}
 
 			/* Check file permissions */
-			if( (oflag & (O_RDWR | O_WRONLY)) == 0 &&     /* ie O_RDONLY */
-			   !(obj->yst_mode & S_IREAD))
+			if( readRequested && !(obj->yst_mode & S_IREAD))
 				openDenied = 1;
 
-			if( (oflag & O_RDWR) &&
-			   !(obj->yst_mode & S_IREAD))
-				openDenied = 1;
-
-			if( (oflag & (O_RDWR | O_WRONLY)) &&
-			   !(obj->yst_mode & S_IWRITE))
+			if( writeRequested && !(obj->yst_mode & S_IWRITE))
 				openDenied = 1;
 
 			/* Check sharing of an existing object. */
@@ -672,12 +673,11 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 						if(hx->reading)
 							alreadyReading = 1;
 						if(hx->writing)
-							alreadyWriting = 0;
+							alreadyWriting = 1;
 					}
 				}
 
-				readRequested = (oflag & (O_RDWR | O_RDONLY)) ? 1 : 0;
-				writeRequested = (oflag & (O_RDWR | O_WRONLY)) ? 1 : 0;
+
 
 				if((!sharedReadAllowed && readRequested)|| 
 					(!shareRead  && alreadyReading) ||
@@ -714,8 +714,8 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 			}
 			
 			yh->inodeId = inodeId;
-			yh->reading = (oflag & (O_RDONLY | O_RDWR)) ? 1 : 0;
-			yh->writing = (oflag & (O_WRONLY | O_RDWR)) ? 1 : 0;
+			yh->reading = readRequested;
+			yh->writing = writeRequested;
 			yh->append =  (oflag & O_APPEND) ? 1 : 0;
 			yh->position = 0;
 			yh->shareRead = shareRead;
@@ -831,7 +831,11 @@ int yaffsfs_do_read(int fd, void *vbuf, unsigned int nbyte, int isPread, int off
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 		totalRead = -1;
-	} else if( h && obj){
+	} else if(!h->reading){
+		/* Not a reading handle */
+		yaffsfs_SetError(-EINVAL);
+		totalRead = -1;
+	} else {
 		if(isPread)
 			startPos = offset;
 		else
@@ -926,7 +930,7 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 	} else if( h && obj && (!h->writing || obj->my_dev->read_only)){
 		yaffsfs_SetError(-EINVAL);
 		totalWritten=-1;
-	} else if( h && obj){
+	} else {
 		if(h->append)
 			startPos = yaffs_get_obj_length(obj);
 		else if(isPwrite)

@@ -4,11 +4,11 @@ import sys
 import ctypes
 
 
-#dir_in_snapshot=[]
-#files_in_snapshot=[]
-#symlinks_in_snapshot=[]
-#unknown_in_snapshot=[]
-#is_mount_in_snapshot=[]
+dir_in_snapshot=[]
+files_in_snapshot=[]
+symlinks_in_snapshot=[]
+unknown_in_snapshot=[]
+is_mount_in_snapshot=[]
 def check_for_yaffs_errors(output):
     if output<0:
         ##error has happened
@@ -18,7 +18,7 @@ def check_for_yaffs_errors(output):
         debug_message(("error code", error),  0)
 
 def debug_message(message, debug_level):
-    """notew that debug level 0 will always be printed"""
+    """note: that debug level 0 will always be printed unless debug_level is set to -1"""
     """level 0 error messages"""
     """level 1 basic tasks are shown(creating, deleating,ect)"""
     """level 2 all process are shown"""
@@ -98,10 +98,10 @@ def create_file(file):
     
     
     length_of_file=len(data_to_be_written)
-    debug_message (("length of data to be written",length_of_file), 2) 
+    debug_message (("length of data to be written",length_of_file), 3) 
     output=yaffs_write(current_handle,data_to_be_written , length_of_file)
     if output>=0:
-        debug_message(( "writing file:", output), 2)
+        debug_message(( "writing to ", file_path," ",  output), 1)
     else :
         debug_message(( "error writing file:", output), 0)
         check_for_yaffs_errors(output)
@@ -133,25 +133,31 @@ def create_dir(dir, scanned_path, yaffs_path):
     debug_message( ("creating dir:", absolute_dir_path), 2)
     debug_message (("mode(in octal", oct(dir["mode"])), 2)
 
-
-    ##if there is already a dir in yaffs then remove the dir . this is to clean the yaffs folder if it already exists.
-    if yaffs_access(absolute_dir_path, 0)==0:##the 0 means does it exist. 
-        debug_message ("folder already exists in yaffs", 2)
-        output=yaffs_unlink(absolute_dir_path)
-        debug_message(("unlinking", absolute_dir_path, output), 2)
-        check_for_yaffs_errors(output)
-        
-    ##shis is a bug in yaffs which will not make a dir if there is a slash on the end
+       ##this is a bug in yaffs which will not make a dir if there is a slash on the end
     if absolute_dir_path[len(absolute_dir_path)-1]=="/":
         absolute_dir_path=absolute_dir_path[0:len(absolute_dir_path)-1]
         debug_message (("path has slash on the end. removing slash new path is:",absolute_dir_path) , 4)
         
+        
+    ##if there is already a dir in yaffs then remove the dir . this is to clean the yaffs folder if it already exists.
+    ##in yaffs all of the files in the dir to be removed must be empty.
+    ##need to create a reverse ls to delete all of the files first.
+#    if yaffs_access(absolute_dir_path, 0)==0:##the 0 means does it exist. 
+#        debug_message ("folder already exists in yaffs", 2)
+#        output=yaffs_rmdir(absolute_dir_path)
+#        debug_message(("unlinking", absolute_dir_path, output), 2)
+#        check_for_yaffs_errors(output)
+        
+ 
+        
     output=yaffs_mkdir(absolute_dir_path, dir["mode"] )
     if output>=0:
-        debug_message(( "creating dir:", output), 2)
+        debug_message(( "created dir:", absolute_dir_path," ", output), 1)
     else :
-        debug_message(( "error creating dir:", output), 0)
+        debug_message(( "error creating dir ", absolute_dir_path, " ", output), 0)
         check_for_yaffs_errors(output)
+        if output==17:
+            printf("the directory already exists")
     
     
 
@@ -179,11 +185,16 @@ def is_dir_hidden(dir):
     
 def scan_dir(path, search_hidden_directories=True, ):
     """this function scans all of the files and directories in a directory. The function then calls its self on any of the directories that it found. this causes it to build up a tree of all the files and directories """
-    files_in_snapshot=[]
-    symlinks_in_snapshot=[]
-    dir_in_snapshot=[]
+    global files_in_snapshot
+    global symlinks_in_snapshot
+    global dir_in_snapshot
     dir_in_current_dir=[]
-    unknown_in_snapshot=[]
+    global unknown_in_snapshot
+#    files_in_snapshot=[]
+#    symlinks_in_snapshot=[]
+#    dir_in_snapshot=[]
+#    dir_in_current_dir=[]
+#    unknown_in_snapshot=[]
     if os.path.exists(path)==False:
         debug_message ("error#############################",0)
         debug_message (("path:", path, "  doesnot exist"), 0)
@@ -192,7 +203,7 @@ def scan_dir(path, search_hidden_directories=True, ):
     for i in range(0, len(dir_snapshot)):
 
         current_snapshot=os.path.join(path, dir_snapshot[i])
-        debug_message (("current snapshot:", current_snapshot), 2)
+        ##debug_message (("current snapshot:", current_snapshot), 2)
         isDir=os.path.isdir(current_snapshot)
         isFile=os.path.isfile(current_snapshot)
         isLink=os.path.islink(current_snapshot)
@@ -228,7 +239,15 @@ def scan_dir(path, search_hidden_directories=True, ):
             unknown_in_snapshot.append(current_snapshot)
             
     for i in range(0, len(dir_in_current_dir)):
-        scan_dir(dir_in_current_dir[i])
+        debug_message(("scanning dir", dir_in_current_dir[i]) , 2)
+        scan_dir(dir_in_current_dir[i], search_hidden_directories)
+        
+#        #debug_message(("data 0", data[0][0]), 2)
+#        if len(files)
+#        files_in_snapshot.append(data[0][0])
+#        dir_in_snapshot.append(data[1][0])
+#        symlinks_in_snapshot.append(data[2][0])
+#        unknown_in_snapshot.append(data[3][0])
     return (files_in_snapshot, dir_in_snapshot, symlinks_in_snapshot, unknown_in_snapshot)
 ##
 ##def print_scanned_dir_list():

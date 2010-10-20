@@ -12,7 +12,7 @@
 	#define BUFFER_SIZE 50			/*number of messages in buffer*/
 	typedef struct buffer_template
 	{
-		char buffer[BUFFER_SIZE][BUFFER_MESSAGE_LENGTH];
+		char message[BUFFER_SIZE][BUFFER_MESSAGE_LENGTH];
 		char head;
 		char tail;
 	}buffer; 

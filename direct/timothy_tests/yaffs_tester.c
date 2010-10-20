@@ -16,14 +16,20 @@ int main()
 	char yaffs_mount_dir[]="/yaffs2/";
 	printf("welcome to the yaffs tester\n");
 	init(yaffs_test_dir,yaffs_mount_dir);
-	test(yaffs_test_dir);
-
+	//test(yaffs_test_dir);
+	add_to_buffer(&message_buffer,"message1\0");
+	add_to_buffer(&message_buffer,"message2\0");
+	add_to_buffer(&message_buffer,"message3\0");
+	add_to_buffer(&message_buffer,"message4\0");
+	add_to_buffer(&message_buffer,"message5\0");
+	print_buffer(&message_buffer);
 	yaffs_unmount(yaffs_mount_dir);
 	return 0;
 }
 
 void add_to_buffer(buffer *p_Buffer, char message[])
 {
+	//add a thing to add \0 on the end of the message
 	if (p_Buffer->head+1==p_Buffer->tail)
 	{
 		p_Buffer->tail++;
@@ -34,13 +40,20 @@ void add_to_buffer(buffer *p_Buffer, char message[])
 	p_Buffer->head++;
 	if (p_Buffer->head >BUFFER_SIZE) p_Buffer->head -= BUFFER_SIZE;
 
-	strcpy(p_Buffer->buffer[p_Buffer->head],message);
+	strcpy(p_Buffer->message[p_Buffer->head],message);
 
 }
 void print_buffer(buffer *p_Buffer)
 {
+	printf("print buffer\n");
+	printf("buffer head:%d\n",p_Buffer->head);
+	printf("buffer tail:%d\n",p_Buffer->tail);
+	int x;
 	for (x=p_Buffer->head; x>=p_Buffer->tail; x--)
 	{
+		printf("x:%d\n",x);
+		if (x<0) x = BUFFER_SIZE;
+		printf("%s",p_Buffer->message[x]);
 		
 	}
 
@@ -62,7 +75,7 @@ void yaffs_check_for_errors(char output)
 	if (output==-1)
 	{
 		printf("error####");
-		print_buffer(message_buffer);
+		print_buffer(&message_buffer);
 	}
 }
 

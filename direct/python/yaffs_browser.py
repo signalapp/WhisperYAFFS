@@ -88,6 +88,7 @@ class editor():
 def load_dir():
     global current_directory_dict
     print "loading a new directory*******************************************************************"
+    ##deleate current items in text box
     name_list_box.delete(0, tk.END)
     current_directory_dict=yaffs_ls(mount_list_text_variable.get())
     print "new directory", current_directory_dict

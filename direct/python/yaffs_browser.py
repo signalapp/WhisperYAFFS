@@ -60,7 +60,7 @@ class editor():
         self.id=int(x[0])
         self.file_editor_root =tk.Toplevel()
         self.save_button=tk.Button(self.file_editor_root, text="save", command=self.save_file)
-        self.save_button.pack()
+        self.save_button.pack(fill=tk.BOTH)
 
         self.file_path=current_directory_dict[self.id]["path"]
         print "file path", self.file_path
@@ -70,7 +70,7 @@ class editor():
         length_of_file=yaffs_lseek(self.yaffs_handle, 0, 2) ##seeks to the end of the file
         yaffs_lseek(self.yaffs_handle, 0, 0)## returns the handle to the front of th file
         print "length of file to be opened:", length_of_file
-        if isLink==True:
+        if isLink==True and False ==True : ##this alows the symlink to be edited and is no longer used. to renable it delete "and False ==True"
             print "opening symlink"
             self.file_contents=ctypes.create_string_buffer(1000)
             yaffs_readlink(self.file_path,self.file_contents,1000)
@@ -81,28 +81,37 @@ class editor():
             yaffs_read(self.yaffs_handle,self.file_contents,length_of_file)
             print "file contents", self.file_contents.raw
         self.file_editor_text.insert(tk.END, self.file_contents.raw)
-        self.file_editor_text.pack()
+        self.file_editor_text.pack(fill=tk.BOTH)
         ##self.file_editor_text.bind("<Control-s>", self.save_file)
         ##doesn't work because it can't pass "self"
 
 def load_dir():
     global current_directory_dict
     print "loading a new directory*******************************************************************"
+    ##deleate current items in text box
     name_list_box.delete(0, tk.END)
     current_directory_dict=yaffs_ls(mount_list_text_variable.get())
     print "new directory", current_directory_dict
     ##copy directory into file box
     for x in range(0,len(current_directory_dict)):
-        name_list_box.insert(x,(current_directory_dict[x]["inodes"]+"  "+ current_directory_dict[x]["type"]+"  "+ current_directory_dict[x]["size"]+"  "+ current_directory_dict[x]["path"]))
+        name_list_box.insert(x,(current_directory_dict[x]["inodes"]+"  "+ current_directory_dict[x]["type"]+"  "+ current_directory_dict[x]["size"]+"  "+ current_directory_dict[x]["path"]+"  "+current_directory_dict[x]["extra_data"]))
     name_list_box.grid(column=0, row=1)
     return current_directory_dict
-
+    
+def remount_yaffs():
+    ##this isn't working. somethihg need to be changed in the config of the simulator to release the handle of the emfile
+    print "remounting yaffs"
+    print"unmounting yaffs:", yaffs_unmount("yaffs2/")
+    print "mounting yaffs", yaffs_mount("/yaffs2/")
+    load_dir()
+    
 def load_file(link=0):
     global open_windows_list
     open_windows_list.append(editor(link))
 
 def load_command(self=0):
-    global current_directory_dict
+    global current_directory_dictls
+    
     print "you loaded a file/dir/link"
     x=name_list_box.curselection()
     x=int(x[0])
@@ -178,21 +187,28 @@ def yaffs_ls(dname):
             isSymlink= True if ftype == yaffs_S_IFLNK else False
 
             if isFile :
-                ls_dict.append ({"type" :"file",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname})
+                ls_dict.append ({"type" :"file",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname,"extra_data":""})
                 print "file st.st_mode:", st.st_mode
 
             elif isDir :
                 print "dir st.st_mode:", st.st_mode
 
-                ls_dict.append({"type":"dir", "inodes" :str(se.d_ino), "permissions":str( hex(perms)),"size":"0",   "path": fullname+"/"})
+                ls_dict.append({"type":"dir", "inodes" :str(se.d_ino), "permissions":str( hex(perms)),"size":"0",   "path": fullname+"/", "extra_data":""})
             elif isSymlink:
                 print "symlink st.st_mode:", st.st_mode
+                file_contents=ctypes.create_string_buffer(30)
+                yaffs_readlink(fullname,file_contents,30)
+                string=repr(file_contents.value)
+                print "len of str", len(string)
+#                string.lstrip()
 
-                ls_dict.append ({"type" :"link",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname})
+                print "string", string, "###"
+
+                ls_dict.append ({"type" :"link",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname, "extra_data":"> "+string})
 
             else :
                 print "unknown st.st_mode:", st.st_mode
-                ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":str( hex(perms)), "size":"0",   "path": fullname})
+                ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":str( hex(perms)), "size":"0",   "path": fullname,"extra_data":""})
             sep = yaffs_readdir(dc)
         yaffs_closedir(dc)
         return ls_dict
@@ -264,8 +280,6 @@ def delete_selected(selected_dir=0):
             output=yaffs_rmdir(path)
             print "rmdir output:", output
             
-    
-    
     load_dir()
 
 
@@ -461,9 +475,9 @@ mount_list_frame.grid(row=1, column=0, columnspan=2)
 
 
 list_frame=tk.Frame(root_window)
-name_list_box=tk.Listbox(list_frame,exportselection=0, height=30, width=50)
+name_list_box=tk.Listbox(list_frame,exportselection=0, height=30, width=80)
 load_dir()
-list_frame.grid()
+list_frame.grid(sticky=tk.W+tk.E+tk.N+tk.S)
 
 name_list_box.bind("<Double-Button-1>", load_command)
 
@@ -471,6 +485,8 @@ browser_menu_bar=tk.Menu(root_window)
 browser_file_menu=tk.Menu(browser_menu_bar)
 
 browser_file_menu.add_command(label="Reload", command=load_dir)
+browser_file_menu.add_command(label="Remount yaffs", command=remount_yaffs)
+
 #browser_file_menu.add_command(label="Open")
 #browser_file_menu.add_command(label="Save")
 browser_menu_bar.add_cascade(label="File", menu=browser_file_menu)

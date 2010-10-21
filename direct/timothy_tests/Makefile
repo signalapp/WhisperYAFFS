@@ -44,7 +44,7 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 
 #		 yaffs_checkptrwtest.o\
 
-YAFFSTESTOBJS  = $(COMMONTESTOBJS) yaffs_tester.o
+YAFFSTESTOBJS  = $(COMMONTESTOBJS) yaffs_tester.o message_buffer.o error_handler.o
 
 
 ALLOBJS = $(sort $(YAFFSTESTOBJS))

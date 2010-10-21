@@ -2,24 +2,19 @@
 #ifndef __YAFFS_TESTER_H__
 	#define __YAFFS_TESTER_H__
 
-	#include <stdio.h>
+#include <string.h>
+#include <stdio.h>
 	
-	#include "yaffsfs.h"	/* it is in "yaffs2/direct/" link it in the Makefile */
+#include "yaffsfs.h"	/* it is in "yaffs2/direct/" link it in the Makefile */
+#include "message_buffer.h"
+#include "error_handler.h"
 	
 
-	#define MAX_FILE_NAME_SIZE 51
-	#define BUFFER_MESSAGE_LENGTH 50		/*number of char in message*/
-	#define BUFFER_SIZE 50			/*number of messages in buffer*/
-	typedef struct buffer_template
-	{
-		char message[BUFFER_SIZE][BUFFER_MESSAGE_LENGTH];
-		char head;
-		char tail;
-	}buffer; 
+#define MAX_FILE_NAME_SIZE 51
 
-	void init(char yaffs_test_dir[],char yaffs_mount_dir[]);	/*sets up yaffs and mounts yaffs */
-	void test(char yaffs_test_dir[]);				/*contains the test code*/
-	void generate_random_string(char *ptr);				/*generates a random string of letters to be used for a name*/
-	void add_to_buffer(buffer *p_Buffer, char message[]);		/*code for buffer*/
-	void print_buffer(buffer *p_Buffer);				/*print all of the messages in the buffer*/ 
+void init(char yaffs_test_dir[],char yaffs_mount_dir[]);	/*sets up yaffs and mounts yaffs */
+void test(char yaffs_test_dir[]);				/*contains the test code*/
+void generate_random_string(char *ptr);				/*generates a random string of letters to be used for a name*/
+void join_paths(char path1[],char path2[],char *newpath );
+void copy_array(char from[],char *to, unsigned int from_offset,unsigned int to_offset);
 #endif

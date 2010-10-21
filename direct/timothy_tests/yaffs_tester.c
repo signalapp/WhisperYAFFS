@@ -13,8 +13,8 @@ buffer message_buffer;	/*create  message_buffer */
 
 
 int main(){	
-	char yaffs_test_dir[]="/yaffs2/test_dir\0";	/*the path to the directory where all of the testing will take place*/
-	char yaffs_mount_dir[]="/yaffs2/\0";		/*the path to the mount point which yaffs will mount*/
+	char yaffs_test_dir[] ="/yaffs2/test_dir";	/*the path to the directory where all of the testing will take place*/
+	char yaffs_mount_dir[]="/yaffs2/";		/*the path to the mount point which yaffs will mount*/
 	
 	init(yaffs_test_dir,yaffs_mount_dir);
 	test(yaffs_test_dir);
@@ -23,12 +23,12 @@ int main(){
 }
 
 
-void init(char yaffs_test_dir[],char yaffs_mount_dir[]){
+void init(char *yaffs_test_dir,char *yaffs_mount_dir){
 	/*these variables are already set to zero, but it is better not to take chances*/
 	message_buffer.head=0;				 
 	message_buffer.tail=0;
 	
-	add_to_buffer(&message_buffer,"welcome to the yaffs tester\0",MESSAGE_LEVEL_BASIC_TASKS);/* print boot up message*/	
+	add_to_buffer(&message_buffer,"welcome to the yaffs tester",MESSAGE_LEVEL_BASIC_TASKS);/* print boot up message*/	
 	yaffs_start_up();
     	yaffs_mount(yaffs_mount_dir);
 
@@ -38,28 +38,29 @@ void init(char yaffs_test_dir[],char yaffs_mount_dir[]){
 	}
 	
 }
-void join_paths(char path1[],char path2[],char *new_path ){
-	unsigned int i=0;
-	unsigned int x=0;
-	printf("strlen path1:%d\n",strlen(path1));
+void join_paths(char *path1,char *path2,char *new_path ){
+
+/*	printf("strlen path1:%d\n",strlen(path1));
 	printf("strlen path2:%d\n",strlen(path2));
 	printf("path1; %s\n",path1);
-
+*/
 	//add_to_buffer(&message_buffer, "joining paths\0",MESSAGE_LEVEL_BASIC_TASKS);
-	char cat[10]="cat\0";
-	strcat(cat,"dog\0");
 	add_to_buffer(&message_buffer,path1,MESSAGE_LEVEL_BASIC_TASKS);
 	add_to_buffer(&message_buffer, path2,MESSAGE_LEVEL_BASIC_TASKS);
 	if ( (path1[(sizeof(path1)/sizeof(char))-2]=='/') && path2[0]!='/') {
 		/*paths are compatiable. concatanate them. note -2 is because of \0*/  
+		strcat(new_path,path1);
+		strcat(new_path,path2);		
 		//char new_path[(sizeof(path1)/sizeof(char))+(sizeof(path2)/sizeof(char))];
-		strcpy(new_path,strcat(path1,path2)); 
+		//strcpy(new_path,strcat(path1,path2)); 
 		//return new_path;
 	}	
 	else if ((path1[(sizeof(path1)/sizeof(char))-2]!='/') && path2[0]=='/') {
 		/*paths are compatiable. concatanate them*/  
+		strcat(new_path,path1);
+		strcat(new_path,path2);		
 		//char new_path[(sizeof(path1)/sizeof(char))+(sizeof(path2)/sizeof(char))];
-		strcpy(new_path,strcat(path1,path2)); 
+		//strcpy(new_path,strcat(path1,path2)); 
 		//return new_path;
 	}
 	else if ((path1[(sizeof(path1)/sizeof(char))-2]!='/') && path2[0]!='/') {
@@ -69,7 +70,8 @@ void join_paths(char path1[],char path2[],char *new_path ){
 		strcat(new_path,path2);
 		//strcpy(new_path,strcat(path1,strcat("/\0",path2)));
 
-/*		copy_array(path1,new_path,0,0);
+#if 0
+		copy_array(path1,new_path,0,0);
 		copy_array('\0',new_path,0,(sizeof(path1)/sizeof(char)));
 		copy_array(path2,new_path,0,(sizeof(path1)/sizeof(char))+1);
  old method now trying to use copy_array
@@ -81,13 +83,18 @@ void join_paths(char path1[],char path2[],char *new_path ){
 		for (x=(sizeof(path1)/sizeof(char)) ,i=0 ;i<=(sizeof(path2)/sizeof(char));x++,i++){ 
 			new_path[x]=path2[i]; 
 		}
-*/
+#endif
+
 		//return new_path;
 	}
 	else if ((path1[(sizeof(path1)/sizeof(char))-2]=='/') && path2[0]=='/') {
-		/*need to remove a "/". */  
+		/*need to remove a "/". */
+		/*yaffs does not mind the extra slash. */
 		//char new_path[(sizeof(path1)/sizeof(char))+(sizeof(path2)/sizeof(char))-1];
-		strcpy(new_path,strcat(path1,strncat("",path2,(sizeof(path1)/sizeof(char))-1))); 
+		
+		strcat(new_path,path1);
+		strcat(new_path,path2);
+		//strcpy(new_path,strcat(path1,strncat("",path2,(sizeof(path1)/sizeof(char))-1))); 
 		//return new_path;
 	} 
 	else{
@@ -95,23 +102,13 @@ void join_paths(char path1[],char path2[],char *new_path ){
 		//return -1;
 	}
 }
-/*
-void copy_array(char from[],char *to, unsigned int from_offset,unsigned int to_offset){	
-	unsigned int x=0;
-	for (x=0+from_offset; x<(sizeof(from)/sizeof(char));x++){
-		//add_to_buffer(&message_buffer, x,MESSAGE_LEVEL_BASIC_TASKS);
-		//add_to_buffer(&message_buffer,from[x],MESSAGE_LEVEL_BASIC_TASKS);
-		printf("x=%d\n",x);
-		printf("char in from: %c\n\n",from[x]);
-		
-		to[x+to_offset]=from[x];
-	}
-}
-*/
-void test(char yaffs_test_dir[]){
+
+
+
+void test(char*yaffs_test_dir){
 	char output=0;
 	char name[MAX_FILE_NAME_SIZE+3 ]="apple\0";
-	char path[MAX_FILE_NAME_SIZE+strlen(yaffs_test_dir)];
+	char path[MAX_FILE_NAME_SIZE];
 	join_paths(yaffs_test_dir,name,path);
 	while(1)
 	{

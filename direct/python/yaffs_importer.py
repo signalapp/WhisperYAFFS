@@ -353,7 +353,7 @@ def copy_scanned_files_into_yaffs(files_in_snapshot, dir_in_snapshot,  symlinks_
         debug_message( ("unknown object in snapshot:", unknown_in_snapshot[i]), 0)
     
     
-def import_into_yaffs(file_path, yaffs_path="/yaffs2/", debug_level=1,  copy_hidden_dir=True ,new_yaffs_trace_val=0 ):
+def import_into_yaffs(file_path, yaffs_path="/yaffs2/", debug_level=1,  copy_hidden_dir=True ,new_yaffs_trace_val=-1 ):
 #    global current_debug_level
 #    global search_hidden_directories
 #    global yaffs_root_dir_path
@@ -364,7 +364,8 @@ def import_into_yaffs(file_path, yaffs_path="/yaffs2/", debug_level=1,  copy_hid
 #    yaffs_root_dir_path=yaffs_path
 #    path=file_path
     old_yaffs_trace_val=yaffs_get_trace()
-    yaffs_set_trace(new_yaffs_trace_val)
+    if new_yaffs_trace_val!=-1:
+        yaffs_set_trace(new_yaffs_trace_val)
     
     data=scan_dir(file_path, copy_hidden_dir)
     copy_scanned_files_into_yaffs(data[0], data[1], data[2], data[3],file_path,  yaffs_path)
@@ -373,14 +374,15 @@ def import_into_yaffs(file_path, yaffs_path="/yaffs2/", debug_level=1,  copy_hid
     
     
 if __name__=="__main__":
-    yaffs_StartUp()
+    yaffs_start_up()
     yaffs_mount("/yaffs2/")
-    yaffs_set_trace(0)
+    #yaffs_set_trace(0)
 #    absolute_path = os.path.abspath(os.path.curdir)
     #print "absolute path:", absolute_path
     current_debug_level=1
     search_hidden_directories=True
-    yaffs_root_dir_path="/yaffs2/scanning/"
+    yaffs_root_dir_path="/yaffs2/"
+    yaffs_trace=-1
     #print sys.argv
     path=sys.argv[1]
     for i in range(2, len(sys.argv)):
@@ -388,13 +390,17 @@ if __name__=="__main__":
             current_debug_level=int( sys.argv[i+1])
         if sys.argv[i]=="-ignore_hidden_directories":
             search_hidden_directories=False
+        if sys.argv[i]=="-o":
+            yaffs_root_dir_path=sys.argv[i+1]
+        if sys.argv[i]=="-yaffs_trace":
+            yaffs_trace=int(sys.argv[i+1])
 #
 #
 #    path="/home/timothy/work/yaffs/git/yaffs2"
 #    path="/home/timothy/my_stuff/old_laptop/timothy/programming_lejos/"
 
 
-    import_into_yaffs(path, yaffs_root_dir_path, current_debug_level,  search_hidden_directories, 0 )
+    import_into_yaffs(path, yaffs_root_dir_path, current_debug_level,  search_hidden_directories, yaffs_trace )
 #    scan_dir(path)
 #    copy_scanned_files_into_yaffs()
     #print_scanned_dir_list()

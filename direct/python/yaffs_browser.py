@@ -4,7 +4,7 @@ from yaffsfs import *
 #import examples
 import ctypes
 
-yaffs_StartUp()
+yaffs_start_up()
 yaffs_mount("/yaffs2/")
 root_window =tk.Tk()
 root_window.title("YAFFS Browser")

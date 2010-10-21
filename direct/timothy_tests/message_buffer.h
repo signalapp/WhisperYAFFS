@@ -17,7 +17,7 @@ typedef struct buffer_template{
 }buffer; 
 #include "error_handler.h"		/*include this for the debug level*/
 
-void add_to_buffer(buffer *p_Buffer, char message[],char message_level);		/*code for buffer*/
+void add_to_buffer(buffer *p_Buffer, char *message,char message_level);		/*code for buffer*/
 void print_buffer(buffer *p_Buffer,int number_of_messages_to_print);		/*print messages in the buffer*/ 
 
 #endif

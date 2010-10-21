@@ -13,7 +13,6 @@ example:
 flags:
 	-d [number] 
 		set the debugging message level.
-		that debug level 0 will always be printed unless debug_level is set to -1
     		level 0 error messages
 		level 1 basic tasks are shown(creating, deleating,ect)(this is set as the
 		default and is recommended)
@@ -22,15 +21,26 @@ flags:
 		level 4 is used for bug hunting and shows each step and in detail 
 	-ignore_hidden_directories
 		will not copy hidden (./) directories if used.
+	
+	-o [yaffs_path]
+		chooses the path where the branch will be copyied into yaffs.
+		note this path must start with "/yaffs2/" 
+		example: python yaffs_importer.py /home/timothy/work/yaffs/yaffs_importer_test_dir -o /yaffs2/apple/
 
-Deleating files and folders
+	-yaffs_trace [number]
+		this sets the yaffs_trace() function with the number inputed.
+		this number must be in the range of char.
+		yaffs_importer saves the current yaffs_trace value and restores the value after the branch has been imported.
+		setting this flag to -1 will run yaffs_importer with the default yaffs_trace value.  
+
+Deleting files and folders
 	to deleate files and folders in yaffs use the yaffs_browser (the documentation still needs to be written).
 	to run the browser use this: "python yaffs_browser"
 	to deleate a file or a folder select the file or folder then go
 	Edit->Delete selected.
 
 Clear Yaffs
-	the easiest way to clear yaffs of all files and folders is to remove
+	the easiest way to clear the yaffs file system of all files and folders is to remove
 	the emfile-2k-0 file. this file is stored in the
 	yaffs2/direct/python/ folder. 
 	the command is: rm emfile-2k-0  

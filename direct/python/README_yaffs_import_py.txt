@@ -1,4 +1,5 @@
 Readme for the yaffs_import.py file
+by Timothy Manning <timothy@yaffs.net> 2010
 
 python yaffs_import [scanning_path] [optional flags]
 
@@ -9,6 +10,7 @@ directories above this path and copy the all files in these directories.
 example:
 	$  yaffs_importer.py /home/timothy/work/yaffs/
 
+yaffs_import.py must be run in yaffs/direct/python/ directory.
 
 flags:
 	-d [number] 
@@ -44,3 +46,8 @@ Clear Yaffs
 	the emfile-2k-0 file. this file is stored in the
 	yaffs2/direct/python/ folder. 
 	the command is: rm emfile-2k-0  
+
+TODO list 
+	Add fix the problem of yaffs_write() returning -1 when the disk is full.(generate a error message)
+	Add a yaffs error code refrence (prints a text message about the error)  
+

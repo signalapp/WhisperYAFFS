@@ -1,9 +1,26 @@
+/*
+ * YAFFS: Yet another FFS. A NAND-flash specific file system.
+ *
+ * Copyright (C) 2002-2010 Aleph One Ltd.
+ *   for Toby Churchill Ltd and Brightstar Engineering
+ *
+ * Created by Timothy Manning <timothy@yaffs.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
 #ifndef __message_buffer__
 #define __message_buffer__
 
 #include <stdio.h>
 #include <string.h>
-
+#define PRINT 1
+#define NPRINT 0
+#define APPEND_MESSAGE 1
+#define DO_NOT_APPEND_MESSAGE 0		
 #define PRINT_ALL -1			/*this is used to print all of the messages in a buffer*/
 #define BUFFER_MESSAGE_LENGTH 60		/*number of char in message*/
 #define BUFFER_SIZE 50			/*number of messages in buffer*/
@@ -17,7 +34,11 @@ typedef struct buffer_template{
 }buffer; 
 #include "error_handler.h"		/*include this for the debug level*/
 
-void add_to_buffer(buffer *p_Buffer, char *message,char message_level);		/*code for buffer*/
-void print_buffer(buffer *p_Buffer,int number_of_messages_to_print);		/*print messages in the buffer*/ 
 
+void print_buffer(buffer *p_Buffer,int number_of_messages_to_print);		/*print messages in the buffer*/ 
+/*wrapper functions for add_to_buffer_root_function*/
+void add_to_buffer(buffer *p_Buffer, char *message,char message_level,char print);
+void append_to_buffer(buffer *p_Buffer, char *message,char message_level,char print);
+
+void add_to_buffer_root_function(buffer *p_Buffer, char *message,char message_level,char append,char print);
 #endif

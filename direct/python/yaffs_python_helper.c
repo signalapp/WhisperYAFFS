@@ -1,4 +1,3 @@
-
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *

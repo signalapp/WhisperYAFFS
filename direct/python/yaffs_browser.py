@@ -1,4 +1,17 @@
 #!/usr/bin/python 
+##
+## YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
+##
+## Copyright (C) 2002-2010 Aleph One Ltd.
+##   for Toby Churchill Ltd and Brightstar Engineering
+##
+## Created by Timothy Manning <timothy@yaffs.net>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License version 2 as
+## published by the Free Software Foundation.
+##
+
 import Tkinter as tk
 from yaffsfs import *
 #import examples

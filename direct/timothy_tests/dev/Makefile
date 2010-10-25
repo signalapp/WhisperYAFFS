@@ -82,13 +82,13 @@ $(ALLOBJS): %.o: %.c
 
 
 $(YAFFSSYMLINKS):
-	ln -s ../../$@ $@
+	ln -s ../../../$@ $@
 
 $(YAFFSDIRECTSYMLINKS):
-	ln -s ../$@ $@
+	ln -s ../../$@ $@
 
 $(DIRECTEXTRASYMLINKS):
-	ln -s ../basic-test/$@ $@
+	ln -s ../../basic-test/$@ $@
 
 
 yaffs_tester: $(SYMLINKS) $(YAFFSTESTOBJS)

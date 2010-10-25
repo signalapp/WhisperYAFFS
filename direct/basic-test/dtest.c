@@ -2691,9 +2691,9 @@ void link_follow_test(const char *mountpt)
 	int result;
 	int h;
 	
-	yaffs_traceMask = 0;
+	yaffs_trace_mask = 0;
 
-	yaffs_StartUp();
+	yaffs_start_up();
 
 	yaffs_mount(mountpt);
 

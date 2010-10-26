@@ -82,13 +82,13 @@ $(ALLOBJS): %.o: %.c
 
 
 $(YAFFSSYMLINKS):
-	ln -s ../../$@ $@
+	ln -s ../../../$@ $@
 
 $(YAFFSDIRECTSYMLINKS):
-	ln -s ../$@ $@
+	ln -s ../../$@ $@
 
 $(DIRECTEXTRASYMLINKS):
-	ln -s ../basic-test/$@ $@
+	ln -s ../../basic-test/$@ $@
 
 
 yaffs_tester: $(SYMLINKS) $(YAFFSTESTOBJS)
@@ -100,4 +100,4 @@ yaffs_tester: $(SYMLINKS) $(YAFFSTESTOBJS)
 
 
 clean:
-	rm -f yaffs_tester  $(ALLOBJS) core $(SYMLINKS)
+	rm -f yaffs_tester  $(ALLOBJS) core $(SYMLINKS) log.txt 

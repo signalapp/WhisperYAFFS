@@ -27,6 +27,8 @@
 #define BUFFER_SIZE 50			/*number of messages in buffer*/
 #define MESSAGE_LEVEL_ERROR 0
 #define MESSAGE_LEVEL_BASIC_TASKS 1
+
+#define LOG_FILE "log.txt"
 typedef struct buffer_template{
 	char message[BUFFER_SIZE][BUFFER_MESSAGE_LENGTH];
 	int head;
@@ -40,6 +42,8 @@ void print_buffer(buffer *p_Buffer,int number_of_messages_to_print);		/*print me
 /*wrapper functions for add_to_buffer_root_function*/
 void add_to_buffer(buffer *p_Buffer, char *message,char message_level,char print);
 void append_to_buffer(buffer *p_Buffer, char *message,char message_level,char print);
+void add_int_to_buffer(buffer *p_Buffer, int num,char message_level,char print);
+void append_int_to_buffer(buffer *p_Buffer, int num,char message_level,char print);
 
 void add_to_buffer_root_function(buffer *p_Buffer, char *message,char message_level,char append,char print);
 #endif

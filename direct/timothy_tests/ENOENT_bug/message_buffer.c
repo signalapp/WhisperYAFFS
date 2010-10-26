@@ -27,8 +27,22 @@ void add_to_buffer(buffer *p_Buffer, char *message,char message_level,char print
 	add_to_buffer_root_function(p_Buffer,message, message_level,DO_NOT_APPEND_MESSAGE,print);
 }
 
-void add_to_buffer_root_function(buffer *p_Buffer, char *message,char message_level,char append,char print){
+void add_int_to_buffer(buffer *p_Buffer, int num,char message_level,char print){
+	char message[20];
+	sprintf(message, "%d",num);
+	add_to_buffer_root_function(p_Buffer,message, message_level,DO_NOT_APPEND_MESSAGE,print);
+}
 
+void append_int_to_buffer(buffer *p_Buffer, int num,char message_level,char print){
+	char message[20];
+	sprintf(message, "%d",num);
+	add_to_buffer_root_function(p_Buffer,message, message_level,APPEND_MESSAGE,print);
+}
+
+
+void add_to_buffer_root_function(buffer *p_Buffer, char *message,char message_level,char append,char print){
+	FILE *log_handle;
+	
 	if (append==APPEND_MESSAGE){	/* append current message*/
 		strncat(p_Buffer->message[p_Buffer->head],message,BUFFER_MESSAGE_LENGTH);
 	}
@@ -64,6 +78,12 @@ void add_to_buffer_root_function(buffer *p_Buffer, char *message,char message_le
 		print_buffer(p_Buffer,1); //if the debug level is higher enough then print the new message  
 		*/
 		printf("%s\n",p_Buffer->message[p_Buffer->head]);
+		log_handle=fopen(LOG_FILE,"a");
+		if (log_handle!=NULL){
+			fputs(p_Buffer->message[p_Buffer->head],log_handle);
+			fputs("\n",log_handle);
+			fclose(log_handle);
+		}
 	}
 }
 
@@ -87,4 +107,6 @@ void print_buffer(buffer *p_Buffer, int number_of_messages_to_print){
 	}
 
 }
+
+
 

@@ -28,28 +28,57 @@ buffer message_buffer;	/*create  message_buffer */
 
 
 
-int main(){	
+int main(int argc, char *argv[]){	
 	char yaffs_test_dir[] ="/yaffs2/test_dir";	/*the path to the directory where all of the testing will take place*/
 	char yaffs_mount_dir[]="/yaffs2/";		/*the path to the mount point which yaffs will mount*/
 	
-	init(yaffs_test_dir,yaffs_mount_dir);
+	init(yaffs_test_dir,yaffs_mount_dir,argc,argv);
 	test(yaffs_test_dir);
 	yaffs_unmount(yaffs_mount_dir);
 	return 0;
 }
 
 
-void init(char *yaffs_test_dir,char *yaffs_mount_dir){
+
+void init(char *yaffs_test_dir,char *yaffs_mount_dir,int argc, char *argv[]){
 	char output=0;
+	int x=0;
+	int seed=-1;
+	FILE *log_handle;
 	/*these variables are already set to zero, but it is better not to take chances*/
 	message_buffer.head=0;				 
 	message_buffer.tail=0;
-	
+
+
+	log_handle=fopen(LOG_FILE,"w");
+	if (log_handle!=NULL){
+		fputs("log file for yaffs tester\n",log_handle);
+		fclose(log_handle);
+	}
 	add_to_buffer(&message_buffer,"welcome to the yaffs tester",MESSAGE_LEVEL_BASIC_TASKS,PRINT);/* print boot up message*/	
 	yaffs_start_up();
     	yaffs_mount(yaffs_mount_dir);
+	for (x=0;x<argc;x++){
+//		add_to_buffer(&message_buffer,"argv ",MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+//		add_to_buffer(&message_buffer,argv[x],MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+		if (strcmp("-seed",argv[x])==0){			/*warning only compares the length of the strings, quick fix*/
+			seed= atoi(argv[x+1]);
+			/*add_to_buffer(&message_buffer,"setting seed to ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			append_int_to_buffer(&message_buffer,seed,MESSAGE_LEVEL_BASIC_TASKS,NPRINT);			
+			append_to_buffer(&message_buffer,"\n",MESSAGE_LEVEL_BASIC_TASKS,PRINT);*/
+		}
+	}
+	if (seed==-1){
+		seed=time(NULL);
+		srand(seed); 
+	}
+	else {
+	srand(seed);
+	}
+	add_to_buffer(&message_buffer,"setting seed to ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+	append_int_to_buffer(&message_buffer,seed,MESSAGE_LEVEL_BASIC_TASKS,PRINT);/* print boot up message*/	
 
-	if (yaffs_access(yaffs_test_dir,0))
+	if (yaffs_access(yaffs_test_dir,0))	/* if the test folder does not exist then create it */
 	{
 		add_to_buffer(&message_buffer,"creating dir: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
 		append_to_buffer(&message_buffer,yaffs_test_dir,MESSAGE_LEVEL_BASIC_TASKS,PRINT);	

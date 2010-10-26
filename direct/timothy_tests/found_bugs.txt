@@ -4,3 +4,6 @@ Error code 0 bug (run out of handles)
 	By opening lots of files and not closing them yaffs can run out of handles. 
 	The error code given by yaffs_get_error() returns 0. this error is not defined in yportenv.h
 
+ENOENT error when opening a new file with O_CREATE
+	remove the emfile and use seed 1288064149 to generate this error.
+

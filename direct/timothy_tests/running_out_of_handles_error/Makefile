@@ -100,4 +100,4 @@ yaffs_tester: $(SYMLINKS) $(YAFFSTESTOBJS)
 
 
 clean:
-	rm -f yaffs_tester  $(ALLOBJS) core $(SYMLINKS)
+	rm -f yaffs_tester  $(ALLOBJS) core $(SYMLINKS) log.txt 

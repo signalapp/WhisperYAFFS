@@ -1,6 +1,0 @@
-Found bugs in yaffs
-
-Error code 0 bug (run out of handles)
-	By opening lots of files and not closing them yaffs can run out of handles. 
-	The error code given by yaffs_get_error() returns 0. this error is not defined in yportenv.h
-

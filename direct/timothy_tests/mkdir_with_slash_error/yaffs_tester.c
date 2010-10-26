@@ -29,7 +29,7 @@ buffer message_buffer;	/*create  message_buffer */
 
 
 int main(int argc, char *argv[]){	
-	char yaffs_test_dir[] ="/yaffs2/test_dir";	/*the path to the directory where all of the testing will take place*/
+	char yaffs_test_dir[] ="/yaffs2/test_dir/";	/*the path to the directory where all of the testing will take place*/
 	char yaffs_mount_dir[]="/yaffs2/";		/*the path to the mount point which yaffs will mount*/
 	
 	init(yaffs_test_dir,yaffs_mount_dir,argc,argv);

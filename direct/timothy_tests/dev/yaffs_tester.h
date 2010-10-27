@@ -25,7 +25,7 @@
 #include "message_buffer.h"
 #include "error_handler.h"
 	
-
+#define MAX_NUMBER_OF_OPENED_HANDLES 50
 #define MAX_FILE_NAME_SIZE 51
 
 void init(char *yaffs_test_dir,char *yaffs_mount_dir,int argc, char *argv[]);	/*sets up yaffs and mounts yaffs */

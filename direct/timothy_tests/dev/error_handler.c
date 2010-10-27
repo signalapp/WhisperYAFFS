@@ -70,8 +70,8 @@ void yaffs_check_for_errors(char output, buffer *message_buffer,char error_messa
 		if (MESSAGE_LEVEL_ERROR<=DEBUG_LEVEL)	printf("%d\n",yaffs_error);	/*cannot yet add int types to buffer. this is a quick fix*/ 	
 		add_to_buffer(message_buffer, error_to_str(yaffs_error),MESSAGE_LEVEL_ERROR,NPRINT);
 		append_to_buffer(message_buffer, "\n\n",MESSAGE_LEVEL_ERROR,PRINT);	
-				
-		scanf("%c",dummy);	/*this line causes a segmentation fault. Need a better way of waiting for a key press*/
+		exit(1);		
+		//scanf("%c",dummy);	/*this line causes a segmentation fault. Need a better way of waiting for a key press*/
 		//print_buffer(message_buffer,PRINT_ALL);
 		
 	}

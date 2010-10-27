@@ -27,6 +27,12 @@ int simulate_power_failure = 0;
 buffer message_buffer;	/*create  message_buffer */
 
 
+struct handle_regster{
+	int handle[MAX_NUMBER_OF_OPENED_HANDLES];
+	char path[MAX_NUMBER_OF_OPENED_HANDLES][100];
+	int number_of_open_handles;
+};
+
 
 int main(int argc, char *argv[]){	
 	char yaffs_test_dir[] ="/yaffs2/test_dir";	/*the path to the directory where all of the testing will take place*/
@@ -153,28 +159,115 @@ void join_paths(char *path1,char *path2,char *new_path ){
 	}
 }
 
-
+void open_file();
+void stat_file(char *path){
+	int output=0;
+	struct yaffs_stat stat;
+	if (yaffs_access(path,0)==0){
+		add_to_buffer(&message_buffer,"file exists, trying to stat: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		add_to_buffer(&message_buffer,path,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+		output=yaffs_lstat(path,&stat);
+		yaffs_check_for_errors(output, &message_buffer,"failed to stat file","statted file");
+		//stat.st_ino,(int)stat.st_size,stat.st_mode
+		add_to_buffer(&message_buffer,"yaffs inode: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_int_to_buffer(&message_buffer,stat.st_ino,MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_to_buffer(&message_buffer," file size: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_int_to_buffer(&message_buffer,(int)stat.st_size,MESSAGE_LEVEL_BASIC_TASKS,NPRINT);			
+		append_to_buffer(&message_buffer," file mode: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_int_to_buffer(&message_buffer,stat.st_mode,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+	}
+	else{
+		add_to_buffer(&message_buffer,path,MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_to_buffer(&message_buffer," does not exist,could not stat",MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+	}
+}
 
 void test(char*yaffs_test_dir){
-	char output=0;
+	struct yaffs_stat stat;
+	int output=0;
 	char name[MAX_FILE_NAME_SIZE+3 ]="apple\0";
 	char path[MAX_FILE_NAME_SIZE];
+	struct handle_regster open_handles_array;
+	//int handle_pointers[MAX_NUMBER_OF_OPENED_HANDLES];
+	//int number_of_opened_handles=0;
+	int x=0;
 	join_paths(yaffs_test_dir,name,path);
+		
+	open_handles_array.number_of_open_handles=0;
+	for (x=0;x<MAX_NUMBER_OF_OPENED_HANDLES;x++){
+		open_handles_array.handle[x]=-3;
+		open_handles_array.path[x][0]='\0';
+
+	}
 	while(1)
 	{
 		path[0]='\0';// this should clear the path
-		generate_random_string(name);
-		join_paths(yaffs_test_dir,name,path);
-		add_to_buffer(&message_buffer,"trying to open file: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
-		append_to_buffer(&message_buffer,path,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
-		output=yaffs_open(path,O_CREAT | O_TRUNC| O_RDWR, S_IREAD | S_IWRITE);
-		yaffs_check_for_errors(output, &message_buffer,"failed to open file","opened file");
+		add_to_buffer(&message_buffer,"number of opened handles: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_int_to_buffer(&message_buffer,open_handles_array.number_of_open_handles,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+		if (open_handles_array.number_of_open_handles<MAX_NUMBER_OF_OPENED_HANDLES)
+		{
+			generate_random_string(name);
+			join_paths(yaffs_test_dir,name,path);
+			add_to_buffer(&message_buffer,"trying to open file: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			append_to_buffer(&message_buffer,path,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+			if (yaffs_access(path,0)==0){
+				stat_file(path);
+			}
+			else {
+				add_to_buffer(&message_buffer,"file does not exists, creating file",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			}
+
+			output=yaffs_open(path,O_CREAT | O_TRUNC| O_RDWR, S_IREAD | S_IWRITE);
+			x=0;
+			for (x=0;open_handles_array.handle[x]!=-3 && x<MAX_NUMBER_OF_OPENED_HANDLES;x++){		
+				//x=rand() % (MAX_NUMBER_OF_OPENED_HANDLES-1);
+			}
+
+			add_to_buffer(&message_buffer,"handle array id ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			append_int_to_buffer(&message_buffer,x,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+				
+			//for (x=0;handle_pointers[x]!=NULL;x++){}
+			open_handles_array.handle[x]=output;
+			open_handles_array.path[x][0]='\0';
+			strcat(open_handles_array.path[x],path);
+			add_to_buffer(&message_buffer,"yaffs handle: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			append_int_to_buffer(&message_buffer,output,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+			add_to_buffer(&message_buffer,"stored handle: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		
+			//yaffs_open will return a null pointer if it cannot open a file. check for errors will not work.			
+			yaffs_check_for_errors(output, &message_buffer,"failed to open file","opened file");
+			
+			open_handles_array.number_of_open_handles++;
+		}
+		else{ /*run out of space on the handle pointer array*/	
+			/*make space*/
+			while (open_handles_array.handle[x]==-3){		
+				x=rand() % (MAX_NUMBER_OF_OPENED_HANDLES-1);
+			}
+			add_to_buffer(&message_buffer,"trying to close file: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			append_to_buffer(&message_buffer,open_handles_array.path[x],MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+			add_to_buffer(&message_buffer,"file handle: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			append_int_to_buffer(&message_buffer,open_handles_array.handle[x],MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+
+			stat_file(open_handles_array.path[x]);
+	
+			output=yaffs_close(open_handles_array.handle[x]);
+
+			if (output==-1) yaffs_check_for_errors(output, &message_buffer,"failed to close file","closed file");
+			else {
+				yaffs_check_for_errors(output, &message_buffer,"failed to close file","closed file");
+				open_handles_array.handle[x]=-3;
+				open_handles_array.path[x][0]='\0';
+				open_handles_array.number_of_open_handles--;
+			}
+		}
 	}
 }
 void  generate_random_string(char *ptr){
 	unsigned int x;
 	unsigned int length=((rand() %MAX_FILE_NAME_SIZE)+1);	/*creates a int with the number of charecters been between 1 and 51*/ 		
 	char letter='\0';
+
 	//printf("generating string\n");
 	//printf("string length is %d\n",length);
 	for (x=0; x <= (length-2) &&length>2 ; x++)

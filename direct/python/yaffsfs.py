@@ -15,6 +15,12 @@ from ctypes import *
 cdll.LoadLibrary("./libyaffsfs.so")
 ylib = CDLL("./libyaffsfs.so")
 
+#const char * yaffs_error_to_str(int err);
+yaffs_error_to_str = ylib.yaffs_error_to_str
+yaffs_error_to_str.argtypes=[c_int]
+yaffs_error_to_str.restype=c_char_p
+
+
 #int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharingmode) ;
 yaffs_open_sharing = ylib.yaffs_open_sharing
 yaffs_open_sharing.argtypes = [ c_char_p, c_int, c_int, c_int]

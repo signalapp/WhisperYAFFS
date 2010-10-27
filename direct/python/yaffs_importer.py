@@ -29,6 +29,10 @@ def check_for_yaffs_errors(output):
         error=yaffs_get_error()
         debug_message("error######################################",0)
         debug_message(("error code", error),  0)
+        error_message=ctypes.c_char_p()
+        error_message.value=yaffs_error_to_str(error);
+        print "error message", error_message.value
+        
 
 def debug_message(message, debug_level):
     """note: that debug level 0 will always be printed unless debug_level is set to -1"""
@@ -85,6 +89,9 @@ def subtract_paths(path1, path2):
     return new_path
     
 def create_file(file):
+#    freespace=ctypes.c_longlong
+#    freespace.value=yaffs_freespace(yaffs_root_dir_path)
+#    print "yaffs free space:", freespace.value
     debug_message( "\n \n \n", 2)
     file_path= join_paths(yaffs_root_dir_path, file["path"][len(path):])
     debug_message( ("creating file:", file_path), 2)
@@ -92,7 +99,7 @@ def create_file(file):
     debug_message("opening file",2)
 #    yaffs_ls(file["path"])
 
-    ##if there is already a file in yaffs then remove the file . this is to prevent yaffs from opening a nd writing to a read only file
+    ##if there is already a file in yaffs then remove the file . this is to prevent yaffs from opening and writing to a read only file
     if yaffs_access(file_path, 0)==0:##the 0 means does it exist. 
         debug_message ("file already exists in yaffs", 2)
         output=yaffs_unlink(file_path)
@@ -104,6 +111,15 @@ def create_file(file):
     data_file=open(file["path"], "r")
     output=yaffs_lseek(current_handle, 0, 0)
     if output==-1:
+        ##if there is no more space in the emfile then this is where it will show up.
+        freespace=ctypes.c_longlong
+        freespace.value=yaffs_freespace(yaffs_root_dir_path)
+        print "yaffs free space:", freespace.value
+
+        if freespace.value==0:
+            #print "yaffs free space:", yaffs_freespace(yaffs_root_dir_path)
+            print "yaffs is out of space exiting program"
+           #sys.exit() 
         debug_message("error with yaffs lseeking", 2)
         
         check_for_yaffs_errors(output)

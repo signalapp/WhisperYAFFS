@@ -22,9 +22,12 @@
  
 #include "yaffsfs.h"
 #include "yaffs_trace.h"
+#include "yaffs_error_converter.h"
 
 int simulate_power_failure;
 int random_seed;
+
+const char * yaffs_error_to_str(int err);	/*this is not part of yaffs. it is a specialy built file for converting error codes to text*/
 
 int yaffs_print_constants(void)
 {

@@ -187,9 +187,9 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 
 	
 	if(dev->param.inband_tags){
 		
-		yaffs_PackedTags2TagsPart * pt2tp;
-		pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->data_bytes_per_chunk];
-		yaffs_PackTags2TagsPart(pt2tp,tags);
+		yaffs_packed_tags2_tags_only * pt2tp;
+		pt2tp = (yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];
+		yaffs_pack_tags2_tags_only(pt2tp,tags);
 		
 		pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
 		h = filedisk.handle[(nand_chunk / (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE))];
@@ -260,8 +260,8 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 
 			}
 			else
 			{
-				yaffs_PackedTags2 pt;
-				yaffs_PackTags2(&pt,tags, !dev->param.no_tags_ecc);
+				yaffs_packed_tags2 pt;
+				yaffs_pack_tags2(&pt,tags, !dev->param.no_tags_ecc);
 				__u8 * ptab = (__u8 *)&pt;
 
 				nRead = read(h,localBuffer,sizeof(pt));
@@ -338,8 +338,8 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 
 			}
 			else
 			{
-				yaffs_PackedTags2 pt;
-				yaffs_PackTags2(&pt,tags,!dev->param.no_tags_ecc);
+				yaffs_packed_tags2 pt;
+				yaffs_pack_tags2(&pt,tags,!dev->param.no_tags_ecc);
 				__u8 * ptab = (__u8 *)&pt;
 
 				nRead = read(h,localBuffer,sizeof(pt));
@@ -412,8 +412,8 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *dat
 		}
 
 		
-		yaffs_PackedTags2TagsPart * pt2tp;
-		pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->data_bytes_per_chunk];
+		yaffs_packed_tags2_tags_only * pt2tp;
+		pt2tp = (yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];
 
 		
 		pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
@@ -423,7 +423,7 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *dat
 
 		nRead = read(h, data,dev->param.total_bytes_per_chunk);
 
-		yaffs_unpack_tags2tags_part(tags,pt2tp);
+		yaffs_unpack_tags2_tags_only(tags,pt2tp);
 		
 		if(nread != dev->param.total_bytes_per_chunk)
 			retval = YAFFS_FAIL;
@@ -472,7 +472,7 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *dat
 			}
 			else
 			{
-				yaffs_PackedTags2 pt;
+				yaffs_packed_tags2 pt;
 				nread= read(h,&pt,sizeof(pt));
 				yaffs_unpack_tags2(tags,&pt, !dev->param.no_tags_ecc);
 #ifdef SIMULATE_FAILURES
@@ -513,7 +513,7 @@ int yflash2_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 	int written;
 	int h;
 	
-	yaffs_PackedTags2 pt;
+	yaffs_packed_tags2 pt;
 
 	CheckInit();
 	

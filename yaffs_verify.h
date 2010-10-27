@@ -22,7 +22,7 @@ void yaffs_verify_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n);
 void yaffs_verify_collected_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n);
 void yaffs_verify_blocks(yaffs_dev_t *dev);
 
-void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tags, int parentCheck);
+void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tags, int parent_check);
 void yaffs_verify_file(yaffs_obj_t *obj);
 void yaffs_verify_link(yaffs_obj_t *obj);
 void yaffs_verify_symlink(yaffs_obj_t *obj);

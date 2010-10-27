@@ -35,7 +35,7 @@ int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
 {
 
 	int retval = 0;
-	yaffs_PackedTags2 pt;
+	yaffs_packed_tags2 pt;
 	void *spare;
 	unsigned spareSize = 0;
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
@@ -52,16 +52,16 @@ int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
 	 */
 
 	if(dev->param.inband_tags){
-		yaffs_PackedTags2TagsPart *pt2tp;
-		pt2tp = (yaffs_PackedTags2TagsPart *)(data + dev->data_bytes_per_chunk);
-		yaffs_PackTags2TagsPart(pt2tp,tags);
+		yaffs_packed_tags2_tags_only *pt2tp;
+		pt2tp = (yaffs_packed_tags2_tags_only *)(data + dev->data_bytes_per_chunk);
+		yaffs_pack_tags2_tags_only(pt2tp,tags);
 		spare = NULL;
 		spareSize = 0;
 	}
 	else{
-		yaffs_PackTags2(&pt, tags,!dev->param.no_tags_ecc);
+		yaffs_pack_tags2(&pt, tags,!dev->param.no_tags_ecc);
 		spare = &pt;
-		spareSize = sizeof(yaffs_PackedTags2);
+		spareSize = sizeof(yaffs_packed_tags2);
 	}
 	
 	retval = geometry->writeChunk(dev,nand_chunk,
@@ -73,7 +73,7 @@ int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
 int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t * dev, int nand_chunk,
 				       __u8 * data, yaffs_ext_tags * tags)
 {
-	yaffs_PackedTags2 pt;
+	yaffs_packed_tags2 pt;
 	int localData = 0;
 	void *spare = NULL;
 	unsigned spareSize;
@@ -100,7 +100,7 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t * dev, int nand_chunk,
 	}
 	else {
 		spare = &pt;
-		spareSize = sizeof(yaffs_PackedTags2);
+		spareSize = sizeof(yaffs_packed_tags2);
 	}
 
 	retval = geometry->readChunk(dev,nand_chunk,
@@ -111,9 +111,9 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t * dev, int nand_chunk,
 
 	if(dev->param.inband_tags){
 		if(tags){
-			yaffs_PackedTags2TagsPart * pt2tp;
-			pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->data_bytes_per_chunk];	
-			yaffs_unpack_tags2tags_part(tags,pt2tp);
+			yaffs_packed_tags2_tags_only * pt2tp;
+			pt2tp = (yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];	
+			yaffs_unpack_tags2_tags_only(tags,pt2tp);
 		}
 	}
 	else {

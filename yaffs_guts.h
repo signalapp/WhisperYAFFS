@@ -235,7 +235,7 @@ typedef enum {
 	YAFFS_BLOCK_STATE_NEEDS_SCANNING,
 	/* The block might have something on it (ie it is allocating or full, perhaps empty)
 	 * but it needs to be scanned to determine its true state.
-	 * This state is only valid during yaffs_Scan.
+	 * This state is only valid during scanning.
 	 * NB We tolerate empty because the pre-scanner might be incapable of deciding
 	 * However, if this state is returned on a YAFFS2 device, then we expect a sequence number
 	 */

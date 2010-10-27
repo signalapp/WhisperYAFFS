@@ -23,11 +23,11 @@
 
 #include "yaffs_linux.h"
 
-int nandmtd_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
+int nandmtd_erase_block(yaffs_dev_t *dev, int block_no)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	__u32 addr =
-	    ((loff_t) blockNumber) * dev->param.total_bytes_per_chunk
+	    ((loff_t) block_no) * dev->param.total_bytes_per_chunk
 		* dev->param.chunks_per_block;
 	struct erase_info ei;
 	
@@ -49,7 +49,7 @@ int nandmtd_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 		return YAFFS_FAIL;
 }
 
-int nandmtd_InitialiseNAND(yaffs_dev_t *dev)
+int nandmtd_initialise(yaffs_dev_t *dev)
 {
 	return YAFFS_OK;
 }

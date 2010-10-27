@@ -18,7 +18,7 @@
 
 #include "yaffs_guts.h"
 
-int yaffs2_checkpt_open(yaffs_dev_t *dev, int forWriting);
+int yaffs2_checkpt_open(yaffs_dev_t *dev, int writing);
 
 int yaffs2_checkpt_wr(yaffs_dev_t *dev, const void *data, int n_bytes);
 

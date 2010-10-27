@@ -37,7 +37,7 @@ static int yaffs_skip_nand_verification(yaffs_dev_t *dev)
 }
 
 
-static const char *block_stateName[] = {
+static const char *block_state_name[] = {
 "Unknown",
 "Needs scanning",
 "Scanning",
@@ -53,8 +53,8 @@ static const char *block_stateName[] = {
 
 void yaffs_verify_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n)
 {
-	int actuallyUsed;
-	int inUse;
+	int actually_used;
+	int in_use;
 
 	if (yaffs_skip_verification(dev))
 		return;
@@ -68,25 +68,25 @@ void yaffs_verify_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n)
 	case YAFFS_BLOCK_STATE_SCANNING:
 	case YAFFS_BLOCK_STATE_NEEDS_SCANNING:
 		T(YAFFS_TRACE_VERIFY, (TSTR("Block %d has bad run-state %s"TENDSTR),
-		n, block_stateName[bi->block_state]));
+		n, block_state_name[bi->block_state]));
 	}
 
 	/* Check pages in use and soft deletions are legal */
 
-	actuallyUsed = bi->pages_in_use - bi->soft_del_pages;
+	actually_used = bi->pages_in_use - bi->soft_del_pages;
 
 	if (bi->pages_in_use < 0 || bi->pages_in_use > dev->param.chunks_per_block ||
 	   bi->soft_del_pages < 0 || bi->soft_del_pages > dev->param.chunks_per_block ||
-	   actuallyUsed < 0 || actuallyUsed > dev->param.chunks_per_block)
+	   actually_used < 0 || actually_used > dev->param.chunks_per_block)
 		T(YAFFS_TRACE_VERIFY, (TSTR("Block %d has illegal values pages_in_used %d soft_del_pages %d"TENDSTR),
 		n, bi->pages_in_use, bi->soft_del_pages));
 
 
 	/* Check chunk bitmap legal */
-	inUse = yaffs_count_chunk_bits(dev, n);
-	if (inUse != bi->pages_in_use)
+	in_use = yaffs_count_chunk_bits(dev, n);
+	if (in_use != bi->pages_in_use)
 		T(YAFFS_TRACE_VERIFY, (TSTR("Block %d has inconsistent values pages_in_use %d counted chunk bits %d"TENDSTR),
-			n, bi->pages_in_use, inUse));
+			n, bi->pages_in_use, in_use));
 
 }
 
@@ -108,50 +108,50 @@ void yaffs_verify_collected_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n)
 void yaffs_verify_blocks(yaffs_dev_t *dev)
 {
 	int i;
-	int nBlocksPerState[YAFFS_NUMBER_OF_BLOCK_STATES];
-	int nIllegalBlockStates = 0;
+	int state_count[YAFFS_NUMBER_OF_BLOCK_STATES];
+	int illegal_states = 0;
 
 	if (yaffs_skip_verification(dev))
 		return;
 
-	memset(nBlocksPerState, 0, sizeof(nBlocksPerState));
+	memset(state_count, 0, sizeof(state_count));
 
 	for (i = dev->internal_start_block; i <= dev->internal_end_block; i++) {
 		yaffs_block_info_t *bi = yaffs_get_block_info(dev, i);
 		yaffs_verify_blk(dev, bi, i);
 
 		if (bi->block_state < YAFFS_NUMBER_OF_BLOCK_STATES)
-			nBlocksPerState[bi->block_state]++;
+			state_count[bi->block_state]++;
 		else
-			nIllegalBlockStates++;
+			illegal_states++;
 	}
 
 	T(YAFFS_TRACE_VERIFY, (TSTR(""TENDSTR)));
 	T(YAFFS_TRACE_VERIFY, (TSTR("Block summary"TENDSTR)));
 
-	T(YAFFS_TRACE_VERIFY, (TSTR("%d blocks have illegal states"TENDSTR), nIllegalBlockStates));
-	if (nBlocksPerState[YAFFS_BLOCK_STATE_ALLOCATING] > 1)
+	T(YAFFS_TRACE_VERIFY, (TSTR("%d blocks have illegal states"TENDSTR), illegal_states));
+	if (state_count[YAFFS_BLOCK_STATE_ALLOCATING] > 1)
 		T(YAFFS_TRACE_VERIFY, (TSTR("Too many allocating blocks"TENDSTR)));
 
 	for (i = 0; i < YAFFS_NUMBER_OF_BLOCK_STATES; i++)
 		T(YAFFS_TRACE_VERIFY,
 		  (TSTR("%s %d blocks"TENDSTR),
-		  block_stateName[i], nBlocksPerState[i]));
+		  block_state_name[i], state_count[i]));
 
-	if (dev->blocks_in_checkpt != nBlocksPerState[YAFFS_BLOCK_STATE_CHECKPOINT])
+	if (dev->blocks_in_checkpt != state_count[YAFFS_BLOCK_STATE_CHECKPOINT])
 		T(YAFFS_TRACE_VERIFY,
 		 (TSTR("Checkpoint block count wrong dev %d count %d"TENDSTR),
-		 dev->blocks_in_checkpt, nBlocksPerState[YAFFS_BLOCK_STATE_CHECKPOINT]));
+		 dev->blocks_in_checkpt, state_count[YAFFS_BLOCK_STATE_CHECKPOINT]));
 
-	if (dev->n_erased_blocks != nBlocksPerState[YAFFS_BLOCK_STATE_EMPTY])
+	if (dev->n_erased_blocks != state_count[YAFFS_BLOCK_STATE_EMPTY])
 		T(YAFFS_TRACE_VERIFY,
 		 (TSTR("Erased block count wrong dev %d count %d"TENDSTR),
-		 dev->n_erased_blocks, nBlocksPerState[YAFFS_BLOCK_STATE_EMPTY]));
+		 dev->n_erased_blocks, state_count[YAFFS_BLOCK_STATE_EMPTY]));
 
-	if (nBlocksPerState[YAFFS_BLOCK_STATE_COLLECTING] > 1)
+	if (state_count[YAFFS_BLOCK_STATE_COLLECTING] > 1)
 		T(YAFFS_TRACE_VERIFY,
 		 (TSTR("Too many collecting blocks %d (max is 1)"TENDSTR),
-		 nBlocksPerState[YAFFS_BLOCK_STATE_COLLECTING]));
+		 state_count[YAFFS_BLOCK_STATE_COLLECTING]));
 
 	T(YAFFS_TRACE_VERIFY, (TSTR(""TENDSTR)));
 
@@ -161,7 +161,7 @@ void yaffs_verify_blocks(yaffs_dev_t *dev)
  * Verify the object header. oh must be valid, but obj and tags may be NULL in which
  * case those tests will not be performed.
  */
-void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tags, int parentCheck)
+void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tags, int parent_check)
 {
 	if (obj && yaffs_skip_verification(obj->my_dev))
 		return;
@@ -186,17 +186,17 @@ void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tag
 
 
 	/*
-	 * Check that the object's parent ids match if parentCheck requested.
+	 * Check that the object's parent ids match if parent_check requested.
 	 *
 	 * Tests do not apply to the root object.
 	 */
 
-	if (parentCheck && tags->obj_id > 1 && !obj->parent)
+	if (parent_check && tags->obj_id > 1 && !obj->parent)
 		T(YAFFS_TRACE_VERIFY,
 			(TSTR("Obj %d header mismatch parent_id %d obj->parent is NULL"TENDSTR),
 			tags->obj_id, oh->parent_obj_id));
 
-	if (parentCheck && obj->parent &&
+	if (parent_check && obj->parent &&
 			oh->parent_obj_id != obj->parent->obj_id &&
 			(oh->parent_obj_id != YAFFS_OBJECTID_UNLINKED ||
 			obj->parent->obj_id != YAFFS_OBJECTID_DELETED))
@@ -243,14 +243,14 @@ int yaffs_verify_tnode_worker(yaffs_obj_t *obj, yaffs_tnode_t *tn,
 			chunk_offset <<=  YAFFS_TNODES_LEVEL0_BITS;
 
 			for (i = 0; i < YAFFS_NTNODES_LEVEL0; i++) {
-				__u32 theChunk = yaffs_get_group_base(dev, tn, i);
+				__u32 the_chunk = yaffs_get_group_base(dev, tn, i);
 
-				if (theChunk > 0) {
-					/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),tags.obj_id,tags.chunk_id,theChunk)); */
-					yaffs_rd_chunk_tags_nand(dev, theChunk, NULL, &tags);
+				if (the_chunk > 0) {
+					/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),tags.obj_id,tags.chunk_id,the_chunk)); */
+					yaffs_rd_chunk_tags_nand(dev, the_chunk, NULL, &tags);
 					if (tags.obj_id != obj_id || tags.chunk_id != chunk_offset) {
 						T(~0, (TSTR("Object %d chunk_id %d NAND mismatch chunk %d tags (%d:%d)"TENDSTR),
-							obj_id, chunk_offset, theChunk,
+							obj_id, chunk_offset, the_chunk,
 							tags.obj_id, tags.chunk_id));
 					}
 				}
@@ -267,9 +267,9 @@ int yaffs_verify_tnode_worker(yaffs_obj_t *obj, yaffs_tnode_t *tn,
 
 void yaffs_verify_file(yaffs_obj_t *obj)
 {
-	int requiredTallness;
-	int actualTallness;
-	__u32 lastChunk;
+	int required_depth;
+	int actual_depth;
+	__u32 last_chunk;
 	__u32 x;
 	__u32 i;
 	yaffs_dev_t *dev;
@@ -287,15 +287,15 @@ void yaffs_verify_file(yaffs_obj_t *obj)
 	obj_id = obj->obj_id;
 
 	/* Check file size is consistent with tnode depth */
-	lastChunk =  obj->variant.file_variant.file_size / dev->data_bytes_per_chunk + 1;
-	x = lastChunk >> YAFFS_TNODES_LEVEL0_BITS;
-	requiredTallness = 0;
+	last_chunk =  obj->variant.file_variant.file_size / dev->data_bytes_per_chunk + 1;
+	x = last_chunk >> YAFFS_TNODES_LEVEL0_BITS;
+	required_depth = 0;
 	while (x > 0) {
 		x >>= YAFFS_TNODES_INTERNAL_BITS;
-		requiredTallness++;
+		required_depth++;
 	}
 
-	actualTallness = obj->variant.file_variant.top_level;
+	actual_depth = obj->variant.file_variant.top_level;
 
 	/* Check that the chunks in the tnode tree are all correct.
 	 * We do this by scanning through the tnode tree and
@@ -305,17 +305,17 @@ void yaffs_verify_file(yaffs_obj_t *obj)
 	if (yaffs_skip_nand_verification(dev))
 		return;
 
-	for (i = 1; i <= lastChunk; i++) {
+	for (i = 1; i <= last_chunk; i++) {
 		tn = yaffs_find_tnode_0(dev, &obj->variant.file_variant, i);
 
 		if (tn) {
-			__u32 theChunk = yaffs_get_group_base(dev, tn, i);
-			if (theChunk > 0) {
-				/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),obj_id,i,theChunk)); */
-				yaffs_rd_chunk_tags_nand(dev, theChunk, NULL, &tags);
+			__u32 the_chunk = yaffs_get_group_base(dev, tn, i);
+			if (the_chunk > 0) {
+				/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),obj_id,i,the_chunk)); */
+				yaffs_rd_chunk_tags_nand(dev, the_chunk, NULL, &tags);
 				if (tags.obj_id != obj_id || tags.chunk_id != i) {
 					T(~0, (TSTR("Object %d chunk_id %d NAND mismatch chunk %d tags (%d:%d)"TENDSTR),
-						obj_id, i, theChunk,
+						obj_id, i, the_chunk,
 						tags.obj_id, tags.chunk_id));
 				}
 			}
@@ -350,13 +350,13 @@ void yaffs_verify_obj(yaffs_obj_t *obj)
 {
 	yaffs_dev_t *dev;
 
-	__u32 chunkMin;
-	__u32 chunkMax;
+	__u32 chunk_min;
+	__u32 chunk_max;
 
-	__u32 chunk_idOk;
-	__u32 chunkInRange;
-	__u32 chunkShouldNotBeDeleted;
-	__u32 chunkValid;
+	__u32 chunk_id_ok;
+	__u32 chunk_in_range;
+	__u32 chunk_wrongly_deleted;
+	__u32 chunk_valid;
 
 	if (!obj)
 		return;
@@ -371,27 +371,28 @@ void yaffs_verify_obj(yaffs_obj_t *obj)
 
 	/* Check sane object header chunk */
 
-	chunkMin = dev->internal_start_block * dev->param.chunks_per_block;
-	chunkMax = (dev->internal_end_block+1) * dev->param.chunks_per_block - 1;
+	chunk_min = dev->internal_start_block * dev->param.chunks_per_block;
+	chunk_max = (dev->internal_end_block+1) * dev->param.chunks_per_block - 1;
 
-	chunkInRange = (((unsigned)(obj->hdr_chunk)) >= chunkMin && ((unsigned)(obj->hdr_chunk)) <= chunkMax);
-	chunk_idOk = chunkInRange || (obj->hdr_chunk == 0);
-	chunkValid = chunkInRange &&
+	chunk_in_range = (((unsigned)(obj->hdr_chunk)) >= chunk_min && 
+	                ((unsigned)(obj->hdr_chunk)) <= chunk_max);
+	chunk_id_ok = chunk_in_range || (obj->hdr_chunk == 0);
+	chunk_valid = chunk_in_range &&
 			yaffs_check_chunk_bit(dev,
 					obj->hdr_chunk / dev->param.chunks_per_block,
 					obj->hdr_chunk % dev->param.chunks_per_block);
-	chunkShouldNotBeDeleted = chunkInRange && !chunkValid;
+	chunk_wrongly_deleted = chunk_in_range && !chunk_valid;
 
 	if (!obj->fake &&
-			(!chunk_idOk || chunkShouldNotBeDeleted)) {
+			(!chunk_id_ok || chunk_wrongly_deleted)) {
 		T(YAFFS_TRACE_VERIFY,
 			(TSTR("Obj %d has chunk_id %d %s %s"TENDSTR),
 			obj->obj_id, obj->hdr_chunk,
-			chunk_idOk ? "" : ",out of range",
-			chunkShouldNotBeDeleted ? ",marked as deleted" : ""));
+			chunk_id_ok ? "" : ",out of range",
+			chunk_wrongly_deleted ? ",marked as deleted" : ""));
 	}
 
-	if (chunkValid && !yaffs_skip_nand_verification(dev)) {
+	if (chunk_valid && !yaffs_skip_nand_verification(dev)) {
 		yaffs_ext_tags tags;
 		yaffs_obj_header *oh;
 		__u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
@@ -471,7 +472,7 @@ void yaffs_verify_objects(yaffs_dev_t *dev)
 void yaffs_verify_obj_in_dir(yaffs_obj_t *obj)
 {
 	struct ylist_head *lh;
-	yaffs_obj_t *listObj;
+	yaffs_obj_t *list_obj;
 
 	int count = 0;
 
@@ -499,9 +500,9 @@ void yaffs_verify_obj_in_dir(yaffs_obj_t *obj)
 
 	ylist_for_each(lh, &obj->parent->variant.dir_variant.children) {
 		if (lh) {
-			listObj = ylist_entry(lh, yaffs_obj_t, siblings);
-			yaffs_verify_obj(listObj);
-			if (obj == listObj)
+			list_obj = ylist_entry(lh, yaffs_obj_t, siblings);
+			yaffs_verify_obj(list_obj);
+			if (obj == list_obj)
 				count++;
 		}
 	 }
@@ -515,7 +516,7 @@ void yaffs_verify_obj_in_dir(yaffs_obj_t *obj)
 void yaffs_verify_dir(yaffs_obj_t *directory)
 {
 	struct ylist_head *lh;
-	yaffs_obj_t *listObj;
+	yaffs_obj_t *list_obj;
 
 	if (!directory) {
 		YBUG();
@@ -526,7 +527,9 @@ void yaffs_verify_dir(yaffs_obj_t *directory)
 		return;
 
 	if (directory->variant_type != YAFFS_OBJECT_TYPE_DIRECTORY) {
-		T(YAFFS_TRACE_ALWAYS, (TSTR("Directory has wrong type: %d" TENDSTR), directory->variant_type));
+		T(YAFFS_TRACE_ALWAYS,
+		(TSTR("Directory has wrong type: %d" TENDSTR),
+		directory->variant_type));
 		YBUG();
 	}
 
@@ -534,12 +537,14 @@ void yaffs_verify_dir(yaffs_obj_t *directory)
 
 	ylist_for_each(lh, &directory->variant.dir_variant.children) {
 		if (lh) {
-			listObj = ylist_entry(lh, yaffs_obj_t, siblings);
-			if (listObj->parent != directory) {
-				T(YAFFS_TRACE_ALWAYS, (TSTR("Object in directory list has wrong parent %p" TENDSTR), listObj->parent));
+			list_obj = ylist_entry(lh, yaffs_obj_t, siblings);
+			if (list_obj->parent != directory) {
+				T(YAFFS_TRACE_ALWAYS, (
+				TSTR("Object in directory list has wrong parent %p" TENDSTR),
+				list_obj->parent));
 				YBUG();
 			}
-			yaffs_verify_obj_in_dir(listObj);
+			yaffs_verify_obj_in_dir(list_obj);
 		}
 	}
 }
@@ -571,22 +576,22 @@ int yaffs_verify_file_sane(yaffs_obj_t *in)
 #if 0
 	int chunk;
 	int n_chunks;
-	int fSize;
+	int file_size;
 	int failed = 0;
 	int obj_id;
 	yaffs_tnode_t *tn;
-	yaffs_tags_t localTags;
-	yaffs_tags_t *tags = &localTags;
-	int theChunk;
+	yaffs_tags_t local_tags;
+	yaffs_tags_t *tags = &local_tags;
+	int the_chunk;
 	int is_deleted;
 
 	if (in->variant_type != YAFFS_OBJECT_TYPE_FILE)
 		return YAFFS_FAIL;
 
 	obj_id = in->obj_id;
-	fSize = in->variant.file_variant.file_size;
+	file_size = in->variant.file_variant.file_size;
 	n_chunks =
-	    (fSize + in->my_dev->data_bytes_per_chunk - 1) / in->my_dev->data_bytes_per_chunk;
+	    (file_size + in->my_dev->data_bytes_per_chunk - 1) / in->my_dev->data_bytes_per_chunk;
 
 	for (chunk = 1; chunk <= n_chunks; chunk++) {
 		tn = yaffs_find_tnode_0(in->my_dev, &in->variant.file_variant,
@@ -594,13 +599,13 @@ int yaffs_verify_file_sane(yaffs_obj_t *in)
 
 		if (tn) {
 
-			theChunk = yaffs_get_group_base(dev, tn, chunk);
+			the_chunk = yaffs_get_group_base(dev, tn, chunk);
 
 			if (yaffs_check_chunk_bits
-			    (dev, theChunk / dev->param.chunks_per_block,
-			     theChunk % dev->param.chunks_per_block)) {
+			    (dev, the_chunk / dev->param.chunks_per_block,
+			     the_chunk % dev->param.chunks_per_block)) {
 
-				yaffs_rd_chunk_tags_nand(in->my_dev, theChunk,
+				yaffs_rd_chunk_tags_nand(in->my_dev, the_chunk,
 							    tags,
 							    &is_deleted);
 				if (yaffs_tags_match

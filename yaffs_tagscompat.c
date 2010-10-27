@@ -49,9 +49,9 @@ static const char yaffs_count_bits_table[256] = {
 
 int yaffs_count_bits(__u8 x)
 {
-	int retVal;
-	retVal = yaffs_count_bits_table[x];
-	return retVal;
+	int ret_val;
+	ret_val = yaffs_count_bits_table[x];
+	return ret_val;
 }
 
 /********** Tags ECC calculations  *********/
@@ -116,39 +116,39 @@ int yaffs_check_tags_ecc(yaffs_tags_t *tags)
 
 /********** Tags **********/
 
-static void yaffs_load_tags_to_spare(yaffs_spare *sparePtr,
-				yaffs_tags_t *tagsPtr)
+static void yaffs_load_tags_to_spare(yaffs_spare *spare_ptr,
+				yaffs_tags_t *tags_ptr)
 {
-	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tagsPtr;
+	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tags_ptr;
 
-	yaffs_calc_tags_ecc(tagsPtr);
+	yaffs_calc_tags_ecc(tags_ptr);
 
-	sparePtr->tb0 = tu->as_bytes[0];
-	sparePtr->tb1 = tu->as_bytes[1];
-	sparePtr->tb2 = tu->as_bytes[2];
-	sparePtr->tb3 = tu->as_bytes[3];
-	sparePtr->tb4 = tu->as_bytes[4];
-	sparePtr->tb5 = tu->as_bytes[5];
-	sparePtr->tb6 = tu->as_bytes[6];
-	sparePtr->tb7 = tu->as_bytes[7];
+	spare_ptr->tb0 = tu->as_bytes[0];
+	spare_ptr->tb1 = tu->as_bytes[1];
+	spare_ptr->tb2 = tu->as_bytes[2];
+	spare_ptr->tb3 = tu->as_bytes[3];
+	spare_ptr->tb4 = tu->as_bytes[4];
+	spare_ptr->tb5 = tu->as_bytes[5];
+	spare_ptr->tb6 = tu->as_bytes[6];
+	spare_ptr->tb7 = tu->as_bytes[7];
 }
 
-static void yaffs_get_tags_from_spare(yaffs_dev_t *dev, yaffs_spare *sparePtr,
-				yaffs_tags_t *tagsPtr)
+static void yaffs_get_tags_from_spare(yaffs_dev_t *dev, yaffs_spare *spare_ptr,
+				yaffs_tags_t *tags_ptr)
 {
-	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tagsPtr;
+	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tags_ptr;
 	int result;
 
-	tu->as_bytes[0] = sparePtr->tb0;
-	tu->as_bytes[1] = sparePtr->tb1;
-	tu->as_bytes[2] = sparePtr->tb2;
-	tu->as_bytes[3] = sparePtr->tb3;
-	tu->as_bytes[4] = sparePtr->tb4;
-	tu->as_bytes[5] = sparePtr->tb5;
-	tu->as_bytes[6] = sparePtr->tb6;
-	tu->as_bytes[7] = sparePtr->tb7;
+	tu->as_bytes[0] = spare_ptr->tb0;
+	tu->as_bytes[1] = spare_ptr->tb1;
+	tu->as_bytes[2] = spare_ptr->tb2;
+	tu->as_bytes[3] = spare_ptr->tb3;
+	tu->as_bytes[4] = spare_ptr->tb4;
+	tu->as_bytes[5] = spare_ptr->tb5;
+	tu->as_bytes[6] = spare_ptr->tb6;
+	tu->as_bytes[7] = spare_ptr->tb7;
 
-	result = yaffs_check_tags_ecc(tagsPtr);
+	result = yaffs_check_tags_ecc(tags_ptr);
 	if (result > 0)
 		dev->n_tags_ecc_fixed++;
 	else if (result < 0)
@@ -179,31 +179,31 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev_s *dev,
 				   __u8 *data,
 				   yaffs_spare *spare,
 				   yaffs_ecc_result *ecc_result,
-				   int doErrorCorrection)
+				   int correct_errors)
 {
-	int retVal;
-	yaffs_spare localSpare;
+	int ret_val;
+	yaffs_spare local_spare;
 
 	if (!spare && data) {
 		/* If we don't have a real spare, then we use a local one. */
 		/* Need this for the calculation of the ecc */
-		spare = &localSpare;
+		spare = &local_spare;
 	}
 
 	if (!dev->param.use_nand_ecc) {
-		retVal = dev->param.read_chunk_fn(dev, nand_chunk, data, spare);
-		if (data && doErrorCorrection) {
+		ret_val = dev->param.read_chunk_fn(dev, nand_chunk, data, spare);
+		if (data && correct_errors) {
 			/* Do ECC correction */
 			/* Todo handle any errors */
 			int ecc_result1, ecc_result2;
-			__u8 calcEcc[3];
+			__u8 calc_ecc[3];
 
-			yaffs_ecc_cacl(data, calcEcc);
+			yaffs_ecc_cacl(data, calc_ecc);
 			ecc_result1 =
-			    yaffs_ecc_correct(data, spare->ecc1, calcEcc);
-			yaffs_ecc_cacl(&data[256], calcEcc);
+			    yaffs_ecc_correct(data, spare->ecc1, calc_ecc);
+			yaffs_ecc_cacl(&data[256], calc_ecc);
 			ecc_result2 =
-			    yaffs_ecc_correct(&data[256], spare->ecc2, calcEcc);
+			    yaffs_ecc_correct(&data[256], spare->ecc2, calc_ecc);
 
 			if (ecc_result1 > 0) {
 				T(YAFFS_TRACE_ERROR,
@@ -252,10 +252,10 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev_s *dev,
 
 		memset(&nspare, 0, sizeof(nspare));
 
-		retVal = dev->param.read_chunk_fn(dev, nand_chunk, data,
+		ret_val = dev->param.read_chunk_fn(dev, nand_chunk, data,
 					(yaffs_spare *) &nspare);
 		memcpy(spare, &nspare, sizeof(yaffs_spare));
-		if (data && doErrorCorrection) {
+		if (data && correct_errors) {
 			if (nspare.eccres1 > 0) {
 				T(YAFFS_TRACE_ERROR,
 				  (TSTR
@@ -294,7 +294,7 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev_s *dev,
 
 		}
 	}
-	return retVal;
+	return ret_val;
 }
 
 #ifdef NOTYET
@@ -399,28 +399,28 @@ static int yaffs_verify_cmp(const __u8 *d0, const __u8 *d1,
 int yaffs_tags_compat_wr(yaffs_dev_t *dev,
 						int nand_chunk,
 						const __u8 *data,
-						const yaffs_ext_tags *eTags)
+						const yaffs_ext_tags *ext_tags)
 {
 	yaffs_spare spare;
 	yaffs_tags_t tags;
 
 	yaffs_spare_init(&spare);
 
-	if (eTags->is_deleted)
+	if (ext_tags->is_deleted)
 		spare.page_status = 0;
 	else {
-		tags.obj_id = eTags->obj_id;
-		tags.chunk_id = eTags->chunk_id;
+		tags.obj_id = ext_tags->obj_id;
+		tags.chunk_id = ext_tags->chunk_id;
 
-		tags.n_bytes_lsb = eTags->n_bytes & 0x3ff;
+		tags.n_bytes_lsb = ext_tags->n_bytes & 0x3ff;
 
 		if (dev->data_bytes_per_chunk >= 1024)
-			tags.n_bytes_msb = (eTags->n_bytes >> 10) & 3;
+			tags.n_bytes_msb = (ext_tags->n_bytes >> 10) & 3;
 		else
 			tags.n_bytes_msb = 3;
 
 
-		tags.serial_number = eTags->serial_number;
+		tags.serial_number = ext_tags->serial_number;
 
 		if (!dev->param.use_nand_ecc && data)
 			yaffs_calc_ecc(data, &spare);
@@ -435,48 +435,48 @@ int yaffs_tags_compat_wr(yaffs_dev_t *dev,
 int yaffs_tags_compat_rd(yaffs_dev_t *dev,
 						     int nand_chunk,
 						     __u8 *data,
-						     yaffs_ext_tags *eTags)
+						     yaffs_ext_tags *ext_tags)
 {
 
 	yaffs_spare spare;
 	yaffs_tags_t tags;
 	yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_UNKNOWN;
 
-	static yaffs_spare spareFF;
+	static yaffs_spare spare_ff;
 	static int init;
 
 	if (!init) {
-		memset(&spareFF, 0xFF, sizeof(spareFF));
+		memset(&spare_ff, 0xFF, sizeof(spare_ff));
 		init = 1;
 	}
 
 	if (yaffs_rd_chunk_nand
 	    (dev, nand_chunk, data, &spare, &ecc_result, 1)) {
-		/* eTags may be NULL */
-		if (eTags) {
+		/* ext_tags may be NULL */
+		if (ext_tags) {
 
 			int deleted =
 			    (yaffs_count_bits(spare.page_status) < 7) ? 1 : 0;
 
-			eTags->is_deleted = deleted;
-			eTags->ecc_result = ecc_result;
-			eTags->block_bad = 0;	/* We're reading it */
+			ext_tags->is_deleted = deleted;
+			ext_tags->ecc_result = ecc_result;
+			ext_tags->block_bad = 0;	/* We're reading it */
 			/* therefore it is not a bad block */
-			eTags->chunk_used =
-			    (memcmp(&spareFF, &spare, sizeof(spareFF)) !=
+			ext_tags->chunk_used =
+			    (memcmp(&spare_ff, &spare, sizeof(spare_ff)) !=
 			     0) ? 1 : 0;
 
-			if (eTags->chunk_used) {
+			if (ext_tags->chunk_used) {
 				yaffs_get_tags_from_spare(dev, &spare, &tags);
 
-				eTags->obj_id = tags.obj_id;
-				eTags->chunk_id = tags.chunk_id;
-				eTags->n_bytes = tags.n_bytes_lsb;
+				ext_tags->obj_id = tags.obj_id;
+				ext_tags->chunk_id = tags.chunk_id;
+				ext_tags->n_bytes = tags.n_bytes_lsb;
 
 				if (dev->data_bytes_per_chunk >= 1024)
-					eTags->n_bytes |= (((unsigned) tags.n_bytes_msb) << 10);
+					ext_tags->n_bytes |= (((unsigned) tags.n_bytes_msb) << 10);
 
-				eTags->serial_number = tags.serial_number;
+				ext_tags->serial_number = tags.serial_number;
 			}
 		}
 
@@ -512,12 +512,12 @@ int yaffs_tags_compat_query_block(struct yaffs_dev_s *dev,
 {
 
 	yaffs_spare spare0, spare1;
-	static yaffs_spare spareFF;
+	static yaffs_spare spare_ff;
 	static int init;
 	yaffs_ecc_result dummy;
 
 	if (!init) {
-		memset(&spareFF, 0xFF, sizeof(spareFF));
+		memset(&spare_ff, 0xFF, sizeof(spare_ff));
 		init = 1;
 	}
 
@@ -530,7 +530,7 @@ int yaffs_tags_compat_query_block(struct yaffs_dev_s *dev,
 
 	if (yaffs_count_bits(spare0.block_status & spare1.block_status) < 7)
 		*state = YAFFS_BLOCK_STATE_DEAD;
-	else if (memcmp(&spareFF, &spare0, sizeof(spareFF)) == 0)
+	else if (memcmp(&spare_ff, &spare0, sizeof(spare_ff)) == 0)
 		*state = YAFFS_BLOCK_STATE_EMPTY;
 	else
 		*state = YAFFS_BLOCK_STATE_NEEDS_SCANNING;

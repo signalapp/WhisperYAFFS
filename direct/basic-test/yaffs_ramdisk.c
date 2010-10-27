@@ -139,9 +139,9 @@ int yramdisk_wr_chunk(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const ya
 	
 	if(tags)
 	{
-		yaffs_PackedTags1 pt;
+		yaffs_packed_tags1 pt;
 		
-		yaffs_PackTags1(&pt,tags);
+		yaffs_pack_tags1(&pt,tags);
 		memcpy(&ramdisk.block[blk]->page[pg].data[512],&pt,sizeof(pt));
 	}
 
@@ -170,7 +170,7 @@ int yramdisk_rd_chunk(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tag
 	
 	if(tags)
 	{
-		yaffs_PackedTags1 pt;
+		yaffs_packed_tags1 pt;
 		
 		memcpy(&pt,&ramdisk.block[blk]->page[pg].data[512],sizeof(pt));
 		yaffs_unpack_tags1(tags,&pt);

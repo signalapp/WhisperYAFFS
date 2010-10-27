@@ -14,7 +14,7 @@
 #include "yaffs_packedtags1.h"
 #include "yportenv.h"
 
-void yaffs_PackTags1(yaffs_PackedTags1 *pt, const yaffs_ext_tags *t)
+void yaffs_pack_tags1(yaffs_packed_tags1 *pt, const yaffs_ext_tags *t)
 {
 	pt->chunk_id = t->chunk_id;
 	pt->serial_number = t->serial_number;
@@ -22,20 +22,20 @@ void yaffs_PackTags1(yaffs_PackedTags1 *pt, const yaffs_ext_tags *t)
 	pt->obj_id = t->obj_id;
 	pt->ecc = 0;
 	pt->deleted = (t->is_deleted) ? 0 : 1;
-	pt->unusedStuff = 0;
-	pt->shouldBeFF = 0xFFFFFFFF;
+	pt->unused_stuff = 0;
+	pt->should_be_ff = 0xFFFFFFFF;
 
 }
 
-void yaffs_unpack_tags1(yaffs_ext_tags *t, const yaffs_PackedTags1 *pt)
+void yaffs_unpack_tags1(yaffs_ext_tags *t, const yaffs_packed_tags1 *pt)
 {
-	static const __u8 allFF[] =
+	static const __u8 all_ff[] =
 	    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 0xff };
 
-	if (memcmp(allFF, pt, sizeof(yaffs_PackedTags1))) {
+	if (memcmp(all_ff, pt, sizeof(yaffs_packed_tags1))) {
 		t->block_bad = 0;
-		if (pt->shouldBeFF != 0xFFFFFFFF)
+		if (pt->should_be_ff != 0xFFFFFFFF)
 			t->block_bad = 1;
 		t->chunk_used = 1;
 		t->obj_id = pt->obj_id;

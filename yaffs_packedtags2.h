@@ -26,18 +26,18 @@ typedef struct {
 	unsigned obj_id;
 	unsigned chunk_id;
 	unsigned n_bytes;
-} yaffs_PackedTags2TagsPart;
+} yaffs_packed_tags2_tags_only;
 
 typedef struct {
-	yaffs_PackedTags2TagsPart t;
-	yaffs_ECCOther ecc;
-} yaffs_PackedTags2;
+	yaffs_packed_tags2_tags_only t;
+	yaffs_ecc_other ecc;
+} yaffs_packed_tags2;
 
 /* Full packed tags with ECC, used for oob tags */
-void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ext_tags *t, int tagsECC);
-void yaffs_unpack_tags2(yaffs_ext_tags *t, yaffs_PackedTags2 *pt, int tagsECC);
+void yaffs_pack_tags2(yaffs_packed_tags2 *pt, const yaffs_ext_tags *t, int tags_ecc);
+void yaffs_unpack_tags2(yaffs_ext_tags *t, yaffs_packed_tags2 *pt, int tags_ecc);
 
 /* Only the tags part (no ECC for use with inband tags */
-void yaffs_PackTags2TagsPart(yaffs_PackedTags2TagsPart *pt, const yaffs_ext_tags *t);
-void yaffs_unpack_tags2tags_part(yaffs_ext_tags *t, yaffs_PackedTags2TagsPart *pt);
+void yaffs_pack_tags2_tags_only(yaffs_packed_tags2_tags_only *pt, const yaffs_ext_tags *t);
+void yaffs_unpack_tags2_tags_only(yaffs_ext_tags *t, yaffs_packed_tags2_tags_only *pt);
 #endif

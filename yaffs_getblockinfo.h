@@ -25,7 +25,7 @@ static Y_INLINE yaffs_block_info_t *yaffs_get_block_info(yaffs_dev_t * dev, int 
 	if (blk < dev->internal_start_block || blk > dev->internal_end_block) {
 		T(YAFFS_TRACE_ERROR,
 		  (TSTR
-		   ("**>> yaffs: getBlockInfo block %d is not valid" TENDSTR),
+		   ("**>> yaffs: get_block_info block %d is not valid" TENDSTR),
 		   blk));
 		YBUG();
 	}

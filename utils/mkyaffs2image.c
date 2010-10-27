@@ -46,7 +46,6 @@ unsigned yaffs_trace_mask=0;
 #define spareSize 64
 #define pagesPerBlock 64
 
-const char * mkyaffsimage_c_version = "$Id: mkyaffs2image.c,v 1.5 2010-01-11 21:43:18 charles Exp $";
 
 
 typedef struct
@@ -58,7 +57,6 @@ typedef struct
 
 
 static objItem obj_list[MAX_OBJECTS];
-static int n_obj = 0;
 static int obj_id = YAFFS_NOBJECT_BUCKETS + 1;
 
 static int n_obj, nDirectories, nPages;
@@ -145,7 +143,7 @@ static int find_obj_in_list(dev_t dev, ino_t ino)
  * NOTE: The tag is not usable after this other than calculating the CRC
  * with.
  */
-static void little_to_big_endian(yaffs_tags_t *tagsPtr)
+static void little_to_big_endian(yaffs_ext_tags *tagsPtr)
 {
 #if 0 // FIXME NCB
     yaffs_tags_union_t * tags = (yaffs_tags_union_t* )tagsPtr; // Work in bytes.
@@ -174,17 +172,17 @@ static void little_to_big_endian(yaffs_tags_t *tagsPtr)
 #endif
 }
 
-static void shuffle_oob(char *spareData, yaffs_PackedTags2 *pt)
+static void shuffle_oob(char *spareData, yaffs_packed_tags2 *pt)
 {
 	assert(sizeof(*pt) <= spareSize);
 	// NAND LAYOUT: For non-trivial OOB orderings, here would be a good place to shuffle.
 	memcpy(spareData, pt, sizeof(*pt));
 }
 
-static int write_chunk(__u8 *data, __u32 obj_id, __u32 chunk_id, __u32 n_bytes)
+static int write_chunk(__u8 *data, __u32 id, __u32 chunk_id, __u32 n_bytes)
 {
 	yaffs_ext_tags t;
-	yaffs_PackedTags2 pt;
+	yaffs_packed_tags2 pt;
 	char spareData[spareSize];
 
 	if (write(outFile,data,chunkSize) != chunkSize)
@@ -196,7 +194,7 @@ static int write_chunk(__u8 *data, __u32 obj_id, __u32 chunk_id, __u32 n_bytes)
 //	t.serial_number = 0;
 	t.serial_number = 1;	// **CHECK**
 	t.n_bytes = n_bytes;
-	t.obj_id = obj_id;
+	t.obj_id = id;
 	
 	t.seq_number = YAFFS_LOWEST_SEQUENCE_NUMBER;
 
@@ -211,7 +209,7 @@ static int write_chunk(__u8 *data, __u32 obj_id, __u32 chunk_id, __u32 n_bytes)
 	nPages++;
 
 	memset(&pt, 0, sizeof(pt));
-	yaffs_PackTags2(&pt,&t,1);
+	yaffs_pack_tags2(&pt,&t,1);
 
 	memset(spareData, 0xff, sizeof(spareData));
 	shuffle_oob(spareData, &pt);
@@ -278,7 +276,7 @@ static void object_header_little_to_big_endian(yaffs_obj_header* oh)
 #endif
 }
 
-static int write_object_header(int obj_id, yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
+static int write_object_header(int id, yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
 {
 	__u8 bytes[chunkSize];
 	
@@ -338,11 +336,11 @@ static int write_object_header(int obj_id, yaffs_obj_type t, struct stat *s, int
     		object_header_little_to_big_endian(oh);
 	}
 	
-	return write_chunk(bytes,obj_id,0,0xffff);
+	return write_chunk(bytes,id,0,0xffff);
 	
 }
 
-static void pad_image()
+static void pad_image(void)
 {
 	__u8 data[chunkSize + spareSize];
 	int padPages = (nPages % pagesPerBlock);

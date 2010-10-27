@@ -56,7 +56,7 @@
  * the 9th byte.
  *
  * Old-style on-NAND format: T0,T1,T2,T3,P,B,T4,T5,E0,E1,E2,T6,T7,E3,E4,E5
- * We have/need PackedTags1 plus page_status: T0,T1,T2,T3,T4,T5,T6,T7,P
+ * We have/need packed_tags1 plus page_status: T0,T1,T2,T3,T4,T5,T6,T7,P
  * where Tn are the tag bytes, En are MTD's ECC bytes, P is the page_status
  * byte and B is the small-page bad-block indicator byte.
  */
@@ -74,12 +74,12 @@ static struct nand_ecclayout nand_oob_16 = {
  * compact (packed) form for storage in NAND.  A mini-ECC runs over the
  * contents of the tags meta-data; used to valid the tags when read.
  *
- *  - Pack ExtendedTags to PackedTags1 form
- *  - Compute mini-ECC for PackedTags1
+ *  - Pack ExtendedTags to packed_tags1 form
+ *  - Compute mini-ECC for packed_tags1
  *  - Write data and packed tags to NAND.
  *
- * Note: Due to the use of the PackedTags1 meta-data which does not include
- * a full sequence number (as found in the larger PackedTags2 form) it is
+ * Note: Due to the use of the packed_tags1 meta-data which does not include
+ * a full sequence number (as found in the larger packed_tags2 form) it is
  * necessary for Yaffs to re-write a chunk/page (just once) to mark it as
  * discarded and dirty.  This is not ideal: newer NAND parts are supposed
  * to be written just once.  When Yaffs performs this operation, this
@@ -89,21 +89,21 @@ static struct nand_ecclayout nand_oob_16 = {
  * Any underlying MTD error results in YAFFS_FAIL.
  * Returns YAFFS_OK or YAFFS_FAIL.
  */
-int nandmtd1_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,
+int nandmtd1_write_chunk_tags(yaffs_dev_t *dev,
 	int nand_chunk, const __u8 *data, const yaffs_ext_tags *etags)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
-	int chunkBytes = dev->data_bytes_per_chunk;
-	loff_t addr = ((loff_t)nand_chunk) * chunkBytes;
+	int chunk_bytes = dev->data_bytes_per_chunk;
+	loff_t addr = ((loff_t)nand_chunk) * chunk_bytes;
 	struct mtd_oob_ops ops;
-	yaffs_PackedTags1 pt1;
+	yaffs_packed_tags1 pt1;
 	int retval;
 
-	/* we assume that PackedTags1 and yaffs_tags_t are compatible */
-	compile_time_assertion(sizeof(yaffs_PackedTags1) == 12);
+	/* we assume that packed_tags1 and yaffs_tags_t are compatible */
+	compile_time_assertion(sizeof(yaffs_packed_tags1) == 12);
 	compile_time_assertion(sizeof(yaffs_tags_t) == 8);
 
-	yaffs_PackTags1(&pt1, etags);
+	yaffs_pack_tags1(&pt1, etags);
 	yaffs_calc_tags_ecc((yaffs_tags_t *)&pt1);
 
 	/* When deleting a chunk, the upper layer provides only skeletal
@@ -129,7 +129,7 @@ int nandmtd1_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,
 
 	memset(&ops, 0, sizeof(ops));
 	ops.mode = MTD_OOB_AUTO;
-	ops.len = (data) ? chunkBytes : 0;
+	ops.len = (data) ? chunk_bytes : 0;
 	ops.ooblen = YTAG1_SIZE;
 	ops.datbuf = (__u8 *)data;
 	ops.oobbuf = (__u8 *)&pt1;
@@ -161,27 +161,27 @@ static int rettags(yaffs_ext_tags *etags, int ecc_result, int retval)
  *
  *  - Check ECC results for data (if applicable)
  *  - Check for blank/erased block (return empty ExtendedTags if blank)
- *  - Check the PackedTags1 mini-ECC (correct if necessary/possible)
- *  - Convert PackedTags1 to ExtendedTags
+ *  - Check the packed_tags1 mini-ECC (correct if necessary/possible)
+ *  - Convert packed_tags1 to ExtendedTags
  *  - Update ecc_result and block_bad members to refect state.
  *
  * Returns YAFFS_OK or YAFFS_FAIL.
  */
-int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,
+int nandmtd1_read_chunk_tags(yaffs_dev_t *dev,
 	int nand_chunk, __u8 *data, yaffs_ext_tags *etags)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
-	int chunkBytes = dev->data_bytes_per_chunk;
-	loff_t addr = ((loff_t)nand_chunk) * chunkBytes;
+	int chunk_bytes = dev->data_bytes_per_chunk;
+	loff_t addr = ((loff_t)nand_chunk) * chunk_bytes;
 	int eccres = YAFFS_ECC_RESULT_NO_ERROR;
 	struct mtd_oob_ops ops;
-	yaffs_PackedTags1 pt1;
+	yaffs_packed_tags1 pt1;
 	int retval;
 	int deleted;
 
 	memset(&ops, 0, sizeof(ops));
 	ops.mode = MTD_OOB_AUTO;
-	ops.len = (data) ? chunkBytes : 0;
+	ops.len = (data) ? chunk_bytes : 0;
 	ops.ooblen = YTAG1_SIZE;
 	ops.datbuf = data;
 	ops.oobbuf = (__u8 *)&pt1;
@@ -261,9 +261,9 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,
 	}
 
 	/* Unpack the tags to extended form and set ECC result.
-	 * [set shouldBeFF just to keep yaffs_unpack_tags1 happy]
+	 * [set should_be_ff just to keep yaffs_unpack_tags1 happy]
 	 */
-	pt1.shouldBeFF = 0xFFFFFFFF;
+	pt1.should_be_ff = 0xFFFFFFFF;
 	yaffs_unpack_tags1(etags, &pt1);
 	etags->ecc_result = eccres;
 
@@ -279,7 +279,7 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,
  *
  * Returns YAFFS_OK or YAFFS_FAIL.
  */
-int nandmtd1_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
+int nandmtd1_mark_block_bad(struct yaffs_dev_s *dev, int block_no)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int blocksize = dev->param.chunks_per_block * dev->data_bytes_per_chunk;
@@ -295,7 +295,7 @@ int nandmtd1_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
  *
  * Returns YAFFS_OK or YAFFS_FAIL.
  */
-static int nandmtd1_TestPrerequists(struct mtd_info *mtd)
+static int nandmtd1_test_prerequists(struct mtd_info *mtd)
 {
 	/* 2.6.18 has mtd->ecclayout->oobavail */
 	/* 2.6.21 has mtd->ecclayout->oobavail and mtd->oobavail */
@@ -319,12 +319,12 @@ static int nandmtd1_TestPrerequists(struct mtd_info *mtd)
  *
  * Always returns YAFFS_OK.
  */
-int nandmtd1_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no,
-	yaffs_block_state_t *pState, __u32 *pSequenceNumber)
+int nandmtd1_query_block(struct yaffs_dev_s *dev, int block_no,
+	yaffs_block_state_t *state_ptr, __u32 *seq_ptr)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
-	int chunkNo = block_no * dev->param.chunks_per_block;
-	loff_t addr = (loff_t)chunkNo * dev->data_bytes_per_chunk;
+	int chunk_num = block_no * dev->param.chunks_per_block;
+	loff_t addr = (loff_t)chunk_num * dev->data_bytes_per_chunk;
 	yaffs_ext_tags etags;
 	int state = YAFFS_BLOCK_STATE_DEAD;
 	int seqnum = 0;
@@ -333,10 +333,10 @@ int nandmtd1_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no,
 	/* We don't yet have a good place to test for MTD config prerequists.
 	 * Do it here as we are called during the initial scan.
 	 */
-	if (nandmtd1_TestPrerequists(mtd) != YAFFS_OK)
+	if (nandmtd1_test_prerequists(mtd) != YAFFS_OK)
 		return YAFFS_FAIL;
 
-	retval = nandmtd1_ReadChunkWithTagsFromNAND(dev, chunkNo, NULL, &etags);
+	retval = nandmtd1_read_chunk_tags(dev, chunk_num, NULL, &etags);
 	etags.block_bad = (mtd->block_isbad)(mtd, addr);
 	if (etags.block_bad) {
 		T(YAFFS_TRACE_BAD_BLOCKS,
@@ -352,8 +352,8 @@ int nandmtd1_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no,
 		state = YAFFS_BLOCK_STATE_EMPTY;
 	}
 
-	*pState = state;
-	*pSequenceNumber = seqnum;
+	*state_ptr = state;
+	*seq_ptr = seqnum;
 
 	/* query always succeeds */
 	return YAFFS_OK;

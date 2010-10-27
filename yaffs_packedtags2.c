@@ -39,19 +39,19 @@
 #define EXTRA_OBJECT_TYPE_MASK  ((0x0F) << EXTRA_OBJECT_TYPE_SHIFT)
 
 
-static void yaffs_DumpPackedTags2TagsPart(const yaffs_PackedTags2TagsPart *ptt)
+static void yaffs_dump_packed_tags2_tags_only(const yaffs_packed_tags2_tags_only *ptt)
 {
 	T(YAFFS_TRACE_MTD,
 	  (TSTR("packed tags obj %d chunk %d byte %d seq %d" TENDSTR),
 	   ptt->obj_id, ptt->chunk_id, ptt->n_bytes,
 	   ptt->seq_number));
 }
-static void yaffs_DumpPackedTags2(const yaffs_PackedTags2 *pt)
+static void yaffs_dump_packed_tags2(const yaffs_packed_tags2 *pt)
 {
-	yaffs_DumpPackedTags2TagsPart(&pt->t);
+	yaffs_dump_packed_tags2_tags_only(&pt->t);
 }
 
-static void yaffs_DumpTags2(const yaffs_ext_tags *t)
+static void yaffs_dump_tags2(const yaffs_ext_tags *t)
 {
 	T(YAFFS_TRACE_MTD,
 	  (TSTR
@@ -62,7 +62,7 @@ static void yaffs_DumpTags2(const yaffs_ext_tags *t)
 
 }
 
-void yaffs_PackTags2TagsPart(yaffs_PackedTags2TagsPart *ptt,
+void yaffs_pack_tags2_tags_only(yaffs_packed_tags2_tags_only *ptt,
 		const yaffs_ext_tags *t)
 {
 	ptt->chunk_id = t->chunk_id;
@@ -92,24 +92,24 @@ void yaffs_PackTags2TagsPart(yaffs_PackedTags2TagsPart *ptt,
 			ptt->n_bytes = 0;
 	}
 
-	yaffs_DumpPackedTags2TagsPart(ptt);
-	yaffs_DumpTags2(t);
+	yaffs_dump_packed_tags2_tags_only(ptt);
+	yaffs_dump_tags2(t);
 }
 
 
-void yaffs_PackTags2(yaffs_PackedTags2 *pt, const yaffs_ext_tags *t, int tagsECC)
+void yaffs_pack_tags2(yaffs_packed_tags2 *pt, const yaffs_ext_tags *t, int tags_ecc)
 {
-	yaffs_PackTags2TagsPart(&pt->t, t);
+	yaffs_pack_tags2_tags_only(&pt->t, t);
 
-	if(tagsECC)
+	if(tags_ecc)
 		yaffs_ecc_calc_other((unsigned char *)&pt->t,
-					sizeof(yaffs_PackedTags2TagsPart),
+					sizeof(yaffs_packed_tags2_tags_only),
 					&pt->ecc);
 }
 
 
-void yaffs_unpack_tags2tags_part(yaffs_ext_tags *t,
-		yaffs_PackedTags2TagsPart *ptt)
+void yaffs_unpack_tags2_tags_only(yaffs_ext_tags *t,
+		yaffs_packed_tags2_tags_only *ptt)
 {
 
 	memset(t, 0, sizeof(yaffs_ext_tags));
@@ -150,28 +150,28 @@ void yaffs_unpack_tags2tags_part(yaffs_ext_tags *t,
 		}
 	}
 
-	yaffs_DumpPackedTags2TagsPart(ptt);
-	yaffs_DumpTags2(t);
+	yaffs_dump_packed_tags2_tags_only(ptt);
+	yaffs_dump_tags2(t);
 
 }
 
 
-void yaffs_unpack_tags2(yaffs_ext_tags *t, yaffs_PackedTags2 *pt, int tagsECC)
+void yaffs_unpack_tags2(yaffs_ext_tags *t, yaffs_packed_tags2 *pt, int tags_ecc)
 {
 
 	yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
 
 	if (pt->t.seq_number != 0xFFFFFFFF &&
-	    tagsECC){
+	    tags_ecc){
 		/* Chunk is in use and we need to do ECC */
 		
-		yaffs_ECCOther ecc;
+		yaffs_ecc_other ecc;
 		int result;
 		yaffs_ecc_calc_other((unsigned char *)&pt->t,
-					sizeof(yaffs_PackedTags2TagsPart),
+					sizeof(yaffs_packed_tags2_tags_only),
 					&ecc);
 		result = yaffs_ecc_correct_other((unsigned char *)&pt->t,
-						sizeof(yaffs_PackedTags2TagsPart),
+						sizeof(yaffs_packed_tags2_tags_only),
 						&pt->ecc, &ecc);
 		switch (result) {
 			case 0:
@@ -188,11 +188,11 @@ void yaffs_unpack_tags2(yaffs_ext_tags *t, yaffs_PackedTags2 *pt, int tagsECC)
 		}
 	}
 
-	yaffs_unpack_tags2tags_part(t, &pt->t);
+	yaffs_unpack_tags2_tags_only(t, &pt->t);
 
 	t->ecc_result = ecc_result;
 
-	yaffs_DumpPackedTags2(pt);
-	yaffs_DumpTags2(t);
+	yaffs_dump_packed_tags2(pt);
+	yaffs_dump_tags2(t);
 }
 

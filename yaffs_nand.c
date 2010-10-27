@@ -22,22 +22,22 @@ int yaffs_rd_chunk_tags_nand(yaffs_dev_t *dev, int nand_chunk,
 					   yaffs_ext_tags *tags)
 {
 	int result;
-	yaffs_ext_tags localTags;
+	yaffs_ext_tags local_tags;
 
-	int realignedChunkInNAND = nand_chunk - dev->chunk_offset;
+	int realigned_chunk = nand_chunk - dev->chunk_offset;
 
 	dev->n_page_reads++;
 
 	/* If there are no tags provided, use local tags to get prioritised gc working */
 	if (!tags)
-		tags = &localTags;
+		tags = &local_tags;
 
 	if (dev->param.read_chunk_tags_fn)
-		result = dev->param.read_chunk_tags_fn(dev, realignedChunkInNAND, buffer,
+		result = dev->param.read_chunk_tags_fn(dev, realigned_chunk, buffer,
 						      tags);
 	else
 		result = yaffs_tags_compat_rd(dev,
-									realignedChunkInNAND,
+									realigned_chunk,
 									buffer,
 									tags);
 	if (tags &&

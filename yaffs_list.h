@@ -52,27 +52,27 @@ do { \
 
 
 /* Add an element to a list */
-static Y_INLINE void ylist_add(struct ylist_head *newEntry,
+static Y_INLINE void ylist_add(struct ylist_head *new_entry,
 				struct ylist_head *list)
 {
-	struct ylist_head *listNext = list->next;
+	struct ylist_head *list_next = list->next;
 
-	list->next = newEntry;
-	newEntry->prev = list;
-	newEntry->next = listNext;
-	listNext->prev = newEntry;
+	list->next = new_entry;
+	new_entry->prev = list;
+	new_entry->next = list_next;
+	list_next->prev = new_entry;
 
 }
 
-static Y_INLINE void ylist_add_tail(struct ylist_head *newEntry,
+static Y_INLINE void ylist_add_tail(struct ylist_head *new_entry,
 				 struct ylist_head *list)
 {
-	struct ylist_head *listPrev = list->prev;
+	struct ylist_head *list_prev = list->prev;
 
-	list->prev = newEntry;
-	newEntry->next = list;
-	newEntry->prev = listPrev;
-	listPrev->next = newEntry;
+	list->prev = new_entry;
+	new_entry->next = list;
+	new_entry->prev = list_prev;
+	list_prev->next = new_entry;
 
 }
 
@@ -81,11 +81,11 @@ static Y_INLINE void ylist_add_tail(struct ylist_head *newEntry,
  * reinitialising the links.of the entry*/
 static Y_INLINE void ylist_del(struct ylist_head *entry)
 {
-	struct ylist_head *listNext = entry->next;
-	struct ylist_head *listPrev = entry->prev;
+	struct ylist_head *list_next = entry->next;
+	struct ylist_head *list_prev = entry->prev;
 
-	listNext->prev = listPrev;
-	listPrev->next = listNext;
+	list_next->prev = list_prev;
+	list_prev->next = list_next;
 
 }
 
@@ -119,9 +119,9 @@ static Y_INLINE int ylist_empty(struct ylist_head *entry)
 #define ylist_for_each(itervar, list) \
 	for (itervar = (list)->next; itervar != (list); itervar = itervar->next)
 
-#define ylist_for_each_safe(itervar, saveVar, list) \
-	for (itervar = (list)->next, saveVar = (list)->next->next; \
-		itervar != (list); itervar = saveVar, saveVar = saveVar->next)
+#define ylist_for_each_safe(itervar, save_var, list) \
+	for (itervar = (list)->next, save_var = (list)->next->next; \
+		itervar != (list); itervar = save_var, save_var = save_var->next)
 
 
 #endif

@@ -16,13 +16,13 @@
 
 static int yaffs2_checkpt_space_ok(yaffs_dev_t *dev)
 {
-	int blocksAvailable = dev->n_erased_blocks - dev->param.n_reserved_blocks;
+	int blocks_avail = dev->n_erased_blocks - dev->param.n_reserved_blocks;
 
 	T(YAFFS_TRACE_CHECKPOINT,
 		(TSTR("checkpt blocks available = %d" TENDSTR),
-		blocksAvailable));
+		blocks_avail));
 
-	return (blocksAvailable <= 0) ? 0 : 1;
+	return (blocks_avail <= 0) ? 0 : 1;
 }
 
 
@@ -62,14 +62,14 @@ static int yaffs_checkpt_erase(yaffs_dev_t *dev)
 static void yaffs2_checkpt_find_erased_block(yaffs_dev_t *dev)
 {
 	int  i;
-	int blocksAvailable = dev->n_erased_blocks - dev->param.n_reserved_blocks;
+	int blocks_avail = dev->n_erased_blocks - dev->param.n_reserved_blocks;
 	T(YAFFS_TRACE_CHECKPOINT,
 		(TSTR("allocating checkpt block: erased %d reserved %d avail %d next %d "TENDSTR),
-		dev->n_erased_blocks, dev->param.n_reserved_blocks, blocksAvailable, dev->checkpt_next_block));
+		dev->n_erased_blocks, dev->param.n_reserved_blocks, blocks_avail, dev->checkpt_next_block));
 
 	if (dev->checkpt_next_block >= 0 &&
 			dev->checkpt_next_block <= dev->internal_end_block &&
-			blocksAvailable > 0) {
+			blocks_avail > 0) {
 
 		for (i = dev->checkpt_next_block; i <= dev->internal_end_block; i++) {
 			yaffs_block_info_t *bi = yaffs_get_block_info(dev, i);
@@ -98,9 +98,9 @@ static void yaffs2_checkpt_find_block(yaffs_dev_t *dev)
 	if (dev->blocks_in_checkpt < dev->checkpt_max_blocks)
 		for (i = dev->checkpt_next_block; i <= dev->internal_end_block; i++) {
 			int chunk = i * dev->param.chunks_per_block;
-			int realignedChunk = chunk - dev->chunk_offset;
+			int realigned_chunk = chunk - dev->chunk_offset;
 
-			dev->param.read_chunk_tags_fn(dev, realignedChunk,
+			dev->param.read_chunk_tags_fn(dev, realigned_chunk,
 					NULL, &tags);
 			T(YAFFS_TRACE_CHECKPOINT, (TSTR("find next checkpt block: search: block %d oid %d seq %d eccr %d" TENDSTR),
 				i, tags.obj_id, tags.seq_number, tags.ecc_result));
@@ -123,11 +123,11 @@ static void yaffs2_checkpt_find_block(yaffs_dev_t *dev)
 }
 
 
-int yaffs2_checkpt_open(yaffs_dev_t *dev, int forWriting)
+int yaffs2_checkpt_open(yaffs_dev_t *dev, int writing)
 {
 
 
-	dev->checkpt_open_write = forWriting;
+	dev->checkpt_open_write = writing;
 
 	/* Got the functions we need? */
 	if (!dev->param.write_chunk_tags_fn ||
@@ -136,7 +136,7 @@ int yaffs2_checkpt_open(yaffs_dev_t *dev, int forWriting)
 		!dev->param.bad_block_fn)
 		return 0;
 
-	if (forWriting && !yaffs2_checkpt_space_ok(dev))
+	if (writing && !yaffs2_checkpt_space_ok(dev))
 		return 0;
 
 	if (!dev->checkpt_buffer)
@@ -154,7 +154,7 @@ int yaffs2_checkpt_open(yaffs_dev_t *dev, int forWriting)
 	dev->checkpt_next_block = dev->internal_start_block;
 
 	/* Erase all the blocks in the checkpoint area */
-	if (forWriting) {
+	if (writing) {
 		memset(dev->checkpt_buffer, 0, dev->data_bytes_per_chunk);
 		dev->checkpt_byte_offs = 0;
 		return yaffs_checkpt_erase(dev);
@@ -179,16 +179,16 @@ int yaffs2_checkpt_open(yaffs_dev_t *dev, int forWriting)
 
 int yaffs2_get_checkpt_sum(yaffs_dev_t *dev, __u32 *sum)
 {
-	__u32 compositeSum;
-	compositeSum =  (dev->checkpt_sum << 8) | (dev->checkpt_xor & 0xFF);
-	*sum = compositeSum;
+	__u32 composite_sum;
+	composite_sum =  (dev->checkpt_sum << 8) | (dev->checkpt_xor & 0xFF);
+	*sum = composite_sum;
 	return 1;
 }
 
 static int yaffs2_checkpt_flush_buffer(yaffs_dev_t *dev)
 {
 	int chunk;
-	int realignedChunk;
+	int realigned_chunk;
 
 	yaffs_ext_tags tags;
 
@@ -219,11 +219,11 @@ static int yaffs2_checkpt_flush_buffer(yaffs_dev_t *dev)
 	T(YAFFS_TRACE_CHECKPOINT, (TSTR("checkpoint wite buffer nand %d(%d:%d) objid %d chId %d" TENDSTR),
 		chunk, dev->checkpt_cur_block, dev->checkpt_cur_chunk, tags.obj_id, tags.chunk_id));
 
-	realignedChunk = chunk - dev->chunk_offset;
+	realigned_chunk = chunk - dev->chunk_offset;
 
 	dev->n_page_writes++;
 
-	dev->param.write_chunk_tags_fn(dev, realignedChunk,
+	dev->param.write_chunk_tags_fn(dev, realigned_chunk,
 			dev->checkpt_buffer, &tags);
 	dev->checkpt_byte_offs = 0;
 	dev->checkpt_page_seq++;
@@ -244,7 +244,7 @@ int yaffs2_checkpt_wr(yaffs_dev_t *dev, const void *data, int n_bytes)
 	int ok = 1;
 
 
-	__u8 * dataBytes = (__u8 *)data;
+	__u8 * data_bytes = (__u8 *)data;
 
 
 
@@ -255,13 +255,13 @@ int yaffs2_checkpt_wr(yaffs_dev_t *dev, const void *data, int n_bytes)
 		return -1;
 
 	while (i < n_bytes && ok) {
-		dev->checkpt_buffer[dev->checkpt_byte_offs] = *dataBytes;
-		dev->checkpt_sum += *dataBytes;
-		dev->checkpt_xor ^= *dataBytes;
+		dev->checkpt_buffer[dev->checkpt_byte_offs] = *data_bytes;
+		dev->checkpt_sum += *data_bytes;
+		dev->checkpt_xor ^= *data_bytes;
 
 		dev->checkpt_byte_offs++;
 		i++;
-		dataBytes++;
+		data_bytes++;
 		dev->checkpt_byte_count++;
 
 
@@ -281,9 +281,9 @@ int yaffs2_checkpt_rd(yaffs_dev_t *dev, void *data, int n_bytes)
 
 
 	int chunk;
-	int realignedChunk;
+	int realigned_chunk;
 
-	__u8 *dataBytes = (__u8 *)data;
+	__u8 *data_bytes = (__u8 *)data;
 
 	if (!dev->checkpt_buffer)
 		return 0;
@@ -309,14 +309,13 @@ int yaffs2_checkpt_rd(yaffs_dev_t *dev, void *data, int n_bytes)
 					dev->param.chunks_per_block +
 					dev->checkpt_cur_chunk;
 
-				realignedChunk = chunk - dev->chunk_offset;
+				realigned_chunk = chunk - dev->chunk_offset;
 				
 				dev->n_page_reads++;
 
 				/* read in the next chunk */
-				/* printf("read checkpoint page %d\n",dev->checkpointPage); */
 				dev->param.read_chunk_tags_fn(dev,
-						realignedChunk,
+						realigned_chunk,
 						dev->checkpt_buffer,
 						&tags);
 
@@ -335,12 +334,12 @@ int yaffs2_checkpt_rd(yaffs_dev_t *dev, void *data, int n_bytes)
 		}
 
 		if (ok) {
-			*dataBytes = dev->checkpt_buffer[dev->checkpt_byte_offs];
-			dev->checkpt_sum += *dataBytes;
-			dev->checkpt_xor ^= *dataBytes;
+			*data_bytes = dev->checkpt_buffer[dev->checkpt_byte_offs];
+			dev->checkpt_sum += *data_bytes;
+			dev->checkpt_xor ^= *data_bytes;
 			dev->checkpt_byte_offs++;
 			i++;
-			dataBytes++;
+			data_bytes++;
 			dev->checkpt_byte_count++;
 		}
 	}

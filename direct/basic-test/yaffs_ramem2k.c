@@ -31,7 +31,6 @@ const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.8 2010-02-18 01:
 
 #include "yaffs_nandemul2k.h"
 #include "yaffs_guts.h"
-#include "yaffsinterface.h"
 #include "devextras.h"
 #include "yaffs_packedtags2.h"
 
@@ -221,7 +220,7 @@ int nandemul2k_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_PackTags2((yaffs_PackedTags2 *)x,tags, !dev->param.no_tags_ecc);
+		yaffs_pack_tags2((yaffs_packed_tags2 *)x,tags, !dev->param.no_tags_ecc);
 			
 	}
 	
@@ -257,7 +256,7 @@ int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_unpack_tags2(tags,(yaffs_PackedTags2 *)x, !dev->param.no_tags_ecc);
+		yaffs_unpack_tags2(tags,(yaffs_packed_tags2 *)x, !dev->param.no_tags_ecc);
 	}
 
 	return YAFFS_OK;
@@ -321,7 +320,7 @@ int nandemul2k_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 	
 	x = &ned.block[block_no]->page[0]->data[PAGE_DATA_SIZE];
 	
-	memset(x,0,sizeof(yaffs_PackedTags2));
+	memset(x,0,sizeof(yaffs_packed_tags2));
 	
 	
 	return YAFFS_OK;

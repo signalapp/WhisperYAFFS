@@ -27,11 +27,11 @@ typedef struct {
 	unsigned obj_id:18;
 	unsigned ecc:12;
 	unsigned deleted:1;
-	unsigned unusedStuff:1;
-	unsigned shouldBeFF;
+	unsigned unused_stuff:1;
+	unsigned should_be_ff;
 
-} yaffs_PackedTags1;
+} yaffs_packed_tags1;
 
-void yaffs_PackTags1(yaffs_PackedTags1 *pt, const yaffs_ext_tags *t);
-void yaffs_unpack_tags1(yaffs_ext_tags *t, const yaffs_PackedTags1 *pt);
+void yaffs_pack_tags1(yaffs_packed_tags1 *pt, const yaffs_ext_tags *t);
+void yaffs_unpack_tags1(yaffs_ext_tags *t, const yaffs_packed_tags1 *pt);
 #endif

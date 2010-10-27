@@ -23,9 +23,6 @@ int yaffs1_scan(yaffs_dev_t *dev)
 {
 	yaffs_ext_tags tags;
 	int blk;
-	int blockIterator;
-	int startIterator;
-	int endIterator;
 	int result;
 
 	int chunk;
@@ -41,10 +38,10 @@ int yaffs1_scan(yaffs_dev_t *dev)
 
 	int alloc_failed = 0;
 
-	struct yaffs_shadow_fixer_s *shadowFixerList = NULL;
+	struct yaffs_shadow_fixer_s *shadow_fixers = NULL;
 
 
-	__u8 *chunkData;
+	__u8 *chunk_data;
 
 
 
@@ -52,7 +49,7 @@ int yaffs1_scan(yaffs_dev_t *dev)
 	  (TSTR("yaffs1_scan starts  intstartblk %d intendblk %d..." TENDSTR),
 	   dev->internal_start_block, dev->internal_end_block));
 
-	chunkData = yaffs_get_temp_buffer(dev, __LINE__);
+	chunk_data = yaffs_get_temp_buffer(dev, __LINE__);
 
 	dev->seq_number = YAFFS_LOWEST_SEQUENCE_NUMBER;
 
@@ -87,18 +84,12 @@ int yaffs1_scan(yaffs_dev_t *dev)
 		bi++;
 	}
 
-	startIterator = dev->internal_start_block;
-	endIterator = dev->internal_end_block;
-
 	/* For each block.... */
-	for (blockIterator = startIterator; !alloc_failed && blockIterator <= endIterator;
-	     blockIterator++) {
+	for (blk= dev->internal_start_block; 
+		!alloc_failed && blk <= dev->internal_end_block;
+		blk++) {
 
 		YYIELD();
-
-		YYIELD();
-
-		blk = blockIterator;
 
 		bi = yaffs_get_block_info(dev, blk);
 		state = bi->block_state;
@@ -197,10 +188,10 @@ int yaffs1_scan(yaffs_dev_t *dev)
 				bi->pages_in_use++;
 
 				result = yaffs_rd_chunk_tags_nand(dev, chunk,
-								chunkData,
+								chunk_data,
 								NULL);
 
-				oh = (yaffs_obj_header *) chunkData;
+				oh = (yaffs_obj_header *) chunk_data;
 
 				in = yaffs_find_by_number(dev,
 							      tags.obj_id);
@@ -228,8 +219,8 @@ int yaffs1_scan(yaffs_dev_t *dev)
 					struct yaffs_shadow_fixer_s *fixer;
 					fixer = YMALLOC(sizeof(struct yaffs_shadow_fixer_s));
 					if (fixer) {
-						fixer->next = shadowFixerList;
-						shadowFixerList = fixer;
+						fixer->next = shadow_fixers;
+						shadow_fixers = fixer;
 						fixer->obj_id = tags.obj_id;
 						fixer->shadowed_id = oh->shadows_obj;
 						T(YAFFS_TRACE_SCAN,
@@ -244,10 +235,10 @@ int yaffs1_scan(yaffs_dev_t *dev)
 				if (in && in->valid) {
 					/* We have already filled this one. We have a duplicate and need to resolve it. */
 
-					unsigned existingSerial = in->serial;
-					unsigned newSerial = tags.serial_number;
+					unsigned existing_serial = in->serial;
+					unsigned new_serial = tags.serial_number;
 
-					if (((existingSerial + 1) & 3) == newSerial) {
+					if (((existing_serial + 1) & 3) == new_serial) {
 						/* Use new one - destroy the exisiting one */
 						yaffs_chunk_del(dev,
 								  in->hdr_chunk,
@@ -434,9 +425,9 @@ int yaffs1_scan(yaffs_dev_t *dev)
 		struct yaffs_shadow_fixer_s *fixer;
 		yaffs_obj_t *obj;
 
-		while (shadowFixerList) {
-			fixer = shadowFixerList;
-			shadowFixerList = fixer->next;
+		while (shadow_fixers) {
+			fixer = shadow_fixers;
+			shadow_fixers = fixer->next;
 			/* Complete the rename transaction by deleting the shadowed object
 			 * then setting the object header to unshadowed.
 			 */
@@ -453,7 +444,7 @@ int yaffs1_scan(yaffs_dev_t *dev)
 		}
 	}
 
-	yaffs_release_temp_buffer(dev, chunkData, __LINE__);
+	yaffs_release_temp_buffer(dev, chunk_data, __LINE__);
 
 	if (alloc_failed)
 		return YAFFS_FAIL;

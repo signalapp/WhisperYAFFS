@@ -730,12 +730,15 @@ static int yaffs_readlink(struct dentry *dentry, char __user *buffer,
 
 #if (YAFFS_NEW_FOLLOW_LINK == 1)
 static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
+{
+	void *ret;
 #else
 static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
-#endif
 {
+	int ret
+#endif
 	unsigned char *alias;
-	int ret;
+	int ret_int = 0;
 	yaffs_dev_t *dev = yaffs_dentry_to_obj(dentry)->my_dev;
 
 	yaffs_gross_lock(dev);
@@ -744,19 +747,23 @@ static int yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	yaffs_gross_unlock(dev);
 
 	if (!alias) {
-		ret = -ENOMEM;
+		ret_int = -ENOMEM;
 		goto out;
 	}
 
 #if (YAFFS_NEW_FOLLOW_LINK == 1)
 	nd_set_link(nd, alias);
-	ret = (int)alias;
+	ret = alias;
 out:
-	return ERR_PTR(ret);
+	if(ret_int)
+		ret = ERR_PTR(ret_int);
+	return ret;
 #else
 	ret = vfs_follow_link(nd, alias);
 	kfree(alias);
 out:
+	if(ret_int)
+		ret = ret_int;
 	return ret;
 #endif
 }

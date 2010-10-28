@@ -44,4 +44,5 @@ void stat_file(char *path);
 void write_to_random_file(handle_regster *P_open_handles_array);
 void close_random_file(handle_regster *P_open_handles_array);
 void quit_program();
+void truncate_random_file(handle_regster *P_open_handles_array);
 #endif

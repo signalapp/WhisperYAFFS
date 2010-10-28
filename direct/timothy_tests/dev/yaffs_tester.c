@@ -244,30 +244,62 @@ void write_to_random_file(handle_regster *P_open_handles_array){
 		}	
 	 }
 }
- 
+
+void truncate_random_file(handle_regster *P_open_handles_array){
+	int x=0;
+	int truncate_size=0;
+	int output=0;
+	
+	if (P_open_handles_array->number_of_open_handles>0){	
+		add_to_buffer(&message_buffer,"\n\ntruncate function ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		while (P_open_handles_array->handle[x]==-3){		/*find a random open handle*/
+			x=rand() % (MAX_NUMBER_OF_OPENED_HANDLES-1);
+		}
+		add_to_buffer(&message_buffer,"trying to truncate ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_to_buffer(&message_buffer,P_open_handles_array->path[x],MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+		
+		stat_file(P_open_handles_array->path[x]);
+		truncate_size=rand() %10000;
+		output=yaffs_ftruncate(P_open_handles_array->handle[x], truncate_size);
+		yaffs_check_for_errors(output, &message_buffer,"failed to truncate file","truncated file");
+	}
+}
+
 void close_random_file(handle_regster *P_open_handles_array){
 	/*run out of space on the handle pointer array*/	
 	/*make space*/
 	int x=0;
 	int output=0;
-		while (P_open_handles_array->handle[x]==-3){		
-			x=rand() % (MAX_NUMBER_OF_OPENED_HANDLES-1);
+	int start=0;
+	if (P_open_handles_array->number_of_open_handles>0){
+		start=rand() % (MAX_NUMBER_OF_OPENED_HANDLES-1);
+		for (x=start;P_open_handles_array->handle[x] !=-3 &&(x+1>start ||x<start);){
+			x++;			
+			if (x>MAX_NUMBER_OF_OPENED_HANDLES-1) x=0;		
+
 		}
-		add_to_buffer(&message_buffer,"\n\ntrying to close file: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
-		append_to_buffer(&message_buffer,P_open_handles_array->path[x],MESSAGE_LEVEL_BASIC_TASKS,PRINT);
-		add_to_buffer(&message_buffer,"file handle: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
-		append_int_to_buffer(&message_buffer,P_open_handles_array->handle[x],MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+		if (P_open_handles_array->handle[x]!=-3)
+		{
+			add_to_buffer(&message_buffer,"\n\ntrying to close file: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			append_to_buffer(&message_buffer,P_open_handles_array->path[x],MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+			add_to_buffer(&message_buffer,"file handle: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+			append_int_to_buffer(&message_buffer,P_open_handles_array->handle[x],MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+	
+			stat_file(P_open_handles_array->path[x]);
+			output=yaffs_close(P_open_handles_array->handle[x]);
 
-		stat_file(P_open_handles_array->path[x]);
-		output=yaffs_close(P_open_handles_array->handle[x]);
-
-		if (output==-1) yaffs_check_for_errors(output, &message_buffer,"failed to close file","closed file");
+			if (output==-1) yaffs_check_for_errors(output, &message_buffer,"failed to close file","closed file");
+			else {
+				yaffs_check_for_errors(output, &message_buffer,"failed to close file","closed file");
+				P_open_handles_array->handle[x]=-3;
+				P_open_handles_array->path[x][0]='\0';
+				P_open_handles_array->number_of_open_handles--;
+			}
+		}
 		else {
-			yaffs_check_for_errors(output, &message_buffer,"failed to close file","closed file");
-			P_open_handles_array->handle[x]=-3;
-			P_open_handles_array->path[x][0]='\0';
-			P_open_handles_array->number_of_open_handles--;
-		}
+			add_to_buffer(&message_buffer,"\n\ntried to close file but could not find a open file ",MESSAGE_LEVEL_BASIC_TASKS,PRINT);	
+		}	
+	}
 }
 
 void stat_file(char *path){
@@ -311,11 +343,12 @@ void test(char*yaffs_test_dir){
 	}
 	while(1)
 	{
-		x=rand() % 2;
+		x=rand() % 3;
 		switch(x){
 			case 0 :open_random_file(yaffs_test_dir,&open_handles_array);break;
-			case 1 :write_to_random_file(&open_handles_array);break;
+			//case 1 :write_to_random_file(&open_handles_array);break;
 			case 2 :close_random_file(&open_handles_array);break;
+			case 3 :truncate_random_file(&open_handles_array);break;
 		}
 	}
 }

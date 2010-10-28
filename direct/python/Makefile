@@ -40,10 +40,10 @@ COMMONTESTOBJS = yaffscfg2k.o yramsim.o yaffs_fileem2k.o\
 		 yaffs_norif1.o  ynorsim.o \
 		 yaffs_bitmap.o \
 		 yaffs_verify.o \
-		 yaffs_yaffs1.o yaffs_yaffs2.o
+		 yaffs_yaffs1.o yaffs_yaffs2.o 
 
 
-YAFFSLIBOBJS  = $(COMMONTESTOBJS) yaffs_python_helper.o
+YAFFSLIBOBJS  = $(COMMONTESTOBJS) yaffs_python_helper.o yaffs_error_converter.o
 
 
 

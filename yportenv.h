@@ -210,6 +210,10 @@
 #define EINVAL	22
 #endif
 
+#ifndef ENFILE
+#define ENFILE	23
+#endif
+
 #ifndef EBADF
 #define EBADF	9
 #endif

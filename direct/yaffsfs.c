@@ -612,7 +612,10 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 
 	handle = yaffsfs_GetNewHandle();
 
-	if(handle >= 0){
+	if(handle < 0){
+		yaffsfs_SetError(-ENFILE);
+		errorReported = 1;
+	} else {
 
 		yh = yaffsfs_GetHandlePointer(handle);
 

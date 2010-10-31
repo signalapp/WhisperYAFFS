@@ -1058,29 +1058,27 @@ off_t yaffs_lseek(int fd, off_t offset, int whence)
 	h = yaffsfs_GetHandlePointer(fd);
 	obj = yaffsfs_GetHandleObject(fd);
 
-	if(!h || !obj)
+	if(!h || !obj){
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
-	else if(whence == SEEK_SET){
-		if(offset >= 0)
-			pos = offset;
-	}
-	else if(whence == SEEK_CUR) {
-		if( (h->position + offset) >= 0)
-			pos = (h->position + offset);
-	}
-	else if(whence == SEEK_END) {
-		fSize = yaffs_get_obj_length(obj);
-		if(fSize >= 0 && (fSize + offset) >= 0)
-			pos = fSize + offset;
-	}
+	} else {
+		if(whence == SEEK_SET){
+			if(offset >= 0)
+				pos = offset;
+		} else if(whence == SEEK_CUR) {
+			if( (h->position + offset) >= 0)
+				pos = (h->position + offset);
+		} else if(whence == SEEK_END) {
+			fSize = yaffs_get_obj_length(obj);
+			if(fSize >= 0 && (fSize + offset) >= 0)
+				pos = fSize + offset;
+		} 
 
-	if(pos >= 0)
-		h->position = pos;
-	else {
-		/* todo error */
+		if(pos >= 0)
+			h->position = pos;
+		else
+			yaffsfs_SetError(-EINVAL);
 	}
-
 
 	yaffsfs_Unlock();
 
@@ -1730,8 +1728,40 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 	yaffs_obj_t *parent = NULL;
 	yaffs_obj_t *dir = NULL;
 	YCHAR *name;
+	YCHAR *use_path = NULL;
+	int path_length = 0;
 	int retVal= -1;
+	int i;
 
+
+	/*
+	 * We don't have a definition for max path length.
+	 * We will use 3 * max name length instead.
+	 */
+	
+	path_length = strnlen(path,(YAFFS_MAX_NAME_LENGTH+1)*3 +1);
+
+	/* If the last character is a path divider, then we need to
+	 * trim it back so that the name look-up works properly.
+	 * eg. /foo/new_dir/ -> /foo/newdir
+	 * Curveball: Need to handle multiple path dividers:
+	 * eg. /foof/sdfse///// -> /foo/sdfse
+	 */
+	if(path_length > 0 && 
+		yaffsfs_IsPathDivider(path[path_length-1])){
+		use_path = YMALLOC(path_length + 1);
+		if(!use_path){
+			yaffsfs_SetError(-ENOMEM);
+			return -1;
+		}
+		strcpy(use_path, path);
+		for(i = path_length-1;
+			i >= 0 && yaffsfs_IsPathDivider(use_path[i]);
+			i--)
+			use_path[i] = (YCHAR) 0;
+		path = use_path;
+	}
+	
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,path,&name,0);
 	if(parent && yaffs_strnlen(name,5) == 0){
@@ -1756,6 +1786,9 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 	}
 
 	yaffsfs_Unlock();
+
+	if(use_path)
+		YFREE(use_path);
 
 	return retVal;
 }

@@ -178,7 +178,9 @@ int yaffs_get_error(void);
 void * yaffs_getdev(const YCHAR *path);
 int yaffs_dump_dev(const YCHAR *path);
 
-
+/* Trace control functions */
+int yaffs_set_trace(unsigned int tm);
+unsigned int yaffs_get_trace(void);
 #endif
 
 

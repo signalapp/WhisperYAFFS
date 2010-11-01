@@ -67,6 +67,18 @@ static yaffsfs_Inode yaffsfs_inode[YAFFSFS_N_HANDLES];
 static yaffsfs_Handle yaffsfs_handle[YAFFSFS_N_HANDLES];
 static int yaffsfs_handlesInitialised;
 
+unsigned int yaffs_trace_mask;
+
+int yaffs_set_trace(unsigned int tm) 
+{
+	return yaffs_trace_mask=tm;
+}
+
+unsigned int yaffs_get_trace(void)
+{
+	return yaffs_trace_mask;
+}
+
 /*
  * yaffsfs_InitHandle
  * Inilitalise handle management on start-up.

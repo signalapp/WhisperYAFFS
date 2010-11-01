@@ -19,6 +19,6 @@
 
 #include "yaffs_guts.h"
 
-void yaffs_init_tags(yaffs_ext_tags *tags);
-int yaffs_validate_tags(yaffs_ext_tags *tags);
+void yaffs_init_tags(struct yaffs_ext_tags *tags);
+int yaffs_validate_tags(struct yaffs_ext_tags *tags);
 #endif

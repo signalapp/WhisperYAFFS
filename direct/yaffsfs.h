@@ -166,8 +166,8 @@ int yaffs_n_handles(const YCHAR *path);
 int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int shareMode) ;
 
 
-struct yaffs_dev_s;
-void yaffs_add_device(struct yaffs_dev_s *dev);
+struct yaffs_dev;
+void yaffs_add_device(struct yaffs_dev *dev);
 
 int yaffs_start_up(void);
 int yaffsfs_GetLastError(void);

@@ -61,7 +61,7 @@ typedef struct
 
 static yramdisk_device ramdisk;
 
-static int  CheckInit(yaffs_dev_t *dev)
+static int  CheckInit(struct yaffs_dev *dev)
 {
 	static int initialised = 0;
 	
@@ -119,7 +119,7 @@ static int  CheckInit(yaffs_dev_t *dev)
 	return 1;
 }
 
-int yramdisk_wr_chunk(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_ext_tags *tags)
+int yramdisk_wr_chunk(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const struct yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -150,7 +150,7 @@ int yramdisk_wr_chunk(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaff
 }
 
 
-int yramdisk_rd_chunk(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags *tags)
+int yramdisk_rd_chunk(struct yaffs_dev *dev,int nand_chunk, u8 *data, struct yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -181,7 +181,7 @@ int yramdisk_rd_chunk(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags 
 }
 
 
-int yramdisk_check_chunk_erased(yaffs_dev_t *dev,int nand_chunk)
+int yramdisk_check_chunk_erased(struct yaffs_dev *dev,int nand_chunk)
 {
 	int blk;
 	int pg;
@@ -206,7 +206,7 @@ int yramdisk_check_chunk_erased(yaffs_dev_t *dev,int nand_chunk)
 
 }
 
-int yramdisk_erase(yaffs_dev_t *dev, int blockNumber)
+int yramdisk_erase(struct yaffs_dev *dev, int blockNumber)
 {
 	
 	CheckInit(dev);
@@ -224,7 +224,7 @@ int yramdisk_erase(yaffs_dev_t *dev, int blockNumber)
 	
 }
 
-int yramdisk_initialise(yaffs_dev_t *dev)
+int yramdisk_initialise(struct yaffs_dev *dev)
 {
 	//dev->use_nand_ecc = 1; // force on use_nand_ecc which gets faked. 
 						 // This saves us doing ECC checks.

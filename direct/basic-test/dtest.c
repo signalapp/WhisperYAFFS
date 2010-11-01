@@ -2642,7 +2642,7 @@ void big_xattr_test(const char *mountpt)
 }
 
 
-void dump_dev_stats(yaffs_dev_t *dev, const char * str)
+void dump_dev_stats(struct yaffs_dev *dev, const char * str)
 {
 	printf("%s\n",str);
 	printf( "space free %d erased %d "
@@ -2658,7 +2658,7 @@ void test_flash_traffic(const char *mountpt)
 	char name0[100];
 	char name1[100];
 	int i;
-	yaffs_dev_t *dev;
+	struct yaffs_dev *dev;
 
 	yaffs_trace_mask = 0;
 

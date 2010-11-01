@@ -18,19 +18,19 @@
 #include "yaffs_getblockinfo.h"
 #include "yaffs_nand.h"
 
-int yaffs_skip_verification(yaffs_dev_t *dev)
+int yaffs_skip_verification(struct yaffs_dev *dev)
 {
 	dev=dev;
 	return !(yaffs_trace_mask & (YAFFS_TRACE_VERIFY | YAFFS_TRACE_VERIFY_FULL));
 }
 
-static int yaffs_skip_full_verification(yaffs_dev_t *dev)
+static int yaffs_skip_full_verification(struct yaffs_dev *dev)
 {
 	dev=dev;
 	return !(yaffs_trace_mask & (YAFFS_TRACE_VERIFY_FULL));
 }
 
-static int yaffs_skip_nand_verification(yaffs_dev_t *dev)
+static int yaffs_skip_nand_verification(struct yaffs_dev *dev)
 {
 	dev=dev;
 	return !(yaffs_trace_mask & (YAFFS_TRACE_VERIFY_NAND));
@@ -51,7 +51,7 @@ static const char *block_state_name[] = {
 };
 
 
-void yaffs_verify_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n)
+void yaffs_verify_blk(struct yaffs_dev *dev, yaffs_block_info_t *bi, int n)
 {
 	int actually_used;
 	int in_use;
@@ -92,7 +92,7 @@ void yaffs_verify_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n)
 
 
 
-void yaffs_verify_collected_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n)
+void yaffs_verify_collected_blk(struct yaffs_dev *dev, yaffs_block_info_t *bi, int n)
 {
 	yaffs_verify_blk(dev, bi, n);
 
@@ -105,7 +105,7 @@ void yaffs_verify_collected_blk(yaffs_dev_t *dev, yaffs_block_info_t *bi, int n)
 	}
 }
 
-void yaffs_verify_blocks(yaffs_dev_t *dev)
+void yaffs_verify_blocks(struct yaffs_dev *dev)
 {
 	int i;
 	int state_count[YAFFS_NUMBER_OF_BLOCK_STATES];
@@ -161,7 +161,7 @@ void yaffs_verify_blocks(yaffs_dev_t *dev)
  * Verify the object header. oh must be valid, but obj and tags may be NULL in which
  * case those tests will not be performed.
  */
-void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tags, int parent_check)
+void yaffs_verify_oh(struct yaffs_obj *obj, struct yaffs_obj_hdr *oh, struct yaffs_ext_tags *tags, int parent_check)
 {
 	if (obj && yaffs_skip_verification(obj->my_dev))
 		return;
@@ -217,15 +217,15 @@ void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tag
 
 
 
-void yaffs_verify_file(yaffs_obj_t *obj)
+void yaffs_verify_file(struct yaffs_obj *obj)
 {
 	int required_depth;
 	int actual_depth;
 	u32 last_chunk;
 	u32 x;
 	u32 i;
-	yaffs_dev_t *dev;
-	yaffs_ext_tags tags;
+	struct yaffs_dev *dev;
+	struct yaffs_ext_tags tags;
 	yaffs_tnode_t *tn;
 	u32 obj_id;
 
@@ -276,7 +276,7 @@ void yaffs_verify_file(yaffs_obj_t *obj)
 }
 
 
-void yaffs_verify_link(yaffs_obj_t *obj)
+void yaffs_verify_link(struct yaffs_obj *obj)
 {
 	if (obj && yaffs_skip_verification(obj->my_dev))
 		return;
@@ -284,7 +284,7 @@ void yaffs_verify_link(yaffs_obj_t *obj)
 	/* Verify sane equivalent object */
 }
 
-void yaffs_verify_symlink(yaffs_obj_t *obj)
+void yaffs_verify_symlink(struct yaffs_obj *obj)
 {
 	if (obj && yaffs_skip_verification(obj->my_dev))
 		return;
@@ -292,15 +292,15 @@ void yaffs_verify_symlink(yaffs_obj_t *obj)
 	/* Verify symlink string */
 }
 
-void yaffs_verify_special(yaffs_obj_t *obj)
+void yaffs_verify_special(struct yaffs_obj *obj)
 {
 	if (obj && yaffs_skip_verification(obj->my_dev))
 		return;
 }
 
-void yaffs_verify_obj(yaffs_obj_t *obj)
+void yaffs_verify_obj(struct yaffs_obj *obj)
 {
-	yaffs_dev_t *dev;
+	struct yaffs_dev *dev;
 
 	u32 chunk_min;
 	u32 chunk_max;
@@ -345,11 +345,11 @@ void yaffs_verify_obj(yaffs_obj_t *obj)
 	}
 
 	if (chunk_valid && !yaffs_skip_nand_verification(dev)) {
-		yaffs_ext_tags tags;
-		yaffs_obj_header *oh;
+		struct yaffs_ext_tags tags;
+		struct yaffs_obj_hdr *oh;
 		u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
 
-		oh = (yaffs_obj_header *)buffer;
+		oh = (struct yaffs_obj_hdr *)buffer;
 
 		yaffs_rd_chunk_tags_nand(dev, obj->hdr_chunk, buffer,
 				&tags);
@@ -399,9 +399,9 @@ void yaffs_verify_obj(yaffs_obj_t *obj)
 	}
 }
 
-void yaffs_verify_objects(yaffs_dev_t *dev)
+void yaffs_verify_objects(struct yaffs_dev *dev)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 	int i;
 	struct ylist_head *lh;
 
@@ -413,7 +413,7 @@ void yaffs_verify_objects(yaffs_dev_t *dev)
 	for (i = 0; i <  YAFFS_NOBJECT_BUCKETS; i++) {
 		ylist_for_each(lh, &dev->obj_bucket[i].list) {
 			if (lh) {
-				obj = ylist_entry(lh, yaffs_obj_t, hash_link);
+				obj = ylist_entry(lh, struct yaffs_obj, hash_link);
 				yaffs_verify_obj(obj);
 			}
 		}
@@ -421,10 +421,10 @@ void yaffs_verify_objects(yaffs_dev_t *dev)
 }
 
 
-void yaffs_verify_obj_in_dir(yaffs_obj_t *obj)
+void yaffs_verify_obj_in_dir(struct yaffs_obj *obj)
 {
 	struct ylist_head *lh;
-	yaffs_obj_t *list_obj;
+	struct yaffs_obj *list_obj;
 
 	int count = 0;
 
@@ -452,7 +452,7 @@ void yaffs_verify_obj_in_dir(yaffs_obj_t *obj)
 
 	ylist_for_each(lh, &obj->parent->variant.dir_variant.children) {
 		if (lh) {
-			list_obj = ylist_entry(lh, yaffs_obj_t, siblings);
+			list_obj = ylist_entry(lh, struct yaffs_obj, siblings);
 			yaffs_verify_obj(list_obj);
 			if (obj == list_obj)
 				count++;
@@ -465,10 +465,10 @@ void yaffs_verify_obj_in_dir(yaffs_obj_t *obj)
 	}
 }
 
-void yaffs_verify_dir(yaffs_obj_t *directory)
+void yaffs_verify_dir(struct yaffs_obj *directory)
 {
 	struct ylist_head *lh;
-	yaffs_obj_t *list_obj;
+	struct yaffs_obj *list_obj;
 
 	if (!directory) {
 		YBUG();
@@ -489,7 +489,7 @@ void yaffs_verify_dir(yaffs_obj_t *directory)
 
 	ylist_for_each(lh, &directory->variant.dir_variant.children) {
 		if (lh) {
-			list_obj = ylist_entry(lh, yaffs_obj_t, siblings);
+			list_obj = ylist_entry(lh, struct yaffs_obj, siblings);
 			if (list_obj->parent != directory) {
 				T(YAFFS_TRACE_ALWAYS, (
 				TSTR("Object in directory list has wrong parent %p" TENDSTR),
@@ -503,7 +503,7 @@ void yaffs_verify_dir(yaffs_obj_t *directory)
 
 static int yaffs_free_verification_failures;
 
-void yaffs_verify_free_chunks(yaffs_dev_t *dev)
+void yaffs_verify_free_chunks(struct yaffs_dev *dev)
 {
 	int counted;
 	int difference;
@@ -523,7 +523,7 @@ void yaffs_verify_free_chunks(yaffs_dev_t *dev)
 	}
 }
 
-int yaffs_verify_file_sane(yaffs_obj_t *in)
+int yaffs_verify_file_sane(struct yaffs_obj *in)
 {
 	in=in;
 	return YAFFS_OK;

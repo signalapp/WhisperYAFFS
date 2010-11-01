@@ -20,7 +20,7 @@
 #include "yaffs_trace.h"
 
 /* Function to manipulate block info */
-static Y_INLINE yaffs_block_info_t *yaffs_get_block_info(yaffs_dev_t * dev, int blk)
+static Y_INLINE yaffs_block_info_t *yaffs_get_block_info(struct yaffs_dev * dev, int blk)
 {
 	if (blk < dev->internal_start_block || blk > dev->internal_end_block) {
 		T(YAFFS_TRACE_ERROR,

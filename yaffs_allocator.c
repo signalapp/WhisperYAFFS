@@ -20,45 +20,45 @@
 
 #ifdef CONFIG_YAFFS_YMALLOC_ALLOCATOR
 
-void yaffs_deinit_raw_tnodes_and_objs(yaffs_dev_t *dev)
+void yaffs_deinit_raw_tnodes_and_objs(struct yaffs_dev *dev)
 {
 	dev = dev;
 }
 
-void yaffs_init_raw_tnodes_and_objs(yaffs_dev_t *dev)
+void yaffs_init_raw_tnodes_and_objs(struct yaffs_dev *dev)
 {
 	dev = dev;
 }
 
-yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_dev_t *dev)
+yaffs_tnode_t *yaffs_alloc_raw_tnode(struct yaffs_dev *dev)
 {
 	return (yaffs_tnode_t *)YMALLOC(dev->tnode_size);
 }
 
-void yaffs_free_raw_tnode(yaffs_dev_t *dev, yaffs_tnode_t *tn)
+void yaffs_free_raw_tnode(struct yaffs_dev *dev, yaffs_tnode_t *tn)
 {
 	dev = dev;
 	YFREE(tn);
 }
 
-void yaffs_init_raw_objs(yaffs_dev_t *dev)
+void yaffs_init_raw_objs(struct yaffs_dev *dev)
 {
 	dev = dev;
 }
 
-void yaffs_deinit_raw_objs(yaffs_dev_t *dev)
+void yaffs_deinit_raw_objs(struct yaffs_dev *dev)
 {
 	dev = dev;
 }
 
-yaffs_obj_t *yaffs_alloc_raw_obj(yaffs_dev_t *dev)
+struct yaffs_obj *yaffs_alloc_raw_obj(struct yaffs_dev *dev)
 {
 	dev = dev;
-	return (yaffs_obj_t *) YMALLOC(sizeof(yaffs_obj_t));
+	return (struct yaffs_obj *) YMALLOC(sizeof(struct yaffs_obj));
 }
 
 
-void yaffs_free_raw_obj(yaffs_dev_t *dev, yaffs_obj_t *obj)
+void yaffs_free_raw_obj(struct yaffs_dev *dev, struct yaffs_obj *obj)
 {
 
 	dev = dev;
@@ -75,7 +75,7 @@ struct yaffs_tnode_list {
 typedef struct yaffs_tnode_list yaffs_tnodelist_t;
 
 struct yaffs_obj_list_struct {
-	yaffs_obj_t *objects;
+	struct yaffs_obj *objects;
 	struct yaffs_obj_list_struct *next;
 };
 
@@ -89,14 +89,14 @@ struct yaffs_allocator {
 	yaffs_tnodelist_t *alloc_tnode_list;
 
 	int n_obj_created;
-	yaffs_obj_t *free_objs;
+	struct yaffs_obj *free_objs;
 	int n_free_objects;
 
 	yaffs_obj_list *allocated_obj_list;
 };
 
 
-static void yaffs_deinit_raw_tnodes(yaffs_dev_t *dev)
+static void yaffs_deinit_raw_tnodes(struct yaffs_dev *dev)
 {
 
 	struct yaffs_allocator *allocator = (struct yaffs_allocator *)dev->allocator;
@@ -122,7 +122,7 @@ static void yaffs_deinit_raw_tnodes(yaffs_dev_t *dev)
 	allocator->n_tnodes_created = 0;
 }
 
-static void yaffs_init_raw_tnodes(yaffs_dev_t *dev)
+static void yaffs_init_raw_tnodes(struct yaffs_dev *dev)
 {
 	struct yaffs_allocator *allocator = dev->allocator;
 
@@ -135,7 +135,7 @@ static void yaffs_init_raw_tnodes(yaffs_dev_t *dev)
 		YBUG();
 }
 
-static int yaffs_create_tnodes(yaffs_dev_t *dev, int n_tnodes)
+static int yaffs_create_tnodes(struct yaffs_dev *dev, int n_tnodes)
 {
 	struct yaffs_allocator *allocator = (struct yaffs_allocator *)dev->allocator;
 	int i;
@@ -202,7 +202,7 @@ static int yaffs_create_tnodes(yaffs_dev_t *dev, int n_tnodes)
 }
 
 
-yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_dev_t *dev)
+yaffs_tnode_t *yaffs_alloc_raw_tnode(struct yaffs_dev *dev)
 {
 	struct yaffs_allocator *allocator = (struct yaffs_allocator *)dev->allocator;
 	yaffs_tnode_t *tn = NULL;
@@ -226,7 +226,7 @@ yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_dev_t *dev)
 }
 
 /* FreeTnode frees up a tnode and puts it back on the free list */
-void yaffs_free_raw_tnode(yaffs_dev_t *dev, yaffs_tnode_t *tn)
+void yaffs_free_raw_tnode(struct yaffs_dev *dev, yaffs_tnode_t *tn)
 {
 	struct yaffs_allocator *allocator = dev->allocator;
 
@@ -245,7 +245,7 @@ void yaffs_free_raw_tnode(yaffs_dev_t *dev, yaffs_tnode_t *tn)
 
 
 
-static void yaffs_init_raw_objs(yaffs_dev_t *dev)
+static void yaffs_init_raw_objs(struct yaffs_dev *dev)
 {
 	struct yaffs_allocator *allocator = dev->allocator;
 
@@ -257,7 +257,7 @@ static void yaffs_init_raw_objs(yaffs_dev_t *dev)
 		YBUG();
 }
 
-static void yaffs_deinit_raw_objs(yaffs_dev_t *dev)
+static void yaffs_deinit_raw_objs(struct yaffs_dev *dev)
 {
 	struct yaffs_allocator *allocator = dev->allocator;
 	yaffs_obj_list *tmp;
@@ -281,12 +281,12 @@ static void yaffs_deinit_raw_objs(yaffs_dev_t *dev)
 }
 
 
-static int yaffs_create_free_objs(yaffs_dev_t *dev, int n_obj)
+static int yaffs_create_free_objs(struct yaffs_dev *dev, int n_obj)
 {
 	struct yaffs_allocator *allocator = dev->allocator;
 
 	int i;
-	yaffs_obj_t *new_objs;
+	struct yaffs_obj *new_objs;
 	yaffs_obj_list *list;
 
 	if(!allocator){
@@ -298,7 +298,7 @@ static int yaffs_create_free_objs(yaffs_dev_t *dev, int n_obj)
 		return YAFFS_OK;
 
 	/* make these things */
-	new_objs = YMALLOC(n_obj * sizeof(yaffs_obj_t));
+	new_objs = YMALLOC(n_obj * sizeof(struct yaffs_obj));
 	list = YMALLOC(sizeof(yaffs_obj_list));
 
 	if (!new_objs || !list) {
@@ -335,9 +335,9 @@ static int yaffs_create_free_objs(yaffs_dev_t *dev, int n_obj)
 	return YAFFS_OK;
 }
 
-yaffs_obj_t *yaffs_alloc_raw_obj(yaffs_dev_t *dev)
+struct yaffs_obj *yaffs_alloc_raw_obj(struct yaffs_dev *dev)
 {
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *obj = NULL;
 	struct yaffs_allocator *allocator = dev->allocator;
 
 	if(!allocator) {
@@ -352,7 +352,7 @@ yaffs_obj_t *yaffs_alloc_raw_obj(yaffs_dev_t *dev)
 	if (allocator->free_objs) {
 		obj = allocator->free_objs;
 		allocator->free_objs =
-			(yaffs_obj_t *) (allocator->free_objs->siblings.next);
+			(struct yaffs_obj *) (allocator->free_objs->siblings.next);
 		allocator->n_free_objects--;
 	}
 
@@ -360,7 +360,7 @@ yaffs_obj_t *yaffs_alloc_raw_obj(yaffs_dev_t *dev)
 }
 
 
-void yaffs_free_raw_obj(yaffs_dev_t *dev, yaffs_obj_t *obj)
+void yaffs_free_raw_obj(struct yaffs_dev *dev, struct yaffs_obj *obj)
 {
 
 	struct yaffs_allocator *allocator = dev->allocator;
@@ -375,7 +375,7 @@ void yaffs_free_raw_obj(yaffs_dev_t *dev, yaffs_obj_t *obj)
 	}
 }
 
-void yaffs_deinit_raw_tnodes_and_objs(yaffs_dev_t *dev)
+void yaffs_deinit_raw_tnodes_and_objs(struct yaffs_dev *dev)
 {
 	if(dev->allocator){
 		yaffs_deinit_raw_tnodes(dev);
@@ -387,7 +387,7 @@ void yaffs_deinit_raw_tnodes_and_objs(yaffs_dev_t *dev)
 		YBUG();
 }
 
-void yaffs_init_raw_tnodes_and_objs(yaffs_dev_t *dev)
+void yaffs_init_raw_tnodes_and_objs(struct yaffs_dev *dev)
 {
 	struct yaffs_allocator *allocator;
 

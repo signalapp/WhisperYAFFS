@@ -113,7 +113,7 @@
 
 /* ChunkCache is used for short read/write operations.*/
 typedef struct {
-	struct yaffs_obj_s *object;
+	struct yaffs_obj *object;
 	int chunk_id;
 	int last_use;
 	int dirty;
@@ -130,17 +130,17 @@ typedef struct {
  */
 
 #ifndef CONFIG_YAFFS_NO_YAFFS1
-typedef struct {
+struct yaffs_tags {
 	unsigned chunk_id:20;
 	unsigned serial_number:2;
 	unsigned n_bytes_lsb:10;
 	unsigned obj_id:18;
 	unsigned ecc:12;
 	unsigned n_bytes_msb:2;
-} yaffs_tags_t;
+};
 
 typedef union {
-	yaffs_tags_t as_tags;
+	struct yaffs_tags as_tags;
 	u8 as_bytes[8];
 } yaffs_tags_union_t;
 
@@ -155,18 +155,18 @@ typedef enum {
 	YAFFS_ECC_RESULT_UNFIXED
 } yaffs_ecc_result;
 
-typedef enum {
+enum yaffs_obj_type {
 	YAFFS_OBJECT_TYPE_UNKNOWN,
 	YAFFS_OBJECT_TYPE_FILE,
 	YAFFS_OBJECT_TYPE_SYMLINK,
 	YAFFS_OBJECT_TYPE_DIRECTORY,
 	YAFFS_OBJECT_TYPE_HARDLINK,
 	YAFFS_OBJECT_TYPE_SPECIAL
-} yaffs_obj_type;
+} ;
 
 #define YAFFS_OBJECT_TYPE_MAX YAFFS_OBJECT_TYPE_SPECIAL
 
-typedef struct {
+struct yaffs_ext_tags{
 
 	unsigned validity1;
 	unsigned chunk_used;	/*  Status of the chunk: used or unused */
@@ -192,14 +192,14 @@ typedef struct {
 	unsigned extra_is_shrink;	/* Is it a shrink header? */
 	unsigned extra_shadows;		/* Does this shadow another object? */
 
-	yaffs_obj_type extra_obj_type;	/* What object type? */
+	enum yaffs_obj_type extra_obj_type;	/* What object type? */
 
 	unsigned extra_length;		/* Length if it is a file */
 	unsigned extra_equiv_id;	/* Equivalent object Id if it is a hard link */
 
 	unsigned validty1;
 
-} yaffs_ext_tags;
+};
 
 /* Spare structure for YAFFS1 */
 typedef struct {
@@ -297,8 +297,8 @@ typedef struct {
 /* -------------------------- Object structure -------------------------------*/
 /* This is the object structure as stored on NAND */
 
-typedef struct {
-	yaffs_obj_type type;
+struct yaffs_obj_hdr {
+	enum yaffs_obj_type type;
 
 	/* Apply to everything  */
 	int parent_obj_id;
@@ -346,7 +346,7 @@ typedef struct {
 	/* is_shrink applies to object headers written when we shrink the file (ie resize) */
 	u32 is_shrink;
 
-} yaffs_obj_header;
+};
 
 /*--------------------------- Tnode -------------------------- */
 
@@ -384,7 +384,7 @@ typedef struct {
 } yaffs_symlink_t;
 
 typedef struct {
-	struct yaffs_obj_s *equiv_obj;
+	struct yaffs_obj *equiv_obj;
 	u32 equiv_id;
 } yaffs_hard_link_s;
 
@@ -397,7 +397,7 @@ typedef union {
 
 
 
-struct yaffs_obj_s {
+struct yaffs_obj {
 	u8 deleted:1;		/* This should only apply to unlinked files. */
 	u8 soft_del:1;	/* it has also been soft deleted */
 	u8 unlinked:1;	/* An unlinked file. The file should be in the unlinked directory.*/
@@ -424,7 +424,7 @@ struct yaffs_obj_s {
 	u8 serial;		/* serial number of chunk in NAND. Cached here */
 	u16 sum;		/* sum of the name to speed searching */
 
-	struct yaffs_dev_s *my_dev;       /* The device I'm on */
+	struct yaffs_dev *my_dev;       /* The device I'm on */
 
 	struct ylist_head hash_link;     /* list of objects in this hash bucket */
 
@@ -432,7 +432,7 @@ struct yaffs_obj_s {
 
 	/* directory structure stuff */
 	/* also used for linking up the free list */
-	struct yaffs_obj_s *parent;
+	struct yaffs_obj *parent;
 	struct ylist_head siblings;
 
 	/* Where's my object header in NAND? */
@@ -464,18 +464,16 @@ struct yaffs_obj_s {
 
 	void *my_inode;
 
-	yaffs_obj_type variant_type;
+	enum yaffs_obj_type variant_type;
 
 	yaffs_obj_variant variant;
 
 };
 
-typedef struct yaffs_obj_s yaffs_obj_t;
-
-typedef struct {
+struct yaffs_obj_bucket {
 	struct ylist_head list;
 	int count;
-} yaffs_obj_bucket;
+} ;
 
 
 /* yaffs_checkpt_obj_t holds the definition of an object as dumped
@@ -487,7 +485,7 @@ typedef struct {
 	u32 obj_id;
 	u32 parent_id;
 	int hdr_chunk;
-	yaffs_obj_type variant_type:3;
+	enum yaffs_obj_type variant_type:3;
 	u8 deleted:1;
 	u8 soft_del:1;
 	u8 unlinked:1;
@@ -495,7 +493,6 @@ typedef struct {
 	u8 rename_allowed:1;
 	u8 unlink_allowed:1;
 	u8 serial;
-
 	int n_data_chunks;
 	u32 size_or_equiv_obj;
 } yaffs_checkpt_obj_t;
@@ -514,7 +511,7 @@ typedef struct {
 /*----------------- Device ---------------------------------*/
 
 
-struct yaffs_param_s {
+struct yaffs_param {
 	const YCHAR *name;
 
 	/*
@@ -554,26 +551,26 @@ struct yaffs_param_s {
 
 	/* NAND access functions (Must be set before calling YAFFS)*/
 
-	int (*write_chunk_fn) (struct yaffs_dev_s *dev,
+	int (*write_chunk_fn) (struct yaffs_dev *dev,
 					int nand_chunk, const u8 *data,
 					const yaffs_spare *spare);
-	int (*read_chunk_fn) (struct yaffs_dev_s *dev,
+	int (*read_chunk_fn) (struct yaffs_dev *dev,
 					int nand_chunk, u8 *data,
 					yaffs_spare *spare);
-	int (*erase_fn) (struct yaffs_dev_s *dev,
+	int (*erase_fn) (struct yaffs_dev *dev,
 					int flash_block);
-	int (*initialise_flash_fn) (struct yaffs_dev_s *dev);
-	int (*deinitialise_flash_fn) (struct yaffs_dev_s *dev);
+	int (*initialise_flash_fn) (struct yaffs_dev *dev);
+	int (*deinitialise_flash_fn) (struct yaffs_dev *dev);
 
 #ifdef CONFIG_YAFFS_YAFFS2
-	int (*write_chunk_tags_fn) (struct yaffs_dev_s *dev,
+	int (*write_chunk_tags_fn) (struct yaffs_dev *dev,
 					 int nand_chunk, const u8 *data,
-					 const yaffs_ext_tags *tags);
-	int (*read_chunk_tags_fn) (struct yaffs_dev_s *dev,
+					 const struct yaffs_ext_tags *tags);
+	int (*read_chunk_tags_fn) (struct yaffs_dev *dev,
 					  int nand_chunk, u8 *data,
-					  yaffs_ext_tags *tags);
-	int (*bad_block_fn) (struct yaffs_dev_s *dev, int block_no);
-	int (*query_block_fn) (struct yaffs_dev_s *dev, int block_no,
+					  struct yaffs_ext_tags *tags);
+	int (*bad_block_fn) (struct yaffs_dev *dev, int block_no);
+	int (*query_block_fn) (struct yaffs_dev *dev, int block_no,
 			       yaffs_block_state_t *state, u32 *seq_number);
 #endif
 
@@ -582,13 +579,13 @@ struct yaffs_param_s {
          * yaffs direct uses it to implement the faster readdir.
          * Linux uses it to protect the directory during unlocking.
 	 */
-	void (*remove_obj_fn)(struct yaffs_obj_s *obj);
+	void (*remove_obj_fn)(struct yaffs_obj *obj);
 
 	/* Callback to mark the superblock dirty */
-	void (*sb_dirty_fn)(struct yaffs_dev_s *dev);
+	void (*sb_dirty_fn)(struct yaffs_dev *dev);
 	
 	/*  Callback to control garbage collection. */
-	unsigned (*gc_control)(struct yaffs_dev_s *dev);
+	unsigned (*gc_control)(struct yaffs_dev *dev);
 
         /* Debug control flags. Don't use unless you know what you're doing */
 	int use_header_file_size;	/* Flag to determine if we should use file sizes from the header */
@@ -604,10 +601,9 @@ struct yaffs_param_s {
 	int always_check_erased; /* Force chunk erased check always on */
 };
 
-typedef struct yaffs_param_s yaffs_param_t;
 
-struct yaffs_dev_s {
-	struct yaffs_param_s param;
+struct yaffs_dev {
+	struct yaffs_param param;
 
         /* Context storage. Holds extra OS specific data for this device */
 
@@ -687,7 +683,7 @@ struct yaffs_dev_s {
 
 	int n_hardlinks;
 
-	yaffs_obj_bucket obj_bucket[YAFFS_NOBJECT_BUCKETS];
+	struct yaffs_obj_bucket obj_bucket[YAFFS_NOBJECT_BUCKETS];
 	u32 bucket_finder;
 
 	int n_free_chunks;
@@ -707,8 +703,8 @@ struct yaffs_dev_s {
 	unsigned gc_skip;
 
 	/* Special directories */
-	yaffs_obj_t *root_dir;
-	yaffs_obj_t *lost_n_found;
+	struct yaffs_obj *root_dir;
+	struct yaffs_obj *lost_n_found;
 
 	/* Buffer areas for storing data to recover from write failures TODO
 	 *      u8            buffered_data[YAFFS_CHUNKS_PER_BLOCK][YAFFS_BYTES_PER_CHUNK];
@@ -722,9 +718,9 @@ struct yaffs_dev_s {
 	int cache_last_use;
 
 	/* Stuff for background deletion and unlinked files.*/
-	yaffs_obj_t *unlinked_dir;	/* Directory where unlinked and deleted files live. */
-	yaffs_obj_t *del_dir;	/* Directory where deleted objects are sent to disappear. */
-	yaffs_obj_t *unlinked_deletion;	/* Current file being background deleted.*/
+	struct yaffs_obj *unlinked_dir;	/* Directory where unlinked and deleted files live. */
+	struct yaffs_obj *del_dir;	/* Directory where deleted objects are sent to disappear. */
+	struct yaffs_obj *unlinked_deletion;	/* Current file being background deleted.*/
 	int n_deleted_files;		/* Count of files awaiting deletion;*/
 	int n_unlinked_files;		/* Count of unlinked files. */
 	int n_bg_deletions;	/* Count of background deletions. */
@@ -772,7 +768,6 @@ struct yaffs_dev_s {
 
 };
 
-typedef struct yaffs_dev_s yaffs_dev_t;
 
 /* The static layout of block usage etc is stored in the super block header */
 typedef struct {
@@ -832,135 +827,136 @@ typedef struct {
 
 /*----------------------- YAFFS Functions -----------------------*/
 
-int yaffs_guts_initialise(yaffs_dev_t *dev);
-void yaffs_deinitialise(yaffs_dev_t *dev);
+int yaffs_guts_initialise(struct yaffs_dev *dev);
+void yaffs_deinitialise(struct yaffs_dev *dev);
 
-int yaffs_get_n_free_chunks(yaffs_dev_t *dev);
+int yaffs_get_n_free_chunks(struct yaffs_dev *dev);
 
-int yaffs_rename_obj(yaffs_obj_t *old_dir, const YCHAR *old_name,
-		       yaffs_obj_t *new_dir, const YCHAR *new_name);
+int yaffs_rename_obj(struct yaffs_obj *old_dir, const YCHAR *old_name,
+		       struct yaffs_obj *new_dir, const YCHAR *new_name);
 
-int yaffs_unlinker(yaffs_obj_t *dir, const YCHAR *name);
-int yaffs_del_obj(yaffs_obj_t *obj);
+int yaffs_unlinker(struct yaffs_obj *dir, const YCHAR *name);
+int yaffs_del_obj(struct yaffs_obj *obj);
 
-int yaffs_get_obj_name(yaffs_obj_t *obj, YCHAR *name, int buffer_size);
-int yaffs_get_obj_length(yaffs_obj_t *obj);
-int yaffs_get_obj_inode(yaffs_obj_t *obj);
-unsigned yaffs_get_obj_type(yaffs_obj_t *obj);
-int yaffs_get_obj_link_count(yaffs_obj_t *obj);
+int yaffs_get_obj_name(struct yaffs_obj *obj, YCHAR *name, int buffer_size);
+int yaffs_get_obj_length(struct yaffs_obj *obj);
+int yaffs_get_obj_inode(struct yaffs_obj *obj);
+unsigned yaffs_get_obj_type(struct yaffs_obj *obj);
+int yaffs_get_obj_link_count(struct yaffs_obj *obj);
 
-int yaffs_set_attribs(yaffs_obj_t *obj, struct iattr *attr);
-int yaffs_get_attribs(yaffs_obj_t *obj, struct iattr *attr);
+int yaffs_set_attribs(struct yaffs_obj *obj, struct iattr *attr);
+int yaffs_get_attribs(struct yaffs_obj *obj, struct iattr *attr);
 
 /* File operations */
-int yaffs_file_rd(yaffs_obj_t *obj, u8 *buffer, loff_t offset,
+int yaffs_file_rd(struct yaffs_obj *obj, u8 *buffer, loff_t offset,
 				int n_bytes);
-int yaffs_wr_file(yaffs_obj_t *obj, const u8 *buffer, loff_t offset,
+int yaffs_wr_file(struct yaffs_obj *obj, const u8 *buffer, loff_t offset,
 				int n_bytes, int write_trhrough);
-int yaffs_resize_file(yaffs_obj_t *obj, loff_t new_size);
+int yaffs_resize_file(struct yaffs_obj *obj, loff_t new_size);
 
-yaffs_obj_t *yaffs_create_file(yaffs_obj_t *parent, const YCHAR *name,
+struct yaffs_obj *yaffs_create_file(struct yaffs_obj *parent, const YCHAR *name,
 				u32 mode, u32 uid, u32 gid);
 
-int yaffs_flush_file(yaffs_obj_t *obj, int update_time, int data_sync);
+int yaffs_flush_file(struct yaffs_obj *obj, int update_time, int data_sync);
 
 /* Flushing and checkpointing */
-void yaffs_flush_whole_cache(yaffs_dev_t *dev);
+void yaffs_flush_whole_cache(struct yaffs_dev *dev);
 
-int yaffs_checkpoint_save(yaffs_dev_t *dev);
-int yaffs_checkpoint_restore(yaffs_dev_t *dev);
+int yaffs_checkpoint_save(struct yaffs_dev *dev);
+int yaffs_checkpoint_restore(struct yaffs_dev *dev);
 
 /* Directory operations */
-yaffs_obj_t *yaffs_create_dir(yaffs_obj_t *parent, const YCHAR *name,
+struct yaffs_obj *yaffs_create_dir(struct yaffs_obj *parent, const YCHAR *name,
 				u32 mode, u32 uid, u32 gid);
-yaffs_obj_t *yaffs_find_by_name(yaffs_obj_t *the_dir, const YCHAR *name);
-yaffs_obj_t *yaffs_find_by_number(yaffs_dev_t *dev, u32 number);
+struct yaffs_obj *yaffs_find_by_name(struct yaffs_obj *the_dir, const YCHAR *name);
+struct yaffs_obj *yaffs_find_by_number(struct yaffs_dev *dev, u32 number);
 
 /* Link operations */
-yaffs_obj_t *yaffs_link_obj(yaffs_obj_t *parent, const YCHAR *name,
-			 yaffs_obj_t *equiv_obj);
+struct yaffs_obj *yaffs_link_obj(struct yaffs_obj *parent, const YCHAR *name,
+			 struct yaffs_obj *equiv_obj);
 
-yaffs_obj_t *yaffs_get_equivalent_obj(yaffs_obj_t *obj);
+struct yaffs_obj *yaffs_get_equivalent_obj(struct yaffs_obj *obj);
 
 /* Symlink operations */
-yaffs_obj_t *yaffs_create_symlink(yaffs_obj_t *parent, const YCHAR *name,
+struct yaffs_obj *yaffs_create_symlink(struct yaffs_obj *parent, const YCHAR *name,
 				 u32 mode, u32 uid, u32 gid,
 				 const YCHAR *alias);
-YCHAR *yaffs_get_symlink_alias(yaffs_obj_t *obj);
+YCHAR *yaffs_get_symlink_alias(struct yaffs_obj *obj);
 
 /* Special inodes (fifos, sockets and devices) */
-yaffs_obj_t *yaffs_create_special(yaffs_obj_t *parent, const YCHAR *name,
+struct yaffs_obj *yaffs_create_special(struct yaffs_obj *parent, const YCHAR *name,
 				 u32 mode, u32 uid, u32 gid, u32 rdev);
 
 
-int yaffs_set_xattrib(yaffs_obj_t *obj, const YCHAR *name, const void * value, int size, int flags);
-int yaffs_get_xattrib(yaffs_obj_t *obj, const YCHAR *name, void *value, int size);
-int yaffs_list_xattrib(yaffs_obj_t *obj, char *buffer, int size);
-int yaffs_remove_xattrib(yaffs_obj_t *obj, const YCHAR *name);
+int yaffs_set_xattrib(struct yaffs_obj *obj, const YCHAR *name, const void * value, int size, int flags);
+int yaffs_get_xattrib(struct yaffs_obj *obj, const YCHAR *name, void *value, int size);
+int yaffs_list_xattrib(struct yaffs_obj *obj, char *buffer, int size);
+int yaffs_remove_xattrib(struct yaffs_obj *obj, const YCHAR *name);
 
 /* Special directories */
-yaffs_obj_t *yaffs_root(yaffs_dev_t *dev);
-yaffs_obj_t *yaffs_lost_n_found(yaffs_dev_t *dev);
+struct yaffs_obj *yaffs_root(struct yaffs_dev *dev);
+struct yaffs_obj *yaffs_lost_n_found(struct yaffs_dev *dev);
 
 #ifdef CONFIG_YAFFS_WINCE
 /* CONFIG_YAFFS_WINCE special stuff */
 void yfsd_win_file_time_now(u32 target[2]);
 #endif
 
-void yaffs_handle_defered_free(yaffs_obj_t *obj);
+void yaffs_handle_defered_free(struct yaffs_obj *obj);
 
-void yaffs_update_dirty_dirs(yaffs_dev_t *dev);
+void yaffs_update_dirty_dirs(struct yaffs_dev *dev);
 
-int yaffs_bg_gc(yaffs_dev_t *dev, unsigned urgency);
+int yaffs_bg_gc(struct yaffs_dev *dev, unsigned urgency);
 
 /* Debug dump  */
-int yaffs_dump_obj(yaffs_obj_t *obj);
+int yaffs_dump_obj(struct yaffs_obj *obj);
 
-void yaffs_guts_test(yaffs_dev_t *dev);
+void yaffs_guts_test(struct yaffs_dev *dev);
 
 /* A few useful functions to be used within the core files*/
-void yaffs_chunk_del(yaffs_dev_t *dev, int chunk_id, int mark_flash, int lyn);
+void yaffs_chunk_del(struct yaffs_dev *dev, int chunk_id, int mark_flash, int lyn);
 int yaffs_check_ff(u8 *buffer, int n_bytes);
-void yaffs_handle_chunk_error(yaffs_dev_t *dev, yaffs_block_info_t *bi);
+void yaffs_handle_chunk_error(struct yaffs_dev *dev, yaffs_block_info_t *bi);
 
-u8 *yaffs_get_temp_buffer(yaffs_dev_t *dev, int line_no);
-void yaffs_release_temp_buffer(yaffs_dev_t *dev, u8 *buffer, int line_no);
+u8 *yaffs_get_temp_buffer(struct yaffs_dev *dev, int line_no);
+void yaffs_release_temp_buffer(struct yaffs_dev *dev, u8 *buffer, int line_no);
 
-yaffs_obj_t *yaffs_find_or_create_by_number(yaffs_dev_t *dev,
+struct yaffs_obj *yaffs_find_or_create_by_number(struct yaffs_dev *dev,
 					        int number,
-					        yaffs_obj_type type);
-int yaffs_put_chunk_in_file(yaffs_obj_t *in, int inode_chunk,
+					        enum yaffs_obj_type type);
+int yaffs_put_chunk_in_file(struct yaffs_obj *in, int inode_chunk,
 			        int nand_chunk, int in_scan);
-void yaffs_set_obj_name(yaffs_obj_t *obj, const YCHAR *name);
-void yaffs_set_obj_name_from_oh(yaffs_obj_t *obj, const yaffs_obj_header *oh);
-void yaffs_add_obj_to_dir(yaffs_obj_t *directory,
-					yaffs_obj_t *obj);
+void yaffs_set_obj_name(struct yaffs_obj *obj, const YCHAR *name);
+void yaffs_set_obj_name_from_oh(struct yaffs_obj *obj,
+                                const struct yaffs_obj_hdr *oh);
+void yaffs_add_obj_to_dir(struct yaffs_obj *directory,
+					struct yaffs_obj *obj);
 YCHAR *yaffs_clone_str(const YCHAR *str);
-void yaffs_link_fixup(yaffs_dev_t *dev, yaffs_obj_t *hard_list);
-void yaffs_block_became_dirty(yaffs_dev_t *dev, int block_no);
-int yaffs_update_oh(yaffs_obj_t *in, const YCHAR *name,
+void yaffs_link_fixup(struct yaffs_dev *dev, struct yaffs_obj *hard_list);
+void yaffs_block_became_dirty(struct yaffs_dev *dev, int block_no);
+int yaffs_update_oh(struct yaffs_obj *in, const YCHAR *name,
 				int force, int is_shrink, int shadows,
                                 yaffs_xattr_mod *xop);
-void yaffs_handle_shadowed_obj(yaffs_dev_t *dev, int obj_id,
+void yaffs_handle_shadowed_obj(struct yaffs_dev *dev, int obj_id,
 				int backward_scanning);
-int yaffs_check_alloc_available(yaffs_dev_t *dev, int n_chunks);
-yaffs_tnode_t *yaffs_get_tnode(yaffs_dev_t *dev);
-yaffs_tnode_t *yaffs_add_find_tnode_0(yaffs_dev_t *dev,
+int yaffs_check_alloc_available(struct yaffs_dev *dev, int n_chunks);
+yaffs_tnode_t *yaffs_get_tnode(struct yaffs_dev *dev);
+yaffs_tnode_t *yaffs_add_find_tnode_0(struct yaffs_dev *dev,
 					yaffs_file_s *file_struct,
 					u32 chunk_id,
 					yaffs_tnode_t *passed_tn);
 
-int yaffs_do_file_wr(yaffs_obj_t *in, const u8 *buffer, loff_t offset,
+int yaffs_do_file_wr(struct yaffs_obj *in, const u8 *buffer, loff_t offset,
 			int n_bytes, int write_trhrough);
-void yaffs_resize_file_down( yaffs_obj_t *obj, loff_t new_size);
-void yaffs_skip_rest_of_block(yaffs_dev_t *dev);
+void yaffs_resize_file_down( struct yaffs_obj *obj, loff_t new_size);
+void yaffs_skip_rest_of_block(struct yaffs_dev *dev);
 
-int yaffs_count_free_chunks(yaffs_dev_t *dev);
+int yaffs_count_free_chunks(struct yaffs_dev *dev);
 
-yaffs_tnode_t *yaffs_find_tnode_0(yaffs_dev_t *dev,
+yaffs_tnode_t *yaffs_find_tnode_0(struct yaffs_dev *dev,
 				yaffs_file_s *file_struct,
 				u32 chunk_id);
 
-u32 yaffs_get_group_base(yaffs_dev_t *dev, yaffs_tnode_t *tn, unsigned pos);
+u32 yaffs_get_group_base(struct yaffs_dev *dev, yaffs_tnode_t *tn, unsigned pos);
 
 #endif

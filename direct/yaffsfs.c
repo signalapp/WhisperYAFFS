@@ -31,8 +31,8 @@
 #define YAFFSFS_RW_SIZE  (1<<YAFFSFS_RW_SHIFT)
 
 /* Some forward references */
-static yaffs_obj_t *yaffsfs_FindObject(yaffs_obj_t *relativeDirectory, const YCHAR *path, int symDepth, int getEquiv);
-static void yaffsfs_RemoveObjectCallback(yaffs_obj_t *obj);
+static struct yaffs_obj *yaffsfs_FindObject(struct yaffs_obj *relativeDirectory, const YCHAR *path, int symDepth, int getEquiv);
+static void yaffsfs_RemoveObjectCallback(struct yaffs_obj *obj);
 
 unsigned int yaffs_wr_attempts;
 
@@ -49,7 +49,7 @@ unsigned int yaffs_wr_attempts;
 
 typedef struct {
 	int count;	/* Number of handles accessing this inode */
-	yaffs_obj_t *iObj;
+	struct yaffs_obj *iObj;
 } yaffsfs_Inode;
 
 typedef struct{
@@ -102,7 +102,7 @@ yaffsfs_Inode *yaffsfs_GetInodePointer(int handle)
 	return NULL;
 }
 
-yaffs_obj_t *yaffsfs_GetHandleObject(int handle)
+struct yaffs_obj *yaffsfs_GetHandleObject(int handle)
 {
 	yaffsfs_Inode *in = yaffsfs_GetInodePointer(handle);
 
@@ -117,7 +117,7 @@ yaffs_obj_t *yaffsfs_GetHandleObject(int handle)
  * Find the inode entry for an object, if it exists.
  */
 
-static int yaffsfs_FindInodeIdForObject(yaffs_obj_t *obj)
+static int yaffsfs_FindInodeIdForObject(struct yaffs_obj *obj)
 {
 	int i;
 	int ret = -1;
@@ -137,7 +137,7 @@ static int yaffsfs_FindInodeIdForObject(yaffs_obj_t *obj)
  * yaffsfs_GetInodeIdForObject
  * Grab an inode entry when opening a new inode.
  */
-static int yaffsfs_GetInodeIdForObject(yaffs_obj_t *obj)
+static int yaffsfs_GetInodeIdForObject(struct yaffs_obj *obj)
 {
 	int i;
 	int ret;
@@ -166,7 +166,7 @@ static int yaffsfs_GetInodeIdForObject(yaffs_obj_t *obj)
 }
 
 
-static int yaffsfs_CountHandles(yaffs_obj_t *obj)
+static int yaffsfs_CountHandles(struct yaffs_obj *obj)
 {
 	int i = yaffsfs_FindInodeIdForObject(obj);
 
@@ -178,7 +178,7 @@ static int yaffsfs_CountHandles(yaffs_obj_t *obj)
 
 static void yaffsfs_ReleaseInode(yaffsfs_Inode *in)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 	
 	obj = in->iObj;
 
@@ -299,13 +299,13 @@ YLIST_HEAD(yaffsfs_deviceList);
  * Curveballs: Should match paths that end in '/' too
  * Curveball2 Might have "/x/ and "/x/y". Need to return the longest match
  */
-static yaffs_dev_t *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
+static struct yaffs_dev *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 {
 	struct ylist_head *cfg;
 	const YCHAR *leftOver;
 	const YCHAR *p;
-	yaffs_dev_t *retval = NULL;
-	yaffs_dev_t *dev = NULL;
+	struct yaffs_dev *retval = NULL;
+	struct yaffs_dev *dev = NULL;
 	int thisMatchLength;
 	int longestMatch = -1;
 	int matching;
@@ -316,7 +316,7 @@ static yaffs_dev_t *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 	 * 2) Matches the longest.
 	 */
 	ylist_for_each(cfg, &yaffsfs_deviceList){
-		dev = ylist_entry(cfg, yaffs_dev_t, dev_list);
+		dev = ylist_entry(cfg, struct yaffs_dev, dev_list);
 		leftOver = path;
 		p = dev->param.name;
 		thisMatchLength = 0;
@@ -371,12 +371,12 @@ static yaffs_dev_t *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 }
 
 #if 0
-static yaffs_dev_t *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
+static struct yaffs_dev *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 {
 	yaffsfs_DeviceConfiguration *cfg = yaffsfs_configurationList;
 	const YCHAR *leftOver;
 	const YCHAR *p;
-	yaffs_dev_t *retval = NULL;
+	struct yaffs_dev *retval = NULL;
 	int thisMatchLength;
 	int longestMatch = -1;
 
@@ -413,10 +413,10 @@ static yaffs_dev_t *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 }
 #endif
 
-static yaffs_obj_t *yaffsfs_FindRoot(const YCHAR *path, YCHAR **restOfPath)
+static struct yaffs_obj *yaffsfs_FindRoot(const YCHAR *path, YCHAR **restOfPath)
 {
 
-	yaffs_dev_t *dev;
+	struct yaffs_dev *dev;
 
 	dev= yaffsfs_FindDevice(path,restOfPath);
 	if(dev && dev->is_mounted){
@@ -425,7 +425,7 @@ static yaffs_obj_t *yaffsfs_FindRoot(const YCHAR *path, YCHAR **restOfPath)
 	return NULL;
 }
 
-static yaffs_obj_t *yaffsfs_FollowLink(yaffs_obj_t *obj,int symDepth)
+static struct yaffs_obj *yaffsfs_FollowLink(struct yaffs_obj *obj,int symDepth)
 {
 
 	if(obj)
@@ -451,10 +451,10 @@ static yaffs_obj_t *yaffsfs_FollowLink(yaffs_obj_t *obj,int symDepth)
  *
  * eg. "/data/xx/ff" --> puts name="ff" and returns the directory "/data/xx"
  */
-static yaffs_obj_t *yaffsfs_DoFindDirectory(yaffs_obj_t *startDir,
+static struct yaffs_obj *yaffsfs_DoFindDirectory(struct yaffs_obj *startDir,
 				const YCHAR *path, YCHAR **name, int symDepth)
 {
-	yaffs_obj_t *dir;
+	struct yaffs_obj *dir;
 	YCHAR *restOfPath;
 	YCHAR str[YAFFS_MAX_NAME_LENGTH+1];
 	int i;
@@ -514,7 +514,7 @@ static yaffs_obj_t *yaffsfs_DoFindDirectory(yaffs_obj_t *startDir,
 	return NULL;
 }
 
-static yaffs_obj_t *yaffsfs_FindDirectory(yaffs_obj_t *relativeDirectory,
+static struct yaffs_obj *yaffsfs_FindDirectory(struct yaffs_obj *relativeDirectory,
 					const YCHAR *path,YCHAR **name,int symDepth)
 {
 	return yaffsfs_DoFindDirectory(relativeDirectory,path,name,symDepth);
@@ -523,10 +523,10 @@ static yaffs_obj_t *yaffsfs_FindDirectory(yaffs_obj_t *relativeDirectory,
 /*
  * yaffsfs_FindObject turns a path for an existing object into the object
  */
-static yaffs_obj_t *yaffsfs_FindObject(yaffs_obj_t *relativeDirectory, const YCHAR *path,int symDepth, int getEquiv)
+static struct yaffs_obj *yaffsfs_FindObject(struct yaffs_obj *relativeDirectory, const YCHAR *path,int symDepth, int getEquiv)
 {
-	yaffs_obj_t *dir;
-	yaffs_obj_t *obj;
+	struct yaffs_obj *dir;
+	struct yaffs_obj *obj;
 	YCHAR *name;
 
 	dir = yaffsfs_FindDirectory(relativeDirectory,path,&name,symDepth);
@@ -575,8 +575,8 @@ int yaffs_dup(int fd)
 
 int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 {
-	yaffs_obj_t *obj = NULL;
-	yaffs_obj_t *dir = NULL;
+	struct yaffs_obj *obj = NULL;
+	struct yaffs_obj *dir = NULL;
 	YCHAR *name;
 	int handle = -1;
 	yaffsfs_Handle *yh = NULL;
@@ -817,7 +817,7 @@ int yaffs_close(int fd)
 int yaffsfs_do_read(int fd, void *vbuf, unsigned int nbyte, int isPread, int offset)
 {
 	yaffsfs_Handle *h = NULL;
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *obj = NULL;
 	int pos = 0;
 	int startPos = 0;
 	int nRead = 0;
@@ -913,7 +913,7 @@ int yaffs_pread(int fd, void *buf, unsigned int nbyte, unsigned int offset)
 int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite, int offset)
 {
 	yaffsfs_Handle *h = NULL;
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *obj = NULL;
 	int pos = 0;
 	int startPos = 0;
 	int nWritten = 0;
@@ -1000,7 +1000,7 @@ int yaffs_pwrite(int fd, const void *buf, unsigned int nbyte, unsigned int offse
 
 int yaffs_truncate(const YCHAR *path,off_t new_size)
 {
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *obj = NULL;
 	int result = YAFFS_FAIL;
 
 	yaffsfs_Lock();
@@ -1025,7 +1025,7 @@ int yaffs_truncate(const YCHAR *path,off_t new_size)
 int yaffs_ftruncate(int fd, off_t new_size)
 {
 	yaffsfs_Handle *h = NULL;
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *obj = NULL;
 	int result = 0;
 
 	yaffsfs_Lock();
@@ -1050,7 +1050,7 @@ int yaffs_ftruncate(int fd, off_t new_size)
 off_t yaffs_lseek(int fd, off_t offset, int whence)
 {
 	yaffsfs_Handle *h = NULL;
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *obj = NULL;
 	int pos = -1;
 	int fSize = -1;
 
@@ -1088,8 +1088,8 @@ off_t yaffs_lseek(int fd, off_t offset, int whence)
 
 int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 {
-	yaffs_obj_t *dir = NULL;
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *dir = NULL;
+	struct yaffs_obj *obj = NULL;
 	YCHAR *name;
 	int result = YAFFS_FAIL;
 
@@ -1134,9 +1134,9 @@ int yaffs_unlink(const YCHAR *path)
 
 int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 {
-	yaffs_obj_t *olddir = NULL;
-	yaffs_obj_t *newdir = NULL;
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *olddir = NULL;
+	struct yaffs_obj *newdir = NULL;
+	struct yaffs_obj *obj = NULL;
 	YCHAR *oldname;
 	YCHAR *newname;
 	int result= YAFFS_FAIL;
@@ -1167,7 +1167,7 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 		 * Do this by tracing from the new directory back to the root, checking for obj
 		 */
 
-		yaffs_obj_t *xx = newdir;
+		struct yaffs_obj *xx = newdir;
 
 		while( rename_allowed && xx){
 			if(xx == obj)
@@ -1187,7 +1187,7 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 }
 
 
-static int yaffsfs_DoStat(yaffs_obj_t *obj,struct yaffs_stat *buf)
+static int yaffsfs_DoStat(struct yaffs_obj *obj,struct yaffs_stat *buf)
 {
 	int retVal = -1;
 
@@ -1231,7 +1231,7 @@ static int yaffsfs_DoStat(yaffs_obj_t *obj,struct yaffs_stat *buf)
 
 static int yaffsfs_DoStatOrLStat(const YCHAR *path, struct yaffs_stat *buf,int doLStat)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1266,7 +1266,7 @@ int yaffs_lstat(const YCHAR *path, struct yaffs_stat *buf)
 
 int yaffs_fstat(int fd, struct yaffs_stat *buf)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1290,7 +1290,7 @@ int yaffs_fstat(int fd, struct yaffs_stat *buf)
 
 static int yaffs_do_setxattr(const YCHAR *path, const char *name, const void *data, int size, int flags, int follow)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1331,7 +1331,7 @@ int yaffs_lsetxattr(const YCHAR *path, const char *name, const void *data, int s
 
 int yaffs_fsetxattr(int fd, const char *name, const void *data, int size, int flags)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1355,7 +1355,7 @@ int yaffs_fsetxattr(int fd, const char *name, const void *data, int size, int fl
 
 static int yaffs_do_getxattr(const YCHAR *path, const char *name, void *data, int size, int follow)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1395,7 +1395,7 @@ int yaffs_lgetxattr(const YCHAR *path, const char *name, void *data, int size)
 
 int yaffs_fgetxattr(int fd, const char *name, void *data, int size)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1419,7 +1419,7 @@ int yaffs_fgetxattr(int fd, const char *name, void *data, int size)
 
 static int yaffs_do_listxattr(const YCHAR *path, char *data, int size, int follow)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1458,7 +1458,7 @@ int yaffs_llistxattr(const YCHAR *path, char *data, int size)
 
 int yaffs_flistxattr(int fd, char *data, int size)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1482,7 +1482,7 @@ int yaffs_flistxattr(int fd, char *data, int size)
 
 static int yaffs_do_removexattr(const YCHAR *path, const char *name, int follow)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1521,7 +1521,7 @@ int yaffs_lremovexattr(const YCHAR *path, const char *name)
 
 int yaffs_fremovexattr(int fd, const char *name)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1547,7 +1547,7 @@ int yaffs_fremovexattr(int fd, const char *name)
 #ifdef CONFIG_YAFFS_WINCE
 int yaffs_get_wince_times(int fd, unsigned *wctime, unsigned *watime, unsigned *wmtime)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1586,7 +1586,7 @@ int yaffs_set_wince_times(int fd,
 						  const unsigned *watime, 
                                                   const unsigned *wmtime)
 {
-        yaffs_obj_t *obj;
+        struct yaffs_obj *obj;
         int result;
         int retVal = -1;
 
@@ -1623,7 +1623,7 @@ int yaffs_set_wince_times(int fd,
 #endif
 
 
-static int yaffsfs_DoChMod(yaffs_obj_t *obj,mode_t mode)
+static int yaffsfs_DoChMod(struct yaffs_obj *obj,mode_t mode)
 {
 	int result = -1;
 
@@ -1642,7 +1642,7 @@ static int yaffsfs_DoChMod(yaffs_obj_t *obj,mode_t mode)
 
 int yaffs_access(const YCHAR *path, int amode)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retval = 0;
 
@@ -1679,7 +1679,7 @@ int yaffs_access(const YCHAR *path, int amode)
 
 int yaffs_chmod(const YCHAR *path, mode_t mode)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1703,7 +1703,7 @@ int yaffs_chmod(const YCHAR *path, mode_t mode)
 
 int yaffs_fchmod(int fd, mode_t mode)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	int retVal = -1;
 
@@ -1725,8 +1725,8 @@ int yaffs_fchmod(int fd, mode_t mode)
 
 int yaffs_mkdir(const YCHAR *path, mode_t mode)
 {
-	yaffs_obj_t *parent = NULL;
-	yaffs_obj_t *dir = NULL;
+	struct yaffs_obj *parent = NULL;
+	struct yaffs_obj *dir = NULL;
 	YCHAR *name;
 	YCHAR *use_path = NULL;
 	int path_length = 0;
@@ -1795,7 +1795,7 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 
 void * yaffs_getdev(const YCHAR *path)
 {
-	yaffs_dev_t *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 	dev = yaffsfs_FindDevice(path,&dummy);
 	return (void *)dev;
@@ -1805,7 +1805,7 @@ int yaffs_mount2(const YCHAR *path,int read_only)
 {
 	int retVal=-1;
 	int result=YAFFS_FAIL;
-	yaffs_dev_t *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 
 	T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: Mounting %s" TENDSTR),path));
@@ -1845,7 +1845,7 @@ int yaffs_mount(const YCHAR *path)
 int yaffs_sync(const YCHAR *path)
 {
         int retVal=-1;
-        yaffs_dev_t *dev=NULL;
+        struct yaffs_dev *dev=NULL;
         YCHAR *dummy;
         
         yaffsfs_Lock();
@@ -1873,7 +1873,7 @@ int yaffs_sync(const YCHAR *path)
 int yaffs_remount(const YCHAR *path, int force, int read_only)
 {
         int retVal=-1;
-	yaffs_dev_t *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 
 	yaffsfs_Lock();
@@ -1913,7 +1913,7 @@ int yaffs_remount(const YCHAR *path, int force, int read_only)
 int yaffs_unmount2(const YCHAR *path, int force)
 {
         int retVal=-1;
-	yaffs_dev_t *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 
 	yaffsfs_Lock();
@@ -1961,7 +1961,7 @@ int yaffs_unmount(const YCHAR *path)
 loff_t yaffs_freespace(const YCHAR *path)
 {
 	loff_t retVal=-1;
-	yaffs_dev_t *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 
 	yaffsfs_Lock();
@@ -1980,7 +1980,7 @@ loff_t yaffs_freespace(const YCHAR *path)
 loff_t yaffs_totalspace(const YCHAR *path)
 {
 	loff_t retVal=-1;
-	yaffs_dev_t *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 
 	yaffsfs_Lock();
@@ -2000,7 +2000,7 @@ loff_t yaffs_totalspace(const YCHAR *path)
 int yaffs_inodecount(const YCHAR *path)
 {
 	loff_t retVal= -1;
-	yaffs_dev_t *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 
 	yaffsfs_Lock();
@@ -2019,7 +2019,7 @@ int yaffs_inodecount(const YCHAR *path)
 }
 
 
-void yaffs_add_device(yaffs_dev_t *dev)
+void yaffs_add_device(struct yaffs_dev *dev)
 {
 	dev->is_mounted = 0;
 	dev->param.remove_obj_fn = yaffsfs_RemoveObjectCallback;
@@ -2030,7 +2030,7 @@ void yaffs_add_device(yaffs_dev_t *dev)
 	ylist_add(&dev->dev_list,&yaffsfs_deviceList);
 }
 
-void yaffs_remove_device(yaffs_dev_t *dev)
+void yaffs_remove_device(struct yaffs_dev *dev)
 {
 	ylist_del_init(&dev->dev_list);
 }
@@ -2052,8 +2052,8 @@ typedef struct
 	u32 magic;
 	yaffs_dirent de;		/* directory entry being used by this dsc */
 	YCHAR name[NAME_MAX+1];		/* name of directory being searched */
-        yaffs_obj_t *dirObj;           /* ptr to directory being searched */
-        yaffs_obj_t *nextReturn;       /* obj to be returned by next readddir */
+        struct yaffs_obj *dirObj;           /* ptr to directory being searched */
+        struct yaffs_obj *nextReturn;       /* obj to be returned by next readddir */
         int offset;
         struct ylist_head others;       
 } yaffsfs_DirectorySearchContext;
@@ -2075,7 +2075,7 @@ static void yaffsfs_SetDirRewound(yaffsfs_DirectorySearchContext *dsc)
                 dsc->nextReturn = NULL;
            else
                 dsc->nextReturn = ylist_entry(dsc->dirObj->variant.dir_variant.children.next,
-                                                yaffs_obj_t,siblings);
+                                                struct yaffs_obj,siblings);
         } else {
 		/* Hey someone isn't playing nice! */
 	}
@@ -2096,14 +2096,14 @@ static void yaffsfs_DirAdvance(yaffsfs_DirectorySearchContext *dsc)
                    if( next == &dsc->dirObj->variant.dir_variant.children)
                         dsc->nextReturn = NULL; /* end of list */
                    else
-                        dsc->nextReturn = ylist_entry(next,yaffs_obj_t,siblings);
+                        dsc->nextReturn = ylist_entry(next,struct yaffs_obj,siblings);
            }
         } else {
                 /* Hey someone isn't playing nice! */
 	}
 }
 
-static void yaffsfs_RemoveObjectCallback(yaffs_obj_t *obj)
+static void yaffsfs_RemoveObjectCallback(struct yaffs_obj *obj)
 {
 
         struct ylist_head *i;
@@ -2130,7 +2130,7 @@ static void yaffsfs_RemoveObjectCallback(yaffs_obj_t *obj)
 yaffs_DIR *yaffs_opendir(const YCHAR *dirname)
 {
 	yaffs_DIR *dir = NULL;
- 	yaffs_obj_t *obj = NULL;
+ 	struct yaffs_obj *obj = NULL;
 	yaffsfs_DirectorySearchContext *dsc = NULL;
 
 	yaffsfs_Lock();
@@ -2226,8 +2226,8 @@ int yaffs_closedir(yaffs_DIR *dirp)
 
 int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath)
 {
-	yaffs_obj_t *parent = NULL;
-	yaffs_obj_t *obj;
+	struct yaffs_obj *parent = NULL;
+	struct yaffs_obj *obj;
 	YCHAR *name;
 	int retVal= -1;
 	int mode = 0; /* ignore for now */
@@ -2257,7 +2257,7 @@ int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath)
 
 int yaffs_readlink(const YCHAR *path, YCHAR *buf, int bufsiz)
 {
-	yaffs_obj_t *obj = NULL;
+	struct yaffs_obj *obj = NULL;
 	int retVal;
 
 
@@ -2284,8 +2284,8 @@ int yaffs_readlink(const YCHAR *path, YCHAR *buf, int bufsiz)
 int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 {
 	/* Creates a link called newpath to existing oldpath */
-	yaffs_obj_t *obj = NULL;
-	yaffs_obj_t *target = NULL;
+	struct yaffs_obj *obj = NULL;
+	struct yaffs_obj *target = NULL;
 	int retVal = 0;
 	int new_nameLength = 0;
 
@@ -2305,8 +2305,8 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 		yaffsfs_SetError(-EEXIST);
 		retVal = -1;
 	} else {
-		yaffs_obj_t *newdir = NULL;
-		yaffs_obj_t *link = NULL;
+		struct yaffs_obj *newdir = NULL;
+		struct yaffs_obj *link = NULL;
 
 		YCHAR *newname;
 
@@ -2359,7 +2359,7 @@ int yaffs_mknod(const YCHAR *pathname, mode_t mode, dev_t dev)
  */
 int yaffs_n_handles(const YCHAR *path)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 
 	obj = yaffsfs_FindObject(NULL,path,0,1);
 
@@ -2376,10 +2376,10 @@ int yaffs_dump_dev(const YCHAR *path)
 #if 0
 	YCHAR *rest;
 
-	yaffs_obj_t *obj = yaffsfs_FindRoot(path,&rest);
+	struct yaffs_obj *obj = yaffsfs_FindRoot(path,&rest);
 
 	if(obj){
-		yaffs_dev_t *dev = obj->my_dev;
+		struct yaffs_dev *dev = obj->my_dev;
 
 		printf("\n"
 			   "n_page_writes.......... %d\n"

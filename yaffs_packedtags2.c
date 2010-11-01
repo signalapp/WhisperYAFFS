@@ -51,7 +51,7 @@ static void yaffs_dump_packed_tags2(const yaffs_packed_tags2 *pt)
 	yaffs_dump_packed_tags2_tags_only(&pt->t);
 }
 
-static void yaffs_dump_tags2(const yaffs_ext_tags *t)
+static void yaffs_dump_tags2(const struct yaffs_ext_tags *t)
 {
 	T(YAFFS_TRACE_MTD,
 	  (TSTR
@@ -63,7 +63,7 @@ static void yaffs_dump_tags2(const yaffs_ext_tags *t)
 }
 
 void yaffs_pack_tags2_tags_only(yaffs_packed_tags2_tags_only *ptt,
-		const yaffs_ext_tags *t)
+		const struct yaffs_ext_tags *t)
 {
 	ptt->chunk_id = t->chunk_id;
 	ptt->seq_number = t->seq_number;
@@ -97,7 +97,7 @@ void yaffs_pack_tags2_tags_only(yaffs_packed_tags2_tags_only *ptt,
 }
 
 
-void yaffs_pack_tags2(yaffs_packed_tags2 *pt, const yaffs_ext_tags *t, int tags_ecc)
+void yaffs_pack_tags2(yaffs_packed_tags2 *pt, const struct yaffs_ext_tags *t, int tags_ecc)
 {
 	yaffs_pack_tags2_tags_only(&pt->t, t);
 
@@ -108,11 +108,11 @@ void yaffs_pack_tags2(yaffs_packed_tags2 *pt, const yaffs_ext_tags *t, int tags_
 }
 
 
-void yaffs_unpack_tags2_tags_only(yaffs_ext_tags *t,
+void yaffs_unpack_tags2_tags_only(struct yaffs_ext_tags *t,
 		yaffs_packed_tags2_tags_only *ptt)
 {
 
-	memset(t, 0, sizeof(yaffs_ext_tags));
+	memset(t, 0, sizeof(struct yaffs_ext_tags));
 
 	yaffs_init_tags(t);
 
@@ -156,7 +156,7 @@ void yaffs_unpack_tags2_tags_only(yaffs_ext_tags *t,
 }
 
 
-void yaffs_unpack_tags2(yaffs_ext_tags *t, yaffs_packed_tags2 *pt, int tags_ecc)
+void yaffs_unpack_tags2(struct yaffs_ext_tags *t, yaffs_packed_tags2 *pt, int tags_ecc)
 {
 
 	yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_NO_ERROR;

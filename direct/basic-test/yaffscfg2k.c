@@ -106,9 +106,9 @@ void yaffsfs_LocalInitialisation(void)
 #include "yaffs_flashif2.h"
 #include "yaffs_nandemul2k.h"
 
-struct yaffs_dev_s ram1Dev;
-struct yaffs_dev_s flashDev;
-struct yaffs_dev_s m18_1Dev;
+struct yaffs_dev ram1Dev;
+struct yaffs_dev flashDev;
+struct yaffs_dev m18_1Dev;
 
 int yaffs_start_up(void)
 {

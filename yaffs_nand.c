@@ -17,12 +17,12 @@
 
 #include "yaffs_getblockinfo.h"
 
-int yaffs_rd_chunk_tags_nand(yaffs_dev_t *dev, int nand_chunk,
+int yaffs_rd_chunk_tags_nand(struct yaffs_dev *dev, int nand_chunk,
 					   u8 *buffer,
-					   yaffs_ext_tags *tags)
+					   struct yaffs_ext_tags *tags)
 {
 	int result;
-	yaffs_ext_tags local_tags;
+	struct yaffs_ext_tags local_tags;
 
 	int realigned_chunk = nand_chunk - dev->chunk_offset;
 
@@ -51,10 +51,10 @@ int yaffs_rd_chunk_tags_nand(yaffs_dev_t *dev, int nand_chunk,
 	return result;
 }
 
-int yaffs_wr_chunk_tags_nand(yaffs_dev_t *dev,
+int yaffs_wr_chunk_tags_nand(struct yaffs_dev *dev,
 						   int nand_chunk,
 						   const u8 *buffer,
-						   yaffs_ext_tags *tags)
+						   struct yaffs_ext_tags *tags)
 {
 
 	dev->n_page_writes++;
@@ -88,7 +88,7 @@ int yaffs_wr_chunk_tags_nand(yaffs_dev_t *dev,
 								       tags);
 }
 
-int yaffs_mark_bad(yaffs_dev_t *dev, int block_no)
+int yaffs_mark_bad(struct yaffs_dev *dev, int block_no)
 {
 	block_no -= dev->block_offset;
 
@@ -99,7 +99,7 @@ int yaffs_mark_bad(yaffs_dev_t *dev, int block_no)
 		return yaffs_tags_compat_mark_bad(dev, block_no);
 }
 
-int yaffs_query_init_block_state(yaffs_dev_t *dev,
+int yaffs_query_init_block_state(struct yaffs_dev *dev,
 						 int block_no,
 						 yaffs_block_state_t *state,
 						 u32 *seq_number)
@@ -115,7 +115,7 @@ int yaffs_query_init_block_state(yaffs_dev_t *dev,
 }
 
 
-int yaffs_erase_block(struct yaffs_dev_s *dev,
+int yaffs_erase_block(struct yaffs_dev *dev,
 				  int flash_block)
 {
 	int result;
@@ -129,7 +129,7 @@ int yaffs_erase_block(struct yaffs_dev_s *dev,
 	return result;
 }
 
-int yaffs_init_nand(struct yaffs_dev_s *dev)
+int yaffs_init_nand(struct yaffs_dev *dev)
 {
 	if(dev->param.initialise_flash_fn)
 		return dev->param.initialise_flash_fn(dev);

@@ -31,7 +31,7 @@
 
 typedef struct yaffsfs_DeviceConfigurationStruct {
 	const YCHAR *prefix;
-	struct yaffs_dev_s *dev;
+	struct yaffs_dev *dev;
 } yaffsfs_DeviceConfiguration;
 
 

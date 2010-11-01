@@ -19,26 +19,26 @@
 
 
 
-int yaffs_rd_chunk_tags_nand(yaffs_dev_t *dev, int nand_chunk,
+int yaffs_rd_chunk_tags_nand(struct yaffs_dev *dev, int nand_chunk,
 					u8 *buffer,
-					yaffs_ext_tags *tags);
+					struct yaffs_ext_tags *tags);
 
-int yaffs_wr_chunk_tags_nand(yaffs_dev_t *dev,
+int yaffs_wr_chunk_tags_nand(struct yaffs_dev *dev,
 						int nand_chunk,
 						const u8 *buffer,
-						yaffs_ext_tags *tags);
+						struct yaffs_ext_tags *tags);
 
-int yaffs_mark_bad(yaffs_dev_t *dev, int block_no);
+int yaffs_mark_bad(struct yaffs_dev *dev, int block_no);
 
-int yaffs_query_init_block_state(yaffs_dev_t *dev,
+int yaffs_query_init_block_state(struct yaffs_dev *dev,
 						int block_no,
 						yaffs_block_state_t *state,
 						unsigned *seq_number);
 
-int yaffs_erase_block(struct yaffs_dev_s *dev,
+int yaffs_erase_block(struct yaffs_dev *dev,
 				  int flash_block);
 
-int yaffs_init_nand(struct yaffs_dev_s *dev);
+int yaffs_init_nand(struct yaffs_dev *dev);
 
 #endif
 

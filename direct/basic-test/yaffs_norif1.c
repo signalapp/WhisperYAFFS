@@ -88,7 +88,7 @@ const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.6 2010-02-18 01:18
 #define DEVICE_BASE     (32 * 1024 * 1024)
 #endif
 
-u32 *Block2Addr(yaffs_dev_t *dev, int blockNumber)
+u32 *Block2Addr(struct yaffs_dev *dev, int blockNumber)
 {
 	u32 addr;
 	dev=dev;
@@ -99,7 +99,7 @@ u32 *Block2Addr(yaffs_dev_t *dev, int blockNumber)
 	return (u32 *) addr;
 }
 
-u32 *Block2FormatAddr(yaffs_dev_t *dev,int blockNumber)
+u32 *Block2FormatAddr(struct yaffs_dev *dev,int blockNumber)
 {
 	u32 addr;
 
@@ -108,7 +108,7 @@ u32 *Block2FormatAddr(yaffs_dev_t *dev,int blockNumber)
 	
 	return (u32 *)addr;
 }
-u32 *Chunk2DataAddr(yaffs_dev_t *dev,int chunk_id)
+u32 *Chunk2DataAddr(struct yaffs_dev *dev,int chunk_id)
 {
 	unsigned block;
 	unsigned chunkInBlock;
@@ -123,7 +123,7 @@ u32 *Chunk2DataAddr(yaffs_dev_t *dev,int chunk_id)
 	return (u32 *)addr;
 }
 
-u32 *Chunk2SpareAddr(yaffs_dev_t *dev,int chunk_id)
+u32 *Chunk2SpareAddr(struct yaffs_dev *dev,int chunk_id)
 {
 	unsigned block;
 	unsigned chunkInBlock;
@@ -149,7 +149,7 @@ void ynorif1_AndBytes(u8*target, const u8   *src, int nbytes)
         }
 }
 
-int ynorif1_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_spare *spare)
+int ynorif1_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const yaffs_spare *spare)
 {
         u32 *dataAddr = Chunk2DataAddr(dev,nand_chunk);
         u32 *spareAddr = Chunk2SpareAddr(dev,nand_chunk);
@@ -206,7 +206,7 @@ int ynorif1_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, con
 
 }
 
-int ynorif1_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_spare *spare)
+int ynorif1_ReadChunkFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, yaffs_spare *spare)
 {
 
 	u32 *dataAddr = Chunk2DataAddr(dev,nand_chunk);
@@ -236,7 +236,7 @@ int ynorif1_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_s
 
 }
 
-static int ynorif1_FormatBlock(yaffs_dev_t *dev, int blockNumber)
+static int ynorif1_FormatBlock(struct yaffs_dev *dev, int blockNumber)
 {
 	u32 *blockAddr = Block2Addr(dev,blockNumber);
 	u32 *formatAddr = Block2FormatAddr(dev,blockNumber);
@@ -248,7 +248,7 @@ static int ynorif1_FormatBlock(yaffs_dev_t *dev, int blockNumber)
 	return YAFFS_OK;
 }
 
-static int ynorif1_UnformatBlock(yaffs_dev_t *dev, int blockNumber)
+static int ynorif1_UnformatBlock(struct yaffs_dev *dev, int blockNumber)
 {
 	u32 *formatAddr = Block2FormatAddr(dev,blockNumber);
 	u32 formatValue = 0;
@@ -258,7 +258,7 @@ static int ynorif1_UnformatBlock(yaffs_dev_t *dev, int blockNumber)
 	return YAFFS_OK;
 }
 
-static int ynorif1_IsBlockFormatted(yaffs_dev_t *dev, int blockNumber)
+static int ynorif1_IsBlockFormatted(struct yaffs_dev *dev, int blockNumber)
 {
 	u32 *formatAddr = Block2FormatAddr(dev,blockNumber);
 	u32 formatValue;
@@ -269,7 +269,7 @@ static int ynorif1_IsBlockFormatted(yaffs_dev_t *dev, int blockNumber)
 	return (formatValue == FORMAT_VALUE);
 }
 
-int ynorif1_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
+int ynorif1_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 {
 
 	if(blockNumber < 0 || blockNumber >= BLOCKS_IN_DEVICE)
@@ -286,7 +286,7 @@ int ynorif1_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 	
 }
 
-int ynorif1_InitialiseNAND(yaffs_dev_t *dev)
+int ynorif1_InitialiseNAND(struct yaffs_dev *dev)
 {
 	int i;
 	
@@ -300,7 +300,7 @@ int ynorif1_InitialiseNAND(yaffs_dev_t *dev)
 	return YAFFS_OK;
 }
 
-int ynorif1_Deinitialise_flash_fn(yaffs_dev_t *dev)
+int ynorif1_Deinitialise_flash_fn(struct yaffs_dev *dev)
 {
 	dev=dev;	
 	ynorif1_FlashDeinit();

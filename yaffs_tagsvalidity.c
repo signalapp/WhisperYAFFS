@@ -13,14 +13,14 @@
 
 #include "yaffs_tagsvalidity.h"
 
-void yaffs_init_tags(yaffs_ext_tags *tags)
+void yaffs_init_tags(struct yaffs_ext_tags *tags)
 {
-	memset(tags, 0, sizeof(yaffs_ext_tags));
+	memset(tags, 0, sizeof(struct yaffs_ext_tags));
 	tags->validity1 = 0xAAAAAAAA;
 	tags->validty1 = 0x55555555;
 }
 
-int yaffs_validate_tags(yaffs_ext_tags *tags)
+int yaffs_validate_tags(struct yaffs_ext_tags *tags)
 {
 	return (tags->validity1 == 0xAAAAAAAA &&
 		tags->validty1 == 0x55555555);

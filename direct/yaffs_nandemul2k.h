@@ -20,18 +20,18 @@
 
 #include "yaffs_guts.h"
 
-int nandemul2k_WriteChunkWithTagsToNAND(struct yaffs_dev_s *dev,
+int nandemul2k_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,
 					int nand_chunk, const u8 *data,
-					const yaffs_ext_tags *tags);
-int nandemul2k_ReadChunkWithTagsFromNAND(struct yaffs_dev_s *dev,
+					const struct yaffs_ext_tags *tags);
+int nandemul2k_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,
 					 int nand_chunk, u8 *data,
-					 yaffs_ext_tags *tags);
-int nandemul2k_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no);
-int nandemul2k_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no,
+					 struct yaffs_ext_tags *tags);
+int nandemul2k_MarkNANDBlockBad(struct yaffs_dev *dev, int block_no);
+int nandemul2k_QueryNANDBlock(struct yaffs_dev *dev, int block_no,
 			      yaffs_block_state_t *state, u32 *seq_number);
-int nandemul2k_EraseBlockInNAND(struct yaffs_dev_s *dev,
+int nandemul2k_EraseBlockInNAND(struct yaffs_dev *dev,
 				int flash_block);
-int nandemul2k_InitialiseNAND(struct yaffs_dev_s *dev);
+int nandemul2k_InitialiseNAND(struct yaffs_dev *dev);
 int nandemul2k_GetBytesPerChunk(void);
 int nandemul2k_GetChunksPerBlock(void);
 int nandemul2k_GetNumberOfBlocks(void);

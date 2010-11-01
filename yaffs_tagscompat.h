@@ -17,23 +17,23 @@
 #define __YAFFS_TAGSCOMPAT_H__
 
 #include "yaffs_guts.h"
-int yaffs_tags_compat_wr(yaffs_dev_t *dev,
+int yaffs_tags_compat_wr(struct yaffs_dev *dev,
 						int nand_chunk,
 						const u8 *data,
-						const yaffs_ext_tags *tags);
-int yaffs_tags_compat_rd(yaffs_dev_t *dev,
+						const struct yaffs_ext_tags *tags);
+int yaffs_tags_compat_rd(struct yaffs_dev *dev,
 						int nand_chunk,
 						u8 *data,
-						yaffs_ext_tags *tags);
-int yaffs_tags_compat_mark_bad(struct yaffs_dev_s *dev,
+						struct yaffs_ext_tags *tags);
+int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev,
 					    int block_no);
-int yaffs_tags_compat_query_block(struct yaffs_dev_s *dev,
+int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
 					  int block_no,
 					  yaffs_block_state_t *state,
 					  u32 *seq_number);
 
-void yaffs_calc_tags_ecc(yaffs_tags_t *tags);
-int yaffs_check_tags_ecc(yaffs_tags_t *tags);
+void yaffs_calc_tags_ecc(struct yaffs_tags *tags);
+int yaffs_check_tags_ecc(struct yaffs_tags *tags);
 int yaffs_count_bits(u8 byte);
 
 #endif

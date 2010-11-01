@@ -143,7 +143,7 @@ static int find_obj_in_list(dev_t dev, ino_t ino)
  * NOTE: The tag is not usable after this other than calculating the CRC
  * with.
  */
-static void little_to_big_endian(yaffs_ext_tags *tagsPtr)
+static void little_to_big_endian(struct yaffs_ext_tags *tagsPtr)
 {
 #if 0 // FIXME NCB
     yaffs_tags_union_t * tags = (yaffs_tags_union_t* )tagsPtr; // Work in bytes.
@@ -181,7 +181,7 @@ static void shuffle_oob(char *spareData, yaffs_packed_tags2 *pt)
 
 static int write_chunk(u8 *data, u32 id, u32 chunk_id, u32 n_bytes)
 {
-	yaffs_ext_tags t;
+	struct yaffs_ext_tags t;
 	yaffs_packed_tags2 pt;
 	char spareData[spareSize];
 
@@ -228,7 +228,7 @@ static int write_chunk(u8 *data, u32 id, u32 chunk_id, u32 n_bytes)
                      (((x) & 0xFF00) >> 8))
         
 // This one is easier, since the types are more standard. No funky shifts here.
-static void object_header_little_to_big_endian(yaffs_obj_header* oh)
+static void object_header_little_to_big_endian(struct yaffs_obj_hdr* oh)
 {
     int i;    
     oh->type = SWAP32(oh->type); // GCC makes enums 32 bits.
@@ -276,12 +276,12 @@ static void object_header_little_to_big_endian(yaffs_obj_header* oh)
 #endif
 }
 
-static int write_object_header(int id, yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
+static int write_object_header(int id, enum yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
 {
 	u8 bytes[chunkSize];
 	
 	
-	yaffs_obj_header *oh = (yaffs_obj_header *)bytes;
+	struct yaffs_obj_hdr *oh = (struct yaffs_obj_hdr *)bytes;
 	
 	memset(bytes,0xff,sizeof(bytes));
 	

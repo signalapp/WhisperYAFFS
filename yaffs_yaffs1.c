@@ -19,9 +19,9 @@
 #include "yaffs_nand.h"
 
 
-int yaffs1_scan(yaffs_dev_t *dev)
+int yaffs1_scan(struct yaffs_dev *dev)
 {
-	yaffs_ext_tags tags;
+	struct yaffs_ext_tags tags;
 	int blk;
 	int result;
 
@@ -29,12 +29,12 @@ int yaffs1_scan(yaffs_dev_t *dev)
 	int c;
 	int deleted;
 	yaffs_block_state_t state;
-	yaffs_obj_t *hard_list = NULL;
+	struct yaffs_obj *hard_list = NULL;
 	yaffs_block_info_t *bi;
 	u32 seq_number;
-	yaffs_obj_header *oh;
-	yaffs_obj_t *in;
-	yaffs_obj_t *parent;
+	struct yaffs_obj_hdr *oh;
+	struct yaffs_obj *in;
+	struct yaffs_obj *parent;
 
 	int alloc_failed = 0;
 
@@ -191,7 +191,7 @@ int yaffs1_scan(yaffs_dev_t *dev)
 								chunk_data,
 								NULL);
 
-				oh = (yaffs_obj_header *) chunk_data;
+				oh = (struct yaffs_obj_hdr *) chunk_data;
 
 				in = yaffs_find_by_number(dev,
 							      tags.obj_id);
@@ -423,7 +423,7 @@ int yaffs1_scan(yaffs_dev_t *dev)
 	/* Fix up any shadowed objects */
 	{
 		struct yaffs_shadow_fixer_s *fixer;
-		yaffs_obj_t *obj;
+		struct yaffs_obj *obj;
 
 		while (shadow_fixers) {
 			fixer = shadow_fixers;

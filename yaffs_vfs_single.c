@@ -24,11 +24,11 @@
  * the VFS.
  *
  * Special notes:
- * >> 2.4: sb->u.generic_sbp points to the yaffs_dev_t associated with
+ * >> 2.4: sb->u.generic_sbp points to the struct yaffs_dev associated with
  *         this superblock
- * >> 2.6: sb->s_fs_info  points to the yaffs_dev_t associated with this
+ * >> 2.6: sb->s_fs_info  points to the struct yaffs_dev associated with this
  *         superblock
- * >> inode->u.generic_ip points to the associated yaffs_obj_t.
+ * >> inode->u.generic_ip points to the associated struct yaffs_obj.
  */
 
 /*
@@ -111,9 +111,9 @@ module_param(yaffs_bg_enable, uint, 0644);
 static struct inode *yaffs_iget(struct super_block *sb, unsigned long ino);
 
 #define yaffs_inode_to_obj_lv(iptr) ((iptr)->i_private)
-#define yaffs_inode_to_obj(iptr) ((yaffs_obj_t *)(yaffs_inode_to_obj_lv(iptr)))
+#define yaffs_inode_to_obj(iptr) ((struct yaffs_obj *)(yaffs_inode_to_obj_lv(iptr)))
 #define yaffs_dentry_to_obj(dptr) yaffs_inode_to_obj((dptr)->d_inode)
-#define yaffs_super_to_dev(sb)	((yaffs_dev_t *)sb->s_fs_info)
+#define yaffs_super_to_dev(sb)	((struct yaffs_dev *)sb->s_fs_info)
 
 
 #define update_dir_time(dir) do {\
@@ -186,7 +186,7 @@ static int yaffs_readlink(struct dentry *dentry, char __user *buffer,
 void yaffs_put_link(struct dentry *dentry, struct nameidata *nd, void *alias);
 static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 
-static void yaffs_touch_super(yaffs_dev_t *dev);
+static void yaffs_touch_super(struct yaffs_dev *dev);
 
 static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin);
 
@@ -289,22 +289,22 @@ static  int yaffs_vfs_setsize(struct inode *inode, loff_t newsize)
 	return 0;
 }
 
-static unsigned yaffs_gc_control_callback(yaffs_dev_t *dev)
+static unsigned yaffs_gc_control_callback(struct yaffs_dev *dev)
 {
 	return yaffs_gc_control;
 }
                 	                                                                                          	
-static void yaffs_gross_lock(yaffs_dev_t *dev)
+static void yaffs_gross_lock(struct yaffs_dev *dev)
 {
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs locking %p\n"), current));
-	down(&(yaffs_dev_to_lc(dev)->gross_lock));
+	down(&(struct yaffs_devo_lc(dev)->gross_lock));
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs locked %p\n"), current));
 }
 
-static void yaffs_gross_unlock(yaffs_dev_t *dev)
+static void yaffs_gross_unlock(struct yaffs_dev *dev)
 {
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs unlocking %p\n"), current));
-	up(&(yaffs_dev_to_lc(dev)->gross_lock));
+	up(&(struct yaffs_devo_lc(dev)->gross_lock));
 }
 
 
@@ -335,8 +335,8 @@ struct dentry *yaffs2_get_parent(struct dentry *dentry)
 	struct dentry *parent = ERR_PTR(-ENOENT);
 	struct inode *inode;
 	unsigned long parent_ino;
-	yaffs_obj_t *d_obj;
-	yaffs_obj_t *parent_obj;
+	struct yaffs_obj *d_obj;
+	struct yaffs_obj *parent_obj;
 
 	d_obj = yaffs_inode_to_obj(dentry->d_inode);
 
@@ -384,7 +384,7 @@ static struct export_operations yaffs_export_ops =
  * next object before the object is deleted.
  *
  * Many readdirs (and thus seach conexts) may be alive simulateously so
- * each yaffs_dev_t has a list of these.
+ * each struct yaffs_dev has a list of these.
  *
  * A seach context lives for the duration of a readdir.
  *
@@ -392,9 +392,9 @@ static struct export_operations yaffs_export_ops =
  */
 
 struct yaffs_search_context {
-	yaffs_dev_t *dev;
-	yaffs_obj_t *dir_obj;
-	yaffs_obj_t *next_return;
+	struct yaffs_dev *dev;
+	struct yaffs_obj *dir_obj;
+	struct yaffs_obj *next_return;
 	struct ylist_head others;
 };
 
@@ -404,9 +404,9 @@ struct yaffs_search_context {
  *
  * Called at start of readdir.
  */
-static struct yaffs_search_context * yaffs_new_search(yaffs_obj_t *dir)
+static struct yaffs_search_context * yaffs_new_search(struct yaffs_obj *dir)
 {
-	yaffs_dev_t *dev = dir->my_dev;
+	struct yaffs_dev *dev = dir->my_dev;
 	struct yaffs_search_context *sc = YMALLOC(sizeof(struct yaffs_search_context));
 	if(sc){
 		sc->dir_obj = dir;
@@ -416,9 +416,9 @@ static struct yaffs_search_context * yaffs_new_search(yaffs_obj_t *dir)
 		else
 			sc->next_return = ylist_entry(
                                 dir->variant.dir_variant.children.next,
-				yaffs_obj_t,siblings);
+				struct yaffs_obj,siblings);
 		YINIT_LIST_HEAD(&sc->others);
-		ylist_add(&sc->others,&(yaffs_dev_to_lc(dev)->search_contexts));
+		ylist_add(&sc->others,&(struct yaffs_devo_lc(dev)->search_contexts));
 	}
 	return sc;
 }
@@ -453,7 +453,7 @@ static void yaffs_search_advance(struct yaffs_search_context *sc)
                 if( next == &sc->dir_obj->variant.dir_variant.children)
                         sc->next_return = NULL; /* end of list */
                 else
-                        sc->next_return = ylist_entry(next,yaffs_obj_t,siblings);
+                        sc->next_return = ylist_entry(next,struct yaffs_obj,siblings);
         }
 }
 
@@ -462,12 +462,12 @@ static void yaffs_search_advance(struct yaffs_search_context *sc)
  * We check open search contexts and advance any which are currently
  * on the object being iterated.
  */
-static void yaffs_remove_obj_callback(yaffs_obj_t *obj)
+static void yaffs_remove_obj_callback(struct yaffs_obj *obj)
 {
 
         struct ylist_head *i;
         struct yaffs_search_context *sc;
-        struct ylist_head *search_contexts = &(yaffs_dev_to_lc(obj->my_dev)->search_contexts);
+        struct ylist_head *search_contexts = &(struct yaffs_devo_lc(obj->my_dev)->search_contexts);
 
 
         /* Iterate through the directory search contexts.
@@ -493,7 +493,7 @@ static int yaffs_readlink(struct dentry *dentry, char __user *buffer,
 	unsigned char *alias;
 	int ret;
 
-	yaffs_dev_t *dev = yaffs_dentry_to_obj(dentry)->my_dev;
+	struct yaffs_dev *dev = yaffs_dentry_to_obj(dentry)->my_dev;
 
 	yaffs_gross_lock(dev);
 
@@ -513,7 +513,7 @@ static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd)
 {
 	unsigned char *alias;
 	void *ret;
-	yaffs_dev_t *dev = yaffs_dentry_to_obj(dentry)->my_dev;
+	struct yaffs_dev *dev = yaffs_dentry_to_obj(dentry)->my_dev;
 
 	yaffs_gross_lock(dev);
 
@@ -536,7 +536,7 @@ void yaffs_put_link(struct dentry *dentry, struct nameidata *nd, void *alias) {
 }
 
 struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,
-				yaffs_obj_t *obj);
+				struct yaffs_obj *obj);
 
 /*
  * Lookup is used to find objects in the fs
@@ -545,12 +545,12 @@ struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,
 static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry,
 				struct nameidata *n)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 	struct inode *inode = NULL;	/* NCB 2.5/2.6 needs NULL here */
 
-	yaffs_dev_t *dev = yaffs_inode_to_obj(dir)->my_dev;
+	struct yaffs_dev *dev = yaffs_inode_to_obj(dir)->my_dev;
 
-	if(current != yaffs_dev_to_lc(dev)->readdir_process)
+	if(current != struct yaffs_devo_lc(dev)->readdir_process)
 		yaffs_gross_lock(dev);
 
 	T(YAFFS_TRACE_OS,
@@ -563,7 +563,7 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry,
 	obj = yaffs_get_equivalent_obj(obj);	/* in case it was a hardlink */
 
 	/* Can't hold gross lock when calling yaffs_get_inode() */
-	if(current != yaffs_dev_to_lc(dev)->readdir_process)
+	if(current != struct yaffs_devo_lc(dev)->readdir_process)
 		yaffs_gross_unlock(dev);
 
 	if (obj) {
@@ -606,10 +606,10 @@ static void yaffs_put_inode(struct inode *inode)
 #endif
 
 
-static void yaffs_unstitch_obj(struct inode *inode, yaffs_obj_t *obj)
+static void yaffs_unstitch_obj(struct inode *inode, struct yaffs_obj *obj)
 {
 	/* Clear the association between the inode and
-	 * the yaffs_obj_t.
+	 * the struct yaffs_obj.
 	 */
 	obj->my_inode = NULL;
 	yaffs_inode_to_obj_lv(inode) = NULL;
@@ -627,8 +627,8 @@ static void yaffs_unstitch_obj(struct inode *inode, yaffs_obj_t *obj)
  */
 static void yaffs_evict_inode( struct inode *inode)
 {
-	yaffs_obj_t *obj;
-	yaffs_dev_t *dev;
+	struct yaffs_obj *obj;
+	struct yaffs_dev *dev;
 	int deleteme = 0;
 
 	obj = yaffs_inode_to_obj(inode);
@@ -662,9 +662,9 @@ static void yaffs_evict_inode( struct inode *inode)
 
 static int yaffs_file_flush(struct file *file, fl_owner_t id)
 {
-	yaffs_obj_t *obj = yaffs_dentry_to_obj(file->f_dentry);
+	struct yaffs_obj *obj = yaffs_dentry_to_obj(file->f_dentry);
 
-	yaffs_dev_t *dev = obj->my_dev;
+	struct yaffs_dev *dev = obj->my_dev;
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_file_flush object %d (%s)\n"), obj->obj_id,
@@ -683,11 +683,11 @@ static int yaffs_readpage_nolock(struct file *f, struct page *pg)
 {
 	/* Lifted from jffs2 */
 
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 	unsigned char *pg_buf;
 	int ret;
 
-	yaffs_dev_t *dev;
+	struct yaffs_dev *dev;
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_readpage_nolock at %08x, size %08x\n"),
@@ -750,12 +750,12 @@ static int yaffs_readpage(struct file *f, struct page *pg)
 
 static int yaffs_writepage(struct page *page, struct writeback_control *wbc)
 {
-	yaffs_dev_t *dev;
+	struct yaffs_dev *dev;
 	struct address_space *mapping = page->mapping;
 	struct inode *inode;
 	unsigned long end_index;
 	char *buffer;
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 	int n_written = 0;
 	unsigned n_bytes;
 	loff_t i_size;
@@ -920,7 +920,7 @@ static int yaffs_write_end(struct file *filp, struct address_space *mapping,
 }
 
 
-static void yaffs_fill_inode_from_obj(struct inode *inode, yaffs_obj_t *obj)
+static void yaffs_fill_inode_from_obj(struct inode *inode, struct yaffs_obj *obj)
 {
 	if (inode && obj) {
 
@@ -1014,7 +1014,7 @@ static void yaffs_fill_inode_from_obj(struct inode *inode, yaffs_obj_t *obj)
 }
 
 struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,
-				yaffs_obj_t *obj)
+				struct yaffs_obj *obj)
 {
 	struct inode *inode;
 
@@ -1049,10 +1049,10 @@ struct inode *yaffs_get_inode(struct super_block *sb, int mode, int dev,
 static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
 				loff_t *pos)
 {
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 	int n_written, ipos;
 	struct inode *inode;
-	yaffs_dev_t *dev;
+	struct yaffs_dev *dev;
 
 	obj = yaffs_dentry_to_obj(f->f_dentry);
 
@@ -1108,8 +1108,8 @@ static ssize_t yaffs_file_write(struct file *f, const char *buf, size_t n,
 
 static ssize_t yaffs_hold_space(struct file *f)
 {
-	yaffs_obj_t *obj;
-	yaffs_dev_t *dev;
+	struct yaffs_obj *obj;
+	struct yaffs_dev *dev;
 
 	int n_free_chunks;
 
@@ -1129,8 +1129,8 @@ static ssize_t yaffs_hold_space(struct file *f)
 
 static void yaffs_release_space(struct file *f)
 {
-	yaffs_obj_t *obj;
-	yaffs_dev_t *dev;
+	struct yaffs_obj *obj;
+	struct yaffs_dev *dev;
 
 
 	obj = yaffs_dentry_to_obj(f->f_dentry);
@@ -1172,12 +1172,12 @@ static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin)
 
 static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 {
-	yaffs_obj_t *obj;
-	yaffs_dev_t *dev;
+	struct yaffs_obj *obj;
+	struct yaffs_dev *dev;
         struct yaffs_search_context *sc;
 	struct inode *inode = f->f_dentry->d_inode;
 	unsigned long offset, curoffs;
-	yaffs_obj_t *l;
+	struct yaffs_obj *l;
         int ret_val = 0;
 
 	char name[YAFFS_MAX_NAME_LENGTH + 1];
@@ -1187,7 +1187,7 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 
 	yaffs_gross_lock(dev);
 
-	yaffs_dev_to_lc(dev)->readdir_process = current;
+	struct yaffs_devo_lc(dev)->readdir_process = current;
 
 	offset = f->f_pos;
 
@@ -1272,7 +1272,7 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 
 out:
 	yaffs_search_end(sc);
-	yaffs_dev_to_lc(dev)->readdir_process = NULL;
+	struct yaffs_devo_lc(dev)->readdir_process = NULL;
 	yaffs_gross_unlock(dev);
 
 	return ret_val;
@@ -1291,10 +1291,10 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 {
 	struct inode *inode;
 
-	yaffs_obj_t *obj = NULL;
-	yaffs_dev_t *dev;
+	struct yaffs_obj *obj = NULL;
+	struct yaffs_dev *dev;
 
-	yaffs_obj_t *parent = yaffs_inode_to_obj(dir);
+	struct yaffs_obj *parent = yaffs_inode_to_obj(dir);
 
 	int error = -ENOSPC;
 	uid_t uid = YCRED(current)->fsuid;
@@ -1385,8 +1385,8 @@ static int yaffs_unlink(struct inode *dir, struct dentry *dentry)
 {
 	int ret_val;
 
-	yaffs_dev_t *dev;
-	yaffs_obj_t *obj;
+	struct yaffs_dev *dev;
+	struct yaffs_obj *obj;
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_unlink %d:%s\n"),
@@ -1418,9 +1418,9 @@ static int yaffs_link(struct dentry *old_dentry, struct inode *dir,
 			struct dentry *dentry)
 {
 	struct inode *inode = old_dentry->d_inode;
-	yaffs_obj_t *obj = NULL;
-	yaffs_obj_t *link = NULL;
-	yaffs_dev_t *dev;
+	struct yaffs_obj *obj = NULL;
+	struct yaffs_obj *link = NULL;
+	struct yaffs_dev *dev;
 
 	T(YAFFS_TRACE_OS, (TSTR("yaffs_link\n")));
 
@@ -1456,8 +1456,8 @@ static int yaffs_link(struct dentry *old_dentry, struct inode *dir,
 static int yaffs_symlink(struct inode *dir, struct dentry *dentry,
 				const char *symname)
 {
-	yaffs_obj_t *obj;
-	yaffs_dev_t *dev;
+	struct yaffs_obj *obj;
+	struct yaffs_dev *dev;
 	uid_t uid = YCRED(current)->fsuid;
 	gid_t gid = (dir->i_mode & S_ISGID) ? dir->i_gid : YCRED(current)->fsgid;
 
@@ -1487,8 +1487,8 @@ static int yaffs_symlink(struct inode *dir, struct dentry *dentry,
 static int yaffs_sync_object(struct file *file, int datasync)
 {
 
-	yaffs_obj_t *obj;
-	yaffs_dev_t *dev;
+	struct yaffs_obj *obj;
+	struct yaffs_dev *dev;
 	struct dentry *dentry = file->f_path.dentry;
 
 	obj = yaffs_dentry_to_obj(dentry);
@@ -1511,9 +1511,9 @@ static int yaffs_sync_object(struct file *file, int datasync)
 static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 			struct inode *new_dir, struct dentry *new_dentry)
 {
-	yaffs_dev_t *dev;
+	struct yaffs_dev *dev;
 	int ret_val = YAFFS_FAIL;
-	yaffs_obj_t *target;
+	struct yaffs_obj *target;
 
 	T(YAFFS_TRACE_OS, (TSTR("yaffs_rename\n")));
 	dev = yaffs_inode_to_obj(old_dir)->my_dev;
@@ -1562,7 +1562,7 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 {
 	struct inode *inode = dentry->d_inode;
 	int error = 0;
-	yaffs_dev_t *dev;
+	struct yaffs_dev *dev;
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_setattr of object %d\n"),
@@ -1613,8 +1613,8 @@ int yaffs_setxattr(struct dentry *dentry, const char *name,
 {
 	struct inode *inode = dentry->d_inode;
 	int error = 0;
-	yaffs_dev_t *dev;
-	yaffs_obj_t *obj = yaffs_inode_to_obj(inode);
+	struct yaffs_dev *dev;
+	struct yaffs_obj *obj = yaffs_inode_to_obj(inode);
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_setxattr of object %d\n"),
@@ -1645,8 +1645,8 @@ ssize_t yaffs_getxattr(struct dentry *dentry, const char *name, void *buff,
 {
 	struct inode *inode = dentry->d_inode;
 	int error = 0;
-	yaffs_dev_t *dev;
-	yaffs_obj_t *obj = yaffs_inode_to_obj(inode);
+	struct yaffs_dev *dev;
+	struct yaffs_obj *obj = yaffs_inode_to_obj(inode);
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_getxattr \"%s\" from object %d\n"),
@@ -1669,8 +1669,8 @@ int yaffs_removexattr(struct dentry *dentry, const char *name)
 {
 	struct inode *inode = dentry->d_inode;
 	int error = 0;
-	yaffs_dev_t *dev;
-	yaffs_obj_t *obj = yaffs_inode_to_obj(inode);
+	struct yaffs_dev *dev;
+	struct yaffs_obj *obj = yaffs_inode_to_obj(inode);
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_removexattr of object %d\n"),
@@ -1699,8 +1699,8 @@ ssize_t yaffs_listxattr(struct dentry *dentry, char *buff, size_t size)
 {
 	struct inode *inode = dentry->d_inode;
 	int error = 0;
-	yaffs_dev_t *dev;
-	yaffs_obj_t *obj = yaffs_inode_to_obj(inode);
+	struct yaffs_dev *dev;
+	struct yaffs_obj *obj = yaffs_inode_to_obj(inode);
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_listxattr of object %d\n"),
@@ -1725,7 +1725,7 @@ ssize_t yaffs_listxattr(struct dentry *dentry, char *buff, size_t size)
 
 static int yaffs_statfs(struct dentry *dentry, struct kstatfs *buf)
 {
-	yaffs_dev_t *dev = yaffs_dentry_to_obj(dentry)->my_dev;
+	struct yaffs_dev *dev = yaffs_dentry_to_obj(dentry)->my_dev;
 	struct super_block *sb = dentry->d_sb;
 
 	T(YAFFS_TRACE_OS, (TSTR("yaffs_statfs\n")));
@@ -1788,7 +1788,7 @@ static int yaffs_statfs(struct dentry *dentry, struct kstatfs *buf)
 static void yaffs_flush_inodes(struct super_block *sb)
 {
 	struct inode *iptr;
-	yaffs_obj_t *obj;
+	struct yaffs_obj *obj;
 	
 	list_for_each_entry(iptr,&sb->s_inodes, i_sb_list){
 		obj = yaffs_inode_to_obj(iptr);
@@ -1803,7 +1803,7 @@ static void yaffs_flush_inodes(struct super_block *sb)
 
 static void yaffs_flush_super(struct super_block *sb, int do_checkpoint)
 {
-	yaffs_dev_t *dev = yaffs_super_to_dev(sb);	
+	struct yaffs_dev *dev = yaffs_super_to_dev(sb);	
 	if(!dev)
 		return;
 	
@@ -1815,10 +1815,10 @@ static void yaffs_flush_super(struct super_block *sb, int do_checkpoint)
 }
 
 
-static unsigned yaffs_bg_gc_urgency(yaffs_dev_t *dev)
+static unsigned yaffs_bg_gc_urgency(struct yaffs_dev *dev)
 {
 	unsigned erased_chunks = dev->n_erased_blocks * dev->param.chunks_per_block;
-	struct yaffs_linux_context *context = yaffs_dev_to_lc(dev);
+	struct yaffs_linux_context *context = struct yaffs_devo_lc(dev);
 	unsigned scattered = 0; /* Free chunks not in an erased block */
 
 	if(erased_chunks < dev->n_free_chunks)
@@ -1840,7 +1840,7 @@ static int yaffs_do_sync_fs(struct super_block *sb,
 				int request_checkpoint)
 {
 
-	yaffs_dev_t *dev = yaffs_super_to_dev(sb);
+	struct yaffs_dev *dev = yaffs_super_to_dev(sb);
 	unsigned int oneshot_checkpoint = (yaffs_auto_checkpoint & 4);
 	unsigned gc_urgent = yaffs_bg_gc_urgency(dev);
 	int do_checkpoint;
@@ -1888,8 +1888,8 @@ void yaffs_background_waker(unsigned long data)
 
 static int yaffs_bg_thread_fn(void *data)
 {
-	yaffs_dev_t *dev = (yaffs_dev_t *)data;
-	struct yaffs_linux_context *context = yaffs_dev_to_lc(dev);
+	struct yaffs_dev *dev = (struct yaffs_dev *)data;
+	struct yaffs_linux_context *context = struct yaffs_devo_lc(dev);
 	unsigned long now = jiffies;
 	unsigned long next_dir_update = now;
 	unsigned long next_gc = now;
@@ -1960,10 +1960,10 @@ static int yaffs_bg_thread_fn(void *data)
 	return 0;
 }
 
-static int yaffs_bg_start(yaffs_dev_t *dev)
+static int yaffs_bg_start(struct yaffs_dev *dev)
 {
 	int retval = 0;
-	struct yaffs_linux_context *context = yaffs_dev_to_lc(dev);
+	struct yaffs_linux_context *context = struct yaffs_devo_lc(dev);
 
 	if(dev->read_only)
 		return -1;
@@ -1981,9 +1981,9 @@ static int yaffs_bg_start(yaffs_dev_t *dev)
 	return retval;
 }
 
-static void yaffs_bg_stop(yaffs_dev_t *dev)
+static void yaffs_bg_stop(struct yaffs_dev *dev)
 {
-	struct yaffs_linux_context *ctxt = yaffs_dev_to_lc(dev);
+	struct yaffs_linux_context *ctxt = struct yaffs_devo_lc(dev);
 
 	ctxt->bg_running = 0;
 
@@ -2023,8 +2023,8 @@ static int yaffs_sync_fs(struct super_block *sb, int wait)
 static struct inode *yaffs_iget(struct super_block *sb, unsigned long ino)
 {
 	struct inode *inode;
-	yaffs_obj_t *obj;
-	yaffs_dev_t *dev = yaffs_super_to_dev(sb);
+	struct yaffs_obj *obj;
+	struct yaffs_dev *dev = yaffs_super_to_dev(sb);
 
 	T(YAFFS_TRACE_OS,
 		(TSTR("yaffs_iget for %lu\n"), ino));
@@ -2057,7 +2057,7 @@ struct semaphore yaffs_context_lock;
 
 static void yaffs_put_super(struct super_block *sb)
 {
-	yaffs_dev_t *dev = yaffs_super_to_dev(sb);
+	struct yaffs_dev *dev = yaffs_super_to_dev(sb);
 
 	T(YAFFS_TRACE_OS, (TSTR("yaffs_put_super\n")));
 
@@ -2071,8 +2071,8 @@ static void yaffs_put_super(struct super_block *sb)
 
 	yaffs_flush_super(sb,1);
 
-	if (yaffs_dev_to_lc(dev)->put_super_fn)
-		yaffs_dev_to_lc(dev)->put_super_fn(sb);
+	if (struct yaffs_devo_lc(dev)->put_super_fn)
+		struct yaffs_devo_lc(dev)->put_super_fn(sb);
 
 
 	yaffs_deinitialise(dev);
@@ -2080,12 +2080,12 @@ static void yaffs_put_super(struct super_block *sb)
 	yaffs_gross_unlock(dev);
 
 	down(&yaffs_context_lock);
-	ylist_del_init(&(yaffs_dev_to_lc(dev)->context_list));
+	ylist_del_init(&(struct yaffs_devo_lc(dev)->context_list));
 	up(&yaffs_context_lock);
 
-	if (yaffs_dev_to_lc(dev)->spare_buffer) {
-		YFREE(yaffs_dev_to_lc(dev)->spare_buffer);
-		yaffs_dev_to_lc(dev)->spare_buffer = NULL;
+	if (struct yaffs_devo_lc(dev)->spare_buffer) {
+		YFREE(struct yaffs_devo_lc(dev)->spare_buffer);
+		struct yaffs_devo_lc(dev)->spare_buffer = NULL;
 	}
 
 	kfree(dev);
@@ -2094,7 +2094,7 @@ static void yaffs_put_super(struct super_block *sb)
 
 static void yaffs_mtd_put_super(struct super_block *sb)
 {
-	struct mtd_info *mtd = yaffs_dev_to_mtd(yaffs_super_to_dev(sb));
+	struct mtd_info *mtd = struct yaffs_devo_mtd(yaffs_super_to_dev(sb));
 
 	if (mtd->sync)
 		mtd->sync(mtd);
@@ -2103,9 +2103,9 @@ static void yaffs_mtd_put_super(struct super_block *sb)
 }
 
 
-static void yaffs_touch_super(yaffs_dev_t *dev)
+static void yaffs_touch_super(struct yaffs_dev *dev)
 {
-	struct super_block *sb = yaffs_dev_to_lc(dev)->super;
+	struct super_block *sb = struct yaffs_devo_lc(dev)->super;
 
 	T(YAFFS_TRACE_OS, (TSTR("yaffs_touch_super() sb = %p\n"), sb));
 	if (sb)
@@ -2195,13 +2195,13 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	int n_blocks;
 	struct inode *inode = NULL;
 	struct dentry *root;
-	yaffs_dev_t *dev = 0;
+	struct yaffs_dev *dev = 0;
 	char devname_buf[BDEVNAME_SIZE + 1];
 	struct mtd_info *mtd;
 	int err;
 	char *data_str = (char *)data;
 	struct yaffs_linux_context *context = NULL;
-	yaffs_param_t *param;
+	struct yaffs_param *param;
 
 	int read_only = 0;
 
@@ -2353,7 +2353,7 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 
 	/* OK, so if we got here, we have an MTD that's NAND and looks
 	 * like it has the right capabilities
-	 * Set the yaffs_dev_t up for mtd
+	 * Set the struct yaffs_dev up for mtd
 	 */
 
 	if (!read_only && !(mtd->flags & MTD_WRITEABLE)){
@@ -2362,7 +2362,7 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 		sb->s_flags |= MS_RDONLY;
 	}
 
-	dev = kmalloc(sizeof(yaffs_dev_t), GFP_KERNEL);
+	dev = kmalloc(sizeof(struct yaffs_dev), GFP_KERNEL);
 	context = kmalloc(sizeof(struct yaffs_linux_context),GFP_KERNEL);
 	
 	if(!dev || !context ){
@@ -2378,10 +2378,10 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 		/* Deep shit could not allocate device structure */
 		T(YAFFS_TRACE_ALWAYS,
 		  (TSTR("yaffs_read_super: Failed trying to allocate "
-		   "yaffs_dev_t. \n")));
+		   "struct yaffs_dev. \n")));
 		return NULL;
 	}
-	memset(dev, 0, sizeof(yaffs_dev_t));
+	memset(dev, 0, sizeof(struct yaffs_dev));
 	param = &(dev->param);
 
 	memset(context,0,sizeof(struct yaffs_linux_context));
@@ -2455,7 +2455,7 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 		    nandmtd2_read_chunk_tags;
 		param->bad_block_fn = nandmtd2_mark_block_bad;
 		param->query_block_fn = nandmtd2_query_block;
-		yaffs_dev_to_lc(dev)->spare_buffer = YMALLOC(mtd->oobsize);
+		struct yaffs_devo_lc(dev)->spare_buffer = YMALLOC(mtd->oobsize);
 		param->is_yaffs2 = 1;
 		param->total_bytes_per_chunk = mtd->writesize;
 		param->chunks_per_block = mtd->erasesize / mtd->writesize;
@@ -2477,12 +2477,12 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	param->erase_fn = nandmtd_erase_block;
 	param->initialise_flash_fn = nandmtd_initialise;
 
-	yaffs_dev_to_lc(dev)->put_super_fn = yaffs_mtd_put_super;
+	struct yaffs_devo_lc(dev)->put_super_fn = yaffs_mtd_put_super;
 
 	param->sb_dirty_fn = yaffs_touch_super;
 	param->gc_control = yaffs_gc_control_callback;
 
-	yaffs_dev_to_lc(dev)->super= sb;
+	struct yaffs_devo_lc(dev)->super= sb;
 	
 
 #ifndef CONFIG_YAFFS_DOES_ECC
@@ -2509,14 +2509,14 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	}
 	context->mount_id = mount_id;
 
-	ylist_add_tail(&(yaffs_dev_to_lc(dev)->context_list), &yaffs_context_list);
+	ylist_add_tail(&(struct yaffs_devo_lc(dev)->context_list), &yaffs_context_list);
 	up(&yaffs_context_lock);
 
         /* Directory search handling...*/
-        YINIT_LIST_HEAD(&(yaffs_dev_to_lc(dev)->search_contexts));
+        YINIT_LIST_HEAD(&(struct yaffs_devo_lc(dev)->search_contexts));
         param->remove_obj_fn = yaffs_remove_obj_callback;
 
-	init_MUTEX(&(yaffs_dev_to_lc(dev)->gross_lock));
+	init_MUTEX(&(struct yaffs_devo_lc(dev)->gross_lock));
 
 	yaffs_gross_lock(dev);
 
@@ -2620,7 +2620,7 @@ static struct file_system_type yaffs2_fs_type = {
 static struct proc_dir_entry *my_proc_entry;
 static struct proc_dir_entry *debug_proc_entry;
 
-static char *yaffs_dump_dev_part0(char *buf, yaffs_dev_t * dev)
+static char *yaffs_dump_dev_part0(char *buf, struct yaffs_dev * dev)
 {
 	buf += sprintf(buf, "start_block........... %d\n", dev->param.start_block);
 	buf += sprintf(buf, "end_block............. %d\n", dev->param.end_block);
@@ -2642,7 +2642,7 @@ static char *yaffs_dump_dev_part0(char *buf, yaffs_dev_t * dev)
 }
 
 
-static char *yaffs_dump_dev_part1(char *buf, yaffs_dev_t * dev)
+static char *yaffs_dump_dev_part1(char *buf, struct yaffs_dev * dev)
 {
 	buf += sprintf(buf, "data_bytes_per_chunk.. %d\n", dev->data_bytes_per_chunk);
 	buf += sprintf(buf, "chunk_grp_bits........ %d\n", dev->chunk_grp_bits);
@@ -2708,7 +2708,7 @@ static int yaffs_proc_read(char *page,
 		/* Locate and print the Nth entry.  Order N-squared but N is small. */
 		ylist_for_each(item, &yaffs_context_list) {
 			struct yaffs_linux_context *dc = ylist_entry(item, struct yaffs_linux_context, context_list);
-			yaffs_dev_t *dev = dc->dev;
+			struct yaffs_dev *dev = dc->dev;
 
 			if (n < (step & ~1)) {
 				n+=2;
@@ -2741,7 +2741,7 @@ static int yaffs_stats_proc_read(char *page,
 	/* Locate and print the Nth entry.  Order N-squared but N is small. */
 	ylist_for_each(item, &yaffs_context_list) {
 		struct yaffs_linux_context *dc = ylist_entry(item, struct yaffs_linux_context, context_list);
-		yaffs_dev_t *dev = dc->dev;
+		struct yaffs_dev *dev = dc->dev;
 
 		int erased_chunks;
 

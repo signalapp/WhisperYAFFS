@@ -190,7 +190,7 @@ static int  CheckInit(void)
 	return 1;
 }
 
-int nandemul2k_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_ext_tags *tags)
+int nandemul2k_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const struct yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -233,7 +233,7 @@ int nandemul2k_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8
 }
 
 
-int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags *tags)
+int nandemul2k_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, struct yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -263,7 +263,7 @@ int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *da
 }
 
 
-static int nandemul2k_CheckChunkErased(yaffs_dev_t *dev,int nand_chunk)
+static int nandemul2k_CheckChunkErased(struct yaffs_dev *dev,int nand_chunk)
 {
 	int blk;
 	int pg;
@@ -287,7 +287,7 @@ static int nandemul2k_CheckChunkErased(yaffs_dev_t *dev,int nand_chunk)
 
 }
 
-int nandemul2k_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
+int nandemul2k_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 {
 	
 	
@@ -307,13 +307,13 @@ int nandemul2k_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 	return YAFFS_OK;
 }
 
-int nandemul2k_InitialiseNAND(yaffs_dev_t *dev)
+int nandemul2k_InitialiseNAND(struct yaffs_dev *dev)
 {
 	CheckInit();
 	return YAFFS_OK;
 }
  
-int nandemul2k_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
+int nandemul2k_MarkNANDBlockBad(struct yaffs_dev *dev, int block_no)
 {
 	
 	u8 *x;
@@ -327,9 +327,9 @@ int nandemul2k_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 	
 }
 
-int nandemul2k_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, u32  *seq_number)
+int nandemul2k_QueryNANDBlock(struct yaffs_dev *dev, int block_no, yaffs_block_state_t *state, u32  *seq_number)
 {
-	yaffs_ext_tags tags;
+	struct yaffs_ext_tags tags;
 	int chunkNo;
 
 	*seq_number = 0;

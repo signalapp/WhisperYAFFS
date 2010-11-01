@@ -42,7 +42,7 @@ typedef struct yaffs_AllocatorStruct yaffs_Allocator;
 
 int mount_id;
 
-void yaffs_deinit_raw_tnodes_and_objs(yaffs_dev_t *dev)
+void yaffs_deinit_raw_tnodes_and_objs(struct yaffs_dev *dev)
 {
 	yaffs_Allocator *allocator = (yaffs_Allocator *)dev->allocator;
 
@@ -102,10 +102,10 @@ static void (*fake_ctor_list[10]) (void *) = {
 	fake_ctor9,
 };
 
-void yaffs_init_raw_tnodes_and_objs(yaffs_dev_t *dev)
+void yaffs_init_raw_tnodes_and_objs(struct yaffs_dev *dev)
 {
 	yaffs_Allocator *allocator;
-	unsigned mount_id = yaffs_dev_to_lc(dev)->mount_id;
+	unsigned mount_id = struct yaffs_devo_lc(dev)->mount_id;
 
 	T(YAFFS_TRACE_ALLOCATE,(TSTR("Initialising yaffs allocator\n")));
 
@@ -147,7 +147,7 @@ void yaffs_init_raw_tnodes_and_objs(yaffs_dev_t *dev)
 
 		allocator->object_cache = 
 			kmem_cache_create(allocator->object_name,
-				sizeof(yaffs_obj_t),
+				sizeof(struct yaffs_obj),
 				0, 0,
 				fake_ctor_list[mount_id]);
 
@@ -165,7 +165,7 @@ void yaffs_init_raw_tnodes_and_objs(yaffs_dev_t *dev)
 }
 
 
-yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_dev_t *dev)
+yaffs_tnode_t *yaffs_alloc_raw_tnode(struct yaffs_dev *dev)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	if(!allocator || !allocator->tnode_cache){
@@ -175,13 +175,13 @@ yaffs_tnode_t *yaffs_alloc_raw_tnode(yaffs_dev_t *dev)
 	return kmem_cache_alloc(allocator->tnode_cache, GFP_NOFS);
 }
 
-void yaffs_free_raw_tnode(yaffs_dev_t *dev, yaffs_tnode_t *tn)
+void yaffs_free_raw_tnode(struct yaffs_dev *dev, yaffs_tnode_t *tn)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	kmem_cache_free(allocator->tnode_cache,tn);
 }
 
-yaffs_obj_t *yaffs_alloc_raw_obj(yaffs_dev_t *dev)
+struct yaffs_obj *yaffs_alloc_raw_obj(struct yaffs_dev *dev)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	if(!allocator){
@@ -195,7 +195,7 @@ yaffs_obj_t *yaffs_alloc_raw_obj(yaffs_dev_t *dev)
 	return kmem_cache_alloc(allocator->object_cache, GFP_NOFS);
 }
 
-void yaffs_free_raw_obj(yaffs_dev_t *dev, yaffs_obj_t *obj)
+void yaffs_free_raw_obj(struct yaffs_dev *dev, struct yaffs_obj *obj)
 {
 	yaffs_Allocator *allocator = dev->allocator;
 	kmem_cache_free(allocator->object_cache,obj);

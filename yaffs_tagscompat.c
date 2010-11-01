@@ -17,7 +17,7 @@
 #include "yaffs_getblockinfo.h"
 #include "yaffs_trace.h"
 
-static void yaffs_handle_rd_data_error(yaffs_dev_t *dev, int nand_chunk);
+static void yaffs_handle_rd_data_error(struct yaffs_dev *dev, int nand_chunk);
 
 
 static const char yaffs_count_bits_table[256] = {
@@ -54,7 +54,7 @@ void yaffs_calc_ecc(const u8 *data, yaffs_spare *spare)
 	yaffs_ecc_cacl(&data[256], spare->ecc2);
 }
 
-void yaffs_calc_tags_ecc(yaffs_tags_t *tags)
+void yaffs_calc_tags_ecc(struct yaffs_tags *tags)
 {
 	/* Calculate an ecc */
 
@@ -77,7 +77,7 @@ void yaffs_calc_tags_ecc(yaffs_tags_t *tags)
 
 }
 
-int yaffs_check_tags_ecc(yaffs_tags_t *tags)
+int yaffs_check_tags_ecc(struct yaffs_tags *tags)
 {
 	unsigned ecc = tags->ecc;
 
@@ -109,7 +109,7 @@ int yaffs_check_tags_ecc(yaffs_tags_t *tags)
 /********** Tags **********/
 
 static void yaffs_load_tags_to_spare(yaffs_spare *spare_ptr,
-				yaffs_tags_t *tags_ptr)
+				struct yaffs_tags *tags_ptr)
 {
 	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tags_ptr;
 
@@ -125,8 +125,8 @@ static void yaffs_load_tags_to_spare(yaffs_spare *spare_ptr,
 	spare_ptr->tb7 = tu->as_bytes[7];
 }
 
-static void yaffs_get_tags_from_spare(yaffs_dev_t *dev, yaffs_spare *spare_ptr,
-				yaffs_tags_t *tags_ptr)
+static void yaffs_get_tags_from_spare(struct yaffs_dev *dev, yaffs_spare *spare_ptr,
+				struct yaffs_tags *tags_ptr)
 {
 	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tags_ptr;
 	int result;
@@ -152,7 +152,7 @@ static void yaffs_spare_init(yaffs_spare *spare)
 	memset(spare, 0xFF, sizeof(yaffs_spare));
 }
 
-static int yaffs_wr_nand(struct yaffs_dev_s *dev,
+static int yaffs_wr_nand(struct yaffs_dev *dev,
 				int nand_chunk, const u8 *data,
 				yaffs_spare *spare)
 {
@@ -166,7 +166,7 @@ static int yaffs_wr_nand(struct yaffs_dev_s *dev,
 	return dev->param.write_chunk_fn(dev, nand_chunk, data, spare);
 }
 
-static int yaffs_rd_chunk_nand(struct yaffs_dev_s *dev,
+static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 				   int nand_chunk,
 				   u8 *data,
 				   yaffs_spare *spare,
@@ -294,7 +294,7 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev_s *dev,
  * Functions for robustisizing
  */
 
-static void yaffs_handle_rd_data_error(yaffs_dev_t *dev, int nand_chunk)
+static void yaffs_handle_rd_data_error(struct yaffs_dev *dev, int nand_chunk)
 {
 	int flash_block = nand_chunk / dev->param.chunks_per_block;
 
@@ -311,13 +311,13 @@ static void yaffs_handle_rd_data_error(yaffs_dev_t *dev, int nand_chunk)
 }
 
 
-int yaffs_tags_compat_wr(yaffs_dev_t *dev,
+int yaffs_tags_compat_wr(struct yaffs_dev *dev,
 						int nand_chunk,
 						const u8 *data,
-						const yaffs_ext_tags *ext_tags)
+						const struct yaffs_ext_tags *ext_tags)
 {
 	yaffs_spare spare;
-	yaffs_tags_t tags;
+	struct yaffs_tags tags;
 
 	yaffs_spare_init(&spare);
 
@@ -347,14 +347,14 @@ int yaffs_tags_compat_wr(yaffs_dev_t *dev,
 	return yaffs_wr_nand(dev, nand_chunk, data, &spare);
 }
 
-int yaffs_tags_compat_rd(yaffs_dev_t *dev,
+int yaffs_tags_compat_rd(struct yaffs_dev *dev,
 						     int nand_chunk,
 						     u8 *data,
-						     yaffs_ext_tags *ext_tags)
+						     struct yaffs_ext_tags *ext_tags)
 {
 
 	yaffs_spare spare;
-	yaffs_tags_t tags;
+	struct yaffs_tags tags;
 	yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_UNKNOWN;
 
 	static yaffs_spare spare_ff;
@@ -401,7 +401,7 @@ int yaffs_tags_compat_rd(yaffs_dev_t *dev,
 	}
 }
 
-int yaffs_tags_compat_mark_bad(struct yaffs_dev_s *dev,
+int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev,
 					    int flash_block)
 {
 
@@ -420,7 +420,7 @@ int yaffs_tags_compat_mark_bad(struct yaffs_dev_s *dev,
 
 }
 
-int yaffs_tags_compat_query_block(struct yaffs_dev_s *dev,
+int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
 					  int block_no,
 					  yaffs_block_state_t *state,
 					  u32 *seq_number)

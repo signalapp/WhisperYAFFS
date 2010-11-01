@@ -136,7 +136,7 @@ static void yaffs_calc_ecc(const u8 *data, yaffs_spare *spare)
 	yaffs_ecc_cacl(&data[256] , spare->ecc2);
 }
 
-static void yaffs_calc_tags_ecc(yaffs_tags_t *tags)
+static void yaffs_calc_tags_ecc(struct yaffs_tags *tags)
 {
 	// Todo don't do anything yet. Need to calculate ecc
 	unsigned char *b = ((yaffs_tags_union_t *)tags)->as_bytes;
@@ -181,7 +181,7 @@ static void yaffs_calc_tags_ecc(yaffs_tags_t *tags)
         b[7] |= ((ecc & 0x3F) << 2);
     }
 }
-static void yaffs_load_tags_to_spare(yaffs_spare *sparePtr, yaffs_tags_t *tagsPtr)
+static void yaffs_load_tags_to_spare(yaffs_spare *sparePtr, struct yaffs_tags *tagsPtr)
 {
 	yaffs_tags_union_t *tu = (yaffs_tags_union_t *)tagsPtr;
 	
@@ -201,7 +201,7 @@ static void yaffs_load_tags_to_spare(yaffs_spare *sparePtr, yaffs_tags_t *tagsPt
  * NOTE: The tag is not usable after this other than calculating the CRC
  * with.
  */
-static void little_to_big_endian(yaffs_tags_t *tagsPtr)
+static void little_to_big_endian(struct yaffs_tags *tagsPtr)
 {
     yaffs_tags_union_t * tags = (yaffs_tags_union_t* )tagsPtr; // Work in bytes.
     yaffs_tags_union_t   temp;
@@ -230,13 +230,13 @@ static void little_to_big_endian(yaffs_tags_t *tagsPtr)
 
 static int write_chunk(u8 *data, u32 obj_id, u32 chunk_id, u32 n_bytes)
 {
-	yaffs_tags_t t;
+	struct yaffs_tags t;
 	yaffs_spare s;
 
 	error = write(outFile,data,512);
 	if(error < 0) return error;
 
-	memset(&t,0xff,sizeof (yaffs_tags_t));
+	memset(&t,0xff,sizeof (struct yaffs_tags));
 	memset(&s,0xff,sizeof (yaffs_spare));
 	
 	t.chunk_id = chunk_id;
@@ -268,7 +268,7 @@ static int write_chunk(u8 *data, u32 obj_id, u32 chunk_id, u32 n_bytes)
                      (((x) & 0xFF00) >> 8))
         
 // This one is easier, since the types are more standard. No funky shifts here.
-static void object_header_little_to_big_endian(yaffs_obj_header* oh)
+static void object_header_little_to_big_endian(struct yaffs_obj_hdr* oh)
 {
     oh->type = SWAP32(oh->type); // GCC makes enums 32 bits.
     oh->parent_obj_id = SWAP32(oh->parent_obj_id); // int
@@ -325,12 +325,12 @@ static void object_header_little_to_big_endian(yaffs_obj_header* oh)
 #endif
 }
 
-static int write_object_header(int obj_id, yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
+static int write_object_header(int obj_id, enum yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
 {
 	u8 bytes[512];
 	
 	
-	yaffs_obj_header *oh = (yaffs_obj_header *)bytes;
+	struct yaffs_obj_hdr *oh = (struct yaffs_obj_hdr *)bytes;
 	
 	memset(bytes,0xff,512);
 	

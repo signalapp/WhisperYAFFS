@@ -62,7 +62,7 @@ typedef struct
 
 static yflash_Device filedisk;
 
-static int  CheckInit(yaffs_dev_t *dev)
+static int  CheckInit(struct yaffs_dev *dev)
 {
 	static int initialised = 0;
 	
@@ -118,7 +118,7 @@ static int  CheckInit(yaffs_dev_t *dev)
 	return 1;
 }
 
-int yflash_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_spare *spare)
+int yflash_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const yaffs_spare *spare)
 {
 	int written;
 
@@ -148,7 +148,7 @@ int yflash_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, cons
 }
 
 
-int yflash_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_spare *spare)
+int yflash_ReadChunkFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, yaffs_spare *spare)
 {
 	int nread;
 
@@ -178,7 +178,7 @@ int yflash_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_sp
 }
 
 
-int yflash_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
+int yflash_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 {
 
 	int i;
@@ -208,7 +208,7 @@ int yflash_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 	
 }
 
-int yflash_InitialiseNAND(yaffs_dev_t *dev)
+int yflash_InitialiseNAND(struct yaffs_dev *dev)
 {
 	
 	return YAFFS_OK;

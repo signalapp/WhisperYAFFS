@@ -171,7 +171,7 @@ int yflash2_GetNumberOfBlocks(void)
 	return filedisk.nBlocks;
 }
 
-int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_ext_tags *tags)
+int yflash2_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const struct yaffs_ext_tags *tags)
 {
 	int written;
 	int pos;
@@ -255,8 +255,8 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *d
 			if( 0 && dev->param.is_yaffs2)
 			{
 			
-				written = write(h,tags,sizeof(yaffs_ext_tags));
-				if(written != sizeof(yaffs_ext_tags)) return YAFFS_FAIL;
+				written = write(h,tags,sizeof(struct yaffs_ext_tags));
+				if(written != sizeof(struct yaffs_ext_tags)) return YAFFS_FAIL;
 			}
 			else
 			{
@@ -333,8 +333,8 @@ int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *d
 			if( 0 && dev->param.is_yaffs2)
 			{
 			
-				written = write(h,tags,sizeof(yaffs_ext_tags));
-				if(written != sizeof(yaffs_ext_tags)) return YAFFS_FAIL;
+				written = write(h,tags,sizeof(struct yaffs_ext_tags));
+				if(written != sizeof(struct yaffs_ext_tags)) return YAFFS_FAIL;
 			}
 			else
 			{
@@ -388,7 +388,7 @@ static int fail320 = 1;
 
 static int failRead10 = 2;
 
-int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags *tags)
+int yflash2_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, struct yaffs_ext_tags *tags)
 {
 	int nread;
 	int pos;
@@ -458,10 +458,10 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data,
 
 			if(0 && dev->param.is_yaffs2)
 			{
-				nread= read(h,tags,sizeof(yaffs_ext_tags));
-				if(nread != sizeof(yaffs_ext_tags))
+				nread= read(h,tags,sizeof(struct yaffs_ext_tags));
+				if(nread != sizeof(struct yaffs_ext_tags))
 					 retval =  YAFFS_FAIL;
-				if(yaffs_check_all_ff((u8 *)tags,sizeof(yaffs_ext_tags)))
+				if(yaffs_check_all_ff((u8 *)tags,sizeof(struct yaffs_ext_tags)))
 				{
 					yaffs_init_tags(tags);
 				}
@@ -508,7 +508,7 @@ int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data,
 }
 
 
-int yflash2_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
+int yflash2_MarkNANDBlockBad(struct yaffs_dev *dev, int block_no)
 {
 	int written;
 	int h;
@@ -529,7 +529,7 @@ int yflash2_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 	
 }
 
-int yflash2_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
+int yflash2_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 {
 
 	int i;
@@ -570,7 +570,7 @@ int yflash2_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 	
 }
 
-int yflash2_InitialiseNAND(yaffs_dev_t *dev)
+int yflash2_InitialiseNAND(struct yaffs_dev *dev)
 {
 	CheckInit();
 	
@@ -580,9 +580,9 @@ int yflash2_InitialiseNAND(yaffs_dev_t *dev)
 
 
 
-int yflash2_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, u32 *seq_number)
+int yflash2_QueryNANDBlock(struct yaffs_dev *dev, int block_no, yaffs_block_state_t *state, u32 *seq_number)
 {
-	yaffs_ext_tags tags;
+	struct yaffs_ext_tags tags;
 	int chunkNo;
 
 	*seq_number = 0;

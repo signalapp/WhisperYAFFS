@@ -30,43 +30,43 @@ typedef struct {
 	unsigned inband_tags;
 	unsigned useYaffs2;
 
-	int (*initialise)(yaffs_dev_t *dev);
-	int (*deinitialise)(yaffs_dev_t *dev);
+	int (*initialise)(struct yaffs_dev *dev);
+	int (*deinitialise)(struct yaffs_dev *dev);
 
-	int (*readChunk) (yaffs_dev_t *dev,
+	int (*readChunk) (struct yaffs_dev *dev,
 					  unsigned pageId, 
 					  unsigned char *data, unsigned dataLength,
 					  unsigned char *spare, unsigned spareLength,
 					  int *eccStatus);
 // ECC status is set to 0 for OK, 1 for fixed, -1 for unfixed.
 
-	int (*writeChunk)(yaffs_dev_t *dev,
+	int (*writeChunk)(struct yaffs_dev *dev,
 					  unsigned pageId, 
 					  const unsigned char *data, unsigned dataLength,
 					  const unsigned char *spare, unsigned spareLength);
 
-	int (*eraseBlock)(yaffs_dev_t *dev, unsigned blockId);
+	int (*eraseBlock)(struct yaffs_dev *dev, unsigned blockId);
 
-	int (*checkBlockOk)(yaffs_dev_t *dev, unsigned blockId);
-	int (*markBlockBad)(yaffs_dev_t *dev, unsigned blockId);
+	int (*checkBlockOk)(struct yaffs_dev *dev, unsigned blockId);
+	int (*markBlockBad)(struct yaffs_dev *dev, unsigned blockId);
 
 	void *privateData;
 
 } ynandif_Geometry;
 
-struct yaffs_dev_s * 
+struct yaffs_dev * 
 	yaffs_add_dev_from_geometry(const YCHAR *name,
 					const ynandif_Geometry *geometry);
 
 #if 0
 
-int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_ext_tags *tags);
-int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags *tags);
-int ynandif_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber);
-int ynandif_InitialiseNAND(yaffs_dev_t *dev);
-int ynandif_MarkNANDBlockBad(yaffs_dev_t *dev,int blockNumber);
-int ynandif_QueryNANDBlock(yaffs_dev_t *dev, int block_no, yaffs_block_state_t *state, u32 *seq_number);
-int ynandif_GetGeometry(yaffs_dev_t *dev, ynandif_Geometry *geometry);
+int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const struct yaffs_ext_tags *tags);
+int ynandif_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, struct yaffs_ext_tags *tags);
+int ynandif_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber);
+int ynandif_InitialiseNAND(struct yaffs_dev *dev);
+int ynandif_MarkNANDBlockBad(struct yaffs_dev *dev,int blockNumber);
+int ynandif_QueryNANDBlock(struct yaffs_dev *dev, int block_no, yaffs_block_state_t *state, u32 *seq_number);
+int ynandif_GetGeometry(struct yaffs_dev *dev, ynandif_Geometry *geometry);
 #endif
 
 

@@ -50,7 +50,7 @@ typedef struct
 
 static yflash_Device ramdisk;
 
-static int  CheckInit(yaffs_dev_t *dev)
+static int  CheckInit(struct yaffs_dev *dev)
 {
 	static int initialised = 0;
 	
@@ -108,7 +108,7 @@ static int  CheckInit(yaffs_dev_t *dev)
 	return 1;
 }
 
-int yflash_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, yaffs_ext_tags *tags)
+int yflash_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, struct yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -138,7 +138,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *da
 }
 
 
-int yflash_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_tags_t *tags)
+int yflash_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, struct yaffs_tags *tags)
 {
 	int blk;
 	int pg;
@@ -167,7 +167,7 @@ int yflash_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, 
 }
 
 
-int yflash_CheckChunkErased(yaffs_dev_t *dev,int nand_chunk)
+int yflash_CheckChunkErased(struct yaffs_dev *dev,int nand_chunk)
 {
 	int blk;
 	int pg;
@@ -192,7 +192,7 @@ int yflash_CheckChunkErased(yaffs_dev_t *dev,int nand_chunk)
 
 }
 
-int yflash_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
+int yflash_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 {
 	
 	CheckInit(dev);
@@ -210,19 +210,19 @@ int yflash_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber)
 	
 }
 
-int yflash_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
+int yflash_MarkNANDBlockBad(struct yaffs_dev *dev, int block_no)
 {
 	return YAFFS_OK;
 	
 }
-int yflash_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, int *seq_number)
+int yflash_QueryNANDBlock(struct yaffs_dev *dev, int block_no, yaffs_block_state_t *state, int *seq_number)
 {
 	*state = YAFFS_BLOCK_STATE_EMPTY;
 	*seq_number = 0;
 }
 
 
-int yflash_InitialiseNAND(yaffs_dev_t *dev)
+int yflash_InitialiseNAND(struct yaffs_dev *dev)
 {
 	return YAFFS_OK;
 }

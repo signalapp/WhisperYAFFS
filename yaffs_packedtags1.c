@@ -14,7 +14,7 @@
 #include "yaffs_packedtags1.h"
 #include "yportenv.h"
 
-void yaffs_pack_tags1(yaffs_packed_tags1 *pt, const yaffs_ext_tags *t)
+void yaffs_pack_tags1(yaffs_packed_tags1 *pt, const struct yaffs_ext_tags *t)
 {
 	pt->chunk_id = t->chunk_id;
 	pt->serial_number = t->serial_number;
@@ -27,7 +27,7 @@ void yaffs_pack_tags1(yaffs_packed_tags1 *pt, const yaffs_ext_tags *t)
 
 }
 
-void yaffs_unpack_tags1(yaffs_ext_tags *t, const yaffs_packed_tags1 *pt)
+void yaffs_unpack_tags1(struct yaffs_ext_tags *t, const yaffs_packed_tags1 *pt)
 {
 	static const u8 all_ff[] =
 	    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -45,6 +45,6 @@ void yaffs_unpack_tags1(yaffs_ext_tags *t, const yaffs_packed_tags1 *pt)
 		t->is_deleted = (pt->deleted) ? 0 : 1;
 		t->serial_number = pt->serial_number;
 	} else {
-		memset(t, 0, sizeof(yaffs_ext_tags));
+		memset(t, 0, sizeof(struct yaffs_ext_tags));
 	}
 }

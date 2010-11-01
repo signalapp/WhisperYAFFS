@@ -23,7 +23,7 @@
 
 #include "yaffs_linux.h"
 
-int nandmtd_erase_block(yaffs_dev_t *dev, int block_no)
+int nandmtd_erase_block(struct yaffs_dev *dev, int block_no)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	u32 addr =
@@ -49,7 +49,7 @@ int nandmtd_erase_block(yaffs_dev_t *dev, int block_no)
 		return YAFFS_FAIL;
 }
 
-int nandmtd_initialise(yaffs_dev_t *dev)
+int nandmtd_initialise(struct yaffs_dev *dev)
 {
 	return YAFFS_OK;
 }

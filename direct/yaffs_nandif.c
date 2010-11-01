@@ -29,9 +29,9 @@
  * We assume that the data buffer is of size totalBytersPerChunk so that we can also
  * use it to load the tags.
  */
-int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
+int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev * dev, int nand_chunk,
 				      const u8 * data,
-				      const yaffs_ext_tags * tags)
+				      const struct yaffs_ext_tags * tags)
 {
 
 	int retval = 0;
@@ -70,8 +70,8 @@ int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
 	return retval;
 }
 
-int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t * dev, int nand_chunk,
-				       u8 * data, yaffs_ext_tags * tags)
+int ynandif_ReadChunkWithTagsFromNAND(struct yaffs_dev * dev, int nand_chunk,
+				       u8 * data, struct yaffs_ext_tags * tags)
 {
 	yaffs_packed_tags2 pt;
 	int localData = 0;
@@ -139,14 +139,14 @@ int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t * dev, int nand_chunk,
 	return retval;
 }
 
-int ynandif_MarkNANDBlockBad(struct yaffs_dev_s *dev, int blockId)
+int ynandif_MarkNANDBlockBad(struct yaffs_dev *dev, int blockId)
 {
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
 
 	return geometry->markBlockBad(dev,blockId);
 }
 
-int ynandif_EraseBlockInNAND(struct yaffs_dev_s *dev, int blockId)
+int ynandif_EraseBlockInNAND(struct yaffs_dev *dev, int blockId)
 {
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
 
@@ -155,17 +155,17 @@ int ynandif_EraseBlockInNAND(struct yaffs_dev_s *dev, int blockId)
 }
 
 
-static int ynandif_IsBlockOk(struct yaffs_dev_s *dev, int blockId)
+static int ynandif_IsBlockOk(struct yaffs_dev *dev, int blockId)
 {
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
 
 	return geometry->checkBlockOk(dev,blockId);
 }
 
-int ynandif_QueryNANDBlock(struct yaffs_dev_s *dev, int blockId, yaffs_block_state_t *state, u32 *seq_number)
+int ynandif_QueryNANDBlock(struct yaffs_dev *dev, int blockId, yaffs_block_state_t *state, u32 *seq_number)
 {
 	unsigned chunkNo;
-	yaffs_ext_tags tags;
+	struct yaffs_ext_tags tags;
 
 	*seq_number = 0;
 	
@@ -193,7 +193,7 @@ int ynandif_QueryNANDBlock(struct yaffs_dev_s *dev, int blockId, yaffs_block_sta
 }
 
 
-int ynandif_InitialiseNAND(yaffs_dev_t *dev)
+int ynandif_InitialiseNAND(struct yaffs_dev *dev)
 {
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
 
@@ -202,7 +202,7 @@ int ynandif_InitialiseNAND(yaffs_dev_t *dev)
 	return YAFFS_OK;
 }
 
-int ynandif_Deinitialise_flash_fn(yaffs_dev_t *dev)
+int ynandif_Deinitialise_flash_fn(struct yaffs_dev *dev)
 {
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
 
@@ -212,15 +212,15 @@ int ynandif_Deinitialise_flash_fn(yaffs_dev_t *dev)
 }
 
 
-struct yaffs_dev_s * 
+struct yaffs_dev * 
 	yaffs_add_dev_from_geometry(const YCHAR *name,
 					const ynandif_Geometry *geometry)
 {
 	YCHAR *clonedName = YMALLOC(sizeof(YCHAR) * (yaffs_strnlen(name,YAFFS_MAX_NAME_LENGTH)+1));
-	struct yaffs_dev_s *dev = YMALLOC(sizeof(struct yaffs_dev_s));
+	struct yaffs_dev *dev = YMALLOC(sizeof(struct yaffs_dev));
 
 	if(dev && clonedName){
-		memset(dev,0,sizeof(struct yaffs_dev_s));
+		memset(dev,0,sizeof(struct yaffs_dev));
 		yaffs_strcpy(clonedName,name);
 
 		dev->param.name = clonedName;

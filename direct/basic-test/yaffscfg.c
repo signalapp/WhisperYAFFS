@@ -67,16 +67,16 @@ void yaffsfs_LocalInitialisation(void)
 // /boot 2MB boot disk (flash)
 // /flash 14MB flash disk (flash)
 // NB Though /boot and /flash occupy the same physical device they
-// are still disticnt "yaffs_dev_ts. You may think of these as "partitions"
+// are still disticnt "struct yaffs_devs. You may think of these as "partitions"
 // using non-overlapping areas in the same device.
 // 
 
 #include "yaffs_ramdisk.h"
 #include "yaffs_flashif.h"
 
-static yaffs_dev_t ramDev;
-static yaffs_dev_t bootDev;
-static yaffs_dev_t flashDev;
+static struct yaffs_dev ramDev;
+static struct yaffs_dev bootDev;
+static struct yaffs_dev flashDev;
 
 static yaffsfs_DeviceConfiguration yaffsfs_config[] = {
 

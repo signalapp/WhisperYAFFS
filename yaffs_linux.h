@@ -21,7 +21,7 @@
 
 struct yaffs_linux_context {
 	struct ylist_head	context_list; /* List of these we have mounted */
-	struct yaffs_dev_s *dev;
+	struct yaffs_dev *dev;
 	struct super_block * super;
 	struct task_struct *bg_thread; /* Background thread for this device */
 	int bg_running;

@@ -41,7 +41,7 @@ typedef struct {
 
 SimData *simDevs[N_RAM_SIM_DEVS];
 
-static SimData *DevToSim(yaffs_dev_t *dev)
+static SimData *DevToSim(struct yaffs_dev *dev)
 {
 	ynandif_Geometry *geom = (ynandif_Geometry *)(dev->driver_context);
 	SimData * sim = (SimData*)(geom->privateData);
@@ -77,7 +77,7 @@ static int yramsim_erase_internal(SimData *sim, unsigned blockId,int force)
 
 
 
-static int yramsim_initialise(yaffs_dev_t *dev)
+static int yramsim_initialise(struct yaffs_dev *dev)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -85,12 +85,12 @@ static int yramsim_initialise(yaffs_dev_t *dev)
 }
 
 
-static int yramsim_deinitialise(yaffs_dev_t *dev)
+static int yramsim_deinitialise(struct yaffs_dev *dev)
 {
 	return 1;
 }
 
-static int yramsim_rd_chunk (yaffs_dev_t *dev, unsigned pageId,
+static int yramsim_rd_chunk (struct yaffs_dev *dev, unsigned pageId,
 					  unsigned char *data, unsigned dataLength,
 					  unsigned char *spare, unsigned spareLength,
 					  int *eccStatus)
@@ -125,7 +125,7 @@ static int yramsim_rd_chunk (yaffs_dev_t *dev, unsigned pageId,
 	return 1;
 }
 
-static int yramsim_wr_chunk (yaffs_dev_t *dev,unsigned pageId,
+static int yramsim_wr_chunk (struct yaffs_dev *dev,unsigned pageId,
 					   const unsigned char *data, unsigned dataLength,
 					   const unsigned char *spare, unsigned spareLength)
 {
@@ -157,7 +157,7 @@ static int yramsim_wr_chunk (yaffs_dev_t *dev,unsigned pageId,
 }
 
 
-static int yramsim_erase(yaffs_dev_t *dev,unsigned blockId)
+static int yramsim_erase(struct yaffs_dev *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 
@@ -165,7 +165,7 @@ static int yramsim_erase(yaffs_dev_t *dev,unsigned blockId)
 	return yramsim_erase_internal(sim,blockId,0);
 }
 
-static int yramsim_check_block_ok(yaffs_dev_t *dev,unsigned blockId)
+static int yramsim_check_block_ok(struct yaffs_dev *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -176,7 +176,7 @@ static int yramsim_check_block_ok(yaffs_dev_t *dev,unsigned blockId)
 	return blockList[blockId]->blockOk ? 1 : 0;
 }
 
-static int yramsim_mark_block_bad(yaffs_dev_t *dev,unsigned blockId)
+static int yramsim_mark_block_bad(struct yaffs_dev *dev,unsigned blockId)
 {
 	SimData *sim = DevToSim(dev);
 	Block **blockList = sim->blockList;
@@ -251,7 +251,7 @@ static SimData *yramsim_alloc_sim_data(u32 devId, u32 nBlocks)
 }
 
 
-struct yaffs_dev_s *yramsim_CreateRamSim(const YCHAR *name,
+struct yaffs_dev *yramsim_CreateRamSim(const YCHAR *name,
 				u32 devId, u32 nBlocks,
 				u32 start_block, u32 end_block)
 {

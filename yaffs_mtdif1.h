@@ -14,15 +14,15 @@
 #ifndef __YAFFS_MTDIF1_H__
 #define __YAFFS_MTDIF1_H__
 
-int nandmtd1_write_chunk_tags(yaffs_dev_t *dev, int nand_chunk,
-	const u8 *data, const yaffs_ext_tags *tags);
+int nandmtd1_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
+	const u8 *data, const struct yaffs_ext_tags *tags);
 
-int nandmtd1_read_chunk_tags(yaffs_dev_t *dev, int nand_chunk,
-	u8 *data, yaffs_ext_tags *tags);
+int nandmtd1_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
+	u8 *data, struct yaffs_ext_tags *tags);
 
-int nandmtd1_mark_block_bad(struct yaffs_dev_s *dev, int block_no);
+int nandmtd1_mark_block_bad(struct yaffs_dev *dev, int block_no);
 
-int nandmtd1_query_block(struct yaffs_dev_s *dev, int block_no,
+int nandmtd1_query_block(struct yaffs_dev *dev, int block_no,
 	yaffs_block_state_t *state, u32 *seq_number);
 
 #endif

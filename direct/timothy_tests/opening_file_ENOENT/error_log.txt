@@ -1,484 +1,0 @@
-log file for yaffs tester
-welcome to the yaffs tester
-setting seed to 1288064149
-creating dir: /yaffs2/test_dir
-created dir
-
-
-joining paths:/yaffs2/test_dir and apple
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-trying to open file: /yaffs2/test_dir/SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-opened file
-joining paths:/yaffs2/test_dir and &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-trying to open file: /yaffs2/test_dir/&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-opened file
-joining paths:/yaffs2/test_dir and &
-trying to open file: /yaffs2/test_dir/&
-opened file
-joining paths:/yaffs2/test_dir and )))))))))))))))))))))))))))))))))))))))))))
-trying to open file: /yaffs2/test_dir/)))))))))))))))))))))))))))))))))))))))))))
-opened file
-joining paths:/yaffs2/test_dir and ``````````````````````````````)
-trying to open file: /yaffs2/test_dir/``````````````````````````````)
-opened file
-joining paths:/yaffs2/test_dir and bbbbbbbbbbbbbbb`
-trying to open file: /yaffs2/test_dir/bbbbbbbbbbbbbbb`
-opened file
-joining paths:/yaffs2/test_dir and rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
-trying to open file: /yaffs2/test_dir/rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
-opened file
-joining paths:/yaffs2/test_dir and TTTTTTTTTr
-trying to open file: /yaffs2/test_dir/TTTTTTTTTr
-opened file
-joining paths:/yaffs2/test_dir and xxxxxxxxxxxxxr
-trying to open file: /yaffs2/test_dir/xxxxxxxxxxxxxr
-opened file
-joining paths:/yaffs2/test_dir and r
-trying to open file: /yaffs2/test_dir/r
-opened file
-joining paths:/yaffs2/test_dir and 33333333333333333333
-trying to open file: /yaffs2/test_dir/33333333333333333333
-opened file
-joining paths:/yaffs2/test_dir and =================3
-trying to open file: /yaffs2/test_dir/=================3
-opened file
-joining paths:/yaffs2/test_dir and r
-trying to open file: /yaffs2/test_dir/r
-opened file
-joining paths:/yaffs2/test_dir and <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-trying to open file: /yaffs2/test_dir/<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-opened file
-joining paths:/yaffs2/test_dir and                                              
-trying to open file: /yaffs2/test_dir/                                           
-opened file
-joining paths:/yaffs2/test_dir and  
-trying to open file: /yaffs2/test_dir/ 
-opened file
-joining paths:/yaffs2/test_dir and >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
-trying to open file: /yaffs2/test_dir/>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
-opened file
-joining paths:/yaffs2/test_dir and >
-trying to open file: /yaffs2/test_dir/>
-opened file
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
-trying to open file: /yaffs2/test_dir/yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
-opened file
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and ppppppppppppppppppp
-trying to open file: /yaffs2/test_dir/ppppppppppppppppppp
-opened file
-joining paths:/yaffs2/test_dir and jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
-trying to open file: /yaffs2/test_dir/jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
-opened file
-joining paths:/yaffs2/test_dir and """""""j
-trying to open file: /yaffs2/test_dir/"""""""j
-opened file
-joining paths:/yaffs2/test_dir and <<<<<<<<<<<<<<<<<<<<<<j
-trying to open file: /yaffs2/test_dir/<<<<<<<<<<<<<<<<<<<<<<j
-opened file
-joining paths:/yaffs2/test_dir and ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-trying to open file: /yaffs2/test_dir/,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-opened file
-joining paths:/yaffs2/test_dir and nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn,
-trying to open file: /yaffs2/test_dir/nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn,
-opened file
-joining paths:/yaffs2/test_dir and ````n
-trying to open file: /yaffs2/test_dir/````n
-opened file
-joining paths:/yaffs2/test_dir and                                                  ,
-trying to open file: /yaffs2/test_dir/                                           
-opened file
-joining paths:/yaffs2/test_dir and fffffffff 
-trying to open file: /yaffs2/test_dir/fffffffff 
-opened file
-joining paths:/yaffs2/test_dir and  
-trying to open file: /yaffs2/test_dir/ 
-opened file
-joining paths:/yaffs2/test_dir and nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn 
-trying to open file: /yaffs2/test_dir/nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
-opened file
-joining paths:/yaffs2/test_dir and n
-trying to open file: /yaffs2/test_dir/n
-opened file
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and iiiiiiiiiiiiiiiiii
-trying to open file: /yaffs2/test_dir/iiiiiiiiiiiiiiiiii
-opened file
-joining paths:/yaffs2/test_dir and hhhhhhhhhhhhhi
-trying to open file: /yaffs2/test_dir/hhhhhhhhhhhhhi
-opened file
-joining paths:/yaffs2/test_dir and uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu 
-trying to open file: /yaffs2/test_dir/uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu
-opened file
-joining paths:/yaffs2/test_dir and u
-trying to open file: /yaffs2/test_dir/u
-opened file
-joining paths:/yaffs2/test_dir and jjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
-trying to open file: /yaffs2/test_dir/jjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
-opened file
-joining paths:/yaffs2/test_dir and 777777j
-trying to open file: /yaffs2/test_dir/777777j
-opened file
-joining paths:/yaffs2/test_dir and <<<<<<<<<<<<<<j
-trying to open file: /yaffs2/test_dir/<<<<<<<<<<<<<<j
-opened file
-joining paths:/yaffs2/test_dir and ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-trying to open file: /yaffs2/test_dir/;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-opened file
-joining paths:/yaffs2/test_dir and ____________________________;
-trying to open file: /yaffs2/test_dir/____________________________;
-opened file
-joining paths:/yaffs2/test_dir and tttttttt_
-trying to open file: /yaffs2/test_dir/tttttttt_
-opened file
-joining paths:/yaffs2/test_dir and _
-trying to open file: /yaffs2/test_dir/_
-opened file
-joining paths:/yaffs2/test_dir and VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV;
-trying to open file: /yaffs2/test_dir/VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV;
-opened file
-joining paths:/yaffs2/test_dir and ssssssssssssssssssssssssssssssssssssssssss;
-trying to open file: /yaffs2/test_dir/ssssssssssssssssssssssssssssssssssssssssss;
-opened file
-joining paths:/yaffs2/test_dir and s
-trying to open file: /yaffs2/test_dir/s
-opened file
-joining paths:/yaffs2/test_dir and ))))))))))
-trying to open file: /yaffs2/test_dir/))))))))))
-opened file
-joining paths:/yaffs2/test_dir and <<<<<<<<)
-trying to open file: /yaffs2/test_dir/<<<<<<<<)
-opened file
-joining paths:/yaffs2/test_dir and 999999999999999999999999999999999999999999999u
-trying to open file: /yaffs2/test_dir/9999999999999999999999999999999999999999999
-opened file
-joining paths:/yaffs2/test_dir and #########################9
-trying to open file: /yaffs2/test_dir/#########################9
-opened file
-joining paths:/yaffs2/test_dir and #
-trying to open file: /yaffs2/test_dir/#
-opened file
-joining paths:/yaffs2/test_dir and 9
-trying to open file: /yaffs2/test_dir/9
-opened file
-joining paths:/yaffs2/test_dir and **********************************9
-trying to open file: /yaffs2/test_dir/**********************************9
-opened file
-joining paths:/yaffs2/test_dir and MMMMMM*
-trying to open file: /yaffs2/test_dir/MMMMMM*
-opened file
-joining paths:/yaffs2/test_dir and UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU9
-trying to open file: /yaffs2/test_dir/UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU9
-opened file
-joining paths:/yaffs2/test_dir and [[[[[[[[[[[[[[[[[[[U
-trying to open file: /yaffs2/test_dir/[[[[[[[[[[[[[[[[[[[U
-opened file
-joining paths:/yaffs2/test_dir and u
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-trying to open file: /yaffs2/test_dir/CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-opened file
-joining paths:/yaffs2/test_dir and 0000000000000000000000000000000000000000000000
-trying to open file: /yaffs2/test_dir/0000000000000000000000000000000000000000000
-opened file
-joining paths:/yaffs2/test_dir and RRRRRRR0
-trying to open file: /yaffs2/test_dir/RRRRRRR0
-opened file
-joining paths:/yaffs2/test_dir and nnnnnnnnnnnnnnnnn0
-trying to open file: /yaffs2/test_dir/nnnnnnnnnnnnnnnnn0
-opened file
-joining paths:/yaffs2/test_dir and 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-trying to open file: /yaffs2/test_dir/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-opened file
-joining paths:/yaffs2/test_dir and 																																				
-
-trying to open file: /yaffs2/test_dir/																																				
-
-opened file
-joining paths:/yaffs2/test_dir and 77	
-trying to open file: /yaffs2/test_dir/77	
-opened file
-joining paths:/yaffs2/test_dir and ((((((((((((((((((((((((((((((((((((((((((((((((((
-trying to open file: /yaffs2/test_dir/(((((((((((((((((((((((((((((((((((((((((((
-opened file
-joining paths:/yaffs2/test_dir and JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ(
-trying to open file: /yaffs2/test_dir/JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
-opened file
-joining paths:/yaffs2/test_dir and ..................................................
-trying to open file: /yaffs2/test_dir/...........................................
-opened file
-joining paths:/yaffs2/test_dir and mmmmmmmmmmmmmmmm.
-trying to open file: /yaffs2/test_dir/mmmmmmmmmmmmmmmm.
-opened file
-joining paths:/yaffs2/test_dir and CCCCCCCCCCCCCCCCCC.
-trying to open file: /yaffs2/test_dir/CCCCCCCCCCCCCCCCCC.
-opened file
-joining paths:/yaffs2/test_dir and UUC
-trying to open file: /yaffs2/test_dir/UUC
-opened file
-joining paths:/yaffs2/test_dir and ********************************************.
-trying to open file: /yaffs2/test_dir/*******************************************
-opened file
-joining paths:/yaffs2/test_dir and """""*
-trying to open file: /yaffs2/test_dir/"""""*
-opened file
-joining paths:/yaffs2/test_dir and TTTTTTTTTTTTTTTTTTTT*
-trying to open file: /yaffs2/test_dir/TTTTTTTTTTTTTTTTTTTT*
-opened file
-joining paths:/yaffs2/test_dir and *
-trying to open file: /yaffs2/test_dir/*
-opened file
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and 000000000000000000000000000000000000000000000000.
-trying to open file: /yaffs2/test_dir/0000000000000000000000000000000000000000000
-opened file
-joining paths:/yaffs2/test_dir and                                               0
-trying to open file: /yaffs2/test_dir/                                           
-opened file
-joining paths:/yaffs2/test_dir and qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq 
-trying to open file: /yaffs2/test_dir/qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
-opened file
-joining paths:/yaffs2/test_dir and q
-trying to open file: /yaffs2/test_dir/q
-opened file
-joining paths:/yaffs2/test_dir and CCCCCCCC
-trying to open file: /yaffs2/test_dir/CCCCCCCC
-opened file
-joining paths:/yaffs2/test_dir and vvvvvvvvvv
-trying to open file: /yaffs2/test_dir/vvvvvvvvvv
-opened file
-joining paths:/yaffs2/test_dir and PPPPPPv
-trying to open file: /yaffs2/test_dir/PPPPPPv
-opened file
-joining paths:/yaffs2/test_dir and YYYYYP
-trying to open file: /yaffs2/test_dir/YYYYYP
-opened file
-joining paths:/yaffs2/test_dir and ?????????????????????????????????????????????
-trying to open file: /yaffs2/test_dir/???????????????????????????????????????????
-opened file
-joining paths:/yaffs2/test_dir and JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
-trying to open file: /yaffs2/test_dir/JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
-opened file
-joining paths:/yaffs2/test_dir and IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ
-trying to open file: /yaffs2/test_dir/IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ
-opened file
-joining paths:/yaffs2/test_dir and qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqJ
-trying to open file: /yaffs2/test_dir/qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqJ
-opened file
-joining paths:/yaffs2/test_dir and q
-trying to open file: /yaffs2/test_dir/q
-opened file
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-opened file
-joining paths:/yaffs2/test_dir and _________
-trying to open file: /yaffs2/test_dir/_________
-opened file
-joining paths:/yaffs2/test_dir and lllllllllllllllllllllllllllllllllllllllq
-trying to open file: /yaffs2/test_dir/lllllllllllllllllllllllllllllllllllllllq
-opened file
-joining paths:/yaffs2/test_dir and l
-trying to open file: /yaffs2/test_dir/l
-opened file
-joining paths:/yaffs2/test_dir and l
-trying to open file: /yaffs2/test_dir/l
-opened file
-joining paths:/yaffs2/test_dir and ddddddddddddddddddddddd
-trying to open file: /yaffs2/test_dir/ddddddddddddddddddddddd
-opened file
-joining paths:/yaffs2/test_dir and QQQQQQQQQQQQQQQQQQQQQQQQ
-trying to open file: /yaffs2/test_dir/QQQQQQQQQQQQQQQQQQQQQQQQ
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-
-joining paths:/yaffs2/test_dir and 
-trying to open file: /yaffs2/test_dir/
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-
-joining paths:/yaffs2/test_dir and mmmmmmmmmmmmmmm
-trying to open file: /yaffs2/test_dir/mmmmmmmmmmmmmmm
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-
-joining paths:/yaffs2/test_dir and GGGGGGGGGGGGGGGGGGGGGGG
-trying to open file: /yaffs2/test_dir/GGGGGGGGGGGGGGGGGGGGGGG
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-
-joining paths:/yaffs2/test_dir and ZZZZZZZZZZZZZZZZZZZZZZZZZ
-trying to open file: /yaffs2/test_dir/ZZZZZZZZZZZZZZZZZZZZZZZZZ
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-
-joining paths:/yaffs2/test_dir and ttttttttttttttttttttttttttttt
-trying to open file: /yaffs2/test_dir/ttttttttttttttttttttttttttttt
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-
-joining paths:/yaffs2/test_dir and qqqqqqqqqqqqqqqt
-trying to open file: /yaffs2/test_dir/qqqqqqqqqqqqqqqt
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-
-joining paths:/yaffs2/test_dir and q
-trying to open file: /yaffs2/test_dir/q
-
-error##########
-failed to open file
-error_code: 
-ENOENT
-
-

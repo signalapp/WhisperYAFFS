@@ -56,7 +56,7 @@ const char * error_to_str(int err)
 	return "Unknown error code";
 }
 
-void yaffs_check_for_errors(char output, buffer *message_buffer,char error_message[],char success_message[]){
+void yaffs_check_for_errors(int output, buffer *message_buffer,char error_message[],char success_message[]){
 	char dummy[10];
 	unsigned int x=0;
 	int yaffs_error=-1;
@@ -70,8 +70,8 @@ void yaffs_check_for_errors(char output, buffer *message_buffer,char error_messa
 		if (MESSAGE_LEVEL_ERROR<=DEBUG_LEVEL)	printf("%d\n",yaffs_error);	/*cannot yet add int types to buffer. this is a quick fix*/ 	
 		add_to_buffer(message_buffer, error_to_str(yaffs_error),MESSAGE_LEVEL_ERROR,NPRINT);
 		append_to_buffer(message_buffer, "\n\n",MESSAGE_LEVEL_ERROR,PRINT);	
-		exit(1);		
-		//scanf("%c",dummy);	/*this line causes a segmentation fault. Need a better way of waiting for a key press*/
+				
+		scanf("%c",dummy);	/*this line causes a segmentation fault. Need a better way of waiting for a key press*/
 		//print_buffer(message_buffer,PRINT_ALL);
 		
 	}

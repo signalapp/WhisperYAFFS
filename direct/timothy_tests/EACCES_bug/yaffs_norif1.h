@@ -1,0 +1,1 @@
+../../basic-test/yaffs_norif1.h

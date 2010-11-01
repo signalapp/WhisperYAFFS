@@ -203,7 +203,7 @@ void test(char*yaffs_test_dir){
 				append_int_to_buffer(&message_buffer,stat.st_mode,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
 			}
 			else {
-				add_to_buffer(&message_buffer,"file does not exists, creating file",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+				add_to_buffer(&message_buffer,"file does not exists, creating file",MESSAGE_LEVEL_BASIC_TASKS,PRINT);
 			}
 
 			output=yaffs_open(path,O_CREAT | O_TRUNC| O_RDWR, S_IREAD | S_IWRITE);
@@ -264,5 +264,27 @@ void  generate_random_string(char *ptr){
 	}
 	ptr[x+1]='\0';	/*adds NULL charecter to turn it into a string*/
 	
+}
+
+void stat_file(char *path){
+	int output=0;
+	struct yaffs_stat stat;
+	if (yaffs_access(path,0)==0){
+		add_to_buffer(&message_buffer,"file exists, trying to stat: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		add_to_buffer(&message_buffer,path,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+		output=yaffs_lstat(path,&stat);
+		yaffs_check_for_errors(output, &message_buffer,"failed to stat file","statted file");
+		//stat.st_ino,(int)stat.st_size,stat.st_mode
+		add_to_buffer(&message_buffer,"yaffs inode: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_int_to_buffer(&message_buffer,stat.st_ino,MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_to_buffer(&message_buffer," file size: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_int_to_buffer(&message_buffer,(int)stat.st_size,MESSAGE_LEVEL_BASIC_TASKS,NPRINT);			
+		append_to_buffer(&message_buffer," file mode: ",MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_int_to_buffer(&message_buffer,stat.st_mode,MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+	}
+	else{
+		add_to_buffer(&message_buffer,path,MESSAGE_LEVEL_BASIC_TASKS,NPRINT);
+		append_to_buffer(&message_buffer," does not exist,could not stat",MESSAGE_LEVEL_BASIC_TASKS,PRINT);
+	}
 }
 

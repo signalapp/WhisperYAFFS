@@ -874,9 +874,6 @@ int yaffs_checkpoint_restore(yaffs_dev_t *dev);
 yaffs_obj_t *yaffs_create_dir(yaffs_obj_t *parent, const YCHAR *name,
 				__u32 mode, __u32 uid, __u32 gid);
 yaffs_obj_t *yaffs_find_by_name(yaffs_obj_t *the_dir, const YCHAR *name);
-int yaffs_ApplyToDirectoryChildren(yaffs_obj_t *the_dir,
-				   int (*fn) (yaffs_obj_t *));
-
 yaffs_obj_t *yaffs_find_by_number(yaffs_dev_t *dev, __u32 number);
 
 /* Link operations */

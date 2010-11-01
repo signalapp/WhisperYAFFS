@@ -216,54 +216,6 @@ void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tag
 }
 
 
-#if 0
-/* Not being used, but don't want to throw away yet */
-int yaffs_verify_tnode_worker(yaffs_obj_t *obj, yaffs_tnode_t *tn,
-					__u32 level, int chunk_offset)
-{
-	int i;
-	yaffs_dev_t *dev = obj->my_dev;
-	int ok = 1;
-
-	if (tn) {
-		if (level > 0) {
-
-			for (i = 0; i < YAFFS_NTNODES_INTERNAL && ok; i++) {
-				if (tn->internal[i]) {
-					ok = yaffs_verify_tnode_worker(obj,
-							tn->internal[i],
-							level - 1,
-							(chunk_offset<<YAFFS_TNODES_INTERNAL_BITS) + i);
-				}
-			}
-		} else if (level == 0) {
-			yaffs_ext_tags tags;
-			__u32 obj_id = obj->obj_id;
-
-			chunk_offset <<=  YAFFS_TNODES_LEVEL0_BITS;
-
-			for (i = 0; i < YAFFS_NTNODES_LEVEL0; i++) {
-				__u32 the_chunk = yaffs_get_group_base(dev, tn, i);
-
-				if (the_chunk > 0) {
-					/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),tags.obj_id,tags.chunk_id,the_chunk)); */
-					yaffs_rd_chunk_tags_nand(dev, the_chunk, NULL, &tags);
-					if (tags.obj_id != obj_id || tags.chunk_id != chunk_offset) {
-						T(~0, (TSTR("Object %d chunk_id %d NAND mismatch chunk %d tags (%d:%d)"TENDSTR),
-							obj_id, chunk_offset, the_chunk,
-							tags.obj_id, tags.chunk_id));
-					}
-				}
-				chunk_offset++;
-			}
-		}
-	}
-
-	return ok;
-
-}
-
-#endif
 
 void yaffs_verify_file(yaffs_obj_t *obj)
 {
@@ -573,59 +525,6 @@ void yaffs_verify_free_chunks(yaffs_dev_t *dev)
 
 int yaffs_verify_file_sane(yaffs_obj_t *in)
 {
-#if 0
-	int chunk;
-	int n_chunks;
-	int file_size;
-	int failed = 0;
-	int obj_id;
-	yaffs_tnode_t *tn;
-	yaffs_tags_t local_tags;
-	yaffs_tags_t *tags = &local_tags;
-	int the_chunk;
-	int is_deleted;
-
-	if (in->variant_type != YAFFS_OBJECT_TYPE_FILE)
-		return YAFFS_FAIL;
-
-	obj_id = in->obj_id;
-	file_size = in->variant.file_variant.file_size;
-	n_chunks =
-	    (file_size + in->my_dev->data_bytes_per_chunk - 1) / in->my_dev->data_bytes_per_chunk;
-
-	for (chunk = 1; chunk <= n_chunks; chunk++) {
-		tn = yaffs_find_tnode_0(in->my_dev, &in->variant.file_variant,
-					   chunk);
-
-		if (tn) {
-
-			the_chunk = yaffs_get_group_base(dev, tn, chunk);
-
-			if (yaffs_check_chunk_bits
-			    (dev, the_chunk / dev->param.chunks_per_block,
-			     the_chunk % dev->param.chunks_per_block)) {
-
-				yaffs_rd_chunk_tags_nand(in->my_dev, the_chunk,
-							    tags,
-							    &is_deleted);
-				if (yaffs_tags_match
-				    (tags, in->obj_id, chunk, is_deleted)) {
-					/* found it; */
-
-				}
-			} else {
-
-				failed = 1;
-			}
-
-		} else {
-			/* T(("No level 0 found for %d\n", chunk)); */
-		}
-	}
-
-	return failed ? YAFFS_FAIL : YAFFS_OK;
-#else
 	in=in;
 	return YAFFS_OK;
-#endif
 }

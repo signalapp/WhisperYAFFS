@@ -19,7 +19,7 @@
  *
  * These functions are invoked via function pointers in yaffs_nand.c.
  * This replaces functionality provided by functions in yaffs_mtdif.c
- * and the yaffs_tags_tCompatability functions in yaffs_tagscompat.c that are
+ * and the yaffs_tags compatability functions in yaffs_tagscompat.c that are
  * called in yaffs_mtdif.c when the function pointers are NULL.
  * We assume the MTD layer is performing ECC (use_nand_ecc is true).
  */
@@ -36,37 +36,12 @@
 #include "linux/types.h"
 #include "linux/mtd/mtd.h"
 
-/* Don't compile this module if we don't have MTD's mtd_oob_ops interface */
-#if (MTD_VERSION_CODE > MTD_VERSION(2, 6, 17))
-
 #ifndef CONFIG_YAFFS_9BYTE_TAGS
 # define YTAG1_SIZE 8
 #else
 # define YTAG1_SIZE 9
 #endif
 
-#if 0
-/* Use the following nand_ecclayout with MTD when using
- * CONFIG_YAFFS_9BYTE_TAGS and the older on-NAND tags layout.
- * If you have existing Yaffs images and the byte order differs from this,
- * adjust 'oobfree' to match your existing Yaffs data.
- *
- * This nand_ecclayout scatters/gathers to/from the old-yaffs layout with the
- * page_status byte (at NAND spare offset 4) scattered/gathered from/to
- * the 9th byte.
- *
- * Old-style on-NAND format: T0,T1,T2,T3,P,B,T4,T5,E0,E1,E2,T6,T7,E3,E4,E5
- * We have/need packed_tags1 plus page_status: T0,T1,T2,T3,T4,T5,T6,T7,P
- * where Tn are the tag bytes, En are MTD's ECC bytes, P is the page_status
- * byte and B is the small-page bad-block indicator byte.
- */
-static struct nand_ecclayout nand_oob_16 = {
-	.eccbytes = 6,
-	.eccpos = { 8, 9, 10, 13, 14, 15 },
-	.oobavail = 9,
-	.oobfree = { { 0, 4 }, { 6, 2 }, { 11, 2 }, { 4, 1 } }
-};
-#endif
 
 /* Write a chunk (page) of data to NAND.
  *
@@ -186,12 +161,6 @@ int nandmtd1_read_chunk_tags(yaffs_dev_t *dev,
 	ops.datbuf = data;
 	ops.oobbuf = (__u8 *)&pt1;
 
-#if (MTD_VERSION_CODE < MTD_VERSION(2, 6, 20))
-	/* In MTD 2.6.18 to 2.6.19 nand_base.c:nand_do_read_oob() has a bug;
-	 * help it out with ops.len = ops.ooblen when ops.datbuf == NULL.
-	 */
-	ops.len = (ops.datbuf) ? ops.len : ops.ooblen;
-#endif
 	/* Read page and oob using MTD.
 	 * Check status and determine ECC result.
 	 */
@@ -358,5 +327,3 @@ int nandmtd1_query_block(struct yaffs_dev_s *dev, int block_no,
 	/* query always succeeds */
 	return YAFFS_OK;
 }
-
-#endif /*MTD_VERSION*/

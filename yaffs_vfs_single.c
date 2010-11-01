@@ -575,15 +575,9 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry,
 		if (inode) {
 			T(YAFFS_TRACE_OS,
 				(TSTR("yaffs_loookup dentry \n")));
-/* #if 0 asserted by NCB for 2.5/6 compatability - falls through to
- * d_add even if NULL inode */
-#if 0
-			/*dget(dentry); // try to solve directory bug */
 			d_add(dentry, inode);
-
 			/* return dentry; */
 			return NULL;
-#endif
 		}
 
 	} else {
@@ -591,8 +585,6 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry,
 
 	}
 
-/* added NCB for 2.5/6 compatability - forces add even if inode is
- * NULL which creates dentry hash */
 	d_add(dentry, inode);
 
 	return NULL;
@@ -2200,7 +2192,7 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 						struct super_block *sb,
 						void *data, int silent)
 {
-	int nBlocks;
+	int n_blocks;
 	struct inode *inode = NULL;
 	struct dentry *root;
 	yaffs_dev_t *dev = 0;
@@ -2407,10 +2399,10 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 
 	/* Set up the memory size parameters.... */
 
-	nBlocks = YCALCBLOCKS(mtd->size, (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK));
+	n_blocks = YCALCBLOCKS(mtd->size, (YAFFS_CHUNKS_PER_BLOCK * YAFFS_BYTES_PER_CHUNK));
 
 	param->start_block = 0;
-	param->end_block = nBlocks - 1;
+	param->end_block = n_blocks - 1;
 	param->chunks_per_block = YAFFS_CHUNKS_PER_BLOCK;
 	param->total_bytes_per_chunk = YAFFS_BYTES_PER_CHUNK;
 	param->n_reserved_blocks = 5;
@@ -2467,10 +2459,10 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 		param->is_yaffs2 = 1;
 		param->total_bytes_per_chunk = mtd->writesize;
 		param->chunks_per_block = mtd->erasesize / mtd->writesize;
-		nBlocks = YCALCBLOCKS(mtd->size, mtd->erasesize);
+		n_blocks = YCALCBLOCKS(mtd->size, mtd->erasesize);
 
 		param->start_block = 0;
-		param->end_block = nBlocks - 1;
+		param->end_block = n_blocks - 1;
 	} else {
 		/* use the MTD interface in yaffs_mtdif1.c */
 		param->write_chunk_tags_fn =

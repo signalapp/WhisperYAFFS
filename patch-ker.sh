@@ -53,9 +53,14 @@ else
 fi
 
 if [ $MULTIORSINGLE = m ]; then
-   VFSGLUE="yaffs_vfs_multi.c"
+   VFS_CODE="yaffs_vfs_multi.c"
+   MTD1_CODE="yaffs_mtdif1_multi.c"
+   MTD2_CODE="yaffs_mtdif2_multi.c"
 elif [ $MULTIORSINGLE = s ]; then
-   VFSGLUE="yaffs_vfs.c"
+   VFSGLUE="yaffs_vfs_single.c"
+   MTD1_CODE="yaffs_mtdif1_single.c"
+   MTD2_CODE="yaffs_mtdif2_single.c"
+
    echo ""
    echo "*** Warning ***"
    echo "You have chosen to use the single kernel variant of the yaffs VFS glue code"
@@ -139,6 +144,8 @@ else
    $CPY  $PWD/Makefile.kernel $LINUXDIR/fs/yaffs2/Makefile
    $CPY $PWD/Kconfig $LINUXDIR/fs/yaffs2
    $CPY $PWD/*.c $PWD/*.h  $LINUXDIR/fs/yaffs2
-   rm $LINUXDIR/fs/yaffs2/yaffs_vfs.c $LINUXDIR/fs/yaffs2/yaffs_vfs_multi.c
-   $CPY $PWD/$VFSGLUE $LINUXDIR/fs/yaffs2/yaffs_vfs_glue.c
+   rm $LINUXDIR/fs/yaffs2/yaffs_vfs*.c $LINUXDIR/fs/yaffs2/yaffs_mtdif[12]*.c
+   $CPY $PWD/$VFS_CODE $LINUXDIR/fs/yaffs2/yaffs_vfs.c
+   $CPY $PWD/$MTD1_CODE $LINUXDIR/fs/yaffs2/yaffs_mtdif1.c
+   $CPY $PWD/$MTD2_CODE $LINUXDIR/fs/yaffs2/yaffs_mtdif2.c
 fi

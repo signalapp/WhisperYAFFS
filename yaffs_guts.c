@@ -600,11 +600,8 @@ static __u16 yaffs_calc_name_sum(const YCHAR *name)
 	if (bname) {
 		while ((*bname) && (i < (YAFFS_MAX_NAME_LENGTH/2))) {
 
-#ifdef CONFIG_YAFFS_CASE_INSENSITIVE
-			sum += yaffs_toupper(*bname) * i;
-#else
-			sum += (*bname) * i;
-#endif
+			/* 0x1f mask is case insensitive */
+			sum += ((*bname) & 0x1f) * i;
 			i++;
 			bname++;
 		}
@@ -916,102 +913,6 @@ static int yaffs_find_chunk_in_group(yaffs_dev_t *dev, int the_chunk,
 	return -1;
 }
 
-#if 0
-/* Experimental code not being used yet. Might speed up file deletion */
-/* DeleteWorker scans backwards through the tnode tree and deletes all the
- * chunks and tnodes in the file.
- * Returns 1 if the tree was deleted.
- * Returns 0 if it stopped early due to hitting the limit and the delete is incomplete.
- */
-
-static int yaffs_del_worker(yaffs_obj_t *in, yaffs_tnode_t *tn, __u32 level,
-			      int chunk_offset, int *limit)
-{
-	int i;
-	int inode_chunk;
-	int the_chunk;
-	yaffs_ext_tags tags;
-	int found_chunk;
-	yaffs_dev_t *dev = in->my_dev;
-
-	int all_done = 1;
-
-	if (tn) {
-		if (level > 0) {
-			for (i = YAFFS_NTNODES_INTERNAL - 1; all_done && i >= 0;
-			     i--) {
-				if (tn->internal[i]) {
-					if (limit && (*limit) < 0) {
-						all_done = 0;
-					} else {
-						all_done =
-							yaffs_del_worker(in,
-								tn->
-								internal
-								[i],
-								level -
-								1,
-								(chunk_offset
-									<<
-									YAFFS_TNODES_INTERNAL_BITS)
-								+ i,
-								limit);
-					}
-					if (all_done) {
-						yaffs_free_tnode(dev,
-								tn->
-								internal[i]);
-						tn->internal[i] = NULL;
-					}
-				}
-			}
-			return (all_done) ? 1 : 0;
-		} else if (level == 0) {
-			int hit_limit = 0;
-
-			for (i = YAFFS_NTNODES_LEVEL0 - 1; i >= 0 && !hit_limit;
-					i--) {
-				the_chunk = yaffs_get_group_base(dev, tn, i);
-				if (the_chunk) {
-
-					inode_chunk = (chunk_offset <<
-						YAFFS_TNODES_LEVEL0_BITS) + i;
-
-					found_chunk =
-						yaffs_find_chunk_in_group(dev,
-								the_chunk,
-								&tags,
-								in->obj_id,
-								inode_chunk);
-
-					if (found_chunk > 0) {
-						yaffs_chunk_del(dev,
-								  found_chunk, 1,
-								  __LINE__);
-						in->n_data_chunks--;
-						if (limit) {
-							*limit = *limit - 1;
-							if (*limit <= 0)
-								hit_limit = 1;
-						}
-
-					}
-
-					yaffs_load_tnode_0(dev, tn, i, 0);
-				}
-
-			}
-			return (i < 0) ? 1 : 0;
-
-		}
-
-	}
-
-	return 1;
-
-}
-
-#endif
 
 static void yaffs_soft_del_chunk(yaffs_dev_t *dev, int chunk)
 {
@@ -4356,12 +4257,6 @@ static void yaffs_check_obj_details_loaded(yaffs_obj_t *in)
 
 	dev = in->my_dev;
 
-#if 0
-	T(YAFFS_TRACE_SCAN, (TSTR("details for object %d %s loaded" TENDSTR),
-		in->obj_id,
-		in->lazy_loaded ? "not yet" : "already"));
-#endif
-
 	if (in->lazy_loaded && in->hdr_chunk > 0) {
 		in->lazy_loaded = 0;
 		chunk_data = yaffs_get_temp_buffer(dev, __LINE__);
@@ -4587,42 +4482,6 @@ yaffs_obj_t *yaffs_find_by_name(yaffs_obj_t *directory,
 	return NULL;
 }
 
-
-#if 0
-int yaffs_ApplyToDirectoryChildren(yaffs_obj_t *the_dir,
-					int (*fn) (yaffs_obj_t *))
-{
-	struct ylist_head *i;
-	yaffs_obj_t *l;
-
-	if (!the_dir) {
-		T(YAFFS_TRACE_ALWAYS,
-		  (TSTR
-		   ("tragedy: yaffs_find_by_name: null pointer directory"
-		    TENDSTR)));
-		YBUG();
-		return YAFFS_FAIL;
-	}
-	if (the_dir->variant_type != YAFFS_OBJECT_TYPE_DIRECTORY) {
-		T(YAFFS_TRACE_ALWAYS,
-		  (TSTR
-		   ("tragedy: yaffs_find_by_name: non-directory" TENDSTR)));
-		YBUG();
-		return YAFFS_FAIL;
-	}
-
-	ylist_for_each(i, &the_dir->variant.dir_variant.children) {
-		if (i) {
-			l = ylist_entry(i, yaffs_obj_t, siblings);
-			if (l && !fn(l))
-				return YAFFS_FAIL;
-		}
-	}
-
-	return YAFFS_OK;
-
-}
-#endif
 
 /* GetEquivalentObject dereferences any hard links to get to the
  * actual object.
@@ -5029,30 +4888,9 @@ int yaffs_list_xattrib(yaffs_obj_t *obj, char *buffer, int size)
 	return yaffs_do_xattrib_fetch(obj, NULL, buffer,size);
 }
 
-
-
-#if 0
-int yaffs_dump_obj(yaffs_obj_t *obj)
-{
-	YCHAR name[257];
-
-	yaffs_get_obj_name(obj, name, YAFFS_MAX_NAME_LENGTH + 1);
-
-	T(YAFFS_TRACE_ALWAYS,
-	  (TSTR
-	   ("Object %d, inode %d \"%s\"\n dirty %d valid %d serial %d sum %d"
-	    " chunk %d type %d size %d\n"
-	    TENDSTR), obj->obj_id, yaffs_get_obj_inode(obj), name,
-	   obj->dirty, obj->valid, obj->serial, obj->sum, obj->hdr_chunk,
-	   yaffs_get_obj_type(obj), yaffs_get_obj_length(obj)));
-
-	return YAFFS_OK;
-}
-#endif
-
 /*---------------------------- Initialisation code -------------------------------------- */
 
-static int yaffs_cehck_dev_fns(const yaffs_dev_t *dev)
+static int yaffs_check_dev_fns(const yaffs_dev_t *dev)
 {
 
 	/* Common functions, gotta have */
@@ -5173,7 +5011,7 @@ int yaffs_guts_initialise(yaffs_dev_t *dev)
 		dev->data_bytes_per_chunk = dev->param.total_bytes_per_chunk;
 
 	/* Got the right mix of functions? */
-	if (!yaffs_cehck_dev_fns(dev)) {
+	if (!yaffs_check_dev_fns(dev)) {
 		/* Function missing */
 		T(YAFFS_TRACE_ALWAYS,
 		  (TSTR
@@ -5487,12 +5325,7 @@ int yaffs_get_n_free_chunks(yaffs_dev_t *dev)
 	int blocks_for_checkpt;
 	int i;
 
-#if 1
 	n_free = dev->n_free_chunks;
-#else
-	n_free = yaffs_count_free_chunks(dev);
-#endif
-
 	n_free += dev->n_deleted_files;
 
 	/* Now count the number of dirty chunks in the cache and subtract those */

@@ -18,15 +18,7 @@
 #include "yaffs_trace.h"
 
 static void yaffs_handle_rd_data_error(yaffs_dev_t *dev, int nand_chunk);
-#ifdef NOTYET
-static void yaffs_check_written_block(yaffs_dev_t *dev, int nand_chunk);
-static void yaffs_handle_chunk_wr_ok(yaffs_dev_t *dev, int nand_chunk,
-				     const __u8 *data,
-				     const yaffs_spare *spare);
-static void yaffs_handle_chunk_update(yaffs_dev_t *dev, int nand_chunk,
-				    const yaffs_spare *spare);
-static void yaffs_handle_chunk_wr_error(yaffs_dev_t *dev, int nand_chunk);
-#endif
+
 
 static const char yaffs_count_bits_table[256] = {
 	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
@@ -297,33 +289,6 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev_s *dev,
 	return ret_val;
 }
 
-#ifdef NOTYET
-static int yaffs_check_chunk_erased(struct yaffs_dev_s *dev,
-				  int nand_chunk)
-{
-	static int init;
-	static __u8 cmpbuf[YAFFS_BYTES_PER_CHUNK];
-	static __u8 data[YAFFS_BYTES_PER_CHUNK];
-	/* Might as well always allocate the larger size for */
-	/* dev->param.use_nand_ecc == true; */
-	static __u8 spare[sizeof(struct yaffs_nand_spare)];
-
-	dev->param.read_chunk_fn(dev, nand_chunk, data, (yaffs_spare *) spare);
-
-	if (!init) {
-		memset(cmpbuf, 0xff, YAFFS_BYTES_PER_CHUNK);
-		init = 1;
-	}
-
-	if (memcmp(cmpbuf, data, YAFFS_BYTES_PER_CHUNK))
-		return YAFFS_FAIL;
-	if (memcmp(cmpbuf, spare, 16))
-		return YAFFS_FAIL;
-
-	return YAFFS_OK;
-
-}
-#endif
 
 /*
  * Functions for robustisizing
@@ -345,56 +310,6 @@ static void yaffs_handle_rd_data_error(yaffs_dev_t *dev, int nand_chunk)
 	 */
 }
 
-#ifdef NOTYET
-static void yaffs_check_written_block(yaffs_dev_t *dev, int nand_chunk)
-{
-}
-
-static void yaffs_handle_chunk_wr_ok(yaffs_dev_t *dev, int nand_chunk,
-				     const __u8 *data,
-				     const yaffs_spare *spare)
-{
-}
-
-static void yaffs_handle_chunk_update(yaffs_dev_t *dev, int nand_chunk,
-				    const yaffs_spare *spare)
-{
-}
-
-static void yaffs_handle_chunk_wr_error(yaffs_dev_t *dev, int nand_chunk)
-{
-	int flash_block = nand_chunk / dev->param.chunks_per_block;
-
-	/* Mark the block for retirement */
-	yaffs_get_block_info(dev, flash_block)->needs_retiring = 1;
-	/* Delete the chunk */
-	yaffs_chunk_del(dev, nand_chunk, 1, __LINE__);
-}
-
-static int yaffs_verify_cmp(const __u8 *d0, const __u8 *d1,
-			       const yaffs_spare *s0, const yaffs_spare *s1)
-{
-
-	if (memcmp(d0, d1, YAFFS_BYTES_PER_CHUNK) != 0 ||
-	    s0->tb0 != s1->tb0 ||
-	    s0->tb1 != s1->tb1 ||
-	    s0->tb2 != s1->tb2 ||
-	    s0->tb3 != s1->tb3 ||
-	    s0->tb4 != s1->tb4 ||
-	    s0->tb5 != s1->tb5 ||
-	    s0->tb6 != s1->tb6 ||
-	    s0->tb7 != s1->tb7 ||
-	    s0->ecc1[0] != s1->ecc1[0] ||
-	    s0->ecc1[1] != s1->ecc1[1] ||
-	    s0->ecc1[2] != s1->ecc1[2] ||
-	    s0->ecc2[0] != s1->ecc2[0] ||
-	    s0->ecc2[1] != s1->ecc2[1] || s0->ecc2[2] != s1->ecc2[2]) {
-		return 0;
-	}
-
-	return 1;
-}
-#endif				/* NOTYET */
 
 int yaffs_tags_compat_wr(yaffs_dev_t *dev,
 						int nand_chunk,

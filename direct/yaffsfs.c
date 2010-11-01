@@ -732,7 +732,7 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 		} else {
 			yaffsfs_PutHandle(handle);
 			if(!errorReported) {
-				yaffsfs_SetError(-EACCES);
+				yaffsfs_SetError(!obj ? -ENOSPC : -EACCES);
 				errorReported = 1;
 			}
 			handle = -1;

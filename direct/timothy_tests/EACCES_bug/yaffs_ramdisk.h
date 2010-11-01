@@ -1,1 +1,0 @@
-../../basic-test/yaffs_ramdisk.h

@@ -179,7 +179,7 @@ static void shuffle_oob(char *spareData, yaffs_packed_tags2 *pt)
 	memcpy(spareData, pt, sizeof(*pt));
 }
 
-static int write_chunk(__u8 *data, __u32 id, __u32 chunk_id, __u32 n_bytes)
+static int write_chunk(u8 *data, u32 id, u32 chunk_id, u32 n_bytes)
 {
 	yaffs_ext_tags t;
 	yaffs_packed_tags2 pt;
@@ -233,7 +233,7 @@ static void object_header_little_to_big_endian(yaffs_obj_header* oh)
     int i;    
     oh->type = SWAP32(oh->type); // GCC makes enums 32 bits.
     oh->parent_obj_id = SWAP32(oh->parent_obj_id); // int
-    oh->sum_no_longer_used = SWAP16(oh->sum_no_longer_used); // __u16 - Not used, but done for completeness.
+    oh->sum_no_longer_used = SWAP16(oh->sum_no_longer_used); // u16 - Not used, but done for completeness.
     // name = skip. Char array. Not swapped.
     oh->yst_mode = SWAP32(oh->yst_mode);
 #ifdef CONFIG_YAFFS_WINCE // WinCE doesn't implement this, but we need to just in case. 
@@ -278,7 +278,7 @@ static void object_header_little_to_big_endian(yaffs_obj_header* oh)
 
 static int write_object_header(int id, yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
 {
-	__u8 bytes[chunkSize];
+	u8 bytes[chunkSize];
 	
 	
 	yaffs_obj_header *oh = (yaffs_obj_header *)bytes;
@@ -342,7 +342,7 @@ static int write_object_header(int id, yaffs_obj_type t, struct stat *s, int par
 
 static void pad_image(void)
 {
-	__u8 data[chunkSize + spareSize];
+	u8 data[chunkSize + spareSize];
 	int padPages = (nPages % pagesPerBlock);
 
 	if (padPages)
@@ -444,7 +444,7 @@ static int process_directory(int parent, const char *path)
 							if(write_object_header(newObj, YAFFS_OBJECT_TYPE_FILE, &stats, parent, entry->d_name, -1, NULL) == 0)
 							{
 								int h;
-								__u8 bytes[chunkSize];
+								u8 bytes[chunkSize];
 								int n_bytes;
 								int chunk = 0;
 								

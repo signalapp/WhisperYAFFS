@@ -54,7 +54,7 @@ const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.8 2010-02-18 01:
 
 typedef struct 
 {
-	__u8 data[PAGE_TOTAL_SIZE]; // Data + spare
+	u8 data[PAGE_TOTAL_SIZE]; // Data + spare
 	int empty;      // is this empty?
 } nandemul_Page;
 
@@ -190,13 +190,13 @@ static int  CheckInit(void)
 	return 1;
 }
 
-int nandemul2k_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags)
+int nandemul2k_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
 	int i;
 	
-	__u8 *x;
+	u8 *x;
 
 	
 	blk = nand_chunk/PAGES_PER_BLOCK;
@@ -233,12 +233,12 @@ int nandemul2k_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __
 }
 
 
-int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags)
+int nandemul2k_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
 	
-	__u8 *x;
+	u8 *x;
 
 	
 	
@@ -316,7 +316,7 @@ int nandemul2k_InitialiseNAND(yaffs_dev_t *dev)
 int nandemul2k_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 {
 	
-	__u8 *x;
+	u8 *x;
 	
 	x = &ned.block[block_no]->page[0]->data[PAGE_DATA_SIZE];
 	
@@ -327,7 +327,7 @@ int nandemul2k_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no)
 	
 }
 
-int nandemul2k_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, __u32  *seq_number)
+int nandemul2k_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, u32  *seq_number)
 {
 	yaffs_ext_tags tags;
 	int chunkNo;

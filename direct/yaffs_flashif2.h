@@ -19,13 +19,13 @@
 
 #include "yaffs_guts.h"
 int yflash2_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber);
-int yflash2_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_spare *spare);
-int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags);
-int yflash2_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_spare *spare);
-int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags);
+int yflash2_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_spare *spare);
+int yflash2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_ext_tags *tags);
+int yflash2_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_spare *spare);
+int yflash2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags *tags);
 int yflash2_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber);
 int yflash2_InitialiseNAND(yaffs_dev_t *dev);
 int yflash2_MarkNANDBlockBad(struct yaffs_dev_s *dev, int block_no);
-int yflash2_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, __u32 *seq_number);
+int yflash2_QueryNANDBlock(struct yaffs_dev_s *dev, int block_no, yaffs_block_state_t *state, u32 *seq_number);
 
 #endif

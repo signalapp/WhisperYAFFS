@@ -119,7 +119,7 @@ typedef struct {
 	int dirty;
 	int n_bytes;		/* Only valid if the cache is dirty */
 	int locked;		/* Can't push out or flush while locked. */
-	__u8 *data;
+	u8 *data;
 } yaffs_cache_t;
 
 
@@ -141,7 +141,7 @@ typedef struct {
 
 typedef union {
 	yaffs_tags_t as_tags;
-	__u8 as_bytes[8];
+	u8 as_bytes[8];
 } yaffs_tags_union_t;
 
 #endif
@@ -203,18 +203,18 @@ typedef struct {
 
 /* Spare structure for YAFFS1 */
 typedef struct {
-	__u8 tb0;
-	__u8 tb1;
-	__u8 tb2;
-	__u8 tb3;
-	__u8 page_status;	/* set to 0 to delete the chunk */
-	__u8 block_status;
-	__u8 tb4;
-	__u8 tb5;
-	__u8 ecc1[3];
-	__u8 tb6;
-	__u8 tb7;
-	__u8 ecc2[3];
+	u8 tb0;
+	u8 tb1;
+	u8 tb2;
+	u8 tb3;
+	u8 page_status;	/* set to 0 to delete the chunk */
+	u8 block_status;
+	u8 tb4;
+	u8 tb5;
+	u8 ecc1[3];
+	u8 tb6;
+	u8 tb7;
+	u8 ecc2[3];
 } yaffs_spare;
 
 /*Special structure for passing through to mtd */
@@ -280,16 +280,16 @@ typedef struct {
 	int soft_del_pages:10;	/* number of soft deleted pages */
 	int pages_in_use:10;	/* number of pages in use */
 	unsigned block_state:4;	/* One of the above block states. NB use unsigned because enum is sometimes an int */
-	__u32 needs_retiring:1;	/* Data has failed on this block, need to get valid data off */
+	u32 needs_retiring:1;	/* Data has failed on this block, need to get valid data off */
 				/* and retire the block. */
-	__u32 skip_erased_check:1; /* If this is set we can skip the erased check on this block */
-	__u32 gc_prioritise:1; 	/* An ECC check or blank check has failed on this block.
+	u32 skip_erased_check:1; /* If this is set we can skip the erased check on this block */
+	u32 gc_prioritise:1; 	/* An ECC check or blank check has failed on this block.
 				   It should be prioritised for GC */
-	__u32 chunk_error_strikes:3; /* How many times we've had ecc etc failures on this block and tried to reuse it */
+	u32 chunk_error_strikes:3; /* How many times we've had ecc etc failures on this block and tried to reuse it */
 
 #ifdef CONFIG_YAFFS_YAFFS2
-	__u32 has_shrink_hdr:1; /* This block has at least one shrink object header */
-	__u32 seq_number;	 /* block sequence number for yaffs2 */
+	u32 has_shrink_hdr:1; /* This block has at least one shrink object header */
+	u32 seq_number;	 /* block sequence number for yaffs2 */
 #endif
 
 } yaffs_block_info_t;
@@ -302,20 +302,20 @@ typedef struct {
 
 	/* Apply to everything  */
 	int parent_obj_id;
-	__u16 sum_no_longer_used;        /* checksum of name. No longer used */
+	u16 sum_no_longer_used;        /* checksum of name. No longer used */
 	YCHAR name[YAFFS_MAX_NAME_LENGTH + 1];
 
 	/* The following apply to directories, files, symlinks - not hard links */
-	__u32 yst_mode;         /* protection */
+	u32 yst_mode;         /* protection */
 
 #ifdef CONFIG_YAFFS_WINCE
-	__u32 not_for_wince[5];
+	u32 not_for_wince[5];
 #else
-	__u32 yst_uid;
-	__u32 yst_gid;
-	__u32 yst_atime;
-	__u32 yst_mtime;
-	__u32 yst_ctime;
+	u32 yst_uid;
+	u32 yst_gid;
+	u32 yst_atime;
+	u32 yst_mtime;
+	u32 yst_ctime;
 #endif
 
 	/* File size  applies to files only */
@@ -327,24 +327,24 @@ typedef struct {
 	/* Alias is for symlinks only. */
 	YCHAR alias[YAFFS_MAX_ALIAS_LENGTH + 1];
 
-	__u32 yst_rdev;		/* device stuff for block and char devices (major/min) */
+	u32 yst_rdev;		/* device stuff for block and char devices (major/min) */
 
 #ifdef CONFIG_YAFFS_WINCE
-	__u32 win_ctime[2];
-	__u32 win_atime[2];
-	__u32 win_mtime[2];
+	u32 win_ctime[2];
+	u32 win_atime[2];
+	u32 win_mtime[2];
 #else
-	__u32 room_to_grow[6];
+	u32 room_to_grow[6];
 
 #endif
-	__u32 inband_shadowed_obj_id;
-	__u32 inband_is_shrink;
+	u32 inband_shadowed_obj_id;
+	u32 inband_is_shrink;
 
-	__u32 reserved[2];
+	u32 reserved[2];
 	int shadows_obj;	/* This object header shadows the specified object if > 0 */
 
 	/* is_shrink applies to object headers written when we shrink the file (ie resize) */
-	__u32 is_shrink;
+	u32 is_shrink;
 
 } yaffs_obj_header;
 
@@ -367,9 +367,9 @@ typedef union yaffs_tnode_union yaffs_tnode_t;
  */
 
 typedef struct {
-	__u32 file_size;
-	__u32 scanned_size;
-	__u32 shrink_size;
+	u32 file_size;
+	u32 scanned_size;
+	u32 shrink_size;
 	int top_level;
 	yaffs_tnode_t *top;
 } yaffs_file_s;
@@ -385,7 +385,7 @@ typedef struct {
 
 typedef struct {
 	struct yaffs_obj_s *equiv_obj;
-	__u32 equiv_id;
+	u32 equiv_id;
 } yaffs_hard_link_s;
 
 typedef union {
@@ -398,31 +398,31 @@ typedef union {
 
 
 struct yaffs_obj_s {
-	__u8 deleted:1;		/* This should only apply to unlinked files. */
-	__u8 soft_del:1;	/* it has also been soft deleted */
-	__u8 unlinked:1;	/* An unlinked file. The file should be in the unlinked directory.*/
-	__u8 fake:1;		/* A fake object has no presence on NAND. */
-	__u8 rename_allowed:1;	/* Some objects are not allowed to be renamed. */
-	__u8 unlink_allowed:1;
-	__u8 dirty:1;		/* the object needs to be written to flash */
-	__u8 valid:1;		/* When the file system is being loaded up, this
+	u8 deleted:1;		/* This should only apply to unlinked files. */
+	u8 soft_del:1;	/* it has also been soft deleted */
+	u8 unlinked:1;	/* An unlinked file. The file should be in the unlinked directory.*/
+	u8 fake:1;		/* A fake object has no presence on NAND. */
+	u8 rename_allowed:1;	/* Some objects are not allowed to be renamed. */
+	u8 unlink_allowed:1;
+	u8 dirty:1;		/* the object needs to be written to flash */
+	u8 valid:1;		/* When the file system is being loaded up, this
 				 * object might be created before the data
 				 * is available (ie. file data records appear before the header).
 				 */
-	__u8 lazy_loaded:1;	/* This object has been lazy loaded and is missing some detail */
+	u8 lazy_loaded:1;	/* This object has been lazy loaded and is missing some detail */
 
-	__u8 defered_free:1;	/* For Linux kernel. Object is removed from NAND, but is
+	u8 defered_free:1;	/* For Linux kernel. Object is removed from NAND, but is
 				 * still in the inode cache. Free of object is defered.
 				 * until the inode is released.
 				 */
-	__u8 being_created:1;	/* This object is still being created so skip some checks. */
-	__u8 is_shadowed:1;	/* This object is shadowed on the way to being renamed. */
+	u8 being_created:1;	/* This object is still being created so skip some checks. */
+	u8 is_shadowed:1;	/* This object is shadowed on the way to being renamed. */
 
-	__u8 xattr_known:1;	/* We know if this has object has xattribs or not. */
-	__u8 has_xattr:1;	/* This object has xattribs. Valid if xattr_known. */
+	u8 xattr_known:1;	/* We know if this has object has xattribs or not. */
+	u8 has_xattr:1;	/* This object has xattribs. Valid if xattr_known. */
 
-	__u8 serial;		/* serial number of chunk in NAND. Cached here */
-	__u16 sum;		/* sum of the name to speed searching */
+	u8 serial;		/* serial number of chunk in NAND. Cached here */
+	u16 sum;		/* sum of the name to speed searching */
 
 	struct yaffs_dev_s *my_dev;       /* The device I'm on */
 
@@ -440,27 +440,27 @@ struct yaffs_obj_s {
 
 	int n_data_chunks;	/* Number of data chunks attached to the file. */
 
-	__u32 obj_id;		/* the object id value */
+	u32 obj_id;		/* the object id value */
 
-	__u32 yst_mode;
+	u32 yst_mode;
 
 #ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
 	YCHAR short_name[YAFFS_SHORT_NAME_LENGTH + 1];
 #endif
 
 #ifdef CONFIG_YAFFS_WINCE
-	__u32 win_ctime[2];
-	__u32 win_mtime[2];
-	__u32 win_atime[2];
+	u32 win_ctime[2];
+	u32 win_mtime[2];
+	u32 win_atime[2];
 #else
-	__u32 yst_uid;
-	__u32 yst_gid;
-	__u32 yst_atime;
-	__u32 yst_mtime;
-	__u32 yst_ctime;
+	u32 yst_uid;
+	u32 yst_gid;
+	u32 yst_atime;
+	u32 yst_mtime;
+	u32 yst_ctime;
 #endif
 
-	__u32 yst_rdev;
+	u32 yst_rdev;
 
 	void *my_inode;
 
@@ -484,20 +484,20 @@ typedef struct {
 
 typedef struct {
 	int struct_type;
-	__u32 obj_id;
-	__u32 parent_id;
+	u32 obj_id;
+	u32 parent_id;
 	int hdr_chunk;
 	yaffs_obj_type variant_type:3;
-	__u8 deleted:1;
-	__u8 soft_del:1;
-	__u8 unlinked:1;
-	__u8 fake:1;
-	__u8 rename_allowed:1;
-	__u8 unlink_allowed:1;
-	__u8 serial;
+	u8 deleted:1;
+	u8 soft_del:1;
+	u8 unlinked:1;
+	u8 fake:1;
+	u8 rename_allowed:1;
+	u8 unlink_allowed:1;
+	u8 serial;
 
 	int n_data_chunks;
-	__u32 size_or_equiv_obj;
+	u32 size_or_equiv_obj;
 } yaffs_checkpt_obj_t;
 
 /*--------------------- Temporary buffers ----------------
@@ -506,7 +506,7 @@ typedef struct {
  */
 
 typedef struct {
-	__u8 *buffer;
+	u8 *buffer;
 	int line;	/* track from whence this buffer was allocated */
 	int max_line;
 } yaffs_buffer_t;
@@ -524,7 +524,7 @@ struct yaffs_param_s {
          */
 
 	int inband_tags;          /* Use unband tags */
-	__u32 total_bytes_per_chunk; /* Should be >= 512, does not need to be a power of 2 */
+	u32 total_bytes_per_chunk; /* Should be >= 512, does not need to be a power of 2 */
 	int chunks_per_block;	/* does not need to be a power of 2 */
 	int spare_bytes_per_chunk;	/* spare area size */
 	int start_block;		/* Start block we're allowed to use */
@@ -547,18 +547,18 @@ struct yaffs_param_s {
 	int refresh_period;	/* How often we should check to do a block refresh */
 
 	/* Checkpoint control. Can be set before or after initialisation */
-	__u8 skip_checkpt_rd;
-	__u8 skip_checkpt_wr;
+	u8 skip_checkpt_rd;
+	u8 skip_checkpt_wr;
 
 	int enable_xattr;	/* Enable xattribs */
 
 	/* NAND access functions (Must be set before calling YAFFS)*/
 
 	int (*write_chunk_fn) (struct yaffs_dev_s *dev,
-					int nand_chunk, const __u8 *data,
+					int nand_chunk, const u8 *data,
 					const yaffs_spare *spare);
 	int (*read_chunk_fn) (struct yaffs_dev_s *dev,
-					int nand_chunk, __u8 *data,
+					int nand_chunk, u8 *data,
 					yaffs_spare *spare);
 	int (*erase_fn) (struct yaffs_dev_s *dev,
 					int flash_block);
@@ -567,14 +567,14 @@ struct yaffs_param_s {
 
 #ifdef CONFIG_YAFFS_YAFFS2
 	int (*write_chunk_tags_fn) (struct yaffs_dev_s *dev,
-					 int nand_chunk, const __u8 *data,
+					 int nand_chunk, const u8 *data,
 					 const yaffs_ext_tags *tags);
 	int (*read_chunk_tags_fn) (struct yaffs_dev_s *dev,
-					  int nand_chunk, __u8 *data,
+					  int nand_chunk, u8 *data,
 					  yaffs_ext_tags *tags);
 	int (*bad_block_fn) (struct yaffs_dev_s *dev, int block_no);
 	int (*query_block_fn) (struct yaffs_dev_s *dev, int block_no,
-			       yaffs_block_state_t *state, __u32 *seq_number);
+			       yaffs_block_state_t *state, u32 *seq_number);
 #endif
 
 	/* The remove_obj_fn function must be supplied by OS flavours that
@@ -620,20 +620,20 @@ struct yaffs_dev_s {
 	int data_bytes_per_chunk;	
 
         /* Non-wide tnode stuff */
-	__u16 chunk_grp_bits;	/* Number of bits that need to be resolved if
+	u16 chunk_grp_bits;	/* Number of bits that need to be resolved if
                                  * the tnodes are not wide enough.
                                  */
-	__u16 chunk_grp_size;	/* == 2^^chunk_grp_bits */
+	u16 chunk_grp_size;	/* == 2^^chunk_grp_bits */
 
 	/* Stuff to support wide tnodes */
-	__u32 tnode_width;
-	__u32 tnode_mask;
-	__u32 tnode_size;
+	u32 tnode_width;
+	u32 tnode_mask;
+	u32 tnode_size;
 
 	/* Stuff for figuring out file offset to chunk conversions */
-	__u32 chunk_shift; /* Shift value */
-	__u32 chunk_div;   /* Divisor after shifting: 1 for power-of-2 sizes */
-	__u32 chunk_mask;  /* Mask to use for power-of-2 case */
+	u32 chunk_shift; /* Shift value */
+	u32 chunk_div;   /* Divisor after shifting: 1 for power-of-2 sizes */
+	u32 chunk_mask;  /* Mask to use for power-of-2 case */
 
 
 
@@ -653,7 +653,7 @@ struct yaffs_dev_s {
 	int checkpt_page_seq;   /* running sequence number of checkpoint pages */
 	int checkpt_byte_count;
 	int checkpt_byte_offs;
-	__u8 *checkpt_buffer;
+	u8 *checkpt_buffer;
 	int checkpt_open_write;
 	int blocks_in_checkpt;
 	int checkpt_cur_chunk;
@@ -661,14 +661,14 @@ struct yaffs_dev_s {
 	int checkpt_next_block;
 	int *checkpt_block_list;
 	int checkpt_max_blocks;
-	__u32 checkpt_sum;
-	__u32 checkpt_xor;
+	u32 checkpt_sum;
+	u32 checkpt_xor;
 
 	int checkpoint_blocks_required; /* Number of blocks needed to store current checkpoint set */
 
 	/* Block Info */
 	yaffs_block_info_t *block_info;
-	__u8 *chunk_bits;	/* bitmap of chunks in use */
+	u8 *chunk_bits;	/* bitmap of chunks in use */
 	unsigned block_info_alt:1;	/* was allocated using alternative strategy */
 	unsigned chunk_bits_alt:1;	/* was allocated using alternative strategy */
 	int chunk_bit_stride;	/* Number of bytes of chunk_bits per block.
@@ -677,7 +677,7 @@ struct yaffs_dev_s {
 
 	int n_erased_blocks;
 	int alloc_block;	/* Current block being allocated off */
-	__u32 alloc_page;
+	u32 alloc_page;
 	int alloc_block_finder;	/* Used to search for next allocation block */
 
 	/* Object and Tnode memory management */
@@ -688,13 +688,13 @@ struct yaffs_dev_s {
 	int n_hardlinks;
 
 	yaffs_obj_bucket obj_bucket[YAFFS_NOBJECT_BUCKETS];
-	__u32 bucket_finder;
+	u32 bucket_finder;
 
 	int n_free_chunks;
 
 	/* Garbage collection control */
-	__u32 *gc_cleanup_list;	/* objects to delete at the end of a GC. */
-	__u32 n_clean_ups;
+	u32 *gc_cleanup_list;	/* objects to delete at the end of a GC. */
+	u32 n_clean_ups;
 
 	unsigned has_pending_prioritised_gc; /* We think this device might have pending prioritised gcs */
 	unsigned gc_disable;
@@ -711,7 +711,7 @@ struct yaffs_dev_s {
 	yaffs_obj_t *lost_n_found;
 
 	/* Buffer areas for storing data to recover from write failures TODO
-	 *      __u8            buffered_data[YAFFS_CHUNKS_PER_BLOCK][YAFFS_BYTES_PER_CHUNK];
+	 *      u8            buffered_data[YAFFS_CHUNKS_PER_BLOCK][YAFFS_BYTES_PER_CHUNK];
 	 *      yaffs_spare buffered_spare[YAFFS_CHUNKS_PER_BLOCK];
 	 */
 
@@ -749,26 +749,26 @@ struct yaffs_dev_s {
 
 
 	/* Statistcs */
-	__u32 n_page_writes;
-	__u32 n_page_reads;
-	__u32 n_erasures;
-	__u32 n_erase_failures;
-	__u32 n_gc_copies;
-	__u32 all_gcs;
-	__u32 passive_gc_count;
-	__u32 oldest_dirty_gc_count;
-	__u32 n_gc_blocks;
-	__u32 bg_gcs;
-	__u32 n_retired_writes;
-	__u32 n_retired_blocks;
-	__u32 n_ecc_fixed;
-	__u32 n_ecc_unfixed;
-	__u32 n_tags_ecc_fixed;
-	__u32 n_tags_ecc_unfixed;
-	__u32 n_deletions;
-	__u32 n_unmarked_deletions;
-	__u32 refresh_count;
-	__u32 cache_hits;
+	u32 n_page_writes;
+	u32 n_page_reads;
+	u32 n_erasures;
+	u32 n_erase_failures;
+	u32 n_gc_copies;
+	u32 all_gcs;
+	u32 passive_gc_count;
+	u32 oldest_dirty_gc_count;
+	u32 n_gc_blocks;
+	u32 bg_gcs;
+	u32 n_retired_writes;
+	u32 n_retired_blocks;
+	u32 n_ecc_fixed;
+	u32 n_ecc_unfixed;
+	u32 n_tags_ecc_fixed;
+	u32 n_tags_ecc_unfixed;
+	u32 n_deletions;
+	u32 n_unmarked_deletions;
+	u32 refresh_count;
+	u32 cache_hits;
 
 };
 
@@ -792,7 +792,7 @@ typedef struct {
 	int struct_type;
 	int n_erased_blocks;
 	int alloc_block;	/* Current block being allocated off */
-	__u32 alloc_page;
+	u32 alloc_page;
 	int n_free_chunks;
 
 	int n_deleted_files;		/* Count of files awaiting deletion;*/
@@ -807,9 +807,9 @@ typedef struct {
 
 typedef struct {
 	int struct_type;
-	__u32 magic;
-	__u32 version;
-	__u32 head;
+	u32 magic;
+	u32 version;
+	u32 head;
 } yaffs_checkpt_validty_t;
 
 
@@ -853,14 +853,14 @@ int yaffs_set_attribs(yaffs_obj_t *obj, struct iattr *attr);
 int yaffs_get_attribs(yaffs_obj_t *obj, struct iattr *attr);
 
 /* File operations */
-int yaffs_file_rd(yaffs_obj_t *obj, __u8 *buffer, loff_t offset,
+int yaffs_file_rd(yaffs_obj_t *obj, u8 *buffer, loff_t offset,
 				int n_bytes);
-int yaffs_wr_file(yaffs_obj_t *obj, const __u8 *buffer, loff_t offset,
+int yaffs_wr_file(yaffs_obj_t *obj, const u8 *buffer, loff_t offset,
 				int n_bytes, int write_trhrough);
 int yaffs_resize_file(yaffs_obj_t *obj, loff_t new_size);
 
 yaffs_obj_t *yaffs_create_file(yaffs_obj_t *parent, const YCHAR *name,
-				__u32 mode, __u32 uid, __u32 gid);
+				u32 mode, u32 uid, u32 gid);
 
 int yaffs_flush_file(yaffs_obj_t *obj, int update_time, int data_sync);
 
@@ -872,9 +872,9 @@ int yaffs_checkpoint_restore(yaffs_dev_t *dev);
 
 /* Directory operations */
 yaffs_obj_t *yaffs_create_dir(yaffs_obj_t *parent, const YCHAR *name,
-				__u32 mode, __u32 uid, __u32 gid);
+				u32 mode, u32 uid, u32 gid);
 yaffs_obj_t *yaffs_find_by_name(yaffs_obj_t *the_dir, const YCHAR *name);
-yaffs_obj_t *yaffs_find_by_number(yaffs_dev_t *dev, __u32 number);
+yaffs_obj_t *yaffs_find_by_number(yaffs_dev_t *dev, u32 number);
 
 /* Link operations */
 yaffs_obj_t *yaffs_link_obj(yaffs_obj_t *parent, const YCHAR *name,
@@ -884,13 +884,13 @@ yaffs_obj_t *yaffs_get_equivalent_obj(yaffs_obj_t *obj);
 
 /* Symlink operations */
 yaffs_obj_t *yaffs_create_symlink(yaffs_obj_t *parent, const YCHAR *name,
-				 __u32 mode, __u32 uid, __u32 gid,
+				 u32 mode, u32 uid, u32 gid,
 				 const YCHAR *alias);
 YCHAR *yaffs_get_symlink_alias(yaffs_obj_t *obj);
 
 /* Special inodes (fifos, sockets and devices) */
 yaffs_obj_t *yaffs_create_special(yaffs_obj_t *parent, const YCHAR *name,
-				 __u32 mode, __u32 uid, __u32 gid, __u32 rdev);
+				 u32 mode, u32 uid, u32 gid, u32 rdev);
 
 
 int yaffs_set_xattrib(yaffs_obj_t *obj, const YCHAR *name, const void * value, int size, int flags);
@@ -904,7 +904,7 @@ yaffs_obj_t *yaffs_lost_n_found(yaffs_dev_t *dev);
 
 #ifdef CONFIG_YAFFS_WINCE
 /* CONFIG_YAFFS_WINCE special stuff */
-void yfsd_win_file_time_now(__u32 target[2]);
+void yfsd_win_file_time_now(u32 target[2]);
 #endif
 
 void yaffs_handle_defered_free(yaffs_obj_t *obj);
@@ -920,11 +920,11 @@ void yaffs_guts_test(yaffs_dev_t *dev);
 
 /* A few useful functions to be used within the core files*/
 void yaffs_chunk_del(yaffs_dev_t *dev, int chunk_id, int mark_flash, int lyn);
-int yaffs_check_ff(__u8 *buffer, int n_bytes);
+int yaffs_check_ff(u8 *buffer, int n_bytes);
 void yaffs_handle_chunk_error(yaffs_dev_t *dev, yaffs_block_info_t *bi);
 
-__u8 *yaffs_get_temp_buffer(yaffs_dev_t *dev, int line_no);
-void yaffs_release_temp_buffer(yaffs_dev_t *dev, __u8 *buffer, int line_no);
+u8 *yaffs_get_temp_buffer(yaffs_dev_t *dev, int line_no);
+void yaffs_release_temp_buffer(yaffs_dev_t *dev, u8 *buffer, int line_no);
 
 yaffs_obj_t *yaffs_find_or_create_by_number(yaffs_dev_t *dev,
 					        int number,
@@ -947,10 +947,10 @@ int yaffs_check_alloc_available(yaffs_dev_t *dev, int n_chunks);
 yaffs_tnode_t *yaffs_get_tnode(yaffs_dev_t *dev);
 yaffs_tnode_t *yaffs_add_find_tnode_0(yaffs_dev_t *dev,
 					yaffs_file_s *file_struct,
-					__u32 chunk_id,
+					u32 chunk_id,
 					yaffs_tnode_t *passed_tn);
 
-int yaffs_do_file_wr(yaffs_obj_t *in, const __u8 *buffer, loff_t offset,
+int yaffs_do_file_wr(yaffs_obj_t *in, const u8 *buffer, loff_t offset,
 			int n_bytes, int write_trhrough);
 void yaffs_resize_file_down( yaffs_obj_t *obj, loff_t new_size);
 void yaffs_skip_rest_of_block(yaffs_dev_t *dev);
@@ -959,8 +959,8 @@ int yaffs_count_free_chunks(yaffs_dev_t *dev);
 
 yaffs_tnode_t *yaffs_find_tnode_0(yaffs_dev_t *dev,
 				yaffs_file_s *file_struct,
-				__u32 chunk_id);
+				u32 chunk_id);
 
-__u32 yaffs_get_group_base(yaffs_dev_t *dev, yaffs_tnode_t *tn, unsigned pos);
+u32 yaffs_get_group_base(yaffs_dev_t *dev, yaffs_tnode_t *tn, unsigned pos);
 
 #endif

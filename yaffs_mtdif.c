@@ -26,7 +26,7 @@
 int nandmtd_erase_block(yaffs_dev_t *dev, int block_no)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
-	__u32 addr =
+	u32 addr =
 	    ((loff_t) block_no) * dev->param.total_bytes_per_chunk
 		* dev->param.chunks_per_block;
 	struct erase_info ei;

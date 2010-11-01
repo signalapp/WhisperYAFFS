@@ -46,7 +46,7 @@ static void yaffs_retire_block(yaffs_dev_t *dev, int flash_block);
 static void yaffs_handle_chunk_wr_error(yaffs_dev_t *dev, int nand_chunk,
 		int erased_ok);
 static void yaffs_handle_chunk_wr_ok(yaffs_dev_t *dev, int nand_chunk,
-				const __u8 *data,
+				const u8 *data,
 				const yaffs_ext_tags *tags);
 static void yaffs_handle_chunk_update(yaffs_dev_t *dev, int nand_chunk,
 				const yaffs_ext_tags *tags);
@@ -57,7 +57,7 @@ static int yaffs_unlink_obj(yaffs_obj_t *obj);
 static int yaffs_obj_cache_dirty(yaffs_obj_t *obj);
 
 static int yaffs_write_new_chunk(yaffs_dev_t *dev,
-					const __u8 *buffer,
+					const u8 *buffer,
 					yaffs_ext_tags *tags,
 					int use_reserver);
 
@@ -93,7 +93,7 @@ static int yaffs_find_chunk_in_file(yaffs_obj_t *in, int inode_chunk,
 
 static int yaffs_verify_chunk_written(yaffs_dev_t *dev,
 					int nand_chunk,
-					const __u8 *data,
+					const u8 *data,
 					yaffs_ext_tags *tags);
 
 
@@ -104,16 +104,16 @@ static void yaffs_load_oh_from_name(yaffs_dev_t *dev,YCHAR *oh_name, const YCHAR
 /* Function to calculate chunk and offset */
 
 static void yaffs_addr_to_chunk(yaffs_dev_t *dev, loff_t addr, int *chunk_out,
-		__u32 *offset_out)
+		u32 *offset_out)
 {
 	int chunk;
-	__u32 offset;
+	u32 offset;
 
-	chunk  = (__u32)(addr >> dev->chunk_shift);
+	chunk  = (u32)(addr >> dev->chunk_shift);
 
 	if (dev->chunk_div == 1) {
 		/* easy power of 2 case */
-		offset = (__u32)(addr & dev->chunk_mask);
+		offset = (u32)(addr & dev->chunk_mask);
 	} else {
 		/* Non power-of-2 case */
 
@@ -122,7 +122,7 @@ static void yaffs_addr_to_chunk(yaffs_dev_t *dev, loff_t addr, int *chunk_out,
 		chunk /= dev->chunk_div;
 
 		chunk_base = ((loff_t)chunk) * dev->data_bytes_per_chunk;
-		offset = (__u32)(addr - chunk_base);
+		offset = (u32)(addr - chunk_base);
 	}
 
 	*chunk_out = chunk;
@@ -135,7 +135,7 @@ static void yaffs_addr_to_chunk(yaffs_dev_t *dev, loff_t addr, int *chunk_out,
  * be hellishly efficient.
  */
 
-static __u32 calc_shifts_ceiling(__u32 x)
+static u32 calc_shifts_ceiling(u32 x)
 {
 	int extra_bits;
 	int shifts;
@@ -158,9 +158,9 @@ static __u32 calc_shifts_ceiling(__u32 x)
 /* Function to return the number of shifts to get a 1 in bit 0
  */
 
-static __u32 calc_shifts(__u32 x)
+static u32 calc_shifts(u32 x)
 {
-	__u32 shifts;
+	u32 shifts;
 
 	shifts =  0;
 
@@ -184,7 +184,7 @@ static __u32 calc_shifts(__u32 x)
 static int yaffs_init_tmp_buffers(yaffs_dev_t *dev)
 {
 	int i;
-	__u8 *buf = (__u8 *)1;
+	u8 *buf = (u8 *)1;
 
 	memset(dev->temp_buffer, 0, sizeof(dev->temp_buffer));
 
@@ -197,7 +197,7 @@ static int yaffs_init_tmp_buffers(yaffs_dev_t *dev)
 	return buf ? YAFFS_OK : YAFFS_FAIL;
 }
 
-__u8 *yaffs_get_temp_buffer(yaffs_dev_t *dev, int line_no)
+u8 *yaffs_get_temp_buffer(yaffs_dev_t *dev, int line_no)
 {
 	int i, j;
 
@@ -237,7 +237,7 @@ __u8 *yaffs_get_temp_buffer(yaffs_dev_t *dev, int line_no)
 
 }
 
-void yaffs_release_temp_buffer(yaffs_dev_t *dev, __u8 *buffer,
+void yaffs_release_temp_buffer(yaffs_dev_t *dev, u8 *buffer,
 				    int line_no)
 {
 	int i;
@@ -265,7 +265,7 @@ void yaffs_release_temp_buffer(yaffs_dev_t *dev, __u8 *buffer,
 /*
  * Determine if we have a managed buffer.
  */
-int yaffs_is_managed_tmp_buffer(yaffs_dev_t *dev, const __u8 *buffer)
+int yaffs_is_managed_tmp_buffer(yaffs_dev_t *dev, const u8 *buffer)
 {
 	int i;
 
@@ -324,7 +324,7 @@ yaffs_obj_t *yaffs_lost_n_found(yaffs_dev_t *dev)
  *  Erased NAND checking functions
  */
 
-int yaffs_check_ff(__u8 *buffer, int n_bytes)
+int yaffs_check_ff(u8 *buffer, int n_bytes)
 {
 	/* Horrible, slow implementation */
 	while (n_bytes--) {
@@ -339,7 +339,7 @@ static int yaffs_check_chunk_erased(struct yaffs_dev_s *dev,
 				int nand_chunk)
 {
 	int retval = YAFFS_OK;
-	__u8 *data = yaffs_get_temp_buffer(dev, __LINE__);
+	u8 *data = yaffs_get_temp_buffer(dev, __LINE__);
 	yaffs_ext_tags tags;
 	int result;
 
@@ -363,12 +363,12 @@ static int yaffs_check_chunk_erased(struct yaffs_dev_s *dev,
 
 static int yaffs_verify_chunk_written(yaffs_dev_t *dev,
 					int nand_chunk,
-					const __u8 *data,
+					const u8 *data,
 					yaffs_ext_tags *tags)
 {
 	int retval = YAFFS_OK;
 	yaffs_ext_tags temp_tags;
-	__u8 *buffer = yaffs_get_temp_buffer(dev,__LINE__);
+	u8 *buffer = yaffs_get_temp_buffer(dev,__LINE__);
 	int result;
 	
 	result = yaffs_rd_chunk_tags_nand(dev,nand_chunk,buffer,&temp_tags);
@@ -384,7 +384,7 @@ static int yaffs_verify_chunk_written(yaffs_dev_t *dev,
 }
 
 static int yaffs_write_new_chunk(struct yaffs_dev_s *dev,
-					const __u8 *data,
+					const u8 *data,
 					yaffs_ext_tags *tags,
 					int use_reserver)
 {
@@ -508,7 +508,7 @@ static void yaffs_retire_block(yaffs_dev_t *dev, int flash_block)
 			yaffs_ext_tags tags;
 			int chunk_id = flash_block * dev->param.chunks_per_block;
 
-			__u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
+			u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
 
 			memset(buffer, 0xff, dev->data_bytes_per_chunk);
 			yaffs_init_tags(&tags);
@@ -536,7 +536,7 @@ static void yaffs_retire_block(yaffs_dev_t *dev, int flash_block)
  */
 
 static void yaffs_handle_chunk_wr_ok(yaffs_dev_t *dev, int nand_chunk,
-				const __u8 *data,
+				const u8 *data,
 				const yaffs_ext_tags *tags)
 {
 	dev=dev;
@@ -591,10 +591,10 @@ static void yaffs_handle_chunk_wr_error(yaffs_dev_t *dev, int nand_chunk,
 
 /*---------------- Name handling functions ------------*/
 
-static __u16 yaffs_calc_name_sum(const YCHAR *name)
+static u16 yaffs_calc_name_sum(const YCHAR *name)
 {
-	__u16 sum = 0;
-	__u16 i = 1;
+	u16 sum = 0;
+	u16 i = 1;
 
 	const YUCHAR *bname = (const YUCHAR *) name;
 	if (bname) {
@@ -673,11 +673,11 @@ static void yaffs_deinit_tnodes_and_objs(yaffs_dev_t *dev)
 void yaffs_load_tnode_0(yaffs_dev_t *dev, yaffs_tnode_t *tn, unsigned pos,
 		unsigned val)
 {
-	__u32 *map = (__u32 *)tn;
-	__u32 bit_in_map;
-	__u32 bit_in_word;
-	__u32 word_in_map;
-	__u32 mask;
+	u32 *map = (u32 *)tn;
+	u32 bit_in_map;
+	u32 bit_in_word;
+	u32 word_in_map;
+	u32 mask;
 
 	pos &= YAFFS_TNODES_LEVEL0_MASK;
 	val >>= dev->chunk_grp_bits;
@@ -700,14 +700,14 @@ void yaffs_load_tnode_0(yaffs_dev_t *dev, yaffs_tnode_t *tn, unsigned pos,
 	}
 }
 
-__u32 yaffs_get_group_base(yaffs_dev_t *dev, yaffs_tnode_t *tn,
+u32 yaffs_get_group_base(yaffs_dev_t *dev, yaffs_tnode_t *tn,
 		unsigned pos)
 {
-	__u32 *map = (__u32 *)tn;
-	__u32 bit_in_map;
-	__u32 bit_in_word;
-	__u32 word_in_map;
-	__u32 val;
+	u32 *map = (u32 *)tn;
+	u32 bit_in_map;
+	u32 bit_in_word;
+	u32 word_in_map;
+	u32 val;
 
 	pos &= YAFFS_TNODES_LEVEL0_MASK;
 
@@ -739,10 +739,10 @@ __u32 yaffs_get_group_base(yaffs_dev_t *dev, yaffs_tnode_t *tn,
 /* FindLevel0Tnode finds the level 0 tnode, if one exists. */
 yaffs_tnode_t *yaffs_find_tnode_0(yaffs_dev_t *dev,
 					yaffs_file_s *file_struct,
-					__u32 chunk_id)
+					u32 chunk_id)
 {
 	yaffs_tnode_t *tn = file_struct->top;
-	__u32 i;
+	u32 i;
 	int required_depth;
 	int level = file_struct->top_level;
 
@@ -793,7 +793,7 @@ yaffs_tnode_t *yaffs_find_tnode_0(yaffs_dev_t *dev,
 
 yaffs_tnode_t *yaffs_add_find_tnode_0(yaffs_dev_t *dev,
 					yaffs_file_s *file_struct,
-					__u32 chunk_id,
+					u32 chunk_id,
 					yaffs_tnode_t *passed_tn)
 {
 	int required_depth;
@@ -801,7 +801,7 @@ yaffs_tnode_t *yaffs_add_find_tnode_0(yaffs_dev_t *dev,
 	int l;
 	yaffs_tnode_t *tn;
 
-	__u32 x;
+	u32 x;
 
 
 	/* Check sane level and page Id */
@@ -937,7 +937,7 @@ static void yaffs_soft_del_chunk(yaffs_dev_t *dev, int chunk)
  */
 
 static int yaffs_soft_del_worker(yaffs_obj_t *in, yaffs_tnode_t *tn,
-				  __u32 level, int chunk_offset)
+				  u32 level, int chunk_offset)
 {
 	int i;
 	int the_chunk;
@@ -1033,7 +1033,7 @@ static void yaffs_soft_del_file(yaffs_obj_t *obj)
  */
 
 static yaffs_tnode_t *yaffs_prune_worker(yaffs_dev_t *dev, yaffs_tnode_t *tn,
-				__u32 level, int del0)
+				u32 level, int del0)
 {
 	int i;
 	int has_data;
@@ -1054,8 +1054,8 @@ static yaffs_tnode_t *yaffs_prune_worker(yaffs_dev_t *dev, yaffs_tnode_t *tn,
 					has_data++;
 			}
 		} else {
-			int tnode_size_u32 = dev->tnode_size/sizeof(__u32);
-			__u32 *map = (__u32 *)tn;
+			int tnode_size_u32 = dev->tnode_size/sizeof(u32);
+			u32 *map = (u32 *)tn;
 
                         for(i = 0; !has_data && i < tnode_size_u32; i++){
                                 if(map[i])
@@ -1163,7 +1163,7 @@ static yaffs_obj_t *yaffs_alloc_empty_obj(yaffs_dev_t *dev)
 }
 
 static yaffs_obj_t *yaffs_create_fake_dir(yaffs_dev_t *dev, int number,
-					       __u32 mode)
+					       u32 mode)
 {
 
 	yaffs_obj_t *obj =
@@ -1283,7 +1283,7 @@ static int yaffs_new_obj_id(yaffs_dev_t *dev)
 	int found = 0;
 	struct ylist_head *i;
 
-	__u32 n = (__u32) bucket;
+	u32 n = (u32) bucket;
 
 	/* yaffs_check_obj_hash_sane();  */
 
@@ -1313,7 +1313,7 @@ static void yaffs_hash_obj(yaffs_obj_t *in)
 	dev->obj_bucket[bucket].count++;
 }
 
-yaffs_obj_t *yaffs_find_by_number(yaffs_dev_t *dev, __u32 number)
+yaffs_obj_t *yaffs_find_by_number(yaffs_dev_t *dev, u32 number)
 {
 	int bucket = yaffs_hash_fn(number);
 	struct ylist_head *i;
@@ -1383,7 +1383,7 @@ yaffs_obj_t *yaffs_new_obj(yaffs_dev_t *dev, int number,
 		case YAFFS_OBJECT_TYPE_FILE:
 			the_obj->variant.file_variant.file_size = 0;
 			the_obj->variant.file_variant.scanned_size = 0;
-			the_obj->variant.file_variant.shrink_size = 0xFFFFFFFF;	/* max __u32 */
+			the_obj->variant.file_variant.shrink_size = 0xFFFFFFFF;	/* max u32 */
 			the_obj->variant.file_variant.top_level = 0;
 			the_obj->variant.file_variant.top = tn;
 			break;
@@ -1452,11 +1452,11 @@ YCHAR *yaffs_clone_str(const YCHAR *str)
 static yaffs_obj_t *yaffs_create_obj(yaffs_obj_type type,
 				       yaffs_obj_t *parent,
 				       const YCHAR *name,
-				       __u32 mode,
-				       __u32 uid,
-				       __u32 gid,
+				       u32 mode,
+				       u32 uid,
+				       u32 gid,
 				       yaffs_obj_t *equiv_obj,
-				       const YCHAR *alias_str, __u32 rdev)
+				       const YCHAR *alias_str, u32 rdev)
 {
 	yaffs_obj_t *in;
 	YCHAR *str = NULL;
@@ -1545,28 +1545,28 @@ static yaffs_obj_t *yaffs_create_obj(yaffs_obj_type type,
 }
 
 yaffs_obj_t *yaffs_create_file(yaffs_obj_t *parent, const YCHAR *name,
-			__u32 mode, __u32 uid, __u32 gid)
+			u32 mode, u32 uid, u32 gid)
 {
 	return yaffs_create_obj(YAFFS_OBJECT_TYPE_FILE, parent, name, mode,
 				uid, gid, NULL, NULL, 0);
 }
 
 yaffs_obj_t *yaffs_create_dir(yaffs_obj_t *parent, const YCHAR *name,
-				__u32 mode, __u32 uid, __u32 gid)
+				u32 mode, u32 uid, u32 gid)
 {
 	return yaffs_create_obj(YAFFS_OBJECT_TYPE_DIRECTORY, parent, name,
 				 mode, uid, gid, NULL, NULL, 0);
 }
 
 yaffs_obj_t *yaffs_create_special(yaffs_obj_t *parent, const YCHAR *name,
-				__u32 mode, __u32 uid, __u32 gid, __u32 rdev)
+				u32 mode, u32 uid, u32 gid, u32 rdev)
 {
 	return yaffs_create_obj(YAFFS_OBJECT_TYPE_SPECIAL, parent, name, mode,
 				 uid, gid, NULL, NULL, rdev);
 }
 
 yaffs_obj_t *yaffs_create_symlink(yaffs_obj_t *parent, const YCHAR *name,
-				__u32 mode, __u32 uid, __u32 gid,
+				u32 mode, u32 uid, u32 gid,
 				const YCHAR *alias)
 {
 	return yaffs_create_obj(YAFFS_OBJECT_TYPE_SYMLINK, parent, name, mode,
@@ -2046,7 +2046,7 @@ static int yaffs_gc_block(yaffs_dev_t *dev, int block,
 		yaffs_block_became_dirty(dev, block);
 	} else {
 
-		__u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
+		u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
 
 		yaffs_verify_blk(dev, bi, block);
 
@@ -2180,7 +2180,7 @@ static int yaffs_gc_block(yaffs_dev_t *dev, int block,
 
 						yaffs_verify_oh(object, oh, &tags, 1);
 						new_chunk =
-						    yaffs_write_new_chunk(dev,(__u8 *) oh, &tags, 1);
+						    yaffs_write_new_chunk(dev,(u8 *) oh, &tags, 1);
 					} else
 						new_chunk =
 						    yaffs_write_new_chunk(dev, buffer, &tags, 1);
@@ -2749,7 +2749,7 @@ int yaffs_put_chunk_in_file(yaffs_obj_t *in, int inode_chunk,
 }
 
 static int yaffs_rd_data_obj(yaffs_obj_t *in, int inode_chunk,
-					__u8 *buffer)
+					u8 *buffer)
 {
 	int nand_chunk = yaffs_find_chunk_in_file(in, inode_chunk, NULL);
 
@@ -2832,7 +2832,7 @@ void yaffs_chunk_del(yaffs_dev_t *dev, int chunk_id, int mark_flash, int lyn)
 }
 
 static int yaffs_wr_data_obj(yaffs_obj_t *in, int inode_chunk,
-					const __u8 *buffer, int n_bytes,
+					const u8 *buffer, int n_bytes,
 					int use_reserve)
 {
 	/* Find old chunk Need to do this to get serial number
@@ -2911,7 +2911,7 @@ int yaffs_update_oh(yaffs_obj_t *in, const YCHAR *name, int force,
 	yaffs_ext_tags old_tags;
 	const YCHAR *alias = NULL;
 
-	__u8 *buffer = NULL;
+	u8 *buffer = NULL;
 	YCHAR old_name[YAFFS_MAX_NAME_LENGTH + 1];
 
 	yaffs_obj_header *oh = NULL;
@@ -3335,12 +3335,12 @@ static void yaffs_invalidate_whole_cache(yaffs_obj_t *in)
  * Curve-balls: the first chunk might also be the last chunk.
  */
 
-int yaffs_file_rd(yaffs_obj_t *in, __u8 *buffer, loff_t offset,
+int yaffs_file_rd(yaffs_obj_t *in, u8 *buffer, loff_t offset,
 			int n_bytes)
 {
 
 	int chunk;
-	__u32 start;
+	u32 start;
 	int n_copy;
 	int n = n_bytes;
 	int n_done = 0;
@@ -3398,7 +3398,7 @@ int yaffs_file_rd(yaffs_obj_t *in, __u8 *buffer, loff_t offset,
 			} else {
 				/* Read into the local buffer then copy..*/
 
-				__u8 *local_buffer =
+				u8 *local_buffer =
 				    yaffs_get_temp_buffer(dev, __LINE__);
 				yaffs_rd_data_obj(in, chunk,
 							      local_buffer);
@@ -3427,20 +3427,20 @@ int yaffs_file_rd(yaffs_obj_t *in, __u8 *buffer, loff_t offset,
 	return n_done;
 }
 
-int yaffs_do_file_wr(yaffs_obj_t *in, const __u8 *buffer, loff_t offset,
+int yaffs_do_file_wr(yaffs_obj_t *in, const u8 *buffer, loff_t offset,
 			int n_bytes, int write_trhrough)
 {
 
 	int chunk;
-	__u32 start;
+	u32 start;
 	int n_copy;
 	int n = n_bytes;
 	int n_done = 0;
 	int n_writeback;
 	int start_write = offset;
 	int chunk_written = 0;
-	__u32 n_bytes_read;
-	__u32 chunk_start;
+	u32 n_bytes_read;
+	u32 chunk_start;
 
 	yaffs_dev_t *dev;
 
@@ -3549,7 +3549,7 @@ int yaffs_do_file_wr(yaffs_obj_t *in, const __u8 *buffer, loff_t offset,
 				 * Read into the local buffer then copy, then copy over and write back.
 				 */
 
-				__u8 *local_buffer =
+				u8 *local_buffer =
 				    yaffs_get_temp_buffer(dev, __LINE__);
 
 				yaffs_rd_data_obj(in, chunk,
@@ -3603,7 +3603,7 @@ int yaffs_do_file_wr(yaffs_obj_t *in, const __u8 *buffer, loff_t offset,
 	return n_done;
 }
 
-int yaffs_wr_file(yaffs_obj_t *in, const __u8 *buffer, loff_t offset,
+int yaffs_wr_file(yaffs_obj_t *in, const u8 *buffer, loff_t offset,
 			int n_bytes, int write_trhrough)
 {
 	yaffs2_handle_hole(in,offset);
@@ -3659,7 +3659,7 @@ static void yaffs_prune_chunks(yaffs_obj_t *in, int new_size)
 void yaffs_resize_file_down( yaffs_obj_t *obj, loff_t new_size)
 {
 	int new_full;
-	__u32 new_partial;
+	u32 new_partial;
 	yaffs_dev_t *dev = obj->my_dev;
 
 	yaffs_addr_to_chunk(dev, new_size, &new_full, &new_partial);
@@ -3668,7 +3668,7 @@ void yaffs_resize_file_down( yaffs_obj_t *obj, loff_t new_size)
 
 	if (new_partial != 0) {
 		int last_chunk = 1 + new_full;
-		__u8 *local_buffer = yaffs_get_temp_buffer(dev, __LINE__);
+		u8 *local_buffer = yaffs_get_temp_buffer(dev, __LINE__);
 
 		/* Got to read and rewrite the last chunk with its new size and zero pad */
 		yaffs_rd_data_obj(obj, last_chunk, local_buffer);
@@ -4245,7 +4245,7 @@ static void yaffs_empty_l_n_f(yaffs_dev_t *dev)
 
 static void yaffs_check_obj_details_loaded(yaffs_obj_t *in)
 {
-	__u8 *chunk_data;
+	u8 *chunk_data;
 	yaffs_obj_header *oh;
 	yaffs_dev_t *dev;
 	yaffs_ext_tags tags;
@@ -4616,7 +4616,7 @@ int yaffs_get_obj_name(yaffs_obj_t * obj, YCHAR * name, int buffer_size)
 #endif
 	else if(obj->hdr_chunk > 0) {
 		int result;
-		__u8 *buffer = yaffs_get_temp_buffer(obj->my_dev, __LINE__);
+		u8 *buffer = yaffs_get_temp_buffer(obj->my_dev, __LINE__);
 
 		yaffs_obj_header *oh = (yaffs_obj_header *) buffer;
 
@@ -4847,7 +4847,7 @@ static int yaffs_do_xattrib_fetch(yaffs_obj_t *obj, const YCHAR *name, void *val
 	if(!buffer)
 		return -ENOMEM;
 
-	result = yaffs_rd_chunk_tags_nand(dev,obj->hdr_chunk, (__u8 *)buffer, &tags);
+	result = yaffs_rd_chunk_tags_nand(dev,obj->hdr_chunk, (u8 *)buffer, &tags);
 
 	if(result != YAFFS_OK)
 		retval = -ENOENT;
@@ -4864,7 +4864,7 @@ static int yaffs_do_xattrib_fetch(yaffs_obj_t *obj, const YCHAR *name, void *val
 		else
 			retval = nval_list(x_buffer, x_size, value,size);
 	}
-	yaffs_release_temp_buffer(dev,(__u8 *)buffer,__LINE__);
+	yaffs_release_temp_buffer(dev,(u8 *)buffer,__LINE__);
 	return retval;
 }
 
@@ -5145,7 +5145,7 @@ int yaffs_guts_initialise(yaffs_dev_t *dev)
 
 		dev->cache =  YMALLOC(cache_bytes);
 
-		buf = (__u8 *) dev->cache;
+		buf = (u8 *) dev->cache;
 
 		if (dev->cache)
 			memset(dev->cache, 0, cache_bytes);
@@ -5165,7 +5165,7 @@ int yaffs_guts_initialise(yaffs_dev_t *dev)
 	dev->cache_hits = 0;
 
 	if (!init_failed) {
-		dev->gc_cleanup_list = YMALLOC(dev->param.chunks_per_block * sizeof(__u32));
+		dev->gc_cleanup_list = YMALLOC(dev->param.chunks_per_block * sizeof(u32));
 		if (!dev->gc_cleanup_list)
 			init_failed = 1;
 	}

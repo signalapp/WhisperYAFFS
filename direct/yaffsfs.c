@@ -53,14 +53,14 @@ typedef struct {
 } yaffsfs_Inode;
 
 typedef struct{
-	__u8 	reading:1;
-	__u8 	writing:1;
-	__u8 	append:1;
-	__u8	shareRead:1;
-	__u8	shareWrite:1;
+	u8 	reading:1;
+	u8 	writing:1;
+	u8 	append:1;
+	u8	shareRead:1;
+	u8	shareWrite:1;
 	int	inodeId:12;	/* Index to corresponding yaffsfs_Inode */
 	int	useCount:10;	/* Use count for this handle */
-	__u32 position;		/* current position in file */
+	u32 position;		/* current position in file */
 }yaffsfs_Handle;
 
 static yaffsfs_Inode yaffsfs_inode[YAFFSFS_N_HANDLES];
@@ -584,14 +584,14 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 	int symDepth = 0;
 	int errorReported = 0;
 	int rwflags = oflag & ( O_RDWR | O_RDONLY | O_WRONLY);
-	__u8 shareRead = (sharing & YAFFS_SHARE_READ) ?  1 : 0;
-	__u8 shareWrite = (sharing & YAFFS_SHARE_WRITE) ? 1 : 0;
-	__u8 sharedReadAllowed;
-	__u8 sharedWriteAllowed;
-	__u8 alreadyReading;
-	__u8 alreadyWriting;
-	__u8 readRequested;
-	__u8 writeRequested;
+	u8 shareRead = (sharing & YAFFS_SHARE_READ) ?  1 : 0;
+	u8 shareWrite = (sharing & YAFFS_SHARE_WRITE) ? 1 : 0;
+	u8 sharedReadAllowed;
+	u8 sharedWriteAllowed;
+	u8 alreadyReading;
+	u8 alreadyWriting;
+	u8 readRequested;
+	u8 writeRequested;
 
 	/* O_EXCL only has meaning if O_CREAT is specified */
 	if(!(oflag & O_CREAT))
@@ -824,7 +824,7 @@ int yaffsfs_do_read(int fd, void *vbuf, unsigned int nbyte, int isPread, int off
 	int nToRead = 0;
 	int totalRead = 0;
 	unsigned int maxRead;
-	__u8 *buf = (__u8 *)vbuf;
+	u8 *buf = (u8 *)vbuf;
 
 	yaffsfs_Lock();
 	h = yaffsfs_GetHandlePointer(fd);
@@ -920,7 +920,7 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 	int totalWritten = 0;
 	int write_trhrough = 0;
 	int nToWrite = 0;
-	const __u8 *buf = (const __u8 *)vbuf;
+	const u8 *buf = (const u8 *)vbuf;
 
 	yaffsfs_Lock();
 	h = yaffsfs_GetHandlePointer(fd);
@@ -2049,7 +2049,7 @@ void yaffs_remove_device(yaffs_dev_t *dev)
 
 typedef struct
 {
-	__u32 magic;
+	u32 magic;
 	yaffs_dirent de;		/* directory entry being used by this dsc */
 	YCHAR name[NAME_MAX+1];		/* name of directory being searched */
         yaffs_obj_t *dirObj;           /* ptr to directory being searched */

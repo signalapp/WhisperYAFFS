@@ -31,7 +31,7 @@ int yaffs1_scan(yaffs_dev_t *dev)
 	yaffs_block_state_t state;
 	yaffs_obj_t *hard_list = NULL;
 	yaffs_block_info_t *bi;
-	__u32 seq_number;
+	u32 seq_number;
 	yaffs_obj_header *oh;
 	yaffs_obj_t *in;
 	yaffs_obj_t *parent;
@@ -41,7 +41,7 @@ int yaffs1_scan(yaffs_dev_t *dev)
 	struct yaffs_shadow_fixer_s *shadow_fixers = NULL;
 
 
-	__u8 *chunk_data;
+	u8 *chunk_data;
 
 
 

@@ -20,12 +20,12 @@
 
 
 int yaffs_rd_chunk_tags_nand(yaffs_dev_t *dev, int nand_chunk,
-					__u8 *buffer,
+					u8 *buffer,
 					yaffs_ext_tags *tags);
 
 int yaffs_wr_chunk_tags_nand(yaffs_dev_t *dev,
 						int nand_chunk,
-						const __u8 *buffer,
+						const u8 *buffer,
 						yaffs_ext_tags *tags);
 
 int yaffs_mark_bad(yaffs_dev_t *dev, int block_no);

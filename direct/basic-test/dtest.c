@@ -2516,7 +2516,7 @@ static void print_xattrib_val(const char *path, const char *name)
 
 	n = yaffs_getxattr(path,name,buffer,sizeof(buffer));
 	if(n >= 0){
-		__u8 *b = (__u8 *)buffer;
+		u8 *b = (u8 *)buffer;
 
 		printf("%d bytes:",n);
 		if(n > 10)

@@ -38,7 +38,7 @@ typedef struct yaffsfs_DeviceConfigurationStruct {
 void yaffsfs_Lock(void);
 void yaffsfs_Unlock(void);
 
-__u32 yaffsfs_CurrentTime(void);
+u32 yaffsfs_CurrentTime(void);
 
 void yaffsfs_SetError(int err);
 

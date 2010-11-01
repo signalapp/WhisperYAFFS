@@ -60,12 +60,12 @@ struct yaffs_dev_s *
 
 #if 0
 
-int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags);
-int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags);
+int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_ext_tags *tags);
+int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags *tags);
 int ynandif_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber);
 int ynandif_InitialiseNAND(yaffs_dev_t *dev);
 int ynandif_MarkNANDBlockBad(yaffs_dev_t *dev,int blockNumber);
-int ynandif_QueryNANDBlock(yaffs_dev_t *dev, int block_no, yaffs_block_state_t *state, __u32 *seq_number);
+int ynandif_QueryNANDBlock(yaffs_dev_t *dev, int block_no, yaffs_block_state_t *state, u32 *seq_number);
 int ynandif_GetGeometry(yaffs_dev_t *dev, ynandif_Geometry *geometry);
 #endif
 

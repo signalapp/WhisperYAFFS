@@ -65,7 +65,7 @@
  * Returns YAFFS_OK or YAFFS_FAIL.
  */
 int nandmtd1_write_chunk_tags(yaffs_dev_t *dev,
-	int nand_chunk, const __u8 *data, const yaffs_ext_tags *etags)
+	int nand_chunk, const u8 *data, const yaffs_ext_tags *etags)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunk_bytes = dev->data_bytes_per_chunk;
@@ -94,11 +94,11 @@ int nandmtd1_write_chunk_tags(yaffs_dev_t *dev,
 		pt1.deleted = 0;
 	}
 #else
-	((__u8 *)&pt1)[8] = 0xff;
+	((u8 *)&pt1)[8] = 0xff;
 	if (etags->is_deleted) {
 		memset(&pt1, 0xff, 8);
 		/* zero page_status byte to indicate deleted */
-		((__u8 *)&pt1)[8] = 0;
+		((u8 *)&pt1)[8] = 0;
 	}
 #endif
 
@@ -106,8 +106,8 @@ int nandmtd1_write_chunk_tags(yaffs_dev_t *dev,
 	ops.mode = MTD_OOB_AUTO;
 	ops.len = (data) ? chunk_bytes : 0;
 	ops.ooblen = YTAG1_SIZE;
-	ops.datbuf = (__u8 *)data;
-	ops.oobbuf = (__u8 *)&pt1;
+	ops.datbuf = (u8 *)data;
+	ops.oobbuf = (u8 *)&pt1;
 
 	retval = mtd->write_oob(mtd, addr, &ops);
 	if (retval) {
@@ -143,7 +143,7 @@ static int rettags(yaffs_ext_tags *etags, int ecc_result, int retval)
  * Returns YAFFS_OK or YAFFS_FAIL.
  */
 int nandmtd1_read_chunk_tags(yaffs_dev_t *dev,
-	int nand_chunk, __u8 *data, yaffs_ext_tags *etags)
+	int nand_chunk, u8 *data, yaffs_ext_tags *etags)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunk_bytes = dev->data_bytes_per_chunk;
@@ -159,7 +159,7 @@ int nandmtd1_read_chunk_tags(yaffs_dev_t *dev,
 	ops.len = (data) ? chunk_bytes : 0;
 	ops.ooblen = YTAG1_SIZE;
 	ops.datbuf = data;
-	ops.oobbuf = (__u8 *)&pt1;
+	ops.oobbuf = (u8 *)&pt1;
 
 	/* Read page and oob using MTD.
 	 * Check status and determine ECC result.
@@ -194,7 +194,7 @@ int nandmtd1_read_chunk_tags(yaffs_dev_t *dev,
 
 	/* Check for a blank/erased chunk.
 	 */
-	if (yaffs_check_ff((__u8 *)&pt1, 8)) {
+	if (yaffs_check_ff((u8 *)&pt1, 8)) {
 		/* when blank, upper layers want ecc_result to be <= NO_ERROR */
 		return rettags(etags, YAFFS_ECC_RESULT_NO_ERROR, YAFFS_OK);
 	}
@@ -207,7 +207,7 @@ int nandmtd1_read_chunk_tags(yaffs_dev_t *dev,
 	deleted = !pt1.deleted;
 	pt1.deleted = 1;
 #else
-	deleted = (yaffs_count_bits(((__u8 *)&pt1)[8]) < 7);
+	deleted = (yaffs_count_bits(((u8 *)&pt1)[8]) < 7);
 #endif
 
 	/* Check the packed tags mini-ECC and correct if necessary/possible.
@@ -289,7 +289,7 @@ static int nandmtd1_test_prerequists(struct mtd_info *mtd)
  * Always returns YAFFS_OK.
  */
 int nandmtd1_query_block(struct yaffs_dev_s *dev, int block_no,
-	yaffs_block_state_t *state_ptr, __u32 *seq_ptr)
+	yaffs_block_state_t *state_ptr, u32 *seq_ptr)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunk_num = block_no * dev->param.chunks_per_block;

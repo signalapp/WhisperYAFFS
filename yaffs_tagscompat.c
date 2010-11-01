@@ -39,7 +39,7 @@ static const char yaffs_count_bits_table[256] = {
 	4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
 };
 
-int yaffs_count_bits(__u8 x)
+int yaffs_count_bits(u8 x)
 {
 	int ret_val;
 	ret_val = yaffs_count_bits_table[x];
@@ -48,7 +48,7 @@ int yaffs_count_bits(__u8 x)
 
 /********** Tags ECC calculations  *********/
 
-void yaffs_calc_ecc(const __u8 *data, yaffs_spare *spare)
+void yaffs_calc_ecc(const u8 *data, yaffs_spare *spare)
 {
 	yaffs_ecc_cacl(data, spare->ecc1);
 	yaffs_ecc_cacl(&data[256], spare->ecc2);
@@ -153,7 +153,7 @@ static void yaffs_spare_init(yaffs_spare *spare)
 }
 
 static int yaffs_wr_nand(struct yaffs_dev_s *dev,
-				int nand_chunk, const __u8 *data,
+				int nand_chunk, const u8 *data,
 				yaffs_spare *spare)
 {
 	if (nand_chunk < dev->param.start_block * dev->param.chunks_per_block) {
@@ -168,7 +168,7 @@ static int yaffs_wr_nand(struct yaffs_dev_s *dev,
 
 static int yaffs_rd_chunk_nand(struct yaffs_dev_s *dev,
 				   int nand_chunk,
-				   __u8 *data,
+				   u8 *data,
 				   yaffs_spare *spare,
 				   yaffs_ecc_result *ecc_result,
 				   int correct_errors)
@@ -188,7 +188,7 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev_s *dev,
 			/* Do ECC correction */
 			/* Todo handle any errors */
 			int ecc_result1, ecc_result2;
-			__u8 calc_ecc[3];
+			u8 calc_ecc[3];
 
 			yaffs_ecc_cacl(data, calc_ecc);
 			ecc_result1 =
@@ -313,7 +313,7 @@ static void yaffs_handle_rd_data_error(yaffs_dev_t *dev, int nand_chunk)
 
 int yaffs_tags_compat_wr(yaffs_dev_t *dev,
 						int nand_chunk,
-						const __u8 *data,
+						const u8 *data,
 						const yaffs_ext_tags *ext_tags)
 {
 	yaffs_spare spare;
@@ -349,7 +349,7 @@ int yaffs_tags_compat_wr(yaffs_dev_t *dev,
 
 int yaffs_tags_compat_rd(yaffs_dev_t *dev,
 						     int nand_chunk,
-						     __u8 *data,
+						     u8 *data,
 						     yaffs_ext_tags *ext_tags)
 {
 
@@ -423,7 +423,7 @@ int yaffs_tags_compat_mark_bad(struct yaffs_dev_s *dev,
 int yaffs_tags_compat_query_block(struct yaffs_dev_s *dev,
 					  int block_no,
 					  yaffs_block_state_t *state,
-					  __u32 *seq_number)
+					  u32 *seq_number)
 {
 
 	yaffs_spare spare0, spare1;

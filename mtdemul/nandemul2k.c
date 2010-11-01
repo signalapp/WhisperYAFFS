@@ -66,7 +66,7 @@ static struct mtd_info nandemul2k_mtd;
 
 typedef struct 
 {
-	__u8 data[PAGE_TOTAL_SIZE]; // Data + spare
+	u8 data[PAGE_TOTAL_SIZE]; // Data + spare
 	int empty;      // is this empty?
 } nandemul_Page;
 
@@ -114,8 +114,8 @@ static void nandemul2k_Program(const void *buffer, int page, int start, int n_by
 {
 	int pg = page%PAGES_PER_BLOCK;
 	int blk = page/PAGES_PER_BLOCK;
-	__u8 *p;
-	__u8 *b = (__u8 *)buffer;
+	u8 *p;
+	u8 *b = (u8 *)buffer;
 
 	p = &ned.block[blk]->page[pg]->data[start];
 	
@@ -255,7 +255,7 @@ int nandemul2k_GetNumberOfBlocks(void) {return nandemul2k_CalcNBlocks();}
 
 
 
-static int nandemul2k_ReadId(__u8 *vendorId, __u8 *deviceId)
+static int nandemul2k_ReadId(u8 *vendorId, u8 *deviceId)
 {
 	*vendorId = 'Y'; 
 	*deviceId = '2';
@@ -264,7 +264,7 @@ static int nandemul2k_ReadId(__u8 *vendorId, __u8 *deviceId)
 }
 
 
-static int nandemul2k_ReadStatus(__u8 *status)
+static int nandemul2k_ReadStatus(u8 *status)
 {
 		*status = 0;
 		return 1;

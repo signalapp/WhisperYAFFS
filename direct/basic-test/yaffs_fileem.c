@@ -43,7 +43,7 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.7 2010-02-18 01:1
 
 typedef struct 
 {
-	__u8 data[528]; // Data + spare
+	u8 data[528]; // Data + spare
 } yflash_Page;
 
 typedef struct
@@ -118,7 +118,7 @@ static int  CheckInit(yaffs_dev_t *dev)
 	return 1;
 }
 
-int yflash_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_spare *spare)
+int yflash_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_spare *spare)
 {
 	int written;
 
@@ -148,7 +148,7 @@ int yflash_WriteChunkToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, co
 }
 
 
-int yflash_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_spare *spare)
+int yflash_ReadChunkFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_spare *spare)
 {
 	int nread;
 

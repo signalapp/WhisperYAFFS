@@ -926,7 +926,7 @@ static void yaffs_fill_inode_from_obj(struct inode *inode, yaffs_obj_t *obj)
 
 
 		/* Check mode against the variant type and attempt to repair if broken. */
-		__u32 mode = obj->yst_mode;
+		u32 mode = obj->yst_mode;
 		switch (obj->variant_type) {
 		case YAFFS_OBJECT_TYPE_FILE:
 			if (!S_ISREG(mode)) {

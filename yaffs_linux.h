@@ -26,7 +26,7 @@ struct yaffs_linux_context {
 	struct task_struct *bg_thread; /* Background thread for this device */
 	int bg_running;
         struct semaphore gross_lock;     /* Gross locking semaphore */
-	__u8 *spare_buffer;      /* For mtdif2 use. Don't know the size of the buffer
+	u8 *spare_buffer;      /* For mtdif2 use. Don't know the size of the buffer
 				 * at compile time so we have to allocate it.
 				 */
 	struct ylist_head search_contexts;

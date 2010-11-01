@@ -48,7 +48,7 @@
 #define YNORSIM_DEV_SIZE_U32	(8*1024 * 1024/4)
 #endif
 
-static __u32 word[YNORSIM_DEV_SIZE_U32];
+static u32 word[YNORSIM_DEV_SIZE_U32];
 
 extern int random_seed;
 extern int simulate_power_failure;
@@ -111,7 +111,7 @@ static void ynorsim_ready(void)
   ynorsim_restore_image();
 }
 
-void ynorsim_rd32(__u32 *addr,__u32 *buf, int nwords)
+void ynorsim_rd32(u32 *addr,u32 *buf, int nwords)
 { 
    while(nwords > 0){
      *buf = *addr;
@@ -121,10 +121,10 @@ void ynorsim_rd32(__u32 *addr,__u32 *buf, int nwords)
    }
 }
 
-void ynorsim_wr_one_word32(__u32 *addr,__u32 val)
+void ynorsim_wr_one_word32(u32 *addr,u32 val)
 {
-  __u32 tmp;
-  __u32 m;
+  u32 tmp;
+  u32 m;
   int i;
 
   tmp = *addr;
@@ -148,7 +148,7 @@ void ynorsim_wr_one_word32(__u32 *addr,__u32 val)
   ynorsim_maybe_power_fail();
 }
 
-void ynorsim_wr32(__u32 *addr, __u32 *buf, int nwords)
+void ynorsim_wr32(u32 *addr, u32 *buf, int nwords)
 {
   while(nwords >0){
     ynorsim_wr_one_word32(addr,*buf);
@@ -158,7 +158,7 @@ void ynorsim_wr32(__u32 *addr, __u32 *buf, int nwords)
   }
 }
 
-void ynorsim_erase(__u32 *addr)
+void ynorsim_erase(u32 *addr)
 {
   /* Todo... bit flipping */
   memset(addr,0xFF,YNORSIM_BLOCK_SIZE_U32 * 4);
@@ -175,7 +175,7 @@ void ynorsim_shutdown(void)
   initialised=0;
 }
 
-__u32 *ynorsim_get_base(void)
+u32 *ynorsim_get_base(void)
 {
   return word;
 }

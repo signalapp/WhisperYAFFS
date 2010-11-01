@@ -209,7 +209,7 @@ void yaffs_verify_oh(yaffs_obj_t *obj, yaffs_obj_header *oh, yaffs_ext_tags *tag
 			(TSTR("Obj %d header name is NULL"TENDSTR),
 			obj->obj_id));
 
-	if (tags->obj_id > 1 && ((__u8)(oh->name[0])) == 0xff) /* Trashed name */
+	if (tags->obj_id > 1 && ((u8)(oh->name[0])) == 0xff) /* Trashed name */
 		T(YAFFS_TRACE_VERIFY,
 			(TSTR("Obj %d header name is 0xFF"TENDSTR),
 			obj->obj_id));
@@ -221,13 +221,13 @@ void yaffs_verify_file(yaffs_obj_t *obj)
 {
 	int required_depth;
 	int actual_depth;
-	__u32 last_chunk;
-	__u32 x;
-	__u32 i;
+	u32 last_chunk;
+	u32 x;
+	u32 i;
 	yaffs_dev_t *dev;
 	yaffs_ext_tags tags;
 	yaffs_tnode_t *tn;
-	__u32 obj_id;
+	u32 obj_id;
 
 	if (!obj)
 		return;
@@ -261,7 +261,7 @@ void yaffs_verify_file(yaffs_obj_t *obj)
 		tn = yaffs_find_tnode_0(dev, &obj->variant.file_variant, i);
 
 		if (tn) {
-			__u32 the_chunk = yaffs_get_group_base(dev, tn, i);
+			u32 the_chunk = yaffs_get_group_base(dev, tn, i);
 			if (the_chunk > 0) {
 				/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),obj_id,i,the_chunk)); */
 				yaffs_rd_chunk_tags_nand(dev, the_chunk, NULL, &tags);
@@ -302,13 +302,13 @@ void yaffs_verify_obj(yaffs_obj_t *obj)
 {
 	yaffs_dev_t *dev;
 
-	__u32 chunk_min;
-	__u32 chunk_max;
+	u32 chunk_min;
+	u32 chunk_max;
 
-	__u32 chunk_id_ok;
-	__u32 chunk_in_range;
-	__u32 chunk_wrongly_deleted;
-	__u32 chunk_valid;
+	u32 chunk_id_ok;
+	u32 chunk_in_range;
+	u32 chunk_wrongly_deleted;
+	u32 chunk_valid;
 
 	if (!obj)
 		return;
@@ -347,7 +347,7 @@ void yaffs_verify_obj(yaffs_obj_t *obj)
 	if (chunk_valid && !yaffs_skip_nand_verification(dev)) {
 		yaffs_ext_tags tags;
 		yaffs_obj_header *oh;
-		__u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
+		u8 *buffer = yaffs_get_temp_buffer(dev, __LINE__);
 
 		oh = (yaffs_obj_header *)buffer;
 

@@ -140,7 +140,7 @@ static int yaffs_create_tnodes(yaffs_dev_t *dev, int n_tnodes)
 	struct yaffs_allocator *allocator = (struct yaffs_allocator *)dev->allocator;
 	int i;
 	yaffs_tnode_t *new_tnodes;
-	__u8 *mem;
+	u8 *mem;
 	yaffs_tnode_t *curr;
 	yaffs_tnode_t *next;
 	yaffs_tnodelist_t *tnl;
@@ -157,7 +157,7 @@ static int yaffs_create_tnodes(yaffs_dev_t *dev, int n_tnodes)
 	/* make these things */
 
 	new_tnodes = YMALLOC(n_tnodes * dev->tnode_size);
-	mem = (__u8 *)new_tnodes;
+	mem = (u8 *)new_tnodes;
 
 	if (!new_tnodes) {
 		T(YAFFS_TRACE_ERROR,

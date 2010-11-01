@@ -42,7 +42,7 @@ void yaffsfs_Unlock(void)
 {
 }
 
-__u32 yaffsfs_CurrentTime(void)
+u32 yaffsfs_CurrentTime(void)
 {
 	return 0;
 }

@@ -42,7 +42,7 @@ const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.6 2010-01-11 04:
 
 typedef struct 
 {
-	__u8 data[528]; // Data + spare
+	u8 data[528]; // Data + spare
 } yramdisk_page;
 
 typedef struct
@@ -119,7 +119,7 @@ static int  CheckInit(yaffs_dev_t *dev)
 	return 1;
 }
 
-int yramdisk_wr_chunk(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const yaffs_ext_tags *tags)
+int yramdisk_wr_chunk(yaffs_dev_t *dev,int nand_chunk,const u8 *data, const yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -150,7 +150,7 @@ int yramdisk_wr_chunk(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, const ya
 }
 
 
-int yramdisk_rd_chunk(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_ext_tags *tags)
+int yramdisk_rd_chunk(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;

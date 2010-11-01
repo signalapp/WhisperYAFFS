@@ -177,9 +177,9 @@ int yaffs2_checkpt_open(yaffs_dev_t *dev, int writing)
 	return 1;
 }
 
-int yaffs2_get_checkpt_sum(yaffs_dev_t *dev, __u32 *sum)
+int yaffs2_get_checkpt_sum(yaffs_dev_t *dev, u32 *sum)
 {
-	__u32 composite_sum;
+	u32 composite_sum;
 	composite_sum =  (dev->checkpt_sum << 8) | (dev->checkpt_xor & 0xFF);
 	*sum = composite_sum;
 	return 1;
@@ -244,7 +244,7 @@ int yaffs2_checkpt_wr(yaffs_dev_t *dev, const void *data, int n_bytes)
 	int ok = 1;
 
 
-	__u8 * data_bytes = (__u8 *)data;
+	u8 * data_bytes = (u8 *)data;
 
 
 
@@ -283,7 +283,7 @@ int yaffs2_checkpt_rd(yaffs_dev_t *dev, void *data, int n_bytes)
 	int chunk;
 	int realigned_chunk;
 
-	__u8 *data_bytes = (__u8 *)data;
+	u8 *data_bytes = (u8 *)data;
 
 	if (!dev->checkpt_buffer)
 		return 0;

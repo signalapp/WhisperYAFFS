@@ -31,7 +31,7 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_flashif.c,v 1.3 2007-02-14 01:
 
 typedef struct 
 {
-	__u8 data[528]; // Data + spare
+	u8 data[528]; // Data + spare
 } yflash_Page;
 
 typedef struct
@@ -108,7 +108,7 @@ static int  CheckInit(yaffs_dev_t *dev)
 	return 1;
 }
 
-int yflash_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *data, yaffs_ext_tags *tags)
+int yflash_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const u8 *data, yaffs_ext_tags *tags)
 {
 	int blk;
 	int pg;
@@ -138,7 +138,7 @@ int yflash_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,int nand_chunk,const __u8 *
 }
 
 
-int yflash_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, __u8 *data, yaffs_tags_t *tags)
+int yflash_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,int nand_chunk, u8 *data, yaffs_tags_t *tags)
 {
 	int blk;
 	int pg;

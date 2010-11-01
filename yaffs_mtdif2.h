@@ -18,12 +18,12 @@
 
 #include "yaffs_guts.h"
 int nandmtd2_write_chunk_tags(yaffs_dev_t *dev, int nand_chunk,
-				const __u8 *data,
+				const u8 *data,
 				const yaffs_ext_tags *tags);
 int nandmtd2_read_chunk_tags(yaffs_dev_t *dev, int nand_chunk,
-				__u8 *data, yaffs_ext_tags *tags);
+				u8 *data, yaffs_ext_tags *tags);
 int nandmtd2_mark_block_bad(struct yaffs_dev_s *dev, int block_no);
 int nandmtd2_query_block(struct yaffs_dev_s *dev, int block_no,
-			yaffs_block_state_t *state, __u32 *seq_number);
+			yaffs_block_state_t *state, u32 *seq_number);
 
 #endif

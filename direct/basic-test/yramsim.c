@@ -190,14 +190,14 @@ static int yramsim_mark_block_bad(yaffs_dev_t *dev,unsigned blockId)
 }
 
 
-static SimData *yramsim_alloc_sim_data(__u32 devId, __u32 nBlocks)
+static SimData *yramsim_alloc_sim_data(u32 devId, u32 nBlocks)
 {
 	int ok = 1;
 
 	Block **blockList;
 	SimData *sim;
 	Block *b;
-	__u32 i;
+	u32 i;
 
 	if(devId >= N_RAM_SIM_DEVS)
 		return NULL;
@@ -252,8 +252,8 @@ static SimData *yramsim_alloc_sim_data(__u32 devId, __u32 nBlocks)
 
 
 struct yaffs_dev_s *yramsim_CreateRamSim(const YCHAR *name,
-				__u32 devId, __u32 nBlocks,
-				__u32 start_block, __u32 end_block)
+				u32 devId, u32 nBlocks,
+				u32 start_block, u32 end_block)
 {
 	SimData *sim;
 	ynandif_Geometry *g;

@@ -29,9 +29,9 @@
 #if !(defined __KERNEL__)
 
 /* Definition of types */
-typedef unsigned char __u8;
-typedef unsigned short __u16;
-typedef unsigned __u32;
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned u32;
 
 #endif
 

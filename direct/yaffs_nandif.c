@@ -30,7 +30,7 @@
  * use it to load the tags.
  */
 int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
-				      const __u8 * data,
+				      const u8 * data,
 				      const yaffs_ext_tags * tags)
 {
 
@@ -71,7 +71,7 @@ int ynandif_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
 }
 
 int ynandif_ReadChunkWithTagsFromNAND(yaffs_dev_t * dev, int nand_chunk,
-				       __u8 * data, yaffs_ext_tags * tags)
+				       u8 * data, yaffs_ext_tags * tags)
 {
 	yaffs_packed_tags2 pt;
 	int localData = 0;
@@ -162,7 +162,7 @@ static int ynandif_IsBlockOk(struct yaffs_dev_s *dev, int blockId)
 	return geometry->checkBlockOk(dev,blockId);
 }
 
-int ynandif_QueryNANDBlock(struct yaffs_dev_s *dev, int blockId, yaffs_block_state_t *state, __u32 *seq_number)
+int ynandif_QueryNANDBlock(struct yaffs_dev_s *dev, int blockId, yaffs_block_state_t *state, u32 *seq_number)
 {
 	unsigned chunkNo;
 	yaffs_ext_tags tags;

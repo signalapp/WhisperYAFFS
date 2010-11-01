@@ -113,12 +113,12 @@ static int find_obj_in_list(dev_t dev, ino_t ino)
 }
 
 // NCB added 10/9/2002
-static __u16 yaffs_calc_name_sum(const char *name)
+static u16 yaffs_calc_name_sum(const char *name)
 {
-	__u16 sum = 0;
-	__u16 i = 1;
+	u16 sum = 0;
+	u16 i = 1;
 	
-	__u8 *bname = (__u8 *)name;
+	u8 *bname = (u8 *)name;
 	
 	while (*bname)
 	{
@@ -130,7 +130,7 @@ static __u16 yaffs_calc_name_sum(const char *name)
 }
 
 
-static void yaffs_calc_ecc(const __u8 *data, yaffs_spare *spare)
+static void yaffs_calc_ecc(const u8 *data, yaffs_spare *spare)
 {
 	yaffs_ecc_cacl(data , spare->ecc1);
 	yaffs_ecc_cacl(&data[256] , spare->ecc2);
@@ -228,7 +228,7 @@ static void little_to_big_endian(yaffs_tags_t *tagsPtr)
     tags->as_bytes[7] = temp.as_bytes[7];
 }
 
-static int write_chunk(__u8 *data, __u32 obj_id, __u32 chunk_id, __u32 n_bytes)
+static int write_chunk(u8 *data, u32 obj_id, u32 chunk_id, u32 n_bytes)
 {
 	yaffs_tags_t t;
 	yaffs_spare s;
@@ -272,7 +272,7 @@ static void object_header_little_to_big_endian(yaffs_obj_header* oh)
 {
     oh->type = SWAP32(oh->type); // GCC makes enums 32 bits.
     oh->parent_obj_id = SWAP32(oh->parent_obj_id); // int
-    oh->sum_no_longer_used = SWAP16(oh->sum_no_longer_used); // __u16 - Not used, but done for completeness.
+    oh->sum_no_longer_used = SWAP16(oh->sum_no_longer_used); // u16 - Not used, but done for completeness.
     // name = skip. Char array. Not swapped.
     oh->yst_mode = SWAP32(oh->yst_mode);
 #ifdef CONFIG_YAFFS_WINCE // WinCE doesn't implement this, but we need to just in case. 
@@ -327,7 +327,7 @@ static void object_header_little_to_big_endian(yaffs_obj_header* oh)
 
 static int write_object_header(int obj_id, yaffs_obj_type t, struct stat *s, int parent, const char *name, int equivalentObj, const char * alias)
 {
-	__u8 bytes[512];
+	u8 bytes[512];
 	
 	
 	yaffs_obj_header *oh = (yaffs_obj_header *)bytes;
@@ -453,7 +453,7 @@ static int process_directory(int parent, const char *path)
 							if(error >= 0)
 							{
 								int h;
-								__u8 bytes[512];
+								u8 bytes[512];
 								int n_bytes;
 								int chunk = 0;
 								

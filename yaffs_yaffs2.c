@@ -140,12 +140,12 @@ int yaffs_block_ok_for_gc(yaffs_dev_t *dev,
  * periodically finds the oldest full block by sequence number for refreshing.
  * Only for yaffs2.
  */
-__u32 yaffs2_find_refresh_block(yaffs_dev_t *dev)
+u32 yaffs2_find_refresh_block(yaffs_dev_t *dev)
 {
-	__u32 b ;
+	u32 b ;
 
-	__u32 oldest = 0;
-	__u32 oldest_seq = 0;
+	u32 oldest = 0;
+	u32 oldest_seq = 0;
 
 	yaffs_block_info_t *bi;
 
@@ -229,10 +229,10 @@ int yaffs_calc_checkpt_blocks_required(yaffs_dev_t *dev)
 		n_bytes += sizeof(yaffs_checkpt_dev_t);
 		n_bytes += dev_blocks * sizeof(yaffs_block_info_t);
 		n_bytes += dev_blocks * dev->chunk_bit_stride;
-		n_bytes += (sizeof(yaffs_checkpt_obj_t) + sizeof(__u32)) * (dev->n_obj);
-		n_bytes += (dev->tnode_size + sizeof(__u32)) * (dev->n_tnodes);
+		n_bytes += (sizeof(yaffs_checkpt_obj_t) + sizeof(u32)) * (dev->n_obj);
+		n_bytes += (dev->tnode_size + sizeof(u32)) * (dev->n_tnodes);
 		n_bytes += sizeof(yaffs_checkpt_validty_t);
-		n_bytes += sizeof(__u32); /* checksum*/
+		n_bytes += sizeof(u32); /* checksum*/
 
 		/* Round up and add 2 blocks to allow for some bad blocks, so add 3 */
 
@@ -313,8 +313,8 @@ static void yaffs_checkpt_dev_to_dev(yaffs_dev_t *dev,
 static int yaffs2_wr_checkpt_dev(yaffs_dev_t *dev)
 {
 	yaffs_checkpt_dev_t cp;
-	__u32 n_bytes;
-	__u32 n_blocks = (dev->internal_end_block - dev->internal_start_block + 1);
+	u32 n_bytes;
+	u32 n_blocks = (dev->internal_end_block - dev->internal_start_block + 1);
 
 	int ok;
 
@@ -342,8 +342,8 @@ static int yaffs2_wr_checkpt_dev(yaffs_dev_t *dev)
 static int yaffs2_rd_checkpt_dev(yaffs_dev_t *dev)
 {
 	yaffs_checkpt_dev_t cp;
-	__u32 n_bytes;
-	__u32 n_blocks = (dev->internal_end_block - dev->internal_start_block + 1);
+	u32 n_bytes;
+	u32 n_blocks = (dev->internal_end_block - dev->internal_start_block + 1);
 
 	int ok;
 
@@ -452,7 +452,7 @@ static int taffs2_checkpt_obj_to_obj(yaffs_obj_t *obj, yaffs_checkpt_obj_t *cp)
 
 
 static int yaffs2_checkpt_tnode_worker(yaffs_obj_t *in, yaffs_tnode_t *tn,
-					__u32 level, int chunk_offset)
+					u32 level, int chunk_offset)
 {
 	int i;
 	yaffs_dev_t *dev = in->my_dev;
@@ -470,7 +470,7 @@ static int yaffs2_checkpt_tnode_worker(yaffs_obj_t *in, yaffs_tnode_t *tn,
 				}
 			}
 		} else if (level == 0) {
-			__u32 base_offset = chunk_offset <<  YAFFS_TNODES_LEVEL0_BITS;
+			u32 base_offset = chunk_offset <<  YAFFS_TNODES_LEVEL0_BITS;
 			ok = (yaffs2_checkpt_wr(dev, &base_offset, sizeof(base_offset)) == 
 			        sizeof(base_offset));
 			if (ok)
@@ -484,7 +484,7 @@ static int yaffs2_checkpt_tnode_worker(yaffs_obj_t *in, yaffs_tnode_t *tn,
 
 static int yaffs2_wr_checkpt_tnodes(yaffs_obj_t *obj)
 {
-	__u32 end_marker = ~0;
+	u32 end_marker = ~0;
 	int ok = 1;
 
 	if (obj->variant_type == YAFFS_OBJECT_TYPE_FILE) {
@@ -502,7 +502,7 @@ static int yaffs2_wr_checkpt_tnodes(yaffs_obj_t *obj)
 
 static int yaffs2_rd_checkpt_tnodes(yaffs_obj_t *obj)
 {
-	__u32 base_chunk;
+	u32 base_chunk;
 	int ok = 1;
 	yaffs_dev_t *dev = obj->my_dev;
 	yaffs_file_s *file_stuct_ptr = &obj->variant.file_variant;
@@ -632,7 +632,7 @@ static int yaffs2_rd_checkpt_objs(yaffs_dev_t *dev)
 
 static int yaffs2_wr_checkpt_sum(yaffs_dev_t *dev)
 {
-	__u32 checkpt_sum;
+	u32 checkpt_sum;
 	int ok;
 
 	yaffs2_get_checkpt_sum(dev, &checkpt_sum);
@@ -647,8 +647,8 @@ static int yaffs2_wr_checkpt_sum(yaffs_dev_t *dev)
 
 static int yaffs2_rd_checkpt_sum(yaffs_dev_t *dev)
 {
-	__u32 checkpt_sum0;
-	__u32 checkpt_sum1;
+	u32 checkpt_sum0;
+	u32 checkpt_sum1;
 	int ok;
 
 	yaffs2_get_checkpt_sum(dev, &checkpt_sum0);
@@ -820,7 +820,7 @@ int yaffs2_handle_hole(yaffs_obj_t *obj, loff_t new_size)
 	int result = YAFFS_OK;
 	yaffs_dev_t *dev = NULL;
 
-	__u8 *local_buffer = NULL;
+	u8 *local_buffer = NULL;
 	
 	int small_increase_ok = 0;
 	
@@ -926,13 +926,13 @@ int yaffs2_scan_backwards(yaffs_dev_t *dev)
 	yaffs_block_state_t state;
 	yaffs_obj_t *hard_list = NULL;
 	yaffs_block_info_t *bi;
-	__u32 seq_number;
+	u32 seq_number;
 	yaffs_obj_header *oh;
 	yaffs_obj_t *in;
 	yaffs_obj_t *parent;
 	int n_blocks = dev->internal_end_block - dev->internal_start_block + 1;
 	int is_unlinked;
-	__u8 *chunk_data;
+	u8 *chunk_data;
 
 	int file_size;
 	int is_shrink;
@@ -1146,7 +1146,7 @@ int yaffs2_scan_backwards(yaffs_dev_t *dev)
 			} else if (tags.chunk_id > 0) {
 				/* chunk_id > 0 so it is a data chunk... */
 				unsigned int endpos;
-				__u32 chunk_base =
+				u32 chunk_base =
 				    (tags.chunk_id - 1) * dev->data_bytes_per_chunk;
 
 				found_chunks = 1;
@@ -1262,10 +1262,10 @@ int yaffs2_scan_backwards(yaffs_dev_t *dev)
 					       oh->type == YAFFS_OBJECT_TYPE_FILE) ||
 					      (tags.extra_available  &&
 					       tags.extra_obj_type == YAFFS_OBJECT_TYPE_FILE))) {
-						__u32 this_size =
+						u32 this_size =
 						    (oh) ? oh->file_size : tags.
 						    extra_length;
-						__u32 parent_obj_id =
+						u32 parent_obj_id =
 						    (oh) ? oh->
 						    parent_obj_id : tags.
 						    extra_parent_id;

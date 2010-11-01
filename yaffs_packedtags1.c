@@ -29,7 +29,7 @@ void yaffs_pack_tags1(yaffs_packed_tags1 *pt, const yaffs_ext_tags *t)
 
 void yaffs_unpack_tags1(yaffs_ext_tags *t, const yaffs_packed_tags1 *pt)
 {
-	static const __u8 all_ff[] =
+	static const u8 all_ff[] =
 	    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 0xff };
 

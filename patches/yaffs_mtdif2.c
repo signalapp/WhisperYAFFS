@@ -31,7 +31,7 @@ const char *yaffs_mtdif2_c_version =
 void nandmtd2_pt2buf(yaffs_dev_t *dev, yaffs_PackedTags2 *pt, int is_raw)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
-	__u8 *ptab = (__u8 *)pt; /* packed tags as bytes */
+	u8 *ptab = (u8 *)pt; /* packed tags as bytes */
 	
 	int	i, j = 0, k, n;
 
@@ -73,7 +73,7 @@ void nandmtd2_buf2pt(yaffs_dev_t *dev, yaffs_PackedTags2 *pt, int is_raw)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	int	i, j = 0, k, n;
-	__u8 *ptab = (__u8 *)pt; /* packed tags as bytes */
+	u8 *ptab = (u8 *)pt; /* packed tags as bytes */
 
 
 	if (!is_raw) {
@@ -108,7 +108,7 @@ void nandmtd2_buf2pt(yaffs_dev_t *dev, yaffs_PackedTags2 *pt, int is_raw)
 }
 
 int nandmtd2_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
-				      const __u8 * data,
+				      const u8 * data,
 				      const yaffs_ext_tags * tags)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
@@ -150,7 +150,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_dev_t * dev, int nand_chunk,
 }
 
 int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_dev_t * dev, int nand_chunk,
-				       __u8 * data, yaffs_ext_tags * tags)
+				       u8 * data, yaffs_ext_tags * tags)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->genericDevice);
 	size_t dummy;

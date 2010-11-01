@@ -17,7 +17,7 @@
  * Chunk bitmap manipulations
  */
 
-static Y_INLINE __u8 *yaffs_block_bits(yaffs_dev_t *dev, int blk)
+static Y_INLINE u8 *yaffs_block_bits(yaffs_dev_t *dev, int blk)
 {
 	if (blk < dev->internal_start_block || blk > dev->internal_end_block) {
 		T(YAFFS_TRACE_ERROR,
@@ -42,14 +42,14 @@ void yaffs_verify_chunk_bit_id(yaffs_dev_t *dev, int blk, int chunk)
 
 void yaffs_clear_chunk_bits(yaffs_dev_t *dev, int blk)
 {
-	__u8 *blk_bits = yaffs_block_bits(dev, blk);
+	u8 *blk_bits = yaffs_block_bits(dev, blk);
 
 	memset(blk_bits, 0, dev->chunk_bit_stride);
 }
 
 void yaffs_clear_chunk_bit(yaffs_dev_t *dev, int blk, int chunk)
 {
-	__u8 *blk_bits = yaffs_block_bits(dev, blk);
+	u8 *blk_bits = yaffs_block_bits(dev, blk);
 
 	yaffs_verify_chunk_bit_id(dev, blk, chunk);
 
@@ -58,7 +58,7 @@ void yaffs_clear_chunk_bit(yaffs_dev_t *dev, int blk, int chunk)
 
 void yaffs_set_chunk_bit(yaffs_dev_t *dev, int blk, int chunk)
 {
-	__u8 *blk_bits = yaffs_block_bits(dev, blk);
+	u8 *blk_bits = yaffs_block_bits(dev, blk);
 
 	yaffs_verify_chunk_bit_id(dev, blk, chunk);
 
@@ -67,7 +67,7 @@ void yaffs_set_chunk_bit(yaffs_dev_t *dev, int blk, int chunk)
 
 int yaffs_check_chunk_bit(yaffs_dev_t *dev, int blk, int chunk)
 {
-	__u8 *blk_bits = yaffs_block_bits(dev, blk);
+	u8 *blk_bits = yaffs_block_bits(dev, blk);
 	yaffs_verify_chunk_bit_id(dev, blk, chunk);
 
 	return (blk_bits[chunk / 8] & (1 << (chunk & 7))) ? 1 : 0;
@@ -75,7 +75,7 @@ int yaffs_check_chunk_bit(yaffs_dev_t *dev, int blk, int chunk)
 
 int yaffs_still_some_chunks(yaffs_dev_t *dev, int blk)
 {
-	__u8 *blk_bits = yaffs_block_bits(dev, blk);
+	u8 *blk_bits = yaffs_block_bits(dev, blk);
 	int i;
 	for (i = 0; i < dev->chunk_bit_stride; i++) {
 		if (*blk_bits)
@@ -87,11 +87,11 @@ int yaffs_still_some_chunks(yaffs_dev_t *dev, int blk)
 
 int yaffs_count_chunk_bits(yaffs_dev_t *dev, int blk)
 {
-	__u8 *blk_bits = yaffs_block_bits(dev, blk);
+	u8 *blk_bits = yaffs_block_bits(dev, blk);
 	int i;
 	int n = 0;
 	for (i = 0; i < dev->chunk_bit_stride; i++) {
-		__u8 x = *blk_bits;
+		u8 x = *blk_bits;
 		while (x) {
 			if (x & 1)
 				n++;

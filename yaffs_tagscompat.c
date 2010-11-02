@@ -48,7 +48,7 @@ int yaffs_count_bits(u8 x)
 
 /********** Tags ECC calculations  *********/
 
-void yaffs_calc_ecc(const u8 *data, yaffs_spare *spare)
+void yaffs_calc_ecc(const u8 *data, struct yaffs_spare *spare)
 {
 	yaffs_ecc_cacl(data, spare->ecc1);
 	yaffs_ecc_cacl(&data[256], spare->ecc2);
@@ -58,7 +58,7 @@ void yaffs_calc_tags_ecc(struct yaffs_tags *tags)
 {
 	/* Calculate an ecc */
 
-	unsigned char *b = ((yaffs_tags_union_t *) tags)->as_bytes;
+	unsigned char *b = ((union yaffs_tags_union *) tags)->as_bytes;
 	unsigned i, j;
 	unsigned ecc = 0;
 	unsigned bit = 0;
@@ -87,7 +87,7 @@ int yaffs_check_tags_ecc(struct yaffs_tags *tags)
 
 	if (ecc && ecc <= 64) {
 		/* TODO: Handle the failure better. Retire? */
-		unsigned char *b = ((yaffs_tags_union_t *) tags)->as_bytes;
+		unsigned char *b = ((union yaffs_tags_union *) tags)->as_bytes;
 
 		ecc--;
 
@@ -108,10 +108,10 @@ int yaffs_check_tags_ecc(struct yaffs_tags *tags)
 
 /********** Tags **********/
 
-static void yaffs_load_tags_to_spare(yaffs_spare *spare_ptr,
+static void yaffs_load_tags_to_spare(struct yaffs_spare *spare_ptr,
 				struct yaffs_tags *tags_ptr)
 {
-	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tags_ptr;
+	union yaffs_tags_union *tu = (union yaffs_tags_union *) tags_ptr;
 
 	yaffs_calc_tags_ecc(tags_ptr);
 
@@ -125,10 +125,10 @@ static void yaffs_load_tags_to_spare(yaffs_spare *spare_ptr,
 	spare_ptr->tb7 = tu->as_bytes[7];
 }
 
-static void yaffs_get_tags_from_spare(struct yaffs_dev *dev, yaffs_spare *spare_ptr,
+static void yaffs_get_tags_from_spare(struct yaffs_dev *dev, struct yaffs_spare *spare_ptr,
 				struct yaffs_tags *tags_ptr)
 {
-	yaffs_tags_union_t *tu = (yaffs_tags_union_t *) tags_ptr;
+	union yaffs_tags_union *tu = (union yaffs_tags_union *) tags_ptr;
 	int result;
 
 	tu->as_bytes[0] = spare_ptr->tb0;
@@ -147,14 +147,14 @@ static void yaffs_get_tags_from_spare(struct yaffs_dev *dev, yaffs_spare *spare_
 		dev->n_tags_ecc_unfixed++;
 }
 
-static void yaffs_spare_init(yaffs_spare *spare)
+static void yaffs_spare_init(struct yaffs_spare *spare)
 {
-	memset(spare, 0xFF, sizeof(yaffs_spare));
+	memset(spare, 0xFF, sizeof(struct yaffs_spare));
 }
 
 static int yaffs_wr_nand(struct yaffs_dev *dev,
 				int nand_chunk, const u8 *data,
-				yaffs_spare *spare)
+				struct yaffs_spare *spare)
 {
 	if (nand_chunk < dev->param.start_block * dev->param.chunks_per_block) {
 		T(YAFFS_TRACE_ERROR,
@@ -169,12 +169,12 @@ static int yaffs_wr_nand(struct yaffs_dev *dev,
 static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 				   int nand_chunk,
 				   u8 *data,
-				   yaffs_spare *spare,
-				   yaffs_ecc_result *ecc_result,
+				   struct yaffs_spare *spare,
+				   enum yaffs_ecc_result *ecc_result,
 				   int correct_errors)
 {
 	int ret_val;
-	yaffs_spare local_spare;
+	struct yaffs_spare local_spare;
 
 	if (!spare && data) {
 		/* If we don't have a real spare, then we use a local one. */
@@ -245,8 +245,8 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 		memset(&nspare, 0, sizeof(nspare));
 
 		ret_val = dev->param.read_chunk_fn(dev, nand_chunk, data,
-					(yaffs_spare *) &nspare);
-		memcpy(spare, &nspare, sizeof(yaffs_spare));
+					(struct yaffs_spare *) &nspare);
+		memcpy(spare, &nspare, sizeof(struct yaffs_spare));
 		if (data && correct_errors) {
 			if (nspare.eccres1 > 0) {
 				T(YAFFS_TRACE_ERROR,
@@ -316,7 +316,7 @@ int yaffs_tags_compat_wr(struct yaffs_dev *dev,
 						const u8 *data,
 						const struct yaffs_ext_tags *ext_tags)
 {
-	yaffs_spare spare;
+	struct yaffs_spare spare;
 	struct yaffs_tags tags;
 
 	yaffs_spare_init(&spare);
@@ -353,11 +353,11 @@ int yaffs_tags_compat_rd(struct yaffs_dev *dev,
 						     struct yaffs_ext_tags *ext_tags)
 {
 
-	yaffs_spare spare;
+	struct yaffs_spare spare;
 	struct yaffs_tags tags;
-	yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_UNKNOWN;
+	enum yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_UNKNOWN;
 
-	static yaffs_spare spare_ff;
+	static struct yaffs_spare spare_ff;
 	static int init;
 
 	if (!init) {
@@ -405,9 +405,9 @@ int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev,
 					    int flash_block)
 {
 
-	yaffs_spare spare;
+	struct yaffs_spare spare;
 
-	memset(&spare, 0xff, sizeof(yaffs_spare));
+	memset(&spare, 0xff, sizeof(struct yaffs_spare));
 
 	spare.block_status = 'Y';
 
@@ -422,14 +422,14 @@ int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev,
 
 int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
 					  int block_no,
-					  yaffs_block_state_t *state,
+					  enum yaffs_block_state *state,
 					  u32 *seq_number)
 {
 
-	yaffs_spare spare0, spare1;
-	static yaffs_spare spare_ff;
+	struct yaffs_spare spare0, spare1;
+	static struct yaffs_spare spare_ff;
 	static int init;
-	yaffs_ecc_result dummy;
+	enum yaffs_ecc_result dummy;
 
 	if (!init) {
 		memset(&spare_ff, 0xFF, sizeof(spare_ff));

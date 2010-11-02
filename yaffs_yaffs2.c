@@ -46,7 +46,7 @@ void yaffs_calc_oldest_dirty_seq(struct yaffs_dev *dev)
 	int i;
 	unsigned seq;
 	unsigned block_no = 0;
-	yaffs_block_info_t *b;
+	struct yaffs_block_info *b;
 
 	if(!dev->param.is_yaffs2)
 		return;
@@ -87,7 +87,7 @@ void yaffs2_find_oldest_dirty_seq(struct yaffs_dev *dev)
  * becomes invalid). If the value matches the oldest then we clear 
  * dev->oldest_dirty_seq to force its recomputation.
  */
-void yaffs2_clear_oldest_dirty_seq(struct yaffs_dev *dev, yaffs_block_info_t *bi)
+void yaffs2_clear_oldest_dirty_seq(struct yaffs_dev *dev, struct yaffs_block_info *bi)
 {
 
 	if(!dev->param.is_yaffs2)
@@ -104,7 +104,7 @@ void yaffs2_clear_oldest_dirty_seq(struct yaffs_dev *dev, yaffs_block_info_t *bi
  * Update the oldest dirty sequence number whenever we dirty a block.
  * Only do this if the oldest_dirty_seq is actually being tracked.
  */
-void yaffs2_update_oldest_dirty_seq(struct yaffs_dev *dev, unsigned block_no, yaffs_block_info_t *bi)
+void yaffs2_update_oldest_dirty_seq(struct yaffs_dev *dev, unsigned block_no, struct yaffs_block_info *bi)
 {
 	if(!dev->param.is_yaffs2)
 		return;
@@ -118,7 +118,7 @@ void yaffs2_update_oldest_dirty_seq(struct yaffs_dev *dev, unsigned block_no, ya
 }
 
 int yaffs_block_ok_for_gc(struct yaffs_dev *dev,
-					yaffs_block_info_t *bi)
+					struct yaffs_block_info *bi)
 {
 
 	if (!dev->param.is_yaffs2)
@@ -147,7 +147,7 @@ u32 yaffs2_find_refresh_block(struct yaffs_dev *dev)
 	u32 oldest = 0;
 	u32 oldest_seq = 0;
 
-	yaffs_block_info_t *bi;
+	struct yaffs_block_info *bi;
 
 	if(!dev->param.is_yaffs2)
 		return oldest;
@@ -225,13 +225,13 @@ int yaffs_calc_checkpt_blocks_required(struct yaffs_dev *dev)
 		int n_blocks;
 		int dev_blocks = (dev->param.end_block - dev->param.start_block + 1);
 
-		n_bytes += sizeof(yaffs_checkpt_validty_t);
-		n_bytes += sizeof(yaffs_checkpt_dev_t);
-		n_bytes += dev_blocks * sizeof(yaffs_block_info_t);
+		n_bytes += sizeof(struct yaffs_checkpt_validity);
+		n_bytes += sizeof(struct yaffs_checkpt_dev);
+		n_bytes += dev_blocks * sizeof(struct yaffs_block_info);
 		n_bytes += dev_blocks * dev->chunk_bit_stride;
-		n_bytes += (sizeof(yaffs_checkpt_obj_t) + sizeof(u32)) * (dev->n_obj);
+		n_bytes += (sizeof(struct yaffs_checkpt_obj) + sizeof(u32)) * (dev->n_obj);
 		n_bytes += (dev->tnode_size + sizeof(u32)) * (dev->n_tnodes);
-		n_bytes += sizeof(yaffs_checkpt_validty_t);
+		n_bytes += sizeof(struct yaffs_checkpt_validity);
 		n_bytes += sizeof(u32); /* checksum*/
 
 		/* Round up and add 2 blocks to allow for some bad blocks, so add 3 */
@@ -252,7 +252,7 @@ int yaffs_calc_checkpt_blocks_required(struct yaffs_dev *dev)
 
 static int yaffs2_wr_checkpt_validity_marker(struct yaffs_dev *dev, int head)
 {
-	yaffs_checkpt_validty_t cp;
+	struct yaffs_checkpt_validity cp;
 
 	memset(&cp, 0, sizeof(cp));
 
@@ -265,9 +265,9 @@ static int yaffs2_wr_checkpt_validity_marker(struct yaffs_dev *dev, int head)
 		1 : 0;
 }
 
-static int yaffs2_rd_checkpt_validty_marker(struct yaffs_dev *dev, int head)
+static int yaffs2_rd_checkpt_validity_marker(struct yaffs_dev *dev, int head)
 {
-	yaffs_checkpt_validty_t cp;
+	struct yaffs_checkpt_validity cp;
 	int ok;
 
 	ok = (yaffs2_checkpt_rd(dev, &cp, sizeof(cp)) == sizeof(cp));
@@ -280,7 +280,7 @@ static int yaffs2_rd_checkpt_validty_marker(struct yaffs_dev *dev, int head)
 	return ok ? 1 : 0;
 }
 
-static void yaffs2_dev_to_checkpt_dev(yaffs_checkpt_dev_t *cp,
+static void yaffs2_dev_to_checkpt_dev(struct yaffs_checkpt_dev *cp,
 					   struct yaffs_dev *dev)
 {
 	cp->n_erased_blocks = dev->n_erased_blocks;
@@ -296,7 +296,7 @@ static void yaffs2_dev_to_checkpt_dev(yaffs_checkpt_dev_t *cp,
 }
 
 static void yaffs_checkpt_dev_to_dev(struct yaffs_dev *dev,
-					   yaffs_checkpt_dev_t *cp)
+				   struct yaffs_checkpt_dev *cp)
 {
 	dev->n_erased_blocks = cp->n_erased_blocks;
 	dev->alloc_block = cp->alloc_block;
@@ -312,7 +312,7 @@ static void yaffs_checkpt_dev_to_dev(struct yaffs_dev *dev,
 
 static int yaffs2_wr_checkpt_dev(struct yaffs_dev *dev)
 {
-	yaffs_checkpt_dev_t cp;
+	struct yaffs_checkpt_dev cp;
 	u32 n_bytes;
 	u32 n_blocks = (dev->internal_end_block - dev->internal_start_block + 1);
 
@@ -326,7 +326,7 @@ static int yaffs2_wr_checkpt_dev(struct yaffs_dev *dev)
 
 	/* Write block info */
 	if (ok) {
-		n_bytes = n_blocks * sizeof(yaffs_block_info_t);
+		n_bytes = n_blocks * sizeof(struct yaffs_block_info);
 		ok = (yaffs2_checkpt_wr(dev, dev->block_info, n_bytes) == n_bytes);
 	}
 
@@ -341,7 +341,7 @@ static int yaffs2_wr_checkpt_dev(struct yaffs_dev *dev)
 
 static int yaffs2_rd_checkpt_dev(struct yaffs_dev *dev)
 {
-	yaffs_checkpt_dev_t cp;
+	struct yaffs_checkpt_dev cp;
 	u32 n_bytes;
 	u32 n_blocks = (dev->internal_end_block - dev->internal_start_block + 1);
 
@@ -357,7 +357,7 @@ static int yaffs2_rd_checkpt_dev(struct yaffs_dev *dev)
 
 	yaffs_checkpt_dev_to_dev(dev, &cp);
 
-	n_bytes = n_blocks * sizeof(yaffs_block_info_t);
+	n_bytes = n_blocks * sizeof(struct yaffs_block_info);
 
 	ok = (yaffs2_checkpt_rd(dev, dev->block_info, n_bytes) == n_bytes);
 
@@ -370,7 +370,7 @@ static int yaffs2_rd_checkpt_dev(struct yaffs_dev *dev)
 	return ok ? 1 : 0;
 }
 
-static void yaffs2_obj_checkpt_obj(yaffs_checkpt_obj_t *cp,
+static void yaffs2_obj_checkpt_obj(struct yaffs_checkpt_obj *cp,
 					   struct yaffs_obj *obj)
 {
 
@@ -393,7 +393,7 @@ static void yaffs2_obj_checkpt_obj(yaffs_checkpt_obj_t *cp,
 		cp->size_or_equiv_obj = obj->variant.hardlink_variant.equiv_id;
 }
 
-static int taffs2_checkpt_obj_to_obj(struct yaffs_obj *obj, yaffs_checkpt_obj_t *cp)
+static int taffs2_checkpt_obj_to_obj(struct yaffs_obj *obj, struct yaffs_checkpt_obj *cp)
 {
 
 	struct yaffs_obj *parent;
@@ -451,7 +451,7 @@ static int taffs2_checkpt_obj_to_obj(struct yaffs_obj *obj, yaffs_checkpt_obj_t 
 
 
 
-static int yaffs2_checkpt_tnode_worker(struct yaffs_obj *in, yaffs_tnode_t *tn,
+static int yaffs2_checkpt_tnode_worker(struct yaffs_obj *in, struct yaffs_tnode *tn,
 					u32 level, int chunk_offset)
 {
 	int i;
@@ -505,8 +505,8 @@ static int yaffs2_rd_checkpt_tnodes(struct yaffs_obj *obj)
 	u32 base_chunk;
 	int ok = 1;
 	struct yaffs_dev *dev = obj->my_dev;
-	yaffs_file_s *file_stuct_ptr = &obj->variant.file_variant;
-	yaffs_tnode_t *tn;
+	struct yaffs_file_var *file_stuct_ptr = &obj->variant.file_variant;
+	struct yaffs_tnode *tn;
 	int nread = 0;
 
 	ok = (yaffs2_checkpt_rd(dev, &base_chunk, sizeof(base_chunk)) == sizeof(base_chunk));
@@ -544,7 +544,7 @@ static int yaffs2_rd_checkpt_tnodes(struct yaffs_obj *obj)
 static int yaffs2_wr_checkpt_objs(struct yaffs_dev *dev)
 {
 	struct yaffs_obj *obj;
-	yaffs_checkpt_obj_t cp;
+	struct yaffs_checkpt_obj cp;
 	int i;
 	int ok = 1;
 	struct ylist_head *lh;
@@ -576,7 +576,7 @@ static int yaffs2_wr_checkpt_objs(struct yaffs_dev *dev)
 	}
 
 	/* Dump end of list */
-	memset(&cp, 0xFF, sizeof(yaffs_checkpt_obj_t));
+	memset(&cp, 0xFF, sizeof(struct yaffs_checkpt_obj));
 	cp.struct_type = sizeof(cp);
 
 	if (ok)
@@ -588,7 +588,7 @@ static int yaffs2_wr_checkpt_objs(struct yaffs_dev *dev)
 static int yaffs2_rd_checkpt_objs(struct yaffs_dev *dev)
 {
 	struct yaffs_obj *obj;
-	yaffs_checkpt_obj_t cp;
+	struct yaffs_checkpt_obj cp;
 	int ok = 1;
 	int done = 0;
 	struct yaffs_obj *hard_list = NULL;
@@ -725,7 +725,7 @@ static int yaffs2_rd_checkpt_data(struct yaffs_dev *dev)
 
 	if (ok) {
 		T(YAFFS_TRACE_CHECKPOINT, (TSTR("read checkpoint validity" TENDSTR)));
-		ok = yaffs2_rd_checkpt_validty_marker(dev, 1);
+		ok = yaffs2_rd_checkpt_validity_marker(dev, 1);
 	}
 	if (ok) {
 		T(YAFFS_TRACE_CHECKPOINT, (TSTR("read checkpoint device" TENDSTR)));
@@ -737,7 +737,7 @@ static int yaffs2_rd_checkpt_data(struct yaffs_dev *dev)
 	}
 	if (ok) {
 		T(YAFFS_TRACE_CHECKPOINT, (TSTR("read checkpoint validity" TENDSTR)));
-		ok = yaffs2_rd_checkpt_validty_marker(dev, 0);
+		ok = yaffs2_rd_checkpt_validity_marker(dev, 0);
 	}
 
 	if (ok) {
@@ -923,9 +923,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	int result;
 	int c;
 	int deleted;
-	yaffs_block_state_t state;
+	enum yaffs_block_state state;
 	struct yaffs_obj *hard_list = NULL;
-	yaffs_block_info_t *bi;
+	struct yaffs_block_info *bi;
 	u32 seq_number;
 	struct yaffs_obj_hdr *oh;
 	struct yaffs_obj *in;

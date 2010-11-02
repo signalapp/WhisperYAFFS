@@ -29,7 +29,7 @@ int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev,
 					    int block_no);
 int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
 					  int block_no,
-					  yaffs_block_state_t *state,
+					  enum yaffs_block_state *state,
 					  u32 *seq_number);
 
 void yaffs_calc_tags_ecc(struct yaffs_tags *tags);

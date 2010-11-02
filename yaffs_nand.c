@@ -43,7 +43,7 @@ int yaffs_rd_chunk_tags_nand(struct yaffs_dev *dev, int nand_chunk,
 	if (tags &&
 	   tags->ecc_result > YAFFS_ECC_RESULT_NO_ERROR) {
 
-		yaffs_block_info_t *bi;
+		struct yaffs_block_info *bi;
 		bi = yaffs_get_block_info(dev, nand_chunk/dev->param.chunks_per_block);
 		yaffs_handle_chunk_error(dev, bi);
 	}
@@ -101,7 +101,7 @@ int yaffs_mark_bad(struct yaffs_dev *dev, int block_no)
 
 int yaffs_query_init_block_state(struct yaffs_dev *dev,
 						 int block_no,
-						 yaffs_block_state_t *state,
+						 enum yaffs_block_state *state,
 						 u32 *seq_number)
 {
 	block_no -= dev->block_offset;

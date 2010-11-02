@@ -159,7 +159,7 @@ void yaffs_unpack_tags2_tags_only(struct yaffs_ext_tags *t,
 void yaffs_unpack_tags2(struct yaffs_ext_tags *t, yaffs_packed_tags2 *pt, int tags_ecc)
 {
 
-	yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
+	enum yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
 
 	if (pt->t.seq_number != 0xFFFFFFFF &&
 	    tags_ecc){

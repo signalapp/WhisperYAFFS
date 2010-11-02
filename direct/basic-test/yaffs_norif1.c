@@ -149,12 +149,12 @@ void ynorif1_AndBytes(u8*target, const u8   *src, int nbytes)
         }
 }
 
-int ynorif1_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const yaffs_spare *spare)
+int ynorif1_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const struct yaffs_spare *spare)
 {
         u32 *dataAddr = Chunk2DataAddr(dev,nand_chunk);
         u32 *spareAddr = Chunk2SpareAddr(dev,nand_chunk);
         
-        yaffs_spare tmpSpare;
+        struct yaffs_spare tmpSpare;
         
         /* We should only be getting called for one of 3 reasons:
          * Writing a chunk: data and spare will not be NULL
@@ -162,7 +162,7 @@ int ynorif1_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data
          * Writing a bad block marker: data will be NULL, spare not NULL
          */
          
-        if(sizeof(yaffs_spare) != 16)
+        if(sizeof(struct yaffs_spare) != 16)
                 YBUG();
         
         if(data && spare)
@@ -172,17 +172,17 @@ int ynorif1_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data
                 /* Write a pre-marker */
                 memset(&tmpSpare,0xff,sizeof(tmpSpare));
                 tmpSpare.page_status = YNOR_PREMARKER;
-                ynorif1_FlashWrite32(spareAddr,(u32 *)&tmpSpare,sizeof(yaffs_spare)/4);
+                ynorif1_FlashWrite32(spareAddr,(u32 *)&tmpSpare,sizeof(struct yaffs_spare)/4);
 
                 /* Write the data */            
                 ynorif1_FlashWrite32(dataAddr,(u32 *)data,dev->param.total_bytes_per_chunk / 4);
                 
                 
-                memcpy(&tmpSpare,spare,sizeof(yaffs_spare));
+                memcpy(&tmpSpare,spare,sizeof(struct yaffs_spare));
                 
                 /* Write the real tags, but override the premarker*/
                 tmpSpare.page_status = YNOR_PREMARKER;
-                ynorif1_FlashWrite32(spareAddr,(u32 *)&tmpSpare,sizeof(yaffs_spare)/4);
+                ynorif1_FlashWrite32(spareAddr,(u32 *)&tmpSpare,sizeof(struct yaffs_spare)/4);
                 
                 /* Write a post-marker */
                 tmpSpare.page_status = YNOR_POSTMARKER;
@@ -193,7 +193,7 @@ int ynorif1_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data
 
                 ynorif1_FlashRead32(spareAddr,(u32 *)&tmpSpare,16/ 4);
                 
-                ynorif1_AndBytes((u8 *)&tmpSpare,(u8 *)spare,sizeof(yaffs_spare));
+                ynorif1_AndBytes((u8 *)&tmpSpare,(u8 *)spare,sizeof(struct yaffs_spare));
                 
                 ynorif1_FlashWrite32(spareAddr,(u32 *)&tmpSpare,16/ 4);
         }
@@ -206,7 +206,7 @@ int ynorif1_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data
 
 }
 
-int ynorif1_ReadChunkFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, yaffs_spare *spare)
+int ynorif1_ReadChunkFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, struct yaffs_spare *spare)
 {
 
 	u32 *dataAddr = Chunk2DataAddr(dev,nand_chunk);

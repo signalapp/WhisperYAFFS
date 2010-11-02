@@ -36,7 +36,7 @@ static int yaffs_checkpt_erase(struct yaffs_dev *dev)
 		dev->internal_start_block, dev->internal_end_block));
 
 	for (i = dev->internal_start_block; i <= dev->internal_end_block; i++) {
-		yaffs_block_info_t *bi = yaffs_get_block_info(dev, i);
+		struct yaffs_block_info *bi = yaffs_get_block_info(dev, i);
 		if (bi->block_state == YAFFS_BLOCK_STATE_CHECKPOINT) {
 			T(YAFFS_TRACE_CHECKPOINT, (TSTR("erasing checkpt block %d"TENDSTR), i));
 
@@ -72,7 +72,7 @@ static void yaffs2_checkpt_find_erased_block(struct yaffs_dev *dev)
 			blocks_avail > 0) {
 
 		for (i = dev->checkpt_next_block; i <= dev->internal_end_block; i++) {
-			yaffs_block_info_t *bi = yaffs_get_block_info(dev, i);
+			struct yaffs_block_info *bi = yaffs_get_block_info(dev, i);
 			if (bi->block_state == YAFFS_BLOCK_STATE_EMPTY) {
 				dev->checkpt_next_block = i + 1;
 				dev->checkpt_cur_block = i;
@@ -208,7 +208,7 @@ static int yaffs2_checkpt_flush_buffer(struct yaffs_dev *dev)
 	if (dev->checkpt_cur_chunk == 0) {
 		/* First chunk we write for the block? Set block state to
 		   checkpoint */
-		yaffs_block_info_t *bi = yaffs_get_block_info(dev, dev->checkpt_cur_block);
+		struct yaffs_block_info *bi = yaffs_get_block_info(dev, dev->checkpt_cur_block);
 		bi->block_state = YAFFS_BLOCK_STATE_CHECKPOINT;
 		dev->blocks_in_checkpt++;
 	}
@@ -357,7 +357,7 @@ int yaffs_checkpt_close(struct yaffs_dev *dev)
 		int i;
 		for (i = 0; i < dev->blocks_in_checkpt && dev->checkpt_block_list[i] >= 0; i++) {
 			int blk = dev->checkpt_block_list[i];
-			yaffs_block_info_t *bi = NULL;
+			struct yaffs_block_info *bi = NULL;
 			if( dev->internal_start_block <= blk && blk <= dev->internal_end_block)
 				bi = yaffs_get_block_info(dev, blk);
 			if (bi && bi->block_state == YAFFS_BLOCK_STATE_EMPTY)

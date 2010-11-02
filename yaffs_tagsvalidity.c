@@ -16,13 +16,13 @@
 void yaffs_init_tags(struct yaffs_ext_tags *tags)
 {
 	memset(tags, 0, sizeof(struct yaffs_ext_tags));
-	tags->validity1 = 0xAAAAAAAA;
-	tags->validty1 = 0x55555555;
+	tags->validity0 = 0xAAAAAAAA;
+	tags->validity1 = 0x55555555;
 }
 
 int yaffs_validate_tags(struct yaffs_ext_tags *tags)
 {
-	return (tags->validity1 == 0xAAAAAAAA &&
-		tags->validty1 == 0x55555555);
+	return (tags->validity0 == 0xAAAAAAAA &&
+		tags->validity1 == 0x55555555);
 
 }

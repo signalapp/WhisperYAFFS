@@ -23,6 +23,6 @@ int nandmtd1_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 int nandmtd1_mark_block_bad(struct yaffs_dev *dev, int block_no);
 
 int nandmtd1_query_block(struct yaffs_dev *dev, int block_no,
-	yaffs_block_state_t *state, u32 *seq_number);
+	enum yaffs_block_state *state, u32 *seq_number);
 
 #endif

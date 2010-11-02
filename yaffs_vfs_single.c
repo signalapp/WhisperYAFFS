@@ -297,14 +297,14 @@ static unsigned yaffs_gc_control_callback(struct yaffs_dev *dev)
 static void yaffs_gross_lock(struct yaffs_dev *dev)
 {
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs locking %p\n"), current));
-	down(&(struct yaffs_devo_lc(dev)->gross_lock));
+	down(&(yaffs_dev_to_lc(dev)->gross_lock));
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs locked %p\n"), current));
 }
 
 static void yaffs_gross_unlock(struct yaffs_dev *dev)
 {
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs unlocking %p\n"), current));
-	up(&(struct yaffs_devo_lc(dev)->gross_lock));
+	up(&(yaffs_dev_to_lc(dev)->gross_lock));
 }
 
 
@@ -418,7 +418,7 @@ static struct yaffs_search_context * yaffs_new_search(struct yaffs_obj *dir)
                                 dir->variant.dir_variant.children.next,
 				struct yaffs_obj,siblings);
 		YINIT_LIST_HEAD(&sc->others);
-		ylist_add(&sc->others,&(struct yaffs_devo_lc(dev)->search_contexts));
+		ylist_add(&sc->others,&(yaffs_dev_to_lc(dev)->search_contexts));
 	}
 	return sc;
 }
@@ -467,7 +467,7 @@ static void yaffs_remove_obj_callback(struct yaffs_obj *obj)
 
         struct ylist_head *i;
         struct yaffs_search_context *sc;
-        struct ylist_head *search_contexts = &(struct yaffs_devo_lc(obj->my_dev)->search_contexts);
+        struct ylist_head *search_contexts = &(yaffs_dev_to_lc(obj->my_dev)->search_contexts);
 
 
         /* Iterate through the directory search contexts.
@@ -550,7 +550,7 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry,
 
 	struct yaffs_dev *dev = yaffs_inode_to_obj(dir)->my_dev;
 
-	if(current != struct yaffs_devo_lc(dev)->readdir_process)
+	if(current != yaffs_dev_to_lc(dev)->readdir_process)
 		yaffs_gross_lock(dev);
 
 	T(YAFFS_TRACE_OS,
@@ -563,7 +563,7 @@ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry,
 	obj = yaffs_get_equivalent_obj(obj);	/* in case it was a hardlink */
 
 	/* Can't hold gross lock when calling yaffs_get_inode() */
-	if(current != struct yaffs_devo_lc(dev)->readdir_process)
+	if(current != yaffs_dev_to_lc(dev)->readdir_process)
 		yaffs_gross_unlock(dev);
 
 	if (obj) {
@@ -1187,7 +1187,7 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 
 	yaffs_gross_lock(dev);
 
-	struct yaffs_devo_lc(dev)->readdir_process = current;
+	yaffs_dev_to_lc(dev)->readdir_process = current;
 
 	offset = f->f_pos;
 
@@ -1272,7 +1272,7 @@ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)
 
 out:
 	yaffs_search_end(sc);
-	struct yaffs_devo_lc(dev)->readdir_process = NULL;
+	yaffs_dev_to_lc(dev)->readdir_process = NULL;
 	yaffs_gross_unlock(dev);
 
 	return ret_val;
@@ -1818,7 +1818,7 @@ static void yaffs_flush_super(struct super_block *sb, int do_checkpoint)
 static unsigned yaffs_bg_gc_urgency(struct yaffs_dev *dev)
 {
 	unsigned erased_chunks = dev->n_erased_blocks * dev->param.chunks_per_block;
-	struct yaffs_linux_context *context = struct yaffs_devo_lc(dev);
+	struct yaffs_linux_context *context = yaffs_dev_to_lc(dev);
 	unsigned scattered = 0; /* Free chunks not in an erased block */
 
 	if(erased_chunks < dev->n_free_chunks)
@@ -1889,7 +1889,7 @@ void yaffs_background_waker(unsigned long data)
 static int yaffs_bg_thread_fn(void *data)
 {
 	struct yaffs_dev *dev = (struct yaffs_dev *)data;
-	struct yaffs_linux_context *context = struct yaffs_devo_lc(dev);
+	struct yaffs_linux_context *context = yaffs_dev_to_lc(dev);
 	unsigned long now = jiffies;
 	unsigned long next_dir_update = now;
 	unsigned long next_gc = now;
@@ -1963,7 +1963,7 @@ static int yaffs_bg_thread_fn(void *data)
 static int yaffs_bg_start(struct yaffs_dev *dev)
 {
 	int retval = 0;
-	struct yaffs_linux_context *context = struct yaffs_devo_lc(dev);
+	struct yaffs_linux_context *context = yaffs_dev_to_lc(dev);
 
 	if(dev->read_only)
 		return -1;
@@ -1983,7 +1983,7 @@ static int yaffs_bg_start(struct yaffs_dev *dev)
 
 static void yaffs_bg_stop(struct yaffs_dev *dev)
 {
-	struct yaffs_linux_context *ctxt = struct yaffs_devo_lc(dev);
+	struct yaffs_linux_context *ctxt = yaffs_dev_to_lc(dev);
 
 	ctxt->bg_running = 0;
 
@@ -2071,8 +2071,8 @@ static void yaffs_put_super(struct super_block *sb)
 
 	yaffs_flush_super(sb,1);
 
-	if (struct yaffs_devo_lc(dev)->put_super_fn)
-		struct yaffs_devo_lc(dev)->put_super_fn(sb);
+	if (yaffs_dev_to_lc(dev)->put_super_fn)
+		yaffs_dev_to_lc(dev)->put_super_fn(sb);
 
 
 	yaffs_deinitialise(dev);
@@ -2080,12 +2080,12 @@ static void yaffs_put_super(struct super_block *sb)
 	yaffs_gross_unlock(dev);
 
 	down(&yaffs_context_lock);
-	ylist_del_init(&(struct yaffs_devo_lc(dev)->context_list));
+	ylist_del_init(&(yaffs_dev_to_lc(dev)->context_list));
 	up(&yaffs_context_lock);
 
-	if (struct yaffs_devo_lc(dev)->spare_buffer) {
-		YFREE(struct yaffs_devo_lc(dev)->spare_buffer);
-		struct yaffs_devo_lc(dev)->spare_buffer = NULL;
+	if (yaffs_dev_to_lc(dev)->spare_buffer) {
+		YFREE(yaffs_dev_to_lc(dev)->spare_buffer);
+		yaffs_dev_to_lc(dev)->spare_buffer = NULL;
 	}
 
 	kfree(dev);
@@ -2094,7 +2094,7 @@ static void yaffs_put_super(struct super_block *sb)
 
 static void yaffs_mtd_put_super(struct super_block *sb)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(yaffs_super_to_dev(sb));
+	struct mtd_info *mtd = yaffs_dev_to_mtd(yaffs_super_to_dev(sb));
 
 	if (mtd->sync)
 		mtd->sync(mtd);
@@ -2105,7 +2105,7 @@ static void yaffs_mtd_put_super(struct super_block *sb)
 
 static void yaffs_touch_super(struct yaffs_dev *dev)
 {
-	struct super_block *sb = struct yaffs_devo_lc(dev)->super;
+	struct super_block *sb = yaffs_dev_to_lc(dev)->super;
 
 	T(YAFFS_TRACE_OS, (TSTR("yaffs_touch_super() sb = %p\n"), sb));
 	if (sb)
@@ -2455,7 +2455,7 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 		    nandmtd2_read_chunk_tags;
 		param->bad_block_fn = nandmtd2_mark_block_bad;
 		param->query_block_fn = nandmtd2_query_block;
-		struct yaffs_devo_lc(dev)->spare_buffer = YMALLOC(mtd->oobsize);
+		yaffs_dev_to_lc(dev)->spare_buffer = YMALLOC(mtd->oobsize);
 		param->is_yaffs2 = 1;
 		param->total_bytes_per_chunk = mtd->writesize;
 		param->chunks_per_block = mtd->erasesize / mtd->writesize;
@@ -2477,12 +2477,12 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	param->erase_fn = nandmtd_erase_block;
 	param->initialise_flash_fn = nandmtd_initialise;
 
-	struct yaffs_devo_lc(dev)->put_super_fn = yaffs_mtd_put_super;
+	yaffs_dev_to_lc(dev)->put_super_fn = yaffs_mtd_put_super;
 
 	param->sb_dirty_fn = yaffs_touch_super;
 	param->gc_control = yaffs_gc_control_callback;
 
-	struct yaffs_devo_lc(dev)->super= sb;
+	yaffs_dev_to_lc(dev)->super= sb;
 	
 
 #ifndef CONFIG_YAFFS_DOES_ECC
@@ -2509,14 +2509,14 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	}
 	context->mount_id = mount_id;
 
-	ylist_add_tail(&(struct yaffs_devo_lc(dev)->context_list), &yaffs_context_list);
+	ylist_add_tail(&(yaffs_dev_to_lc(dev)->context_list), &yaffs_context_list);
 	up(&yaffs_context_lock);
 
         /* Directory search handling...*/
-        YINIT_LIST_HEAD(&(struct yaffs_devo_lc(dev)->search_contexts));
+        YINIT_LIST_HEAD(&(yaffs_dev_to_lc(dev)->search_contexts));
         param->remove_obj_fn = yaffs_remove_obj_callback;
 
-	init_MUTEX(&(struct yaffs_devo_lc(dev)->gross_lock));
+	init_MUTEX(&(yaffs_dev_to_lc(dev)->gross_lock));
 
 	yaffs_gross_lock(dev);
 

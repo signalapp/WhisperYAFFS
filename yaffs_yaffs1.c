@@ -28,9 +28,9 @@ int yaffs1_scan(struct yaffs_dev *dev)
 	int chunk;
 	int c;
 	int deleted;
-	yaffs_block_state_t state;
+	enum yaffs_block_state state;
 	struct yaffs_obj *hard_list = NULL;
-	yaffs_block_info_t *bi;
+	struct yaffs_block_info *bi;
 	u32 seq_number;
 	struct yaffs_obj_hdr *oh;
 	struct yaffs_obj *in;
@@ -38,7 +38,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 	int alloc_failed = 0;
 
-	struct yaffs_shadow_fixer_s *shadow_fixers = NULL;
+	struct yaffs_shadow_fixer *shadow_fixers = NULL;
 
 
 	u8 *chunk_data;
@@ -216,8 +216,8 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 				if (in && oh->shadows_obj > 0) {
 
-					struct yaffs_shadow_fixer_s *fixer;
-					fixer = YMALLOC(sizeof(struct yaffs_shadow_fixer_s));
+					struct yaffs_shadow_fixer *fixer;
+					fixer = YMALLOC(sizeof(struct yaffs_shadow_fixer));
 					if (fixer) {
 						fixer->next = shadow_fixers;
 						shadow_fixers = fixer;
@@ -422,7 +422,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 	/* Fix up any shadowed objects */
 	{
-		struct yaffs_shadow_fixer_s *fixer;
+		struct yaffs_shadow_fixer *fixer;
 		struct yaffs_obj *obj;
 
 		while (shadow_fixers) {

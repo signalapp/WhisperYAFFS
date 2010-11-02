@@ -65,7 +65,7 @@ int ynandif_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *
 int ynandif_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber);
 int ynandif_InitialiseNAND(struct yaffs_dev *dev);
 int ynandif_MarkNANDBlockBad(struct yaffs_dev *dev,int blockNumber);
-int ynandif_QueryNANDBlock(struct yaffs_dev *dev, int block_no, yaffs_block_state_t *state, u32 *seq_number);
+int ynandif_QueryNANDBlock(struct yaffs_dev *dev, int block_no, enum yaffs_block_state *state, u32 *seq_number);
 int ynandif_GetGeometry(struct yaffs_dev *dev, ynandif_Geometry *geometry);
 #endif
 

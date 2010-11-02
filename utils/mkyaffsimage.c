@@ -130,7 +130,7 @@ static u16 yaffs_calc_name_sum(const char *name)
 }
 
 
-static void yaffs_calc_ecc(const u8 *data, yaffs_spare *spare)
+static void yaffs_calc_ecc(const u8 *data, struct yaffs_spare *spare)
 {
 	yaffs_ecc_cacl(data , spare->ecc1);
 	yaffs_ecc_cacl(&data[256] , spare->ecc2);
@@ -139,7 +139,7 @@ static void yaffs_calc_ecc(const u8 *data, yaffs_spare *spare)
 static void yaffs_calc_tags_ecc(struct yaffs_tags *tags)
 {
 	// Todo don't do anything yet. Need to calculate ecc
-	unsigned char *b = ((yaffs_tags_union_t *)tags)->as_bytes;
+	unsigned char *b = ((union yaffs_tags_union *)tags)->as_bytes;
 	unsigned  i,j;
 	unsigned  ecc = 0;
 	unsigned bit = 0;
@@ -181,9 +181,9 @@ static void yaffs_calc_tags_ecc(struct yaffs_tags *tags)
         b[7] |= ((ecc & 0x3F) << 2);
     }
 }
-static void yaffs_load_tags_to_spare(yaffs_spare *sparePtr, struct yaffs_tags *tagsPtr)
+static void yaffs_load_tags_to_spare(struct yaffs_spare *sparePtr, struct yaffs_tags *tagsPtr)
 {
-	yaffs_tags_union_t *tu = (yaffs_tags_union_t *)tagsPtr;
+	union yaffs_tags_union *tu = (union yaffs_tags_union *)tagsPtr;
 	
 	//yaffs_calc_tags_ecc(tagsPtr);
 	
@@ -203,8 +203,8 @@ static void yaffs_load_tags_to_spare(yaffs_spare *sparePtr, struct yaffs_tags *t
  */
 static void little_to_big_endian(struct yaffs_tags *tagsPtr)
 {
-    yaffs_tags_union_t * tags = (yaffs_tags_union_t* )tagsPtr; // Work in bytes.
-    yaffs_tags_union_t   temp;
+    union yaffs_tags_union * tags = (union yaffs_tags_union* )tagsPtr; // Work in bytes.
+    union yaffs_tags_union   temp;
 
     memset(&temp, 0, sizeof(temp));
     // Ick, I hate magic numbers.
@@ -231,13 +231,13 @@ static void little_to_big_endian(struct yaffs_tags *tagsPtr)
 static int write_chunk(u8 *data, u32 obj_id, u32 chunk_id, u32 n_bytes)
 {
 	struct yaffs_tags t;
-	yaffs_spare s;
+	struct yaffs_spare s;
 
 	error = write(outFile,data,512);
 	if(error < 0) return error;
 
 	memset(&t,0xff,sizeof (struct yaffs_tags));
-	memset(&s,0xff,sizeof (yaffs_spare));
+	memset(&s,0xff,sizeof (struct yaffs_spare));
 	
 	t.chunk_id = chunk_id;
 	t.serial_number = 0;
@@ -255,7 +255,7 @@ static int write_chunk(u8 *data, u32 obj_id, u32 chunk_id, u32 n_bytes)
 	
 	nPages++;
 	
-	return write(outFile,&s,sizeof(yaffs_spare));
+	return write(outFile,&s,sizeof(struct yaffs_spare));
 	
 }
 

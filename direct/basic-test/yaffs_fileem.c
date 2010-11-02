@@ -118,7 +118,7 @@ static int  CheckInit(struct yaffs_dev *dev)
 	return 1;
 }
 
-int yflash_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const yaffs_spare *spare)
+int yflash_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const struct yaffs_spare *spare)
 {
 	int written;
 
@@ -148,7 +148,7 @@ int yflash_WriteChunkToNAND(struct yaffs_dev *dev,int nand_chunk,const u8 *data,
 }
 
 
-int yflash_ReadChunkFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, yaffs_spare *spare)
+int yflash_ReadChunkFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *data, struct yaffs_spare *spare)
 {
 	int nread;
 

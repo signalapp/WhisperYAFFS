@@ -215,7 +215,7 @@ int yflash_MarkNANDBlockBad(struct yaffs_dev *dev, int block_no)
 	return YAFFS_OK;
 	
 }
-int yflash_QueryNANDBlock(struct yaffs_dev *dev, int block_no, yaffs_block_state_t *state, int *seq_number)
+int yflash_QueryNANDBlock(struct yaffs_dev *dev, int block_no, enum yaffs_block_state *state, int *seq_number)
 {
 	*state = YAFFS_BLOCK_STATE_EMPTY;
 	*seq_number = 0;

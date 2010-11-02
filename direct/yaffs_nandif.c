@@ -162,7 +162,7 @@ static int ynandif_IsBlockOk(struct yaffs_dev *dev, int blockId)
 	return geometry->checkBlockOk(dev,blockId);
 }
 
-int ynandif_QueryNANDBlock(struct yaffs_dev *dev, int blockId, yaffs_block_state_t *state, u32 *seq_number)
+int ynandif_QueryNANDBlock(struct yaffs_dev *dev, int blockId, enum yaffs_block_state *state, u32 *seq_number)
 {
 	unsigned chunkNo;
 	struct yaffs_ext_tags tags;

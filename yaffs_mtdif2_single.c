@@ -34,7 +34,7 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 				      const u8 *data,
 				      const struct yaffs_ext_tags *tags)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	struct mtd_oob_ops ops;
 	int retval = 0;
 
@@ -84,7 +84,7 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 				       u8 *data, struct yaffs_ext_tags *tags)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	struct mtd_oob_ops ops;
 
 	size_t dummy;
@@ -123,7 +123,7 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 		ops.len = data ? dev->data_bytes_per_chunk : packed_tags_size;
 		ops.ooboffs = 0;
 		ops.datbuf = data;
-		ops.oobbuf = struct yaffs_devo_lc(dev)->spare_buffer;
+		ops.oobbuf = yaffs_dev_to_lc(dev)->spare_buffer;
 		retval = mtd->read_oob(mtd, addr, &ops);
 	}
 
@@ -135,7 +135,7 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 		}
 	} else {
 		if (tags) {
-			memcpy(packed_tags_ptr, struct yaffs_devo_lc(dev)->spare_buffer, packed_tags_size);
+			memcpy(packed_tags_ptr, yaffs_dev_to_lc(dev)->spare_buffer, packed_tags_size);
 			yaffs_unpack_tags2(tags, &pt, !dev->param.no_tags_ecc);
 		}
 	}
@@ -159,7 +159,7 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 
 int nandmtd2_mark_block_bad(struct yaffs_dev *dev, int block_no)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int retval;
 	T(YAFFS_TRACE_MTD,
 	  (TSTR("nandmtd2_mark_block_bad %d" TENDSTR), block_no));
@@ -177,9 +177,9 @@ int nandmtd2_mark_block_bad(struct yaffs_dev *dev, int block_no)
 }
 
 int nandmtd2_query_block(struct yaffs_dev *dev, int block_no,
-			    yaffs_block_state_t *state, u32 *seq_number)
+			    enum yaffs_block_state *state, u32 *seq_number)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int retval;
 
 	T(YAFFS_TRACE_MTD,

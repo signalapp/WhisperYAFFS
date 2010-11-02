@@ -67,7 +67,7 @@
 int nandmtd1_write_chunk_tags(struct yaffs_dev *dev,
 	int nand_chunk, const u8 *data, const struct yaffs_ext_tags *etags)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunk_bytes = dev->data_bytes_per_chunk;
 	loff_t addr = ((loff_t)nand_chunk) * chunk_bytes;
 	struct mtd_oob_ops ops;
@@ -145,7 +145,7 @@ static int rettags(struct yaffs_ext_tags *etags, int ecc_result, int retval)
 int nandmtd1_read_chunk_tags(struct yaffs_dev *dev,
 	int nand_chunk, u8 *data, struct yaffs_ext_tags *etags)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunk_bytes = dev->data_bytes_per_chunk;
 	loff_t addr = ((loff_t)nand_chunk) * chunk_bytes;
 	int eccres = YAFFS_ECC_RESULT_NO_ERROR;
@@ -250,7 +250,7 @@ int nandmtd1_read_chunk_tags(struct yaffs_dev *dev,
  */
 int nandmtd1_mark_block_bad(struct yaffs_dev *dev, int block_no)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int blocksize = dev->param.chunks_per_block * dev->data_bytes_per_chunk;
 	int retval;
 
@@ -289,9 +289,9 @@ static int nandmtd1_test_prerequists(struct mtd_info *mtd)
  * Always returns YAFFS_OK.
  */
 int nandmtd1_query_block(struct yaffs_dev *dev, int block_no,
-	yaffs_block_state_t *state_ptr, u32 *seq_ptr)
+	enum yaffs_block_state *state_ptr, u32 *seq_ptr)
 {
-	struct mtd_info *mtd = struct yaffs_devo_mtd(dev);
+	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int chunk_num = block_no * dev->param.chunks_per_block;
 	loff_t addr = (loff_t)chunk_num * dev->data_bytes_per_chunk;
 	struct yaffs_ext_tags etags;

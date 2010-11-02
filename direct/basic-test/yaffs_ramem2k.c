@@ -327,7 +327,7 @@ int nandemul2k_MarkNANDBlockBad(struct yaffs_dev *dev, int block_no)
 	
 }
 
-int nandemul2k_QueryNANDBlock(struct yaffs_dev *dev, int block_no, yaffs_block_state_t *state, u32  *seq_number)
+int nandemul2k_QueryNANDBlock(struct yaffs_dev *dev, int block_no, enum yaffs_block_state *state, u32  *seq_number)
 {
 	struct yaffs_ext_tags tags;
 	int chunkNo;

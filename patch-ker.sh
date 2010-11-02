@@ -57,7 +57,7 @@ if [ $MULTIORSINGLE = m ]; then
    MTD1_CODE="yaffs_mtdif1_multi.c"
    MTD2_CODE="yaffs_mtdif2_multi.c"
 elif [ $MULTIORSINGLE = s ]; then
-   VFSGLUE="yaffs_vfs_single.c"
+   VFS_CODE="yaffs_vfs_single.c"
    MTD1_CODE="yaffs_mtdif1_single.c"
    MTD2_CODE="yaffs_mtdif2_single.c"
 

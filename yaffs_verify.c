@@ -51,7 +51,7 @@ static const char *block_state_name[] = {
 };
 
 
-void yaffs_verify_blk(struct yaffs_dev *dev, yaffs_block_info_t *bi, int n)
+void yaffs_verify_blk(struct yaffs_dev *dev, struct yaffs_block_info *bi, int n)
 {
 	int actually_used;
 	int in_use;
@@ -92,7 +92,7 @@ void yaffs_verify_blk(struct yaffs_dev *dev, yaffs_block_info_t *bi, int n)
 
 
 
-void yaffs_verify_collected_blk(struct yaffs_dev *dev, yaffs_block_info_t *bi, int n)
+void yaffs_verify_collected_blk(struct yaffs_dev *dev, struct yaffs_block_info *bi, int n)
 {
 	yaffs_verify_blk(dev, bi, n);
 
@@ -117,7 +117,7 @@ void yaffs_verify_blocks(struct yaffs_dev *dev)
 	memset(state_count, 0, sizeof(state_count));
 
 	for (i = dev->internal_start_block; i <= dev->internal_end_block; i++) {
-		yaffs_block_info_t *bi = yaffs_get_block_info(dev, i);
+		struct yaffs_block_info *bi = yaffs_get_block_info(dev, i);
 		yaffs_verify_blk(dev, bi, i);
 
 		if (bi->block_state < YAFFS_NUMBER_OF_BLOCK_STATES)
@@ -226,7 +226,7 @@ void yaffs_verify_file(struct yaffs_obj *obj)
 	u32 i;
 	struct yaffs_dev *dev;
 	struct yaffs_ext_tags tags;
-	yaffs_tnode_t *tn;
+	struct yaffs_tnode *tn;
 	u32 obj_id;
 
 	if (!obj)

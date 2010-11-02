@@ -17,7 +17,6 @@
 #include "yaffs_yaffs2.h"
 #include "yaffs_checkptrw.h"
 #include "yaffs_bitmap.h"
-#include "yaffs_qsort.h"
 #include "yaffs_nand.h"
 #include "yaffs_getblockinfo.h"
 #include "yaffs_verify.h"
@@ -892,18 +891,18 @@ int yaffs2_handle_hole(struct yaffs_obj *obj, loff_t new_size)
 }
 
 
-typedef struct {
+struct yaffs_block_index{
 	int seq;
 	int block;
-} yaffs_block_index;
+};
 
 
 static int yaffs2_ybicmp(const void *a, const void *b)
 {
-	register int aseq = ((yaffs_block_index *)a)->seq;
-	register int bseq = ((yaffs_block_index *)b)->seq;
-	register int ablock = ((yaffs_block_index *)a)->block;
-	register int bblock = ((yaffs_block_index *)b)->block;
+	int aseq = ((struct yaffs_block_index *)a)->seq;
+	int bseq = ((struct yaffs_block_index *)b)->seq;
+	int ablock = ((struct yaffs_block_index *)a)->block;
+	int bblock = ((struct yaffs_block_index *)b)->block;
 	if (aseq == bseq)
 		return ablock - bblock;
 	else
@@ -941,7 +940,7 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	int alloc_failed = 0;
 
 
-	yaffs_block_index *block_index = NULL;
+	struct yaffs_block_index *block_index = NULL;
 	int alt_block_index = 0;
 
 	T(YAFFS_TRACE_SCAN,
@@ -952,10 +951,10 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 
 	dev->seq_number = YAFFS_LOWEST_SEQUENCE_NUMBER;
 
-	block_index = YMALLOC(n_blocks * sizeof(yaffs_block_index));
+	block_index = YMALLOC(n_blocks * sizeof(struct yaffs_block_index));
 
 	if (!block_index) {
-		block_index = YMALLOC_ALT(n_blocks * sizeof(yaffs_block_index));
+		block_index = YMALLOC_ALT(n_blocks * sizeof(struct yaffs_block_index));
 		alt_block_index = 1;
 	}
 
@@ -1035,7 +1034,7 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	YYIELD();
 
 	/* Sort the blocks by sequence number*/
-	yaffs_qsort(block_index, n_to_scan, sizeof(yaffs_block_index), yaffs2_ybicmp);
+	yaffs_sort(block_index, n_to_scan, sizeof(struct yaffs_block_index), yaffs2_ybicmp);
 
 	YYIELD();
 

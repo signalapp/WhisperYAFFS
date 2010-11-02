@@ -49,12 +49,12 @@ YAFFSTESTOBJS  = $(COMMONTESTOBJS) yaffs_test.o
 
 ALLOBJS = $(sort $(YAFFSTESTOBJS))
 
-YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
+YAFFSSYMLINKS = yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  yaffs_nandemul2k.h \
           yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
           yaffs_nameval.c yaffs_nameval.h \
-          yaffs_qsort.h yaffs_trace.h \
+          yaffs_trace.h \
           yaffs_allocator.c yaffs_allocator.h \
           yaffs_yaffs1.c yaffs_yaffs1.h \
           yaffs_yaffs2.c yaffs_yaffs2.h \
@@ -65,7 +65,7 @@ YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffsfs.h yaffs_malloc.h ydirectenv.h \
 		       yaffs_flashif.c yaffscfg.h yaffs_qsort.c \
 		       yaffs_nandemul2k.h yaffs_list.h \
-		       yaffs_nandif.c yaffs_nandif.h
+		       yaffs_nandif.c yaffs_nandif.h yportenv.h
 
 
 DIRECTEXTRASYMLINKS = 	yaffscfg2k.c yaffs_fileem2k.c yaffs_fileem2k.h\

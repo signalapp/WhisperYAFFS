@@ -23,8 +23,7 @@
 #define __YAFFSCFG_H__
 
 
-#include "yportenv.h"
-#include "devextras.h"
+#include "yportenv.h"     
 
 #define YAFFSFS_N_HANDLES 100
 

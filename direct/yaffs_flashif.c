@@ -19,7 +19,6 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_flashif.c,v 1.3 2007-02-14 01:
 
 #include "yaffs_flashif.h"
 #include "yaffs_guts.h"
-#include "devextras.h"
 
 
 #define SIZE_IN_MB 16

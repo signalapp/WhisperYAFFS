@@ -25,8 +25,6 @@ const char *yaffs_flashif_c_version = "$Id: yaffs_fileem.c,v 1.7 2010-02-18 01:1
 #include "yaffs_flashif.h"
 #include "yaffs_guts.h"
 
-#include "devextras.h"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

@@ -31,7 +31,6 @@ const char *yaffs_ramem2k_c_version = "$Id: yaffs_ramem2k.c,v 1.8 2010-02-18 01:
 
 #include "yaffs_nandemul2k.h"
 #include "yaffs_guts.h"
-#include "devextras.h"
 #include "yaffs_packedtags2.h"
 
 

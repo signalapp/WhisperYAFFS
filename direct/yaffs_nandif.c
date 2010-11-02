@@ -13,7 +13,6 @@
 
 #include "yportenv.h"
 #include "yaffs_guts.h"
-#include "devextras.h"
 
 
 #include "yaffs_nandif.h"

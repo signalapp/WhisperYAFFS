@@ -69,7 +69,6 @@ static struct yaffs_obj *yaffs_new_obj(struct yaffs_dev *dev, int number,
 static int yaffs_apply_xattrib_mod(struct yaffs_obj *obj, char *buffer, struct yaffs_xattr_mod *xmod);
 
 static void yaffs_remove_obj_from_dir(struct yaffs_obj *obj);
-static int yaffs_check_structures(void);
 static int yaffs_generic_obj_del(struct yaffs_obj *in);
 
 static int yaffs_check_chunk_erased(struct yaffs_dev *dev,
@@ -5020,13 +5019,6 @@ int yaffs_guts_initialise(struct yaffs_dev *dev)
 		return YAFFS_FAIL;
 	}
 
-	/* This is really a compilation check. */
-	if (!yaffs_check_structures()) {
-		T(YAFFS_TRACE_ALWAYS,
-		  (TSTR("yaffs_check_structures failed\n" TENDSTR)));
-		return YAFFS_FAIL;
-	}
-
 	if (dev->is_mounted) {
 		T(YAFFS_TRACE_ALWAYS,
 		  (TSTR("yaffs: device already mounted\n" TENDSTR)));
@@ -5349,29 +5341,4 @@ int yaffs_get_n_free_chunks(struct yaffs_dev *dev)
 
 	return n_free;
 
-}
-
-
-/*---------------------------------------- YAFFS test code ----------------------*/
-
-#define yaffs_check_struct(structure, syze, name) \
-	do { \
-		if (sizeof(structure) != syze) { \
-			T(YAFFS_TRACE_ALWAYS, (TSTR("%s should be %d but is %d\n" TENDSTR),\
-				name, syze, (int) sizeof(structure))); \
-			return YAFFS_FAIL; \
-		} \
-	} while (0)
-
-static int yaffs_check_structures(void)
-{
-/*      yaffs_check_struct(struct yaffs_tags,8,"struct yaffs_tags"); */
-/*      yaffs_check_struct(union yaffs_tags_union,8,"union yaffs_tags_union"); */
-/*      yaffs_check_struct(struct yaffs_spare,16,"struct yaffs_spare"); */
-/*	yaffs_check_struct(struct yaffs_tnode, 2 * YAFFS_NTNODES_LEVEL0, "struct yaffs_tnode"); */
-
-#ifndef CONFIG_YAFFS_WINCE
-	yaffs_check_struct(struct yaffs_obj_hdr, 512, "struct yaffs_obj_hdr");
-#endif
-	return YAFFS_OK;
 }

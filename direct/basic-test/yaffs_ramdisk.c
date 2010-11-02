@@ -26,7 +26,6 @@ const char *yaffs_ramdisk_c_version = "$Id: yaffs_ramdisk.c,v 1.6 2010-01-11 04:
 
 #include "yaffs_ramdisk.h"
 #include "yaffs_guts.h"
-#include "devextras.h"
 #include "yaffs_packedtags1.h"
 
 

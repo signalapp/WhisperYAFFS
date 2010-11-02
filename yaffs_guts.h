@@ -17,7 +17,6 @@
 #define __YAFFS_GUTS_H__
 
 #include "yportenv.h"
-#include "devextras.h"
 
 #define YAFFS_OK	1
 #define YAFFS_FAIL  0

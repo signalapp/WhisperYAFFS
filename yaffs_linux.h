@@ -16,7 +16,6 @@
 #ifndef __YAFFS_LINUX_H__
 #define __YAFFS_LINUX_H__
 
-#include "devextras.h"
 #include "yportenv.h"
 
 struct yaffs_linux_context {

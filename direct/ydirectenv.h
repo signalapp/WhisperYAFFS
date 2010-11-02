@@ -43,6 +43,11 @@
 #define yaffs_sprintf	     sprintf
 #define yaffs_toupper(a)     toupper(a)
 
+void yaffs_qsort(void *aa, size_t n, size_t es,
+        int (*cmp)(const void *, const void *));
+
+#define yaffs_sort(base, n, sz, cmp_fn) yaffs_qsort(base, n, sz, cmp_fn)
+        
 #define YAFFS_PATH_DIVIDERS  "/"
 
 #ifdef NO_Y_INLINE

@@ -45,8 +45,6 @@ const char *yaffs_norif1_c_version = "$Id: yaffs_norif1.c,v 1.6 2010-02-18 01:18
 #include "yaffs_flashif.h"
 #include "yaffs_guts.h"
 
-#include "devextras.h"
-
 #define SPARE_BYTES_PER_CHUNK	16
 #define M18_SKIP		16
 #define PROG_REGION_SIZE	1024

@@ -187,8 +187,8 @@ int yflash2_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const 
 	
 	if(dev->param.inband_tags){
 		
-		yaffs_packed_tags2_tags_only * pt2tp;
-		pt2tp = (yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];
+		struct yaffs_packed_tags2_tags_only * pt2tp;
+		pt2tp = (struct yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];
 		yaffs_pack_tags2_tags_only(pt2tp,tags);
 		
 		pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
@@ -260,7 +260,7 @@ int yflash2_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const 
 			}
 			else
 			{
-				yaffs_packed_tags2 pt;
+				struct yaffs_packed_tags2 pt;
 				yaffs_pack_tags2(&pt,tags, !dev->param.no_tags_ecc);
 				u8 * ptab = (u8 *)&pt;
 
@@ -338,7 +338,7 @@ int yflash2_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const 
 			}
 			else
 			{
-				yaffs_packed_tags2 pt;
+				struct yaffs_packed_tags2 pt;
 				yaffs_pack_tags2(&pt,tags,!dev->param.no_tags_ecc);
 				u8 * ptab = (u8 *)&pt;
 
@@ -412,8 +412,8 @@ int yflash2_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *
 		}
 
 		
-		yaffs_packed_tags2_tags_only * pt2tp;
-		pt2tp = (yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];
+		struct yaffs_packed_tags2_tags_only * pt2tp;
+		pt2tp = (struct yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];
 
 		
 		pos = (nand_chunk % (PAGES_PER_BLOCK * BLOCKS_PER_HANDLE)) * PAGE_SIZE;
@@ -472,7 +472,7 @@ int yflash2_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *
 			}
 			else
 			{
-				yaffs_packed_tags2 pt;
+				struct yaffs_packed_tags2 pt;
 				nread= read(h,&pt,sizeof(pt));
 				yaffs_unpack_tags2(tags,&pt, !dev->param.no_tags_ecc);
 #ifdef SIMULATE_FAILURES
@@ -513,7 +513,7 @@ int yflash2_MarkNANDBlockBad(struct yaffs_dev *dev, int block_no)
 	int written;
 	int h;
 	
-	yaffs_packed_tags2 pt;
+	struct yaffs_packed_tags2 pt;
 
 	CheckInit();
 	

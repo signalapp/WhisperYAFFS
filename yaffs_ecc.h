@@ -26,19 +26,19 @@
 #ifndef __YAFFS_ECC_H__
 #define __YAFFS_ECC_H__
 
-typedef struct {
+struct yaffs_ecc_other {
 	unsigned char col_parity;
 	unsigned line_parity;
 	unsigned line_parity_prime;
-} yaffs_ecc_other;
+} ;
 
 void yaffs_ecc_cacl(const unsigned char *data, unsigned char *ecc);
 int yaffs_ecc_correct(unsigned char *data, unsigned char *read_ecc,
 		const unsigned char *test_ecc);
 
 void yaffs_ecc_calc_other(const unsigned char *data, unsigned n_bytes,
-			yaffs_ecc_other *ecc);
+			struct yaffs_ecc_other *ecc);
 int yaffs_ecc_correct_other(unsigned char *data, unsigned n_bytes,
-			yaffs_ecc_other *read_ecc,
-			const yaffs_ecc_other *test_ecc);
+			struct yaffs_ecc_other *read_ecc,
+			const struct yaffs_ecc_other *test_ecc);
 #endif

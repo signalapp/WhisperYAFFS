@@ -320,7 +320,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 						/* Set up as a directory */
 						parent->variant_type =
 							YAFFS_OBJECT_TYPE_DIRECTORY;
-						YINIT_LIST_HEAD(&parent->variant.
+						INIT_LIST_HEAD(&parent->variant.
 								dir_variant.
 								children);
 					} else if (!parent || parent->variant_type !=
@@ -367,7 +367,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 							equiv_id =
 							oh->equiv_id;
 						in->hard_links.next =
-							(struct ylist_head *)
+							(struct list_head *)
 							hard_list;
 						hard_list = in;
 						break;

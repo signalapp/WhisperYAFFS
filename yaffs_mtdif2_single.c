@@ -40,7 +40,7 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 
 	loff_t addr;
 
-	yaffs_packed_tags2 pt;
+	struct yaffs_packed_tags2 pt;
 
 	int packed_tags_size = dev->param.no_tags_ecc ? sizeof(pt.t) : sizeof(pt);
 	void * packed_tags_ptr = dev->param.no_tags_ecc ? (void *) &pt.t : (void *)&pt;
@@ -60,8 +60,8 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	if (!data || !tags)
 		BUG();
 	else if (dev->param.inband_tags) {
-		yaffs_packed_tags2_tags_only *pt2tp;
-		pt2tp = (yaffs_packed_tags2_tags_only *)(data + dev->data_bytes_per_chunk);
+		struct yaffs_packed_tags2_tags_only *pt2tp;
+		pt2tp = (struct yaffs_packed_tags2_tags_only *)(data + dev->data_bytes_per_chunk);
 		yaffs_pack_tags2_tags_only(pt2tp, tags);
 	} else
 		yaffs_pack_tags2(&pt, tags, !dev->param.no_tags_ecc);
@@ -93,7 +93,7 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 
 	loff_t addr = ((loff_t) nand_chunk) * dev->param.total_bytes_per_chunk;
 
-	yaffs_packed_tags2 pt;
+	struct yaffs_packed_tags2 pt;
 
 	int packed_tags_size = dev->param.no_tags_ecc ? sizeof(pt.t) : sizeof(pt);
 	void * packed_tags_ptr = dev->param.no_tags_ecc ? (void *) &pt.t: (void *)&pt;
@@ -129,8 +129,8 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 
 	if (dev->param.inband_tags) {
 		if (tags) {
-			yaffs_packed_tags2_tags_only *pt2tp;
-			pt2tp = (yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];
+			struct yaffs_packed_tags2_tags_only *pt2tp;
+			pt2tp = (struct yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];
 			yaffs_unpack_tags2_tags_only(tags, pt2tp);
 		}
 	} else {

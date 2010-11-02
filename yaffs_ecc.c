@@ -246,7 +246,7 @@ int yaffs_ecc_correct(unsigned char *data, unsigned char *read_ecc,
  * ECCxxxOther does ECC calcs on arbitrary n bytes of data
  */
 void yaffs_ecc_calc_other(const unsigned char *data, unsigned n_bytes,
-				yaffs_ecc_other *ecc_other)
+				struct yaffs_ecc_other *ecc_other)
 {
 	unsigned int i;
 
@@ -273,8 +273,8 @@ void yaffs_ecc_calc_other(const unsigned char *data, unsigned n_bytes,
 }
 
 int yaffs_ecc_correct_other(unsigned char *data, unsigned n_bytes,
-			yaffs_ecc_other *read_ecc,
-			const yaffs_ecc_other *test_ecc)
+			struct yaffs_ecc_other *read_ecc,
+			const struct yaffs_ecc_other *test_ecc)
 {
 	unsigned char delta_col;	/* column parity delta */
 	unsigned delta_line;	/* line parity delta */

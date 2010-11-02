@@ -35,7 +35,7 @@ int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev * dev, int nand_chunk,
 {
 
 	int retval = 0;
-	yaffs_packed_tags2 pt;
+	struct yaffs_packed_tags2 pt;
 	void *spare;
 	unsigned spareSize = 0;
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
@@ -52,8 +52,8 @@ int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev * dev, int nand_chunk,
 	 */
 
 	if(dev->param.inband_tags){
-		yaffs_packed_tags2_tags_only *pt2tp;
-		pt2tp = (yaffs_packed_tags2_tags_only *)(data + dev->data_bytes_per_chunk);
+		struct yaffs_packed_tags2_tags_only *pt2tp;
+		pt2tp = (struct yaffs_packed_tags2_tags_only *)(data + dev->data_bytes_per_chunk);
 		yaffs_pack_tags2_tags_only(pt2tp,tags);
 		spare = NULL;
 		spareSize = 0;
@@ -61,7 +61,7 @@ int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev * dev, int nand_chunk,
 	else{
 		yaffs_pack_tags2(&pt, tags,!dev->param.no_tags_ecc);
 		spare = &pt;
-		spareSize = sizeof(yaffs_packed_tags2);
+		spareSize = sizeof(struct yaffs_packed_tags2);
 	}
 	
 	retval = geometry->writeChunk(dev,nand_chunk,
@@ -73,7 +73,7 @@ int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev * dev, int nand_chunk,
 int ynandif_ReadChunkWithTagsFromNAND(struct yaffs_dev * dev, int nand_chunk,
 				       u8 * data, struct yaffs_ext_tags * tags)
 {
-	yaffs_packed_tags2 pt;
+	struct yaffs_packed_tags2 pt;
 	int localData = 0;
 	void *spare = NULL;
 	unsigned spareSize;
@@ -100,7 +100,7 @@ int ynandif_ReadChunkWithTagsFromNAND(struct yaffs_dev * dev, int nand_chunk,
 	}
 	else {
 		spare = &pt;
-		spareSize = sizeof(yaffs_packed_tags2);
+		spareSize = sizeof(struct yaffs_packed_tags2);
 	}
 
 	retval = geometry->readChunk(dev,nand_chunk,
@@ -111,8 +111,8 @@ int ynandif_ReadChunkWithTagsFromNAND(struct yaffs_dev * dev, int nand_chunk,
 
 	if(dev->param.inband_tags){
 		if(tags){
-			yaffs_packed_tags2_tags_only * pt2tp;
-			pt2tp = (yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];	
+			struct yaffs_packed_tags2_tags_only * pt2tp;
+			pt2tp = (struct yaffs_packed_tags2_tags_only *)&data[dev->data_bytes_per_chunk];	
 			yaffs_unpack_tags2_tags_only(tags,pt2tp);
 		}
 	}

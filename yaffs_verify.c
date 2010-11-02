@@ -403,7 +403,7 @@ void yaffs_verify_objects(struct yaffs_dev *dev)
 {
 	struct yaffs_obj *obj;
 	int i;
-	struct ylist_head *lh;
+	struct list_head *lh;
 
 	if (yaffs_skip_verification(dev))
 		return;
@@ -411,9 +411,9 @@ void yaffs_verify_objects(struct yaffs_dev *dev)
 	/* Iterate through the objects in each hash entry */
 
 	for (i = 0; i <  YAFFS_NOBJECT_BUCKETS; i++) {
-		ylist_for_each(lh, &dev->obj_bucket[i].list) {
+		list_for_each(lh, &dev->obj_bucket[i].list) {
 			if (lh) {
-				obj = ylist_entry(lh, struct yaffs_obj, hash_link);
+				obj = list_entry(lh, struct yaffs_obj, hash_link);
 				yaffs_verify_obj(obj);
 			}
 		}
@@ -423,7 +423,7 @@ void yaffs_verify_objects(struct yaffs_dev *dev)
 
 void yaffs_verify_obj_in_dir(struct yaffs_obj *obj)
 {
-	struct ylist_head *lh;
+	struct list_head *lh;
 	struct yaffs_obj *list_obj;
 
 	int count = 0;
@@ -450,9 +450,9 @@ void yaffs_verify_obj_in_dir(struct yaffs_obj *obj)
 
 	/* Iterate through the objects in each hash entry */
 
-	ylist_for_each(lh, &obj->parent->variant.dir_variant.children) {
+	list_for_each(lh, &obj->parent->variant.dir_variant.children) {
 		if (lh) {
-			list_obj = ylist_entry(lh, struct yaffs_obj, siblings);
+			list_obj = list_entry(lh, struct yaffs_obj, siblings);
 			yaffs_verify_obj(list_obj);
 			if (obj == list_obj)
 				count++;
@@ -467,7 +467,7 @@ void yaffs_verify_obj_in_dir(struct yaffs_obj *obj)
 
 void yaffs_verify_dir(struct yaffs_obj *directory)
 {
-	struct ylist_head *lh;
+	struct list_head *lh;
 	struct yaffs_obj *list_obj;
 
 	if (!directory) {
@@ -487,9 +487,9 @@ void yaffs_verify_dir(struct yaffs_obj *directory)
 
 	/* Iterate through the objects in each hash entry */
 
-	ylist_for_each(lh, &directory->variant.dir_variant.children) {
+	list_for_each(lh, &directory->variant.dir_variant.children) {
 		if (lh) {
-			list_obj = ylist_entry(lh, struct yaffs_obj, siblings);
+			list_obj = list_entry(lh, struct yaffs_obj, siblings);
 			if (list_obj->parent != directory) {
 				T(YAFFS_TRACE_ALWAYS, (
 				TSTR("Object in directory list has wrong parent %p" TENDSTR),

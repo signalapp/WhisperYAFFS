@@ -547,7 +547,7 @@ static int yaffs2_wr_checkpt_objs(struct yaffs_dev *dev)
 	struct yaffs_checkpt_obj cp;
 	int i;
 	int ok = 1;
-	struct ylist_head *lh;
+	struct list_head *lh;
 
 
 	/* Iterate through the objects in each hash entry,
@@ -555,9 +555,9 @@ static int yaffs2_wr_checkpt_objs(struct yaffs_dev *dev)
 	 */
 
 	for (i = 0; ok &&  i <  YAFFS_NOBJECT_BUCKETS; i++) {
-		ylist_for_each(lh, &dev->obj_bucket[i].list) {
+		list_for_each(lh, &dev->obj_bucket[i].list) {
 			if (lh) {
-				obj = ylist_entry(lh, struct yaffs_obj, hash_link);
+				obj = list_entry(lh, struct yaffs_obj, hash_link);
 				if (!obj->defered_free) {
 					yaffs2_obj_checkpt_obj(&cp, obj);
 					cp.struct_type = sizeof(cp);
@@ -616,7 +616,7 @@ static int yaffs2_rd_checkpt_objs(struct yaffs_dev *dev)
 					ok = yaffs2_rd_checkpt_tnodes(obj);
 				} else if (obj->variant_type == YAFFS_OBJECT_TYPE_HARDLINK) {
 					obj->hard_links.next =
-						(struct ylist_head *) hard_list;
+						(struct list_head *) hard_list;
 					hard_list = obj;
 				}
 			} else
@@ -1412,7 +1412,7 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 						/* Set up as a directory */
 						parent->variant_type =
 							YAFFS_OBJECT_TYPE_DIRECTORY;
-						YINIT_LIST_HEAD(&parent->variant.
+						INIT_LIST_HEAD(&parent->variant.
 							dir_variant.
 							children);
 					} else if (!parent || parent->variant_type !=
@@ -1472,7 +1472,7 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 							in->variant.hardlink_variant.equiv_id =
 								equiv_id;
 							in->hard_links.next =
-								(struct ylist_head *) hard_list;
+								(struct list_head *) hard_list;
 							hard_list = in;
 						}
 						break;

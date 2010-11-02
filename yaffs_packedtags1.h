@@ -20,7 +20,7 @@
 
 #include "yaffs_guts.h"
 
-typedef struct {
+struct yaffs_packed_tags1 {
 	unsigned chunk_id:20;
 	unsigned serial_number:2;
 	unsigned n_bytes:10;
@@ -30,8 +30,8 @@ typedef struct {
 	unsigned unused_stuff:1;
 	unsigned should_be_ff;
 
-} yaffs_packed_tags1;
+} ;
 
-void yaffs_pack_tags1(yaffs_packed_tags1 *pt, const struct yaffs_ext_tags *t);
-void yaffs_unpack_tags1(struct yaffs_ext_tags *t, const yaffs_packed_tags1 *pt);
+void yaffs_pack_tags1(struct yaffs_packed_tags1 *pt, const struct yaffs_ext_tags *t);
+void yaffs_unpack_tags1(struct yaffs_ext_tags *t, const struct yaffs_packed_tags1 *pt);
 #endif

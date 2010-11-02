@@ -315,7 +315,7 @@ static int yaffs_create_free_objs(struct yaffs_dev *dev, int n_obj)
 	/* Hook them into the free list */
 	for (i = 0; i < n_obj - 1; i++) {
 		new_objs[i].siblings.next =
-				(struct ylist_head *)(&new_objs[i + 1]);
+				(struct list_head *)(&new_objs[i + 1]);
 	}
 
 	new_objs[n_obj - 1].siblings.next = (void *)allocator->free_objs;
@@ -366,7 +366,7 @@ void yaffs_free_raw_obj(struct yaffs_dev *dev, struct yaffs_obj *obj)
 		YBUG();
 	else {
 		/* Link into the free list. */
-		obj->siblings.next = (struct ylist_head *)(allocator->free_objs);
+		obj->siblings.next = (struct list_head *)(allocator->free_objs);
 		allocator->free_objs = obj;
 		allocator->n_free_objects++;
 	}

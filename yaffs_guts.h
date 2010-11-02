@@ -18,7 +18,6 @@
 
 #include "yportenv.h"
 #include "devextras.h"
-#include "yaffs_list.h"
 
 #define YAFFS_OK	1
 #define YAFFS_FAIL  0
@@ -373,8 +372,8 @@ struct yaffs_file_var {
 } ;
 
 struct yaffs_dir_var{
-	struct ylist_head children;     /* list of child links */
-	struct ylist_head dirty;	/* Entry for list of dirty directories */
+	struct list_head children;     /* list of child links */
+	struct list_head dirty;	/* Entry for list of dirty directories */
 };
 
 struct yaffs_symlink_var{
@@ -424,14 +423,14 @@ struct yaffs_obj {
 
 	struct yaffs_dev *my_dev;       /* The device I'm on */
 
-	struct ylist_head hash_link;     /* list of objects in this hash bucket */
+	struct list_head hash_link;     /* list of objects in this hash bucket */
 
-	struct ylist_head hard_links;    /* all the equivalent hard linked objects */
+	struct list_head hard_links;    /* all the equivalent hard linked objects */
 
 	/* directory structure stuff */
 	/* also used for linking up the free list */
 	struct yaffs_obj *parent;
-	struct ylist_head siblings;
+	struct list_head siblings;
 
 	/* Where's my object header in NAND? */
 	int hdr_chunk;
@@ -469,7 +468,7 @@ struct yaffs_obj {
 };
 
 struct yaffs_obj_bucket {
-	struct ylist_head list;
+	struct list_head list;
 	int count;
 } ;
 
@@ -608,7 +607,7 @@ struct yaffs_dev {
 	void *os_context;
 	void *driver_context;
 
-	struct ylist_head dev_list;
+	struct list_head dev_list;
 
 	/* Runtime parameters. Set up by YAFFS. */
 	int data_bytes_per_chunk;	
@@ -739,7 +738,7 @@ struct yaffs_dev {
 	int refresh_skip;	/* A skip down counter. Refresh happens when this gets to zero. */
 
 	/* Dirty directory handling */
-	struct ylist_head dirty_dirs; /* List of dirty directories */
+	struct list_head dirty_dirs; /* List of dirty directories */
 
 
 	/* Statistcs */

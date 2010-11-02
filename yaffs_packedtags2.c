@@ -39,14 +39,14 @@
 #define EXTRA_OBJECT_TYPE_MASK  ((0x0F) << EXTRA_OBJECT_TYPE_SHIFT)
 
 
-static void yaffs_dump_packed_tags2_tags_only(const yaffs_packed_tags2_tags_only *ptt)
+static void yaffs_dump_packed_tags2_tags_only(const struct yaffs_packed_tags2_tags_only *ptt)
 {
 	T(YAFFS_TRACE_MTD,
 	  (TSTR("packed tags obj %d chunk %d byte %d seq %d" TENDSTR),
 	   ptt->obj_id, ptt->chunk_id, ptt->n_bytes,
 	   ptt->seq_number));
 }
-static void yaffs_dump_packed_tags2(const yaffs_packed_tags2 *pt)
+static void yaffs_dump_packed_tags2(const struct yaffs_packed_tags2 *pt)
 {
 	yaffs_dump_packed_tags2_tags_only(&pt->t);
 }
@@ -62,7 +62,7 @@ static void yaffs_dump_tags2(const struct yaffs_ext_tags *t)
 
 }
 
-void yaffs_pack_tags2_tags_only(yaffs_packed_tags2_tags_only *ptt,
+void yaffs_pack_tags2_tags_only(struct yaffs_packed_tags2_tags_only *ptt,
 		const struct yaffs_ext_tags *t)
 {
 	ptt->chunk_id = t->chunk_id;
@@ -97,19 +97,19 @@ void yaffs_pack_tags2_tags_only(yaffs_packed_tags2_tags_only *ptt,
 }
 
 
-void yaffs_pack_tags2(yaffs_packed_tags2 *pt, const struct yaffs_ext_tags *t, int tags_ecc)
+void yaffs_pack_tags2(struct yaffs_packed_tags2 *pt, const struct yaffs_ext_tags *t, int tags_ecc)
 {
 	yaffs_pack_tags2_tags_only(&pt->t, t);
 
 	if(tags_ecc)
 		yaffs_ecc_calc_other((unsigned char *)&pt->t,
-					sizeof(yaffs_packed_tags2_tags_only),
+					sizeof(struct yaffs_packed_tags2_tags_only),
 					&pt->ecc);
 }
 
 
 void yaffs_unpack_tags2_tags_only(struct yaffs_ext_tags *t,
-		yaffs_packed_tags2_tags_only *ptt)
+		struct yaffs_packed_tags2_tags_only *ptt)
 {
 
 	memset(t, 0, sizeof(struct yaffs_ext_tags));
@@ -156,7 +156,7 @@ void yaffs_unpack_tags2_tags_only(struct yaffs_ext_tags *t,
 }
 
 
-void yaffs_unpack_tags2(struct yaffs_ext_tags *t, yaffs_packed_tags2 *pt, int tags_ecc)
+void yaffs_unpack_tags2(struct yaffs_ext_tags *t, struct yaffs_packed_tags2 *pt, int tags_ecc)
 {
 
 	enum yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
@@ -165,13 +165,13 @@ void yaffs_unpack_tags2(struct yaffs_ext_tags *t, yaffs_packed_tags2 *pt, int ta
 	    tags_ecc){
 		/* Chunk is in use and we need to do ECC */
 		
-		yaffs_ecc_other ecc;
+		struct yaffs_ecc_other ecc;
 		int result;
 		yaffs_ecc_calc_other((unsigned char *)&pt->t,
-					sizeof(yaffs_packed_tags2_tags_only),
+					sizeof(struct yaffs_packed_tags2_tags_only),
 					&ecc);
 		result = yaffs_ecc_correct_other((unsigned char *)&pt->t,
-						sizeof(yaffs_packed_tags2_tags_only),
+						sizeof(struct yaffs_packed_tags2_tags_only),
 						&pt->ecc, &ecc);
 		switch (result) {
 			case 0:

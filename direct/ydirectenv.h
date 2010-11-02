@@ -87,6 +87,9 @@
 #define yaffs_sum_cmp(x,y) ((x) == (y))
 #define yaffs_strcmp(a,b) strcmp(a,b)
 
+#include "yaffs_list.h"
+
+
 #include "yaffsfs.h"
 
 #endif

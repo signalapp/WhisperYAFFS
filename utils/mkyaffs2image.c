@@ -172,7 +172,7 @@ static void little_to_big_endian(struct yaffs_ext_tags *tagsPtr)
 #endif
 }
 
-static void shuffle_oob(char *spareData, yaffs_packed_tags2 *pt)
+static void shuffle_oob(char *spareData, struct yaffs_packed_tags2 *pt)
 {
 	assert(sizeof(*pt) <= spareSize);
 	// NAND LAYOUT: For non-trivial OOB orderings, here would be a good place to shuffle.
@@ -182,7 +182,7 @@ static void shuffle_oob(char *spareData, yaffs_packed_tags2 *pt)
 static int write_chunk(u8 *data, u32 id, u32 chunk_id, u32 n_bytes)
 {
 	struct yaffs_ext_tags t;
-	yaffs_packed_tags2 pt;
+	struct yaffs_packed_tags2 pt;
 	char spareData[spareSize];
 
 	if (write(outFile,data,chunkSize) != chunkSize)

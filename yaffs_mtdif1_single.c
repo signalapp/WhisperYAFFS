@@ -71,11 +71,11 @@ int nandmtd1_write_chunk_tags(struct yaffs_dev *dev,
 	int chunk_bytes = dev->data_bytes_per_chunk;
 	loff_t addr = ((loff_t)nand_chunk) * chunk_bytes;
 	struct mtd_oob_ops ops;
-	yaffs_packed_tags1 pt1;
+	struct yaffs_packed_tags1 pt1;
 	int retval;
 
 	/* we assume that packed_tags1 and struct yaffs_tags are compatible */
-	compile_time_assertion(sizeof(yaffs_packed_tags1) == 12);
+	compile_time_assertion(sizeof(struct yaffs_packed_tags1) == 12);
 	compile_time_assertion(sizeof(struct yaffs_tags) == 8);
 
 	yaffs_pack_tags1(&pt1, etags);
@@ -150,7 +150,7 @@ int nandmtd1_read_chunk_tags(struct yaffs_dev *dev,
 	loff_t addr = ((loff_t)nand_chunk) * chunk_bytes;
 	int eccres = YAFFS_ECC_RESULT_NO_ERROR;
 	struct mtd_oob_ops ops;
-	yaffs_packed_tags1 pt1;
+	struct yaffs_packed_tags1 pt1;
 	int retval;
 	int deleted;
 

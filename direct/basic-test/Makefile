@@ -51,7 +51,7 @@ ALLOBJS = $(sort $(YAFFSTESTOBJS))
 
 YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h \
-          yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h yaffs_list.h \
+          yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
           yaffs_nameval.c yaffs_nameval.h \
           yaffs_qsort.h yaffs_trace.h \
@@ -63,7 +63,7 @@ YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yp
 
 YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffsfs.h yaffs_malloc.h ydirectenv.h \
-		       yaffs_flashif.c yaffscfg.h \
+		       yaffs_flashif.c yaffscfg.h yaffs_list.h \
 		       yaffs_qsort.c \
 		       yaffs_nandif.c yaffs_nandif.h yaffs_nandemul2k.h
 

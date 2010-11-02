@@ -220,7 +220,7 @@ int nandemul2k_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,con
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_pack_tags2((yaffs_packed_tags2 *)x,tags, !dev->param.no_tags_ecc);
+		yaffs_pack_tags2((struct yaffs_packed_tags2 *)x,tags, !dev->param.no_tags_ecc);
 			
 	}
 	
@@ -256,7 +256,7 @@ int nandemul2k_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u
 	{
 		x = &ned.block[blk]->page[pg]->data[PAGE_DATA_SIZE];
 		
-		yaffs_unpack_tags2(tags,(yaffs_packed_tags2 *)x, !dev->param.no_tags_ecc);
+		yaffs_unpack_tags2(tags,(struct yaffs_packed_tags2 *)x, !dev->param.no_tags_ecc);
 	}
 
 	return YAFFS_OK;
@@ -320,7 +320,7 @@ int nandemul2k_MarkNANDBlockBad(struct yaffs_dev *dev, int block_no)
 	
 	x = &ned.block[block_no]->page[0]->data[PAGE_DATA_SIZE];
 	
-	memset(x,0,sizeof(yaffs_packed_tags2));
+	memset(x,0,sizeof(struct yaffs_packed_tags2));
 	
 	
 	return YAFFS_OK;

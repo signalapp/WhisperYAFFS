@@ -139,7 +139,7 @@ int yramdisk_wr_chunk(struct yaffs_dev *dev,int nand_chunk,const u8 *data, const
 	
 	if(tags)
 	{
-		yaffs_packed_tags1 pt;
+		struct yaffs_packed_tags1 pt;
 		
 		yaffs_pack_tags1(&pt,tags);
 		memcpy(&ramdisk.block[blk]->page[pg].data[512],&pt,sizeof(pt));
@@ -170,7 +170,7 @@ int yramdisk_rd_chunk(struct yaffs_dev *dev,int nand_chunk, u8 *data, struct yaf
 	
 	if(tags)
 	{
-		yaffs_packed_tags1 pt;
+		struct yaffs_packed_tags1 pt;
 		
 		memcpy(&pt,&ramdisk.block[blk]->page[pg].data[512],sizeof(pt));
 		yaffs_unpack_tags1(tags,&pt);

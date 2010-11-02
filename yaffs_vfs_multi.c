@@ -614,7 +614,7 @@ struct yaffs_search_context {
 	struct yaffs_dev *dev;
 	struct yaffs_obj *dir_obj;
 	struct yaffs_obj *next_return;
-	struct ylist_head others;
+	struct list_head others;
 };
 
 /*
@@ -630,14 +630,14 @@ static struct yaffs_search_context * yaffs_new_search(struct yaffs_obj *dir)
 	if(sc){
 		sc->dir_obj = dir;
 		sc->dev = dev;
-		if( ylist_empty(&sc->dir_obj->variant.dir_variant.children))
+		if( list_empty(&sc->dir_obj->variant.dir_variant.children))
 			sc->next_return = NULL;
 		else
-			sc->next_return = ylist_entry(
+			sc->next_return = list_entry(
                                 dir->variant.dir_variant.children.next,
 				struct yaffs_obj,siblings);
-		YINIT_LIST_HEAD(&sc->others);
-		ylist_add(&sc->others,&(yaffs_dev_to_lc(dev)->search_contexts));
+		INIT_LIST_HEAD(&sc->others);
+		list_add(&sc->others,&(yaffs_dev_to_lc(dev)->search_contexts));
 	}
 	return sc;
 }
@@ -648,7 +648,7 @@ static struct yaffs_search_context * yaffs_new_search(struct yaffs_obj *dir)
 static void yaffs_search_end(struct yaffs_search_context * sc)
 {
 	if(sc){
-		ylist_del(&sc->others);
+		list_del(&sc->others);
 		YFREE(sc);
 	}
 }
@@ -664,15 +664,15 @@ static void yaffs_search_advance(struct yaffs_search_context *sc)
                 return;
 
         if( sc->next_return == NULL ||
-                ylist_empty(&sc->dir_obj->variant.dir_variant.children))
+                list_empty(&sc->dir_obj->variant.dir_variant.children))
                 sc->next_return = NULL;
         else {
-                struct ylist_head *next = sc->next_return->siblings.next;
+                struct list_head *next = sc->next_return->siblings.next;
 
                 if( next == &sc->dir_obj->variant.dir_variant.children)
                         sc->next_return = NULL; /* end of list */
                 else
-                        sc->next_return = ylist_entry(next,struct yaffs_obj,siblings);
+                        sc->next_return = list_entry(next,struct yaffs_obj,siblings);
         }
 }
 
@@ -684,18 +684,18 @@ static void yaffs_search_advance(struct yaffs_search_context *sc)
 static void yaffs_remove_obj_callback(struct yaffs_obj *obj)
 {
 
-        struct ylist_head *i;
+        struct list_head *i;
         struct yaffs_search_context *sc;
-        struct ylist_head *search_contexts = &(yaffs_dev_to_lc(obj->my_dev)->search_contexts);
+        struct list_head *search_contexts = &(yaffs_dev_to_lc(obj->my_dev)->search_contexts);
 
 
         /* Iterate through the directory search contexts.
          * If any are currently on the object being removed, then advance
          * the search context to the next object to prevent a hanging pointer.
          */
-         ylist_for_each(i, search_contexts) {
+         list_for_each(i, search_contexts) {
                 if (i) {
-                        sc = ylist_entry(i, struct yaffs_search_context,others);
+                        sc = list_entry(i, struct yaffs_search_context,others);
                         if(sc->next_return == obj)
                                 yaffs_search_advance(sc);
                 }
@@ -1949,7 +1949,7 @@ static int yaffs_rename(struct inode *old_dir, struct dentry *old_dentry,
 
 
 	if (target && target->variant_type == YAFFS_OBJECT_TYPE_DIRECTORY &&
-		!ylist_empty(&target->variant.dir_variant.children)) {
+		!list_empty(&target->variant.dir_variant.children)) {
 
 		T(YAFFS_TRACE_OS, (TSTR("target is non-empty dir\n")));
 
@@ -2548,7 +2548,7 @@ static void yaffs_read_inode(struct inode *inode)
 
 #endif
 
-static YLIST_HEAD(yaffs_context_list);
+static LIST_HEAD(yaffs_context_list);
 struct semaphore yaffs_context_lock;
 
 static void yaffs_put_super(struct super_block *sb)
@@ -2576,7 +2576,7 @@ static void yaffs_put_super(struct super_block *sb)
 	yaffs_gross_unlock(dev);
 
 	down(&yaffs_context_lock);
-	ylist_del_init(&(yaffs_dev_to_lc(dev)->context_list));
+	list_del_init(&(yaffs_dev_to_lc(dev)->context_list));
 	up(&yaffs_context_lock);
 
 	if (yaffs_dev_to_lc(dev)->spare_buffer) {
@@ -2608,7 +2608,7 @@ static void yaffs_touch_super(struct yaffs_dev *dev)
 		sb->s_dirt = 1;
 }
 
-typedef struct {
+struct yaffs_options {
 	int inband_tags;
 	int skip_checkpoint_read;
 	int skip_checkpoint_write;
@@ -2619,10 +2619,10 @@ typedef struct {
 	int lazy_loading_overridden;
 	int empty_lost_and_found;
 	int empty_lost_and_found_overridden;
-} yaffs_options;
+} ;
 
 #define MAX_OPT_LEN 30
-static int yaffs_parse_options(yaffs_options *options, const char *options_str)
+static int yaffs_parse_options(struct yaffs_options *options, const char *options_str)
 {
 	char cur_opt[MAX_OPT_LEN + 1];
 	int p;
@@ -2701,12 +2701,12 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 
 	int read_only = 0;
 
-	yaffs_options options;
+	struct yaffs_options options;
 
 	unsigned mount_id;
 	int found;
 	struct yaffs_linux_context *context_iterator;
-	struct ylist_head *l;
+	struct list_head *l;
 
 	sb->s_magic = YAFFS_MAGIC;
 	sb->s_op = &yaffs_super_ops;
@@ -2899,7 +2899,7 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 
 	memset(context,0,sizeof(struct yaffs_linux_context));
 	dev->os_context = context;
-	YINIT_LIST_HEAD(&(context->context_list));
+	INIT_LIST_HEAD(&(context->context_list));
 	context->dev = dev;
 	context->super = sb;
 
@@ -3028,19 +3028,19 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	found = 0;
 	for(mount_id=0; ! found; mount_id++){
 		found = 1;
-		ylist_for_each(l,&yaffs_context_list){
-			context_iterator = ylist_entry(l,struct yaffs_linux_context,context_list);
+		list_for_each(l,&yaffs_context_list){
+			context_iterator = list_entry(l,struct yaffs_linux_context,context_list);
 			if(context_iterator->mount_id == mount_id)
 				found = 0;
 		}
 	}
 	context->mount_id = mount_id;
 
-	ylist_add_tail(&(yaffs_dev_to_lc(dev)->context_list), &yaffs_context_list);
+	list_add_tail(&(yaffs_dev_to_lc(dev)->context_list), &yaffs_context_list);
 	up(&yaffs_context_lock);
 
         /* Directory search handling...*/
-        YINIT_LIST_HEAD(&(yaffs_dev_to_lc(dev)->search_contexts));
+        INIT_LIST_HEAD(&(yaffs_dev_to_lc(dev)->search_contexts));
         param->remove_obj_fn = yaffs_remove_obj_callback;
 
 	init_MUTEX(&(yaffs_dev_to_lc(dev)->gross_lock));
@@ -3254,7 +3254,7 @@ static int yaffs_proc_read(char *page,
 			   char **start,
 			   off_t offset, int count, int *eof, void *data)
 {
-	struct ylist_head *item;
+	struct list_head *item;
 	char *buf = page;
 	int step = offset;
 	int n = 0;
@@ -3278,8 +3278,8 @@ static int yaffs_proc_read(char *page,
 		down(&yaffs_context_lock);
 
 		/* Locate and print the Nth entry.  Order N-squared but N is small. */
-		ylist_for_each(item, &yaffs_context_list) {
-			struct yaffs_linux_context *dc = ylist_entry(item, struct yaffs_linux_context, context_list);
+		list_for_each(item, &yaffs_context_list) {
+			struct yaffs_linux_context *dc = list_entry(item, struct yaffs_linux_context, context_list);
 			struct yaffs_dev *dev = dc->dev;
 
 			if (n < (step & ~1)) {
@@ -3304,15 +3304,15 @@ static int yaffs_stats_proc_read(char *page,
 				char **start,
 				off_t offset, int count, int *eof, void *data)
 {
-	struct ylist_head *item;
+	struct list_head *item;
 	char *buf = page;
 	int n = 0;
 
 	down(&yaffs_context_lock);
 
 	/* Locate and print the Nth entry.  Order N-squared but N is small. */
-	ylist_for_each(item, &yaffs_context_list) {
-		struct yaffs_linux_context *dc = ylist_entry(item, struct yaffs_linux_context, context_list);
+	list_for_each(item, &yaffs_context_list) {
+		struct yaffs_linux_context *dc = list_entry(item, struct yaffs_linux_context, context_list);
 		struct yaffs_dev *dev = dc->dev;
 
 		int erased_chunks;

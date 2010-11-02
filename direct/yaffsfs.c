@@ -290,7 +290,7 @@ int yaffsfs_IsPathDivider(YCHAR ch)
 
 
 
-YLIST_HEAD(yaffsfs_deviceList);
+LIST_HEAD(yaffsfs_deviceList);
 
 /*
  * yaffsfs_FindDevice
@@ -301,7 +301,7 @@ YLIST_HEAD(yaffsfs_deviceList);
  */
 static struct yaffs_dev *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
 {
-	struct ylist_head *cfg;
+	struct list_head *cfg;
 	const YCHAR *leftOver;
 	const YCHAR *p;
 	struct yaffs_dev *retval = NULL;
@@ -315,8 +315,8 @@ static struct yaffs_dev *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPat
 	 * 1) Actually matches a prefix (ie /a amd /abc will not match
 	 * 2) Matches the longest.
 	 */
-	ylist_for_each(cfg, &yaffsfs_deviceList){
-		dev = ylist_entry(cfg, struct yaffs_dev, dev_list);
+	list_for_each(cfg, &yaffsfs_deviceList){
+		dev = list_entry(cfg, struct yaffs_dev, dev_list);
 		leftOver = path;
 		p = dev->param.name;
 		thisMatchLength = 0;
@@ -2025,14 +2025,14 @@ void yaffs_add_device(struct yaffs_dev *dev)
 	dev->param.remove_obj_fn = yaffsfs_RemoveObjectCallback;
 
 	if(!dev->dev_list.next)
-		YINIT_LIST_HEAD(&dev->dev_list);
+		INIT_LIST_HEAD(&dev->dev_list);
 
-	ylist_add(&dev->dev_list,&yaffsfs_deviceList);
+	list_add(&dev->dev_list,&yaffsfs_deviceList);
 }
 
 void yaffs_remove_device(struct yaffs_dev *dev)
 {
-	ylist_del_init(&dev->dev_list);
+	list_del_init(&dev->dev_list);
 }
 
 
@@ -2055,12 +2055,12 @@ typedef struct
         struct yaffs_obj *dirObj;           /* ptr to directory being searched */
         struct yaffs_obj *nextReturn;       /* obj to be returned by next readddir */
         int offset;
-        struct ylist_head others;       
+        struct list_head others;       
 } yaffsfs_DirectorySearchContext;
 
 
 
-static struct ylist_head search_contexts;
+static struct list_head search_contexts;
 
 
 static void yaffsfs_SetDirRewound(yaffsfs_DirectorySearchContext *dsc)
@@ -2071,10 +2071,10 @@ static void yaffsfs_SetDirRewound(yaffsfs_DirectorySearchContext *dsc)
 
            dsc->offset = 0;
 
-           if( ylist_empty(&dsc->dirObj->variant.dir_variant.children))
+           if( list_empty(&dsc->dirObj->variant.dir_variant.children))
                 dsc->nextReturn = NULL;
            else
-                dsc->nextReturn = ylist_entry(dsc->dirObj->variant.dir_variant.children.next,
+                dsc->nextReturn = list_entry(dsc->dirObj->variant.dir_variant.children.next,
                                                 struct yaffs_obj,siblings);
         } else {
 		/* Hey someone isn't playing nice! */
@@ -2088,15 +2088,15 @@ static void yaffsfs_DirAdvance(yaffsfs_DirectorySearchContext *dsc)
            dsc->dirObj->variant_type == YAFFS_OBJECT_TYPE_DIRECTORY){
 
            if( dsc->nextReturn == NULL ||
-               ylist_empty(&dsc->dirObj->variant.dir_variant.children))
+               list_empty(&dsc->dirObj->variant.dir_variant.children))
                 dsc->nextReturn = NULL;
            else {
-                   struct ylist_head *next = dsc->nextReturn->siblings.next;
+                   struct list_head *next = dsc->nextReturn->siblings.next;
 
                    if( next == &dsc->dirObj->variant.dir_variant.children)
                         dsc->nextReturn = NULL; /* end of list */
                    else
-                        dsc->nextReturn = ylist_entry(next,struct yaffs_obj,siblings);
+                        dsc->nextReturn = list_entry(next,struct yaffs_obj,siblings);
            }
         } else {
                 /* Hey someone isn't playing nice! */
@@ -2106,7 +2106,7 @@ static void yaffsfs_DirAdvance(yaffsfs_DirectorySearchContext *dsc)
 static void yaffsfs_RemoveObjectCallback(struct yaffs_obj *obj)
 {
 
-        struct ylist_head *i;
+        struct list_head *i;
         yaffsfs_DirectorySearchContext *dsc;
 
         /* if search contexts not initilised then skip */
@@ -2117,9 +2117,9 @@ static void yaffsfs_RemoveObjectCallback(struct yaffs_obj *obj)
          * If any are the one being removed, then advance the dsc to
          * the next one to prevent a hanging ptr.
          */
-         ylist_for_each(i, &search_contexts) {
+         list_for_each(i, &search_contexts) {
                 if (i) {
-                        dsc = ylist_entry(i, yaffsfs_DirectorySearchContext,others);
+                        dsc = list_entry(i, yaffsfs_DirectorySearchContext,others);
                         if(dsc->nextReturn == obj)
                                 yaffsfs_DirAdvance(dsc);
                 }
@@ -2147,12 +2147,12 @@ yaffs_DIR *yaffs_opendir(const YCHAR *dirname)
                         dsc->magic = YAFFS_MAGIC;
                         dsc->dirObj = obj;
                         yaffs_strncpy(dsc->name,dirname,NAME_MAX);
-                        YINIT_LIST_HEAD(&dsc->others);
+                        INIT_LIST_HEAD(&dsc->others);
 
                         if(!search_contexts.next)
-                                YINIT_LIST_HEAD(&search_contexts);
+                                INIT_LIST_HEAD(&search_contexts);
 
-                        ylist_add(&dsc->others,&search_contexts);       
+                        list_add(&dsc->others,&search_contexts);       
                         yaffsfs_SetDirRewound(dsc);
 		}
 
@@ -2215,7 +2215,7 @@ int yaffs_closedir(yaffs_DIR *dirp)
 
         yaffsfs_Lock();
         dsc->magic = 0;
-        ylist_del(&dsc->others); /* unhook from list */
+        list_del(&dsc->others); /* unhook from list */
         YFREE(dsc);
         yaffsfs_Unlock();
         return 0;

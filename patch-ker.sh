@@ -119,17 +119,17 @@ else
     echo "Updating $KCONFIG"
     mv -f $KCONFIG  $KCONFIGOLD
     sed -n -e "/[Jj][Ff][Ff][Ss]/,99999 ! p" $KCONFIGOLD >$KCONFIG
-    echo "">>$KCONFIG
-    echo "# Patched by YAFFS" >>$KCONFIG
+    # echo "">>$KCONFIG
+    # echo "# Patched by YAFFS" >>$KCONFIG
     echo "source \"fs/yaffs2/Kconfig\"">>$KCONFIG
-    echo "">>$KCONFIG
+    # echo "">>$KCONFIG
     sed -n -e "/[Jj][Ff][Ff][Ss]/,99999 p" $KCONFIGOLD >>$KCONFIG
 
    # now do fs/Makefile -- simply add the target at the end
     echo "Updating $MAKEFILE"
     cp -f $MAKEFILE $MAKEFILEOLD
-    echo "">>$MAKEFILE
-    echo "# Patched by YAFFS" >>$MAKEFILE
+    # echo "">>$MAKEFILE
+    # echo "# Patched by YAFFS" >>$MAKEFILE
     echo "obj-\$(CONFIG_YAFFS_FS)		+= yaffs2/" >>$MAKEFILE
 
 fi
@@ -142,12 +142,14 @@ then
    echo "already there then delete $YAFFSDIR and re-run this script"
    echo " eg.  \"rm -rf $YAFFSDIR\" "
 else
+   rm yaffs*.mod.c
    mkdir $LINUXDIR/fs/yaffs2
    $CPY  $PWD/Makefile.kernel $LINUXDIR/fs/yaffs2/Makefile
    $CPY $PWD/Kconfig $LINUXDIR/fs/yaffs2
    $CPY $PWD/*.c $PWD/*.h  $LINUXDIR/fs/yaffs2
    rm $LINUXDIR/fs/yaffs2/yaffs_vfs*.c $LINUXDIR/fs/yaffs2/yaffs_mtdif[12]*.c
    rm $LINUXDIR/fs/yaffs2/yportenv*.h
+   rm $LINUXDIR/fs/yaffs2/moduleconfig.h
    $CPY $PWD/$VFS_CODE $LINUXDIR/fs/yaffs2/yaffs_vfs.c
    $CPY $PWD/$MTD1_CODE $LINUXDIR/fs/yaffs2/yaffs_mtdif1.c
    $CPY $PWD/$MTD2_CODE $LINUXDIR/fs/yaffs2/yaffs_mtdif2.c

@@ -510,14 +510,14 @@ static unsigned yaffs_gc_control_callback(struct yaffs_dev *dev)
 static void yaffs_gross_lock(struct yaffs_dev *dev)
 {
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs locking %p\n"), current));
-	down(&(yaffs_dev_to_lc(dev)->gross_lock));
+	mutex_lock(&(yaffs_dev_to_lc(dev)->gross_lock));
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs locked %p\n"), current));
 }
 
 static void yaffs_gross_unlock(struct yaffs_dev *dev)
 {
 	T(YAFFS_TRACE_LOCK, (TSTR("yaffs unlocking %p\n"), current));
-	up(&(yaffs_dev_to_lc(dev)->gross_lock));
+	mutex_unlock(&(yaffs_dev_to_lc(dev)->gross_lock));
 }
 
 #ifdef YAFFS_COMPILE_EXPORTFS
@@ -2511,7 +2511,7 @@ static void yaffs_read_inode(struct inode *inode)
 #endif
 
 static LIST_HEAD(yaffs_context_list);
-struct semaphore yaffs_context_lock;
+struct mutex yaffs_context_lock;
 
 static void yaffs_put_super(struct super_block *sb)
 {
@@ -2536,9 +2536,9 @@ static void yaffs_put_super(struct super_block *sb)
 
 	yaffs_gross_unlock(dev);
 
-	down(&yaffs_context_lock);
+	mutex_lock(&yaffs_context_lock);
 	list_del_init(&(yaffs_dev_to_lc(dev)->context_list));
-	up(&yaffs_context_lock);
+	mutex_unlock(&yaffs_context_lock);
 
 	if (yaffs_dev_to_lc(dev)->spare_buffer) {
 		YFREE(yaffs_dev_to_lc(dev)->spare_buffer);
@@ -2970,7 +2970,7 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	param->skip_checkpt_rd = options.skip_checkpoint_read;
 	param->skip_checkpt_wr = options.skip_checkpoint_write;
 
-	down(&yaffs_context_lock);
+	mutex_lock(&yaffs_context_lock);
 	/* Get a mount id */
 	found = 0;
 	for (mount_id = 0; !found; mount_id++) {
@@ -2987,13 +2987,13 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 
 	list_add_tail(&(yaffs_dev_to_lc(dev)->context_list),
 		      &yaffs_context_list);
-	up(&yaffs_context_lock);
+	mutex_unlock(&yaffs_context_lock);
 
 	/* Directory search handling... */
 	INIT_LIST_HEAD(&(yaffs_dev_to_lc(dev)->search_contexts));
 	param->remove_obj_fn = yaffs_remove_obj_callback;
 
-	init_MUTEX(&(yaffs_dev_to_lc(dev)->gross_lock));
+	mutex_init(&(yaffs_dev_to_lc(dev)->gross_lock));
 
 	yaffs_gross_lock(dev);
 
@@ -3250,7 +3250,7 @@ static int yaffs_proc_read(char *page,
 	else {
 		step -= 2;
 
-		down(&yaffs_context_lock);
+		mutex_lock(&yaffs_context_lock);
 
 		/* Locate and print the Nth entry.  Order N-squared but N is small. */
 		list_for_each(item, &yaffs_context_list) {
@@ -3273,7 +3273,7 @@ static int yaffs_proc_read(char *page,
 
 			break;
 		}
-		up(&yaffs_context_lock);
+		mutex_unlock(&yaffs_context_lock);
 	}
 
 	return buf - page < count ? buf - page : count;
@@ -3287,7 +3287,7 @@ static int yaffs_stats_proc_read(char *page,
 	char *buf = page;
 	int n = 0;
 
-	down(&yaffs_context_lock);
+	mutex_lock(&yaffs_context_lock);
 
 	/* Locate and print the Nth entry.  Order N-squared but N is small. */
 	list_for_each(item, &yaffs_context_list) {
@@ -3305,7 +3305,7 @@ static int yaffs_stats_proc_read(char *page,
 			       dev->bg_gcs, dev->oldest_dirty_gc_count,
 			       dev->n_obj, dev->n_tnodes);
 	}
-	up(&yaffs_context_lock);
+	mutex_unlock(&yaffs_context_lock);
 
 	return buf - page < count ? buf - page : count;
 }
@@ -3479,7 +3479,7 @@ static int __init init_yaffs_fs(void)
 	   (" \n\n\n\nYAFFS-WARNING CONFIG_YAFFS_ALWAYS_CHECK_CHUNK_ERASED selected.\n\n\n\n")));
 #endif
 
-	init_MUTEX(&yaffs_context_lock);
+	mutex_init(&yaffs_context_lock);
 
 	/* Install the proc_fs entries */
 	my_proc_entry = create_proc_entry("yaffs",

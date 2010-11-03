@@ -47,9 +47,10 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 YAFFSTESTOBJS  = $(COMMONTESTOBJS) quick_tests.o lib.o test_mount_yaffs.o   test_yaffs_unlinking.o test_open_file.o test_yaffs_ftruncate.o test_yaffs_truncate.o \
 		test_yaffs_write.o test_yaffs_read.o test_yaffs_lseek.o test_yaffs_access.o test_yaffs_stat.o
 
+PYTONOSYMLINKS = yaffs_error_converter.c yaffs_error_converter.h
+PYTHONOBJS = yaffs_error_converter.o
 
-
-ALLOBJS = $(sort $(YAFFSTESTOBJS))
+ALLOBJS = $(sort $(YAFFSTESTOBJS)) $(PYTHONOBJS)
 
 YAFFSSYMLINKS = devextras.h yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yportenv.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h   \
@@ -74,7 +75,7 @@ DIRECTEXTRASYMLINKS = 	yaffscfg2k.c yaffs_fileem2k.c yaffs_fileem2k.h\
 			yaffs_ramdisk.c yaffs_ramdisk.h yaffs_ramem2k.c \
 			ynorsim.h ynorsim.c
 
-SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS) $(DIRECTEXTRASYMLINKS)
+SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS) $(DIRECTEXTRASYMLINKS) $(PYTONOSYMLINKS)
 #all: directtest2k boottest
 
 all: quick_tests 
@@ -82,6 +83,8 @@ all: quick_tests
 $(ALLOBJS): %.o: %.c
 	gcc -c $(CFLAGS) -o $@ $<
 
+$(PYTONOSYMLINKS):
+	ln -s ../../python/$@ $@
 
 $(YAFFSSYMLINKS):
 	ln -s ../../../$@ $@
@@ -93,8 +96,8 @@ $(DIRECTEXTRASYMLINKS):
 	ln -s ../../basic-test/$@ $@
 
 
-quick_tests: $(SYMLINKS) $(YAFFSTESTOBJS)
-	gcc $(CFLLAG) -o $@ $(YAFFSTESTOBJS)
+quick_tests: $(SYMLINKS) $(ALLOBJS)
+	gcc $(CFLLAG) -o $@ $(ALLOBJS)
 
 
 

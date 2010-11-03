@@ -1,6 +1,6 @@
 #include "quick_tests.h"
 
-#include "yaffsfs.h"
+
 int random_seed;
 int simulate_power_failure = 0;
 
@@ -37,8 +37,9 @@ test_template test_list[]={
 	{test_yaffs_unlinking, test_yaffs_unlinking_clean,"test_yaffs_unlinking"},
 
 	{test_yaffs_lseek,test_yaffs_lseek_clean,"test_yaffs_lseek"},
-	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
+	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
+
 
 	{test_yaffs_stat,test_yaffs_stat_clean,"test_yaffs_stat"},
 	{test_yaffs_ftruncate,test_yaffs_ftruncate_clean,"test_yaffs_ftruncate"},
@@ -92,10 +93,17 @@ int main(){
 }
 
 void quit_quick_tests(int exit_code){
+	int error_code=0;
 	if (num_of_tests_pass==total_number_of_tests &&  num_of_tests_failed==0){
 		printf("\t OK \n");
 	}
+	else {
+		error_code=yaffs_get_error();
+		printf("yaffs_error code %d\n",error_code);
+		printf("error is : %s\n",yaffs_error_to_str(error_code));
+	}
 	printf("tests: %d passed %d failed\n\n\n",num_of_tests_pass,num_of_tests_failed);
+	yaffs_unmount(YAFFS_MOUNT_POINT);
 	exit(exit_code);
 }
 

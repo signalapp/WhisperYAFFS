@@ -13,6 +13,10 @@ int test_yaffs_write(void){
 }
 
 int test_yaffs_write_clean(void){
-	test_yaffs_lseek_to_beginning();
-	return 1;
+	if (0==test_yaffs_lseek_to_beginning()){
+		return 1;
+	}
+	else {
+		return -1;
+	}
 }

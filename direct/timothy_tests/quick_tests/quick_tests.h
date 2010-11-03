@@ -12,6 +12,11 @@
 #include "test_yaffs_lseek.h"
 #include "test_yaffs_access.h"
 #include "test_yaffs_stat.h"
+#include "yaffsfs.h"
+#include "yaffs_error_converter.h"
+#include "lib.h"
+
+
 #define YAFFS_MOUNT_POINT "/yaffs2/"
 
 void init_quick_tests(void);

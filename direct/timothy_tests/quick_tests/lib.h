@@ -7,6 +7,7 @@
 #define FILE_NAME "foo"
 #define FILE_SIZE 9
 
+#define FILE_MODE (S_IREAD | S_IWRITE)
 #define FILE_SIZE_TRUNCATED 100
 #define FILE_TEXT "file foo"
 #define FILE_TEXT_NBYTES 9

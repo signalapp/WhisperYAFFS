@@ -10,6 +10,8 @@
 #include "test_yaffs_write.h"
 #include "test_yaffs_read.h"
 #include "test_yaffs_lseek.h"
+#include "test_yaffs_access.h"
+#include "test_yaffs_stat.h"
 #define YAFFS_MOUNT_POINT "/yaffs2/"
 
 void init_quick_tests(void);

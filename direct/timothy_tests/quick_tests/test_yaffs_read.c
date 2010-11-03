@@ -6,16 +6,19 @@ int test_yaffs_read(void){
 	int output=0;
 	if (handle>0){
 		output=yaffs_read(handle, text, FILE_TEXT_NBYTES);
-		if (output>0){
+		printf("output: %d\n",output);
+		if (output>0){ 
 			if (text==FILE_TEXT){
 				return 1;
 			}
 			else {
 				printf("text does not match the the text that should be in the file\n");
+				return -1;
 			}
 		}
 		else{
-			printf("error reading file");
+			printf("error reading file\n");
+			return -1;
 		}
 	}
 	else {

@@ -5,19 +5,12 @@ int test_yaffs_lseek(void){
 	char text[20]="\0";
 	int output=0;
 	if (handle>0){
-		return yaffs_lseek(handle, 0, SEEK_SET);
-		/*
-		if (output>0){
-			if (text==FILE_TEXT){
-				return 1;
-			}
-			else {
-				printf("text does not match the the text that should be in the file\n");
-			}
+		if (0==yaffs_lseek(handle, 0, SEEK_SET)){
+			return 1;
 		}
-		else{
-			printf("error reading file");
-		} */
+		else {
+			printf("lseek returned a different position to the expeced position\n");
+		}
 	}
 	else {
 		printf("error opening file\n");
@@ -33,7 +26,12 @@ int test_yaffs_lseek_clean(void){
 int test_yaffs_lseek_to_beginning(void){
 	int handle=test_open_file();
 	if (handle>0){
-		return yaffs_lseek(handle, 0, SEEK_SET);
+		if (0==yaffs_lseek(handle, 0, SEEK_SET)){	/*lseek returns the position of the seeker */
+			return 1;
+		}
+		else {
+			printf("lseek returned a different position to the expeced position\n");
+		} 
 	}
 	else {
 		printf("error opening file\n");

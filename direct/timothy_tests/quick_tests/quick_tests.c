@@ -31,14 +31,16 @@ test_template test_list[]={
 	//{dummy_test_pass,dummy_test_pass_clean,"dummy_test_pass"},
 	//{dummy_test_fail,dummy_test_fail_clean,"dummy_test_fail"},
 	{mount_yaffs_test,mount_yaffs_test_clean,"mount_yaffs_test"},
-
 	{test_open_file,test_open_file_clean,"test_open_file"},
+	
+	{test_yaffs_access,test_yaffs_access_clean,"test_yaffs_access"},
 	{test_yaffs_unlinking, test_yaffs_unlinking_clean,"test_yaffs_unlinking"},
 
 	{test_yaffs_lseek,test_yaffs_lseek_clean,"test_yaffs_lseek"},
 	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
 
+	{test_yaffs_stat,test_yaffs_stat_clean,"test_yaffs_stat"},
 	{test_yaffs_ftruncate,test_yaffs_ftruncate_clean,"test_yaffs_ftruncate"},
 	{test_yaffs_truncate,test_yaffs_truncate_clean,"test_yaffs_truncate"}
 

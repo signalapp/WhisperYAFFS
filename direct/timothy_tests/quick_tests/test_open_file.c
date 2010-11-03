@@ -9,7 +9,7 @@ int test_open_file(void){
 	int output=0;
 
 	/*printf("path %s\n",path); */
-	output=yaffs_open(FILE_PATH,O_CREAT | O_TRUNC| O_RDWR, S_IREAD | S_IWRITE);
+	output=yaffs_open(FILE_PATH,O_CREAT | O_TRUNC| O_RDWR, FILE_MODE);
 
 	return output;
 }

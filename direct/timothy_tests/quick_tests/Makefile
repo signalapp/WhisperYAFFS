@@ -45,7 +45,7 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 #		 yaffs_checkptrwtest.o\
 
 YAFFSTESTOBJS  = $(COMMONTESTOBJS) quick_tests.o lib.o test_mount_yaffs.o   test_yaffs_unlinking.o test_yaffs_open_file.o test_yaffs_ftruncate.o test_yaffs_truncate.o \
-		test_yaffs_write.o test_yaffs_read.o test_yaffs_lseek.o test_yaffs_access.o test_yaffs_stat.o
+		test_yaffs_write.o test_yaffs_read.o test_yaffs_lseek.o test_yaffs_access.o test_yaffs_stat.o test_yaffs_open_file_ENOENT.o
 
 PYTONOSYMLINKS = yaffs_error_converter.c yaffs_error_converter.h
 PYTHONOBJS = yaffs_error_converter.o

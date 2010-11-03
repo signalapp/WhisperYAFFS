@@ -30,7 +30,7 @@ CFLAGS +=    -O0 -fPIC
 
 
 COMMONTESTOBJS = yaffscfg2k.o yramsim.o yaffs_fileem2k.o\
-		 yaffs_nandif.o \
+		 yaffs_nandif.o yaffs_attribs.o \
 		 yaffsfs.o  yaffs_ecc.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
@@ -51,7 +51,7 @@ YAFFSSYMLINKS = yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffs_tagscomp
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h  \
           yaffs_nand.c yaffs_nand.h yaffs_getblockinfo.h  \
           yaffs_tagsvalidity.c yaffs_tagsvalidity.h yaffs_checkptrw.h yaffs_checkptrw.c \
-          yaffs_nameval.c yaffs_nameval.h \
+          yaffs_nameval.c yaffs_nameval.h yaffs_attribs.h \
           yaffs_trace.h \
           yaffs_allocator.c yaffs_allocator.h \
           yaffs_yaffs1.c yaffs_yaffs1.h \
@@ -63,7 +63,7 @@ YAFFSSYMLINKS = yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffs_tagscomp
 YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffsfs.h yaffscfg.h yaffs_malloc.h ydirectenv.h \
 		       yaffs_flashif.c yaffs_flashif.h yaffs_flashif2.h yaffs_list.h \
 		       yaffs_nandif.c yaffs_nandif.h yaffs_qsort.c yaffs_nandemul2k.h \
-		       yportenv.h
+		       yportenv.h yaffs_attribs.c
 
 DIRECTEXTRASYMLINKS =   yaffscfg2k.c yaffs_fileem2k.c yaffs_fileem2k.h\
                         yaffs_fileem.c yaffs_norif1.c yaffs_norif1.h \

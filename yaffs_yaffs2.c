@@ -20,6 +20,7 @@
 #include "yaffs_nand.h"
 #include "yaffs_getblockinfo.h"
 #include "yaffs_verify.h"
+#include "yaffs_attribs.h"
 
 /*
  * Checkpoints are really no benefit on very small partitions.
@@ -1318,24 +1319,8 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 					if (oh) {
 
 						in->yst_mode = oh->yst_mode;
-#ifdef CONFIG_YAFFS_WINCE
-						in->win_atime[0] = oh->win_atime[0];
-						in->win_ctime[0] = oh->win_ctime[0];
-						in->win_mtime[0] = oh->win_mtime[0];
-						in->win_atime[1] = oh->win_atime[1];
-						in->win_ctime[1] = oh->win_ctime[1];
-						in->win_mtime[1] = oh->win_mtime[1];
-#else
-						in->yst_uid = oh->yst_uid;
-						in->yst_gid = oh->yst_gid;
-						in->yst_atime = oh->yst_atime;
-						in->yst_mtime = oh->yst_mtime;
-						in->yst_ctime = oh->yst_ctime;
-						in->yst_rdev = oh->yst_rdev;
-
+						yaffs_load_attribs(in, oh);
 						in->lazy_loaded = 0;
-
-#endif
 					} else
 						in->lazy_loaded = 1;
 
@@ -1351,21 +1336,7 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 						in->variant_type = oh->type;
 
 						in->yst_mode = oh->yst_mode;
-#ifdef CONFIG_YAFFS_WINCE
-						in->win_atime[0] = oh->win_atime[0];
-						in->win_ctime[0] = oh->win_ctime[0];
-						in->win_mtime[0] = oh->win_mtime[0];
-						in->win_atime[1] = oh->win_atime[1];
-						in->win_ctime[1] = oh->win_ctime[1];
-						in->win_mtime[1] = oh->win_mtime[1];
-#else
-						in->yst_uid = oh->yst_uid;
-						in->yst_gid = oh->yst_gid;
-						in->yst_atime = oh->yst_atime;
-						in->yst_mtime = oh->yst_mtime;
-						in->yst_ctime = oh->yst_ctime;
-						in->yst_rdev = oh->yst_rdev;
-#endif
+						yaffs_load_attribs(in, oh);
 
 						if (oh->shadows_obj > 0)
 							yaffs_handle_shadowed_obj(dev,

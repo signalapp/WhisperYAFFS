@@ -306,15 +306,11 @@ struct yaffs_obj_hdr {
 	/* The following apply to directories, files, symlinks - not hard links */
 	u32 yst_mode;         /* protection */
 
-#ifdef CONFIG_YAFFS_WINCE
-	u32 not_for_wince[5];
-#else
 	u32 yst_uid;
 	u32 yst_gid;
 	u32 yst_atime;
 	u32 yst_mtime;
 	u32 yst_ctime;
-#endif
 
 	/* File size  applies to files only */
 	int file_size;
@@ -327,14 +323,10 @@ struct yaffs_obj_hdr {
 
 	u32 yst_rdev;		/* device stuff for block and char devices (major/min) */
 
-#ifdef CONFIG_YAFFS_WINCE
 	u32 win_ctime[2];
 	u32 win_atime[2];
 	u32 win_mtime[2];
-#else
-	u32 room_to_grow[6];
 
-#endif
 	u32 inband_shadowed_obj_id;
 	u32 inband_is_shrink;
 
@@ -829,9 +821,6 @@ int yaffs_get_obj_inode(struct yaffs_obj *obj);
 unsigned yaffs_get_obj_type(struct yaffs_obj *obj);
 int yaffs_get_obj_link_count(struct yaffs_obj *obj);
 
-int yaffs_set_attribs(struct yaffs_obj *obj, struct iattr *attr);
-int yaffs_get_attribs(struct yaffs_obj *obj, struct iattr *attr);
-
 /* File operations */
 int yaffs_file_rd(struct yaffs_obj *obj, u8 *buffer, loff_t offset,
 				int n_bytes);
@@ -881,11 +870,6 @@ int yaffs_remove_xattrib(struct yaffs_obj *obj, const YCHAR *name);
 /* Special directories */
 struct yaffs_obj *yaffs_root(struct yaffs_dev *dev);
 struct yaffs_obj *yaffs_lost_n_found(struct yaffs_dev *dev);
-
-#ifdef CONFIG_YAFFS_WINCE
-/* CONFIG_YAFFS_WINCE special stuff */
-void yfsd_win_file_time_now(u32 target[2]);
-#endif
 
 void yaffs_handle_defered_free(struct yaffs_obj *obj);
 

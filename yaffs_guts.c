@@ -33,6 +33,8 @@
 #include "yaffs_nameval.h"
 #include "yaffs_allocator.h"
 
+#include "yaffs_attribs.h"
+
 /* Note YAFFS_GC_GOOD_ENOUGH must be <= YAFFS_GC_PASSIVE_THRESHOLD */
 #define YAFFS_GC_GOOD_ENOUGH 2
 #define YAFFS_GC_PASSIVE_THRESHOLD 4
@@ -1366,23 +1368,13 @@ struct yaffs_obj *yaffs_new_obj(struct yaffs_dev *dev, int number,
 		the_obj->obj_id = number;
 		yaffs_hash_obj(the_obj);
 		the_obj->variant_type = type;
-#ifdef CONFIG_YAFFS_WINCE
-		yfsd_win_file_time_now(the_obj->win_atime);
-		the_obj->win_ctime[0] = the_obj->win_mtime[0] =
-		    the_obj->win_atime[0];
-		the_obj->win_ctime[1] = the_obj->win_mtime[1] =
-		    the_obj->win_atime[1];
+		yaffs_load_current_time(the_obj,1,1);
 
-#else
-
-		the_obj->yst_atime = the_obj->yst_mtime =
-		    the_obj->yst_ctime = Y_CURRENT_TIME;
-#endif
 		switch (type) {
 		case YAFFS_OBJECT_TYPE_FILE:
 			the_obj->variant.file_variant.file_size = 0;
 			the_obj->variant.file_variant.scanned_size = 0;
-			the_obj->variant.file_variant.shrink_size = 0xFFFFFFFF;	/* max u32 */
+			the_obj->variant.file_variant.shrink_size = ~0;/* max */
 			the_obj->variant.file_variant.top_level = 0;
 			the_obj->variant.file_variant.top = tn;
 			break;
@@ -1491,18 +1483,8 @@ static struct yaffs_obj *yaffs_create_obj(enum yaffs_obj_type type,
 
 		in->yst_mode = mode;
 
-#ifdef CONFIG_YAFFS_WINCE
-		yfsd_win_file_time_now(in->win_atime);
-		in->win_ctime[0] = in->win_mtime[0] = in->win_atime[0];
-		in->win_ctime[1] = in->win_mtime[1] = in->win_atime[1];
+		yaffs_attribs_init(in, gid, uid, rdev);
 
-#else
-		in->yst_atime = in->yst_mtime = in->yst_ctime = Y_CURRENT_TIME;
-
-		in->yst_rdev = rdev;
-		in->yst_uid = uid;
-		in->yst_gid = gid;
-#endif
 		in->n_data_chunks = 0;
 
 		yaffs_set_obj_name(in, name);
@@ -1664,7 +1646,7 @@ int yaffs_rename_obj(struct yaffs_obj *old_dir, const YCHAR *old_name,
 	dev = old_dir->my_dev;
 
 #ifdef CONFIG_YAFFS_CASE_INSENSITIVE
-	/* Special case for case insemsitive systems (eg. WinCE).
+	/* Special case for case insemsitive systems.
 	 * While look-up is case insensitive, the name isn't.
 	 * Therefore we might want to change x.txt to X.txt
 	*/
@@ -2945,21 +2927,8 @@ int yaffs_update_oh(struct yaffs_obj *in, const YCHAR *name, int force,
 		oh->yst_mode = in->yst_mode;
 		oh->shadows_obj = oh->inband_shadowed_obj_id = shadows;
 
-#ifdef CONFIG_YAFFS_WINCE
-		oh->win_atime[0] = in->win_atime[0];
-		oh->win_ctime[0] = in->win_ctime[0];
-		oh->win_mtime[0] = in->win_mtime[0];
-		oh->win_atime[1] = in->win_atime[1];
-		oh->win_ctime[1] = in->win_ctime[1];
-		oh->win_mtime[1] = in->win_mtime[1];
-#else
-		oh->yst_uid = in->yst_uid;
-		oh->yst_gid = in->yst_gid;
-		oh->yst_atime = in->yst_atime;
-		oh->yst_mtime = in->yst_mtime;
-		oh->yst_ctime = in->yst_ctime;
-		oh->yst_rdev = in->yst_rdev;
-#endif
+		yaffs_load_attribs_oh(oh,in);
+
 		if (in->parent)
 			oh->parent_obj_id = in->parent->obj_id;
 		else
@@ -3068,13 +3037,13 @@ int yaffs_update_oh(struct yaffs_obj *in, const YCHAR *name, int force,
 }
 
 /*------------------------ Short Operations Cache ----------------------------------------
- *   In many situations where there is no high level buffering (eg WinCE) a lot of
+ *   In many situations where there is no high level buffering  a lot of
  *   reads might be short sequential reads, and a lot of writes may be short
  *   sequential writes. eg. scanning/writing a jpeg file.
- *   In these cases, a short read/write cache can provide a huge perfomance benefit
- *   with dumb-as-a-rock code.
- *   In Linux, the page cache provides read buffering aand the short op cache provides write
- *   buffering.
+ *   In these cases, a short read/write cache can provide a huge perfomance
+ *   benefit with dumb-as-a-rock code.
+ *   In Linux, the page cache provides read buffering and the short op cache 
+ *   provides write buffering.
  *
  *   There are a limited number (~10) of cache chunks per device so that we don't
  *   need a very intelligent search.
@@ -3725,25 +3694,6 @@ int yaffs_resize_file(struct yaffs_obj *in, loff_t new_size)
 	return YAFFS_OK;
 }
 
-loff_t yaffs_get_file_size(struct yaffs_obj *obj)
-{
-	YCHAR *alias = NULL;
-	obj = yaffs_get_equivalent_obj(obj);
-
-	switch (obj->variant_type) {
-	case YAFFS_OBJECT_TYPE_FILE:
-		return obj->variant.file_variant.file_size;
-	case YAFFS_OBJECT_TYPE_SYMLINK:
-		alias = obj->variant.symlink_variant.alias;
-		if(!alias)
-			return 0;
-		return yaffs_strnlen(alias,YAFFS_MAX_ALIAS_LENGTH);
-	default:
-		return 0;
-	}
-}
-
-
 
 int yaffs_flush_file(struct yaffs_obj *in, int update_time, int data_sync)
 {
@@ -3753,15 +3703,8 @@ int yaffs_flush_file(struct yaffs_obj *in, int update_time, int data_sync)
 		if(data_sync) /* Only sync data */
 			ret_val=YAFFS_OK;
 		else {
-			if (update_time) {
-#ifdef CONFIG_YAFFS_WINCE
-				yfsd_win_file_time_now(in->win_mtime);
-#else
-
-				in->yst_mtime = Y_CURRENT_TIME;
-
-#endif
-			}
+			if (update_time)
+				yaffs_load_current_time(in,0,0);
 
 			ret_val = (yaffs_update_oh(in, NULL, 0, 0, 0, NULL) >=
 				0) ? YAFFS_OK : YAFFS_FAIL;
@@ -4264,22 +4207,7 @@ static void yaffs_check_obj_details_loaded(struct yaffs_obj *in)
 		oh = (struct yaffs_obj_hdr *) chunk_data;
 
 		in->yst_mode = oh->yst_mode;
-#ifdef CONFIG_YAFFS_WINCE
-		in->win_atime[0] = oh->win_atime[0];
-		in->win_ctime[0] = oh->win_ctime[0];
-		in->win_mtime[0] = oh->win_mtime[0];
-		in->win_atime[1] = oh->win_atime[1];
-		in->win_ctime[1] = oh->win_ctime[1];
-		in->win_mtime[1] = oh->win_mtime[1];
-#else
-		in->yst_uid = oh->yst_uid;
-		in->yst_gid = oh->yst_gid;
-		in->yst_atime = oh->yst_atime;
-		in->yst_mtime = oh->yst_mtime;
-		in->yst_ctime = oh->yst_ctime;
-		in->yst_rdev = oh->yst_rdev;
-
-#endif
+		yaffs_load_attribs(in, oh);
 		yaffs_set_obj_name_from_oh(in, oh);
 
 		if (in->variant_type == YAFFS_OBJECT_TYPE_SYMLINK) {
@@ -4316,22 +4244,21 @@ static void yaffs_update_parent(struct yaffs_obj *obj)
 	struct yaffs_dev *dev;
 	if(!obj)
 		return;
-#ifndef CONFIG_YAFFS_WINCE
-
 	dev = obj->my_dev;
 	obj->dirty = 1;
-	obj->yst_mtime = obj->yst_ctime = Y_CURRENT_TIME;
+	yaffs_load_current_time(obj,0,1);
 	if(dev->param.defered_dir_update){
 		struct list_head *link = &obj->variant.dir_variant.dirty; 
 	
 		if(list_empty(link)){
 			list_add(link,&dev->dirty_dirs);
-			T(YAFFS_TRACE_BACKGROUND, (TSTR("Added object %d to dirty directories" TENDSTR),obj->obj_id));
+			T(YAFFS_TRACE_BACKGROUND, 
+			(TSTR("Added object %d to dirty directories" TENDSTR),
+			obj->obj_id));
 		}
 
 	} else
 		yaffs_update_oh(obj, NULL, 0, 0, 0, NULL);
-#endif
 }
 
 void yaffs_update_dirty_dirs(struct yaffs_dev *dev)
@@ -4715,63 +4642,6 @@ YCHAR *yaffs_get_symlink_alias(struct yaffs_obj *obj)
 	else
 		return yaffs_clone_str(_Y(""));
 }
-
-#ifndef CONFIG_YAFFS_WINCE
-
-int yaffs_set_attribs(struct yaffs_obj *obj, struct iattr *attr)
-{
-	unsigned int valid = attr->ia_valid;
-
-	if (valid & ATTR_MODE)
-		obj->yst_mode = attr->ia_mode;
-	if (valid & ATTR_UID)
-		obj->yst_uid = attr->ia_uid;
-	if (valid & ATTR_GID)
-		obj->yst_gid = attr->ia_gid;
-
-	if (valid & ATTR_ATIME)
-		obj->yst_atime = Y_TIME_CONVERT(attr->ia_atime);
-	if (valid & ATTR_CTIME)
-		obj->yst_ctime = Y_TIME_CONVERT(attr->ia_ctime);
-	if (valid & ATTR_MTIME)
-		obj->yst_mtime = Y_TIME_CONVERT(attr->ia_mtime);
-
-	if (valid & ATTR_SIZE)
-		yaffs_resize_file(obj, attr->ia_size);
-
-	yaffs_update_oh(obj, NULL, 1, 0, 0, NULL);
-
-	return YAFFS_OK;
-
-}
-int yaffs_get_attribs(struct yaffs_obj *obj, struct iattr *attr)
-{
-	unsigned int valid = 0;
-
-	attr->ia_mode = obj->yst_mode;
-	valid |= ATTR_MODE;
-	attr->ia_uid = obj->yst_uid;
-	valid |= ATTR_UID;
-	attr->ia_gid = obj->yst_gid;
-	valid |= ATTR_GID;
-
-	Y_TIME_CONVERT(attr->ia_atime) = obj->yst_atime;
-	valid |= ATTR_ATIME;
-	Y_TIME_CONVERT(attr->ia_ctime) = obj->yst_ctime;
-	valid |= ATTR_CTIME;
-	Y_TIME_CONVERT(attr->ia_mtime) = obj->yst_mtime;
-	valid |= ATTR_MTIME;
-
-	attr->ia_size = yaffs_get_file_size(obj);
-	valid |= ATTR_SIZE;
-
-	attr->ia_valid = valid;
-
-	return YAFFS_OK;
-}
-
-#endif
-
 
 static int yaffs_do_xattrib_mod(struct yaffs_obj *obj, int set, const YCHAR *name, const void *value, int size, int flags)
 {

@@ -33,7 +33,7 @@ ifneq ($(KERNELRELEASE),)
 	yaffs2-objs += yaffs_tagscompat.o yaffs_tagsvalidity.o
 	yaffs2-objs += yaffs_checkptrw.o yaffs_nand.o
 	yaffs2-objs += yaffs_checkptrw.o yaffs_nand.o yaffs_nameval.o
-	yaffs2-objs += yaffs_allocator.o yaffs_bitmap.o
+	yaffs2-objs += yaffs_allocator.o yaffs_bitmap.o yaffs_attribs.o
 	yaffs2-objs += yaffs_yaffs1.o
 	yaffs2-objs += yaffs_yaffs2.o
 	yaffs2-objs += yaffs_verify.o
@@ -45,7 +45,7 @@ ifneq ($(KERNELRELEASE),)
 	yaffs2multi-objs += yaffs_tagscompat.o yaffs_tagsvalidity.o
 	yaffs2multi-objs += yaffs_checkptrw.o yaffs_nand.o
 	yaffs2multi-objs += yaffs_checkptrw.o yaffs_nand.o yaffs_nameval.o
-	yaffs2multi-objs += yaffs_allocator.o yaffs_bitmap.o
+	yaffs2multi-objs += yaffs_allocator.o yaffs_bitmap.o yaffs_attribs.o
 	yaffs2multi-objs += yaffs_yaffs1.o
 	yaffs2multi-objs += yaffs_yaffs2.o
 	yaffs2multi-objs += yaffs_verify.o

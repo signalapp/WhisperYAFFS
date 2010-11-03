@@ -163,6 +163,7 @@ static uint32_t YCALCBLOCKS(uint64_t partition_size, uint32_t block_size)
 #include "yportenv.h"
 #include "yaffs_trace.h"
 #include "yaffs_guts.h"
+#include "yaffs_attribs.h"
 
 #include "yaffs_linux.h"
 

@@ -24,14 +24,15 @@ const char *yaffs_flashif2_c_version = "$Id: yaffs_fileem2k.c,v 1.24 2010-02-18 
 
 #include "yaffs_flashif2.h"
 #include "yaffs_guts.h"
+#include "yaffs_fileem2k.h"
+#include "yaffs_packedtags2.h"
+#include "yaffs_tagsvalidity.h"
+
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h> 
-
-#include "yaffs_fileem2k.h"
-#include "yaffs_packedtags2.h"
 
 
 
@@ -65,7 +66,6 @@ int yaffs_test_partial_write = 0;
 
 extern int random_seed;
 extern int simulate_power_failure;
-static int initialised = 0;
 static int remaining_ops;
 static int nops_so_far;
 
@@ -179,7 +179,7 @@ int yflash2_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const 
 	int nRead;
 	int error;
 	
-	T(YAFFS_TRACE_MTD,(TSTR("write chunk %d data %x tags %x" TENDSTR),nand_chunk,(unsigned)data, (unsigned)tags));
+	T(YAFFS_TRACE_MTD,(TSTR("write chunk %d data %p tags %p" TENDSTR),nand_chunk, data, tags));
 
 	CheckInit();
 	
@@ -396,7 +396,7 @@ int yflash2_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *
 	int retval = YAFFS_OK;
 	int nRead;
 	
-	T(YAFFS_TRACE_MTD,(TSTR("read chunk %d data %x tags %x" TENDSTR),nand_chunk,(unsigned)data, (unsigned)tags));
+	T(YAFFS_TRACE_MTD,(TSTR("read chunk %d data %p tags %p" TENDSTR),nand_chunk, data, tags));
 	
 	CheckInit();
 	

@@ -2,7 +2,7 @@
 
 static int handle=0;
 int test_yaffs_lseek(void){
-	handle=test_yaffs_open_file();
+	handle=test_yaffs_open();
 	char text[20]="\0";
 	int output=0;
 	if (handle>0){

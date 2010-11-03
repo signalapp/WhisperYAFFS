@@ -3,7 +3,7 @@
 static int handle=0;
 
 int test_yaffs_read(void){
-	handle=test_yaffs_open_file();
+	handle=test_yaffs_open();
 	char text[20]="\0";
 	int output=0;
 	printf("handle %d\n",handle);

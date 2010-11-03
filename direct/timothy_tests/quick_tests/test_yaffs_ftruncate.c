@@ -2,7 +2,7 @@
 
 static int handle=0;
 int test_yaffs_ftruncate(void){
-	handle=test_yaffs_open_file();
+	handle=test_yaffs_open();
 	if (handle>0){
 		return yaffs_ftruncate(handle,FILE_SIZE_TRUNCATED );
 	}

@@ -3,8 +3,11 @@
 #include <stdio.h>
 
 #include "test_mount_yaffs.h"
-#include "test_yaffs_open_file.h"
-#include "test_yaffs_open_file_ENOENT.h"
+#include "test_yaffs_open.h"
+#include "test_yaffs_open_EISDIR.h"
+#include "test_yaffs_open_EEXIST.h"
+#include "test_yaffs_open_ENOENT.h"
+#include "test_yaffs_open_ENOTDIR.h"
 #include "test_yaffs_unlinking.h"
 #include "test_yaffs_ftruncate.h"
 #include "test_yaffs_truncate.h"

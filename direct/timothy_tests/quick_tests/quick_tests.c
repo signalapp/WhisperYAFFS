@@ -31,7 +31,7 @@ test_template test_list[]={
 	//{dummy_test_pass,dummy_test_pass_clean,"dummy_test_pass"},
 	//{dummy_test_fail,dummy_test_fail_clean,"dummy_test_fail"},
 	{mount_yaffs_test,mount_yaffs_test_clean,"mount_yaffs_test"},
-	{test_open_file,test_open_file_clean,"test_open_file"},
+	{test_yaffs_open_file,test_yaffs_open_file_clean,"test_yaffs_open_file"},
 	
 	{test_yaffs_access,test_yaffs_access_clean,"test_yaffs_access"},
 	{test_yaffs_unlinking, test_yaffs_unlinking_clean,"test_yaffs_unlinking"},

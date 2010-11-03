@@ -34,7 +34,7 @@ int test_yaffs_stat(void){
 }
 
 int test_yaffs_stat_clean(void){
-	return test_open_file();
+	return 1;
 }
 
 int yaffs_test_stat_mode(void){

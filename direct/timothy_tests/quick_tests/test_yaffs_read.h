@@ -2,8 +2,9 @@
 #define __test_yaffs_read_h__
 #include "lib.h"
 #include "yaffsfs.h"
-#include "test_open_file.h"
-#include "test_yaffs_lseek.h"
+#include "test_yaffs_open_file.h"
+
+
 int test_yaffs_read(void);
 int test_yaffs_read_clean(void);
 #endif

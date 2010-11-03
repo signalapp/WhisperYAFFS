@@ -1,7 +1,9 @@
 #include "test_yaffs_read.h"
 
+static int handle=0;
+
 int test_yaffs_read(void){
-	int handle=test_open_file();
+	handle=test_yaffs_open_file();
 	char text[20]="\0";
 	int output=0;
 	printf("handle %d\n",handle);
@@ -31,7 +33,5 @@ int test_yaffs_read(void){
 }
 
 int test_yaffs_read_clean(void){
-	/* need to reset the seek position*/
-	
-	return test_yaffs_lseek_to_beginning();
+	return yaffs_close(handle);
 }

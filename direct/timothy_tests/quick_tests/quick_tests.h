@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "test_mount_yaffs.h"
-#include "test_open_file.h"
+#include "test_yaffs_open_file.h"
 #include "test_yaffs_unlinking.h"
 #include "test_yaffs_ftruncate.h"
 #include "test_yaffs_truncate.h"

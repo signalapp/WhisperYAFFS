@@ -12,5 +12,5 @@ int test_yaffs_unlinking(void){
 }
 
 int test_yaffs_unlinking_clean(void){
-	return test_open_file();
+	return test_yaffs_open_file();
 }

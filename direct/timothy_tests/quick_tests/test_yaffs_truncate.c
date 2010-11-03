@@ -1,7 +1,8 @@
 #include "test_yaffs_truncate.h"
+static int handle=0;
 
 int test_yaffs_truncate(void){
-	int handle=test_open_file();
+	handle=test_yaffs_open_file();
 	if (handle>0){
 		return yaffs_truncate(FILE_PATH,FILE_SIZE_TRUNCATED );
 	}
@@ -13,9 +14,13 @@ int test_yaffs_truncate(void){
 
 int test_yaffs_truncate_clean(void){
 	/* change file size back to orignal size */
-	int handle=test_open_file();
+	int handle=test_yaffs_open_file();
+	int output=0;
 	if (handle>0){
-		return yaffs_truncate(FILE_PATH,FILE_SIZE );
+		output= yaffs_truncate(FILE_PATH,FILE_SIZE );
+		if (output>=0){
+			return yaffs_close(handle);
+		}
 	}
 	else {
 		printf("error opening file in clean function");

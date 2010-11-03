@@ -19,7 +19,6 @@
 
 static void yaffs_handle_rd_data_error(struct yaffs_dev *dev, int nand_chunk);
 
-
 static const char yaffs_count_bits_table[256] = {
 	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
@@ -48,7 +47,7 @@ int yaffs_count_bits(u8 x)
 
 /********** Tags ECC calculations  *********/
 
-void yaffs_calc_ecc(const u8 *data, struct yaffs_spare *spare)
+void yaffs_calc_ecc(const u8 * data, struct yaffs_spare *spare)
 {
 	yaffs_ecc_cacl(data, spare->ecc1);
 	yaffs_ecc_cacl(&data[256], spare->ecc2);
@@ -58,7 +57,7 @@ void yaffs_calc_tags_ecc(struct yaffs_tags *tags)
 {
 	/* Calculate an ecc */
 
-	unsigned char *b = ((union yaffs_tags_union *) tags)->as_bytes;
+	unsigned char *b = ((union yaffs_tags_union *)tags)->as_bytes;
 	unsigned i, j;
 	unsigned ecc = 0;
 	unsigned bit = 0;
@@ -87,7 +86,7 @@ int yaffs_check_tags_ecc(struct yaffs_tags *tags)
 
 	if (ecc && ecc <= 64) {
 		/* TODO: Handle the failure better. Retire? */
-		unsigned char *b = ((union yaffs_tags_union *) tags)->as_bytes;
+		unsigned char *b = ((union yaffs_tags_union *)tags)->as_bytes;
 
 		ecc--;
 
@@ -109,9 +108,9 @@ int yaffs_check_tags_ecc(struct yaffs_tags *tags)
 /********** Tags **********/
 
 static void yaffs_load_tags_to_spare(struct yaffs_spare *spare_ptr,
-				struct yaffs_tags *tags_ptr)
+				     struct yaffs_tags *tags_ptr)
 {
-	union yaffs_tags_union *tu = (union yaffs_tags_union *) tags_ptr;
+	union yaffs_tags_union *tu = (union yaffs_tags_union *)tags_ptr;
 
 	yaffs_calc_tags_ecc(tags_ptr);
 
@@ -125,10 +124,11 @@ static void yaffs_load_tags_to_spare(struct yaffs_spare *spare_ptr,
 	spare_ptr->tb7 = tu->as_bytes[7];
 }
 
-static void yaffs_get_tags_from_spare(struct yaffs_dev *dev, struct yaffs_spare *spare_ptr,
-				struct yaffs_tags *tags_ptr)
+static void yaffs_get_tags_from_spare(struct yaffs_dev *dev,
+				      struct yaffs_spare *spare_ptr,
+				      struct yaffs_tags *tags_ptr)
 {
-	union yaffs_tags_union *tu = (union yaffs_tags_union *) tags_ptr;
+	union yaffs_tags_union *tu = (union yaffs_tags_union *)tags_ptr;
 	int result;
 
 	tu->as_bytes[0] = spare_ptr->tb0;
@@ -153,8 +153,8 @@ static void yaffs_spare_init(struct yaffs_spare *spare)
 }
 
 static int yaffs_wr_nand(struct yaffs_dev *dev,
-				int nand_chunk, const u8 *data,
-				struct yaffs_spare *spare)
+			 int nand_chunk, const u8 * data,
+			 struct yaffs_spare *spare)
 {
 	if (nand_chunk < dev->param.start_block * dev->param.chunks_per_block) {
 		T(YAFFS_TRACE_ERROR,
@@ -167,11 +167,11 @@ static int yaffs_wr_nand(struct yaffs_dev *dev,
 }
 
 static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
-				   int nand_chunk,
-				   u8 *data,
-				   struct yaffs_spare *spare,
-				   enum yaffs_ecc_result *ecc_result,
-				   int correct_errors)
+			       int nand_chunk,
+			       u8 * data,
+			       struct yaffs_spare *spare,
+			       enum yaffs_ecc_result *ecc_result,
+			       int correct_errors)
 {
 	int ret_val;
 	struct yaffs_spare local_spare;
@@ -183,7 +183,8 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 	}
 
 	if (!dev->param.use_nand_ecc) {
-		ret_val = dev->param.read_chunk_fn(dev, nand_chunk, data, spare);
+		ret_val =
+		    dev->param.read_chunk_fn(dev, nand_chunk, data, spare);
 		if (data && correct_errors) {
 			/* Do ECC correction */
 			/* Todo handle any errors */
@@ -195,7 +196,8 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 			    yaffs_ecc_correct(data, spare->ecc1, calc_ecc);
 			yaffs_ecc_cacl(&data[256], calc_ecc);
 			ecc_result2 =
-			    yaffs_ecc_correct(&data[256], spare->ecc2, calc_ecc);
+			    yaffs_ecc_correct(&data[256], spare->ecc2,
+					      calc_ecc);
 
 			if (ecc_result1 > 0) {
 				T(YAFFS_TRACE_ERROR,
@@ -245,7 +247,8 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 		memset(&nspare, 0, sizeof(nspare));
 
 		ret_val = dev->param.read_chunk_fn(dev, nand_chunk, data,
-					(struct yaffs_spare *) &nspare);
+						   (struct yaffs_spare *)
+						   &nspare);
 		memcpy(spare, &nspare, sizeof(struct yaffs_spare));
 		if (data && correct_errors) {
 			if (nspare.eccres1 > 0) {
@@ -289,7 +292,6 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 	return ret_val;
 }
 
-
 /*
  * Functions for robustisizing
  */
@@ -299,7 +301,9 @@ static void yaffs_handle_rd_data_error(struct yaffs_dev *dev, int nand_chunk)
 	int flash_block = nand_chunk / dev->param.chunks_per_block;
 
 	/* Mark the block for retirement */
-	yaffs_get_block_info(dev, flash_block + dev->block_offset)->needs_retiring = 1;
+	yaffs_get_block_info(dev,
+			     flash_block + dev->block_offset)->needs_retiring =
+	    1;
 	T(YAFFS_TRACE_ERROR | YAFFS_TRACE_BAD_BLOCKS,
 	  (TSTR("**>>Block %d marked for retirement" TENDSTR), flash_block));
 
@@ -310,11 +314,9 @@ static void yaffs_handle_rd_data_error(struct yaffs_dev *dev, int nand_chunk)
 	 */
 }
 
-
 int yaffs_tags_compat_wr(struct yaffs_dev *dev,
-						int nand_chunk,
-						const u8 *data,
-						const struct yaffs_ext_tags *ext_tags)
+			 int nand_chunk,
+			 const u8 * data, const struct yaffs_ext_tags *ext_tags)
 {
 	struct yaffs_spare spare;
 	struct yaffs_tags tags;
@@ -334,7 +336,6 @@ int yaffs_tags_compat_wr(struct yaffs_dev *dev,
 		else
 			tags.n_bytes_msb = 3;
 
-
 		tags.serial_number = ext_tags->serial_number;
 
 		if (!dev->param.use_nand_ecc && data)
@@ -348,9 +349,8 @@ int yaffs_tags_compat_wr(struct yaffs_dev *dev,
 }
 
 int yaffs_tags_compat_rd(struct yaffs_dev *dev,
-						     int nand_chunk,
-						     u8 *data,
-						     struct yaffs_ext_tags *ext_tags)
+			 int nand_chunk,
+			 u8 * data, struct yaffs_ext_tags *ext_tags)
 {
 
 	struct yaffs_spare spare;
@@ -365,8 +365,7 @@ int yaffs_tags_compat_rd(struct yaffs_dev *dev,
 		init = 1;
 	}
 
-	if (yaffs_rd_chunk_nand
-	    (dev, nand_chunk, data, &spare, &ecc_result, 1)) {
+	if (yaffs_rd_chunk_nand(dev, nand_chunk, data, &spare, &ecc_result, 1)) {
 		/* ext_tags may be NULL */
 		if (ext_tags) {
 
@@ -389,7 +388,9 @@ int yaffs_tags_compat_rd(struct yaffs_dev *dev,
 				ext_tags->n_bytes = tags.n_bytes_lsb;
 
 				if (dev->data_bytes_per_chunk >= 1024)
-					ext_tags->n_bytes |= (((unsigned) tags.n_bytes_msb) << 10);
+					ext_tags->n_bytes |=
+					    (((unsigned)tags.
+					      n_bytes_msb) << 10);
 
 				ext_tags->serial_number = tags.serial_number;
 			}
@@ -401,8 +402,7 @@ int yaffs_tags_compat_rd(struct yaffs_dev *dev,
 	}
 }
 
-int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev,
-					    int flash_block)
+int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev, int flash_block)
 {
 
 	struct yaffs_spare spare;
@@ -412,18 +412,18 @@ int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev,
 	spare.block_status = 'Y';
 
 	yaffs_wr_nand(dev, flash_block * dev->param.chunks_per_block, NULL,
-			       &spare);
+		      &spare);
 	yaffs_wr_nand(dev, flash_block * dev->param.chunks_per_block + 1,
-			       NULL, &spare);
+		      NULL, &spare);
 
 	return YAFFS_OK;
 
 }
 
 int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
-					  int block_no,
-					  enum yaffs_block_state *state,
-					  u32 *seq_number)
+				  int block_no,
+				  enum yaffs_block_state *state,
+				  u32 * seq_number)
 {
 
 	struct yaffs_spare spare0, spare1;
@@ -439,9 +439,9 @@ int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
 	*seq_number = 0;
 
 	yaffs_rd_chunk_nand(dev, block_no * dev->param.chunks_per_block, NULL,
-				&spare0, &dummy, 1);
-	yaffs_rd_chunk_nand(dev, block_no * dev->param.chunks_per_block + 1, NULL,
-				&spare1, &dummy, 1);
+			    &spare0, &dummy, 1);
+	yaffs_rd_chunk_nand(dev, block_no * dev->param.chunks_per_block + 1,
+			    NULL, &spare1, &dummy, 1);
 
 	if (yaffs_count_bits(spare0.block_status & spare1.block_status) < 7)
 		*state = YAFFS_BLOCK_STATE_DEAD;

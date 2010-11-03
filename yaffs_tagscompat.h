@@ -18,19 +18,16 @@
 
 #include "yaffs_guts.h"
 int yaffs_tags_compat_wr(struct yaffs_dev *dev,
-						int nand_chunk,
-						const u8 *data,
-						const struct yaffs_ext_tags *tags);
+			 int nand_chunk,
+			 const u8 * data, const struct yaffs_ext_tags *tags);
 int yaffs_tags_compat_rd(struct yaffs_dev *dev,
-						int nand_chunk,
-						u8 *data,
-						struct yaffs_ext_tags *tags);
-int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev,
-					    int block_no);
+			 int nand_chunk,
+			 u8 * data, struct yaffs_ext_tags *tags);
+int yaffs_tags_compat_mark_bad(struct yaffs_dev *dev, int block_no);
 int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
-					  int block_no,
-					  enum yaffs_block_state *state,
-					  u32 *seq_number);
+				  int block_no,
+				  enum yaffs_block_state *state,
+				  u32 * seq_number);
 
 void yaffs_calc_tags_ecc(struct yaffs_tags *tags);
 int yaffs_check_tags_ecc(struct yaffs_tags *tags);

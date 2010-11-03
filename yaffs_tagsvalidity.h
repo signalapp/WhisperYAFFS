@@ -13,7 +13,6 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-
 #ifndef __YAFFS_TAGS_VALIDITY_H__
 #define __YAFFS_TAGS_VALIDITY_H__
 

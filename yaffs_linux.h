@@ -19,17 +19,17 @@
 #include "yportenv.h"
 
 struct yaffs_linux_context {
-	struct list_head	context_list; /* List of these we have mounted */
+	struct list_head context_list;	/* List of these we have mounted */
 	struct yaffs_dev *dev;
-	struct super_block * super;
-	struct task_struct *bg_thread; /* Background thread for this device */
+	struct super_block *super;
+	struct task_struct *bg_thread;	/* Background thread for this device */
 	int bg_running;
-        struct semaphore gross_lock;     /* Gross locking semaphore */
-	u8 *spare_buffer;      /* For mtdif2 use. Don't know the size of the buffer
+	struct semaphore gross_lock;	/* Gross locking semaphore */
+	u8 *spare_buffer;	/* For mtdif2 use. Don't know the size of the buffer
 				 * at compile time so we have to allocate it.
 				 */
 	struct list_head search_contexts;
-	void (*put_super_fn)(struct super_block *sb);
+	void (*put_super_fn) (struct super_block * sb);
 
 	struct task_struct *readdir_process;
 	unsigned mount_id;
@@ -39,4 +39,3 @@ struct yaffs_linux_context {
 #define yaffs_dev_to_mtd(dev) ((struct mtd_info *)((dev)->driver_context))
 
 #endif
-

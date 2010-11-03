@@ -13,7 +13,6 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-
 #ifndef __YPORTENV_LINUX_H__
 #define __YPORTENV_LINUX_H__
 
@@ -61,10 +60,9 @@
 #define YAFFS_ROOT_MODE			0755
 #define YAFFS_LOSTNFOUND_MODE		0700
 
-
 #define Y_CURRENT_TIME CURRENT_TIME.tv_sec
 #define Y_TIME_CONVERT(x) (x).tv_sec
- 
+
 #define yaffs_sum_cmp(x, y) ((x) == (y))
 #define yaffs_strcmp(a, b) strcmp(a, b)
 
@@ -75,8 +73,6 @@
 
 #define compile_time_assertion(assertion) \
 	({ int x = __builtin_choose_expr(assertion, 0, (void)0); (void) x; })
-
-
 
 #ifndef Y_DUMP_STACK
 #define Y_DUMP_STACK() do { } while (0)
@@ -90,6 +86,5 @@
 	Y_DUMP_STACK();\
 } while (0)
 #endif
-
 
 #endif

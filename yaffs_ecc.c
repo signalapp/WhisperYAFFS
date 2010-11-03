@@ -106,7 +106,7 @@ void yaffs_ecc_cacl(const unsigned char *data, unsigned char *ecc)
 		b = column_parity_table[*data++];
 		col_parity ^= b;
 
-		if (b & 0x01) {		/* odd number of bits in the byte */
+		if (b & 0x01) {	/* odd number of bits in the byte */
 			line_parity ^= i;
 			line_parity_prime ^= ~i;
 		}
@@ -160,11 +160,10 @@ void yaffs_ecc_cacl(const unsigned char *data, unsigned char *ecc)
 #endif
 }
 
-
 /* Correct the ECC on a 256 byte block of data */
 
 int yaffs_ecc_correct(unsigned char *data, unsigned char *read_ecc,
-		     const unsigned char *test_ecc)
+		      const unsigned char *test_ecc)
 {
 	unsigned char d0, d1, d2;	/* deltas */
 
@@ -173,7 +172,7 @@ int yaffs_ecc_correct(unsigned char *data, unsigned char *read_ecc,
 	d2 = read_ecc[2] ^ test_ecc[2];
 
 	if ((d0 | d1 | d2) == 0)
-		return 0; /* no error */
+		return 0;	/* no error */
 
 	if (((d0 ^ (d0 >> 1)) & 0x55) == 0x55 &&
 	    ((d1 ^ (d1 >> 1)) & 0x55) == 0x55 &&
@@ -220,19 +219,18 @@ int yaffs_ecc_correct(unsigned char *data, unsigned char *read_ecc,
 
 		data[byte] ^= (1 << bit);
 
-		return 1; /* Corrected the error */
+		return 1;	/* Corrected the error */
 	}
 
 	if ((yaffs_count_bits(d0) +
-	     yaffs_count_bits(d1) +
-	     yaffs_count_bits(d2)) ==  1) {
+	     yaffs_count_bits(d1) + yaffs_count_bits(d2)) == 1) {
 		/* Reccoverable error in ecc */
 
 		read_ecc[0] = test_ecc[0];
 		read_ecc[1] = test_ecc[1];
 		read_ecc[2] = test_ecc[2];
 
-		return 1; /* Corrected the error */
+		return 1;	/* Corrected the error */
 	}
 
 	/* Unrecoverable error */
@@ -241,12 +239,11 @@ int yaffs_ecc_correct(unsigned char *data, unsigned char *read_ecc,
 
 }
 
-
 /*
  * ECCxxxOther does ECC calcs on arbitrary n bytes of data
  */
 void yaffs_ecc_calc_other(const unsigned char *data, unsigned n_bytes,
-				struct yaffs_ecc_other *ecc_other)
+			  struct yaffs_ecc_other *ecc_other)
 {
 	unsigned int i;
 
@@ -259,7 +256,7 @@ void yaffs_ecc_calc_other(const unsigned char *data, unsigned n_bytes,
 		b = column_parity_table[*data++];
 		col_parity ^= b;
 
-		if (b & 0x01)	 {
+		if (b & 0x01) {
 			/* odd number of bits in the byte */
 			line_parity ^= i;
 			line_parity_prime ^= ~i;
@@ -273,8 +270,8 @@ void yaffs_ecc_calc_other(const unsigned char *data, unsigned n_bytes,
 }
 
 int yaffs_ecc_correct_other(unsigned char *data, unsigned n_bytes,
-			struct yaffs_ecc_other *read_ecc,
-			const struct yaffs_ecc_other *test_ecc)
+			    struct yaffs_ecc_other *read_ecc,
+			    const struct yaffs_ecc_other *test_ecc)
 {
 	unsigned char delta_col;	/* column parity delta */
 	unsigned delta_line;	/* line parity delta */
@@ -283,10 +280,11 @@ int yaffs_ecc_correct_other(unsigned char *data, unsigned n_bytes,
 
 	delta_col = read_ecc->col_parity ^ test_ecc->col_parity;
 	delta_line = read_ecc->line_parity ^ test_ecc->line_parity;
-	delta_line_prime = read_ecc->line_parity_prime ^ test_ecc->line_parity_prime;
+	delta_line_prime =
+	    read_ecc->line_parity_prime ^ test_ecc->line_parity_prime;
 
 	if ((delta_col | delta_line | delta_line_prime) == 0)
-		return 0; /* no error */
+		return 0;	/* no error */
 
 	if (delta_line == ~delta_line_prime &&
 	    (((delta_col ^ (delta_col >> 1)) & 0x15) == 0x15)) {
@@ -306,15 +304,16 @@ int yaffs_ecc_correct_other(unsigned char *data, unsigned n_bytes,
 
 		data[delta_line] ^= (1 << bit);
 
-		return 1; /* corrected */
+		return 1;	/* corrected */
 	}
 
-	if ((yaffs_count_bits32(delta_line) + yaffs_count_bits32(delta_line_prime) +
-			yaffs_count_bits(delta_col)) == 1) {
+	if ((yaffs_count_bits32(delta_line) +
+	     yaffs_count_bits32(delta_line_prime) +
+	     yaffs_count_bits(delta_col)) == 1) {
 		/* Reccoverable error in ecc */
 
 		*read_ecc = *test_ecc;
-		return 1; /* corrected */
+		return 1;	/* corrected */
 	}
 
 	/* Unrecoverable error */

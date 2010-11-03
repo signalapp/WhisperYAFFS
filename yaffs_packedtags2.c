@@ -38,14 +38,14 @@
 #define EXTRA_OBJECT_TYPE_SHIFT (28)
 #define EXTRA_OBJECT_TYPE_MASK  ((0x0F) << EXTRA_OBJECT_TYPE_SHIFT)
 
-
-static void yaffs_dump_packed_tags2_tags_only(const struct yaffs_packed_tags2_tags_only *ptt)
+static void yaffs_dump_packed_tags2_tags_only(const struct
+					      yaffs_packed_tags2_tags_only *ptt)
 {
 	T(YAFFS_TRACE_MTD,
 	  (TSTR("packed tags obj %d chunk %d byte %d seq %d" TENDSTR),
-	   ptt->obj_id, ptt->chunk_id, ptt->n_bytes,
-	   ptt->seq_number));
+	   ptt->obj_id, ptt->chunk_id, ptt->n_bytes, ptt->seq_number));
 }
+
 static void yaffs_dump_packed_tags2(const struct yaffs_packed_tags2 *pt)
 {
 	yaffs_dump_packed_tags2_tags_only(&pt->t);
@@ -63,7 +63,7 @@ static void yaffs_dump_tags2(const struct yaffs_ext_tags *t)
 }
 
 void yaffs_pack_tags2_tags_only(struct yaffs_packed_tags2_tags_only *ptt,
-		const struct yaffs_ext_tags *t)
+				const struct yaffs_ext_tags *t)
 {
 	ptt->chunk_id = t->chunk_id;
 	ptt->seq_number = t->seq_number;
@@ -73,16 +73,14 @@ void yaffs_pack_tags2_tags_only(struct yaffs_packed_tags2_tags_only *ptt,
 	if (t->chunk_id == 0 && t->extra_available) {
 		/* Store the extra header info instead */
 		/* We save the parent object in the chunk_id */
-		ptt->chunk_id = EXTRA_HEADER_INFO_FLAG
-			| t->extra_parent_id;
+		ptt->chunk_id = EXTRA_HEADER_INFO_FLAG | t->extra_parent_id;
 		if (t->extra_is_shrink)
 			ptt->chunk_id |= EXTRA_SHRINK_FLAG;
 		if (t->extra_shadows)
 			ptt->chunk_id |= EXTRA_SHADOWS_FLAG;
 
 		ptt->obj_id &= ~EXTRA_OBJECT_TYPE_MASK;
-		ptt->obj_id |=
-		    (t->extra_obj_type << EXTRA_OBJECT_TYPE_SHIFT);
+		ptt->obj_id |= (t->extra_obj_type << EXTRA_OBJECT_TYPE_SHIFT);
 
 		if (t->extra_obj_type == YAFFS_OBJECT_TYPE_HARDLINK)
 			ptt->n_bytes = t->extra_equiv_id;
@@ -96,20 +94,20 @@ void yaffs_pack_tags2_tags_only(struct yaffs_packed_tags2_tags_only *ptt,
 	yaffs_dump_tags2(t);
 }
 
-
-void yaffs_pack_tags2(struct yaffs_packed_tags2 *pt, const struct yaffs_ext_tags *t, int tags_ecc)
+void yaffs_pack_tags2(struct yaffs_packed_tags2 *pt,
+		      const struct yaffs_ext_tags *t, int tags_ecc)
 {
 	yaffs_pack_tags2_tags_only(&pt->t, t);
 
-	if(tags_ecc)
+	if (tags_ecc)
 		yaffs_ecc_calc_other((unsigned char *)&pt->t,
-					sizeof(struct yaffs_packed_tags2_tags_only),
-					&pt->ecc);
+				     sizeof(struct
+					    yaffs_packed_tags2_tags_only),
+				     &pt->ecc);
 }
 
-
 void yaffs_unpack_tags2_tags_only(struct yaffs_ext_tags *t,
-		struct yaffs_packed_tags2_tags_only *ptt)
+				  struct yaffs_packed_tags2_tags_only *ptt)
 {
 
 	memset(t, 0, sizeof(struct yaffs_ext_tags));
@@ -155,36 +153,38 @@ void yaffs_unpack_tags2_tags_only(struct yaffs_ext_tags *t,
 
 }
 
-
-void yaffs_unpack_tags2(struct yaffs_ext_tags *t, struct yaffs_packed_tags2 *pt, int tags_ecc)
+void yaffs_unpack_tags2(struct yaffs_ext_tags *t, struct yaffs_packed_tags2 *pt,
+			int tags_ecc)
 {
 
 	enum yaffs_ecc_result ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
 
-	if (pt->t.seq_number != 0xFFFFFFFF &&
-	    tags_ecc){
+	if (pt->t.seq_number != 0xFFFFFFFF && tags_ecc) {
 		/* Chunk is in use and we need to do ECC */
-		
+
 		struct yaffs_ecc_other ecc;
 		int result;
 		yaffs_ecc_calc_other((unsigned char *)&pt->t,
-					sizeof(struct yaffs_packed_tags2_tags_only),
-					&ecc);
-		result = yaffs_ecc_correct_other((unsigned char *)&pt->t,
-						sizeof(struct yaffs_packed_tags2_tags_only),
-						&pt->ecc, &ecc);
+				     sizeof(struct
+					    yaffs_packed_tags2_tags_only),
+				     &ecc);
+		result =
+		    yaffs_ecc_correct_other((unsigned char *)&pt->t,
+					    sizeof(struct
+						   yaffs_packed_tags2_tags_only),
+					    &pt->ecc, &ecc);
 		switch (result) {
-			case 0:
-				ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
-				break;
-			case 1:
-				ecc_result = YAFFS_ECC_RESULT_FIXED;
-				break;
-			case -1:
-				ecc_result = YAFFS_ECC_RESULT_UNFIXED;
-				break;
-			default:
-				ecc_result = YAFFS_ECC_RESULT_UNKNOWN;
+		case 0:
+			ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
+			break;
+		case 1:
+			ecc_result = YAFFS_ECC_RESULT_FIXED;
+			break;
+		case -1:
+			ecc_result = YAFFS_ECC_RESULT_UNFIXED;
+			break;
+		default:
+			ecc_result = YAFFS_ECC_RESULT_UNKNOWN;
 		}
 	}
 
@@ -195,4 +195,3 @@ void yaffs_unpack_tags2(struct yaffs_ext_tags *t, struct yaffs_packed_tags2 *pt,
 	yaffs_dump_packed_tags2(pt);
 	yaffs_dump_tags2(t);
 }
-

@@ -13,7 +13,6 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-
 #ifndef __YPORTENV_H__
 #define __YPORTENV_H__
 
@@ -67,7 +66,6 @@
 #define yaffs_toupper(a)       toupper(a)
 #define yaffs_sort(base, n, sz, cmp_fn) sort(base, n, sz, cmp_fn, NULL)
 
-
 #define Y_INLINE __inline__
 
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
@@ -119,7 +117,6 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
-
 
 #define YMALLOC(x) malloc(x)
 #define YFREE(x)   free(x)
@@ -177,7 +174,7 @@
 #define O_RDWR		02
 #endif
 
-#ifndef O_CREAT		
+#ifndef O_CREAT
 #define O_CREAT 	0100
 #endif
 
@@ -229,7 +226,7 @@
 #define EACCES	13
 #endif
 
-#ifndef EXDEV	
+#ifndef EXDEV
 #define EXDEV	18
 #endif
 
@@ -273,7 +270,6 @@
 #define EISDIR 21
 #endif
 
-
 // Mode flags
 
 #ifndef S_IFMT
@@ -292,7 +288,7 @@
 #define S_IFREG		0100000
 #endif
 
-#ifndef S_IREAD 
+#ifndef S_IREAD
 #define S_IREAD		0000400
 #endif
 
@@ -339,6 +335,5 @@
 	Y_DUMP_STACK();\
 } while (0)
 #endif
-
 
 #endif

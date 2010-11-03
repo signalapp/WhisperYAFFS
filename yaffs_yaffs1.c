@@ -40,10 +40,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 	struct yaffs_shadow_fixer *shadow_fixers = NULL;
 
-
 	u8 *chunk_data;
-
-
 
 	T(YAFFS_TRACE_SCAN,
 	  (TSTR("yaffs1_scan starts  intstartblk %d intendblk %d..." TENDSTR),
@@ -55,7 +52,8 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 	/* Scan all the blocks to determine their state */
 	bi = dev->block_info;
-	for (blk = dev->internal_start_block; blk <= dev->internal_end_block; blk++) {
+	for (blk = dev->internal_start_block; blk <= dev->internal_end_block;
+	     blk++) {
 		yaffs_clear_chunk_bits(dev, blk);
 		bi->pages_in_use = 0;
 		bi->soft_del_pages = 0;
@@ -85,9 +83,8 @@ int yaffs1_scan(struct yaffs_dev *dev)
 	}
 
 	/* For each block.... */
-	for (blk= dev->internal_start_block; 
-		!alloc_failed && blk <= dev->internal_end_block;
-		blk++) {
+	for (blk = dev->internal_start_block;
+	     !alloc_failed && blk <= dev->internal_end_block; blk++) {
 
 		YYIELD();
 
@@ -96,18 +93,19 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 		deleted = 0;
 
-		/* For each chunk in each block that needs scanning....*/
+		/* For each chunk in each block that needs scanning.... */
 		for (c = 0; !alloc_failed && c < dev->param.chunks_per_block &&
 		     state == YAFFS_BLOCK_STATE_NEEDS_SCANNING; c++) {
 			/* Read the tags and decide what to do */
 			chunk = blk * dev->param.chunks_per_block + c;
 
 			result = yaffs_rd_chunk_tags_nand(dev, chunk, NULL,
-							&tags);
+							  &tags);
 
 			/* Let's have a good look at this chunk... */
 
-			if (tags.ecc_result == YAFFS_ECC_RESULT_UNFIXED || tags.is_deleted) {
+			if (tags.ecc_result == YAFFS_ECC_RESULT_UNFIXED
+			    || tags.is_deleted) {
 				/* YAFFS1 only...
 				 * A deleted chunk
 				 */
@@ -138,7 +136,8 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 				}
 
-				dev->n_free_chunks += (dev->param.chunks_per_block - c);
+				dev->n_free_chunks +=
+				    (dev->param.chunks_per_block - c);
 			} else if (tags.chunk_id > 0) {
 				/* chunk_id > 0 so it is a data chunk... */
 				unsigned int endpos;
@@ -147,9 +146,8 @@ int yaffs1_scan(struct yaffs_dev *dev)
 				bi->pages_in_use++;
 
 				in = yaffs_find_or_create_by_number(dev,
-								      tags.
-								      obj_id,
-								      YAFFS_OBJECT_TYPE_FILE);
+								    tags.obj_id,
+								    YAFFS_OBJECT_TYPE_FILE);
 				/* PutChunkIntoFile checks for a clash (two data chunks with
 				 * the same chunk_id).
 				 */
@@ -158,24 +156,27 @@ int yaffs1_scan(struct yaffs_dev *dev)
 					alloc_failed = 1;
 
 				if (in) {
-					if (!yaffs_put_chunk_in_file(in, tags.chunk_id, chunk, 1))
+					if (!yaffs_put_chunk_in_file
+					    (in, tags.chunk_id, chunk, 1))
 						alloc_failed = 1;
 				}
 
 				endpos =
-				    (tags.chunk_id - 1) * dev->data_bytes_per_chunk +
+				    (tags.chunk_id -
+				     1) * dev->data_bytes_per_chunk +
 				    tags.n_bytes;
-				if (in &&
-				    in->variant_type == YAFFS_OBJECT_TYPE_FILE
+				if (in
+				    && in->variant_type ==
+				    YAFFS_OBJECT_TYPE_FILE
 				    && in->variant.file_variant.scanned_size <
 				    endpos) {
-					in->variant.file_variant.
-					    scanned_size = endpos;
+					in->variant.file_variant.scanned_size =
+					    endpos;
 					if (!dev->param.use_header_file_size) {
-						in->variant.file_variant.
-						    file_size =
-						    in->variant.file_variant.
-						    scanned_size;
+						in->variant.
+						    file_variant.file_size =
+						    in->variant.
+						    file_variant.scanned_size;
 					}
 
 				}
@@ -188,13 +189,12 @@ int yaffs1_scan(struct yaffs_dev *dev)
 				bi->pages_in_use++;
 
 				result = yaffs_rd_chunk_tags_nand(dev, chunk,
-								chunk_data,
-								NULL);
+								  chunk_data,
+								  NULL);
 
-				oh = (struct yaffs_obj_hdr *) chunk_data;
+				oh = (struct yaffs_obj_hdr *)chunk_data;
 
-				in = yaffs_find_by_number(dev,
-							      tags.obj_id);
+				in = yaffs_find_by_number(dev, tags.obj_id);
 				if (in && in->variant_type != oh->type) {
 					/* This should not happen, but somehow
 					 * Wev'e ended up with an obj_id that has been reused but not yet
@@ -207,9 +207,8 @@ int yaffs1_scan(struct yaffs_dev *dev)
 				}
 
 				in = yaffs_find_or_create_by_number(dev,
-								      tags.
-								      obj_id,
-								      oh->type);
+								    tags.obj_id,
+								    oh->type);
 
 				if (!in)
 					alloc_failed = 1;
@@ -217,16 +216,21 @@ int yaffs1_scan(struct yaffs_dev *dev)
 				if (in && oh->shadows_obj > 0) {
 
 					struct yaffs_shadow_fixer *fixer;
-					fixer = YMALLOC(sizeof(struct yaffs_shadow_fixer));
+					fixer =
+					    YMALLOC(sizeof
+						    (struct
+						     yaffs_shadow_fixer));
 					if (fixer) {
 						fixer->next = shadow_fixers;
 						shadow_fixers = fixer;
 						fixer->obj_id = tags.obj_id;
-						fixer->shadowed_id = oh->shadows_obj;
+						fixer->shadowed_id =
+						    oh->shadows_obj;
 						T(YAFFS_TRACE_SCAN,
 						  (TSTR
-						   (" Shadow fixer: %d shadows %d" TENDSTR),
-						   fixer->obj_id, fixer->shadowed_id));
+						   (" Shadow fixer: %d shadows %d"
+						    TENDSTR), fixer->obj_id,
+						   fixer->shadowed_id));
 
 					}
 
@@ -236,24 +240,27 @@ int yaffs1_scan(struct yaffs_dev *dev)
 					/* We have already filled this one. We have a duplicate and need to resolve it. */
 
 					unsigned existing_serial = in->serial;
-					unsigned new_serial = tags.serial_number;
+					unsigned new_serial =
+					    tags.serial_number;
 
-					if (((existing_serial + 1) & 3) == new_serial) {
+					if (((existing_serial + 1) & 3) ==
+					    new_serial) {
 						/* Use new one - destroy the exisiting one */
 						yaffs_chunk_del(dev,
-								  in->hdr_chunk,
-								  1, __LINE__);
+								in->hdr_chunk,
+								1, __LINE__);
 						in->valid = 0;
 					} else {
 						/* Use existing - destroy this one. */
 						yaffs_chunk_del(dev, chunk, 1,
-								  __LINE__);
+								__LINE__);
 					}
 				}
 
 				if (in && !in->valid &&
 				    (tags.obj_id == YAFFS_OBJECTID_ROOT ||
-				     tags.obj_id == YAFFS_OBJECTID_LOSTNFOUND)) {
+				     tags.obj_id ==
+				     YAFFS_OBJECTID_LOSTNFOUND)) {
 					/* We only load some info, don't fiddle with directory structure */
 					in->valid = 1;
 					in->variant_type = oh->type;
@@ -291,12 +298,13 @@ int yaffs1_scan(struct yaffs_dev *dev)
 					    YAFFS_OBJECT_TYPE_UNKNOWN) {
 						/* Set up as a directory */
 						parent->variant_type =
-							YAFFS_OBJECT_TYPE_DIRECTORY;
-						INIT_LIST_HEAD(&parent->variant.
-								dir_variant.
-								children);
-					} else if (!parent || parent->variant_type !=
-						   YAFFS_OBJECT_TYPE_DIRECTORY) {
+						    YAFFS_OBJECT_TYPE_DIRECTORY;
+						INIT_LIST_HEAD(&parent->
+							       variant.dir_variant.children);
+					} else if (!parent
+						   || parent->variant_type !=
+						   YAFFS_OBJECT_TYPE_DIRECTORY)
+					{
 						/* Hoosterman, another problem....
 						 * We're trying to use a non-directory as a directory
 						 */
@@ -311,7 +319,8 @@ int yaffs1_scan(struct yaffs_dev *dev)
 					yaffs_add_obj_to_dir(parent, in);
 
 					if (0 && (parent == dev->del_dir ||
-						  parent == dev->unlinked_dir)) {
+						  parent ==
+						  dev->unlinked_dir)) {
 						in->deleted = 1;	/* If it is unlinked at start up then it wants deleting */
 						dev->n_deleted_files++;
 					}
@@ -327,20 +336,21 @@ int yaffs1_scan(struct yaffs_dev *dev)
 						/* Todo got a problem */
 						break;
 					case YAFFS_OBJECT_TYPE_FILE:
-						if (dev->param.use_header_file_size)
+						if (dev->param.
+						    use_header_file_size)
 
-							in->variant.file_variant.
-							    file_size =
-							    oh->file_size;
+							in->variant.
+							    file_variant.file_size
+							    = oh->file_size;
 
 						break;
 					case YAFFS_OBJECT_TYPE_HARDLINK:
-						in->variant.hardlink_variant.
-							equiv_id =
-							oh->equiv_id;
+						in->variant.
+						    hardlink_variant.equiv_id =
+						    oh->equiv_id;
 						in->hard_links.next =
-							(struct list_head *)
-							hard_list;
+						    (struct list_head *)
+						    hard_list;
 						hard_list = in;
 						break;
 					case YAFFS_OBJECT_TYPE_DIRECTORY:
@@ -350,9 +360,11 @@ int yaffs1_scan(struct yaffs_dev *dev)
 						/* Do nothing */
 						break;
 					case YAFFS_OBJECT_TYPE_SYMLINK:
-						in->variant.symlink_variant.alias =
+						in->variant.symlink_variant.
+						    alias =
 						    yaffs_clone_str(oh->alias);
-						if (!in->variant.symlink_variant.alias)
+						if (!in->variant.
+						    symlink_variant.alias)
 							alloc_failed = 1;
 						break;
 					}
@@ -362,12 +374,12 @@ int yaffs1_scan(struct yaffs_dev *dev)
 		}
 
 		if (state == YAFFS_BLOCK_STATE_NEEDS_SCANNING) {
-			/* If we got this far while scanning, then the block is fully allocated.*/
+			/* If we got this far while scanning, then the block is fully allocated. */
 			state = YAFFS_BLOCK_STATE_FULL;
 		}
 
 		if (state == YAFFS_BLOCK_STATE_ALLOCATING) {
-			/* If the block was partially allocated then treat it as fully allocated.*/
+			/* If the block was partially allocated then treat it as fully allocated. */
 			state = YAFFS_BLOCK_STATE_FULL;
 			dev->alloc_block = -1;
 		}
@@ -382,7 +394,6 @@ int yaffs1_scan(struct yaffs_dev *dev)
 		}
 
 	}
-
 
 	/* Ok, we've done all the scanning.
 	 * Fix up the hard link chains.
@@ -423,7 +434,5 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 	T(YAFFS_TRACE_SCAN, (TSTR("yaffs1_scan ends" TENDSTR)));
 
-
 	return YAFFS_OK;
 }
-

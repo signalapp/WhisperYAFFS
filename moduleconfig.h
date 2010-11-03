@@ -62,7 +62,6 @@
 /* Meaning: Select to disable background processing */
 /* #define CONFIG_DISABLE_BACKGROUND */
 
-
 /* Default: Selected */
 /* Meaning: Enable XATTR support */
 #define CONFIG_YAFFS_XATTR

@@ -18,11 +18,14 @@
 
 #include "yaffs_guts.h"
 
-void yaffs_verify_blk(struct yaffs_dev *dev, struct yaffs_block_info *bi, int n);
-void yaffs_verify_collected_blk(struct yaffs_dev *dev, struct yaffs_block_info *bi, int n);
+void yaffs_verify_blk(struct yaffs_dev *dev, struct yaffs_block_info *bi,
+		      int n);
+void yaffs_verify_collected_blk(struct yaffs_dev *dev,
+				struct yaffs_block_info *bi, int n);
 void yaffs_verify_blocks(struct yaffs_dev *dev);
 
-void yaffs_verify_oh(struct yaffs_obj *obj, struct yaffs_obj_hdr *oh, struct yaffs_ext_tags *tags, int parent_check);
+void yaffs_verify_oh(struct yaffs_obj *obj, struct yaffs_obj_hdr *oh,
+		     struct yaffs_ext_tags *tags, int parent_check);
 void yaffs_verify_file(struct yaffs_obj *obj);
 void yaffs_verify_link(struct yaffs_obj *obj);
 void yaffs_verify_symlink(struct yaffs_obj *obj);
@@ -38,4 +41,3 @@ int yaffs_verify_file_sane(struct yaffs_obj *obj);
 int yaffs_skip_verification(struct yaffs_dev *dev);
 
 #endif
-

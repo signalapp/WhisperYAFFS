@@ -19,13 +19,13 @@ int test_yaffs_read(void){
 	handle=test_yaffs_open();
 	char text[20]="\0";
 	int output=0;
-	printf("handle %d\n",handle);
+	//printf("handle %d\n",handle);
 	if (handle>=0){
 		output=yaffs_read(handle, text, FILE_TEXT_NBYTES);
-		printf("yaffs_test_read output: %d\n",output);
-		printf("text in file is: %s\n",text);
+		//printf("yaffs_test_read output: %d\n",output);
+		//printf("text in file is: '%s' expected text is '%s'\n",text,FILE_TEXT);
 		if (output>0){ 
-			if (text==FILE_TEXT){
+			if (0==memcmp(text,FILE_TEXT,FILE_TEXT_NBYTES)){
 				return 1;
 			}
 			else {

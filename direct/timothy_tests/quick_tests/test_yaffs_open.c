@@ -17,7 +17,7 @@ static int handle=0;
 
 int test_yaffs_open(void){
 
-	handle=yaffs_open(FILE_PATH,O_CREAT | O_TRUNC| O_RDWR, FILE_MODE);
+	handle=yaffs_open(FILE_PATH,O_CREAT | O_RDWR, FILE_MODE);
 	return handle;
 }
 

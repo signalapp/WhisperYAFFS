@@ -37,6 +37,7 @@ int main(){
 	//printf("len function %d",(sizeof(test_list)/sizeof(test_template)));
 	for (x=0;x<total_number_of_tests;x++){
 		//printf("x %d\n",x);
+		yaffs_set_error(0);	/*reset the last error to 0 */
 		output=test_list[x].p_function();	/*run test*/
 		if (output>=0){
 			/*test has passed*/

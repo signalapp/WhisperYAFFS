@@ -21,7 +21,7 @@ int test_yaffs_open_ENOTDIR(void){
 	handle=yaffs_open("/nonexisting_dir/foo", O_TRUNC| O_RDWR,FILE_MODE );
 	if (handle==-1){
 		error_code=yaffs_get_error();
-		printf("EISDIR def %d, Error code %d\n", ENOTDIR,error_code);
+		//printf("EISDIR def %d, Error code %d\n", ENOTDIR,error_code);
 		if (abs(error_code)==ENOTDIR){
 			return 1;
 		}

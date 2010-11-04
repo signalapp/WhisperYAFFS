@@ -28,7 +28,7 @@ int test_yaffs_close_EBADF(void){
 			if (output<0){
 				/*error has happened */
 				error_code=yaffs_get_error();
-				printf("EEXIST def %d, Error code %d\n",(- EBADF),error_code);
+				//printf("EBADF def %d, Error code %d\n",(- EBADF),error_code);
 				if (abs(error_code)== EBADF){
 					return 1;
 				}

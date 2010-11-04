@@ -2,6 +2,18 @@
 Made by Timothy Manning <timothy@yaffs.net> on 04/11/2010
 
 
+the yaffs_open function has been covered by tests
+the yaffs_close function has been covered by tests
+
+
+
+tests to add
+	test_yaffs_open_EACCES
+	test_yaffs_open_ENOSPC
+	test_yaffs_open_ELOOP   Too many symbolic links were encountered in resolving pathname
+	test_yaffs_close
+	test yaffs_open_running_out_of_handles error
+	check to see if an error code is generated when there isn't an error
 
 
 How to add a test

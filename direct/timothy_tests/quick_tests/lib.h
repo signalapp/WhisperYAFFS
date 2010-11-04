@@ -20,12 +20,12 @@
 #include <string.h>
 #define YAFFS_MOUNT_POINT "/yaffs2/"
 #define FILE_NAME "foo"
-#define FILE_SIZE 9
+#define FILE_SIZE 10
 
 #define FILE_MODE (S_IREAD | S_IWRITE)
 #define FILE_SIZE_TRUNCATED 100
-#define FILE_TEXT "file foo"
-#define FILE_TEXT_NBYTES 9
+#define FILE_TEXT "file foo "	/* keep space at end of string */
+#define FILE_TEXT_NBYTES 10
 
 /* warning do not define anything as FILE because there seems to be a conflict with stdio.h */ 
 #define FILE_PATH "/yaffs2/foo"

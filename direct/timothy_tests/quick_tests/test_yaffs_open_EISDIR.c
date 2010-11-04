@@ -23,7 +23,7 @@ int test_yaffs_open_EISDIR(void){
 	handle=yaffs_open(YAFFS_MOUNT_POINT, O_CREAT | O_TRUNC| O_RDWR ,FILE_MODE );
 	if (handle==-1){
 		error_code=yaffs_get_error();
-		printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
+		//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
 		if (abs(error_code)== EISDIR){
 			return 1;
 		}

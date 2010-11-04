@@ -21,7 +21,7 @@ int test_yaffs_open_EEXIST(void){
 	handle=yaffs_open(FILE_PATH, O_CREAT | O_EXCL | O_TRUNC| O_RDWR ,FILE_MODE );
 	if (handle==-1){
 		error_code=yaffs_get_error();
-		printf("EEXIST def %d, Error code %d\n",(- EEXIST),error_code);
+		//printf("EEXIST def %d, Error code %d\n",(- EEXIST),error_code);
 		if (abs(error_code)== EEXIST){
 			return 1;
 		}

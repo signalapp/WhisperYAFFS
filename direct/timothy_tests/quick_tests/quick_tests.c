@@ -1,3 +1,16 @@
+/*
+ * YAFFS: Yet another FFS. A NAND-flash specific file system.
+ *
+ * Copyright (C) 2002-2010 Aleph One Ltd.
+ *   for Toby Churchill Ltd and Brightstar Engineering
+ *
+ * Created by Timothy Manning <timothy@yaffs.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
 #include "quick_tests.h"
 
 
@@ -6,54 +19,11 @@ int simulate_power_failure = 0;
 
 
 
-typedef struct test {
-	int (*p_function)(void);	/*pointer to test function*/
-	int (*p_function_clean)(void);
-	/*char pass_message[50]; will not need a pass message*/
-	char *fail_message;	/*pointer to fail message, needs to include name of test*/
-}test_template;
 
 
-int dummy_test_pass(void){
-	//printf("running dummy_test_pass\n");
-	return 1;
-}
-void dummy_test_pass_clean(void){
-	
-}
-int dummy_test_fail(void){
-	//printf("running dummy_test_fail\n");
-	return -1;
-}
-void dummy_test_fail_clean(void){
-}
-test_template test_list[]={
-	//{dummy_test_pass,dummy_test_pass_clean,"dummy_test_pass"},
-	//{dummy_test_fail,dummy_test_fail_clean,"dummy_test_fail"},
-	{mount_yaffs_test,mount_yaffs_test_clean,"mount_yaffs_test"},
-	{test_yaffs_open,test_yaffs_open_clean,"test_yaffs_open"},
-	{test_yaffs_open_EISDIR,test_yaffs_open_EISDIR_clean,"test_yaffs_open_EISDIR"},
-	{test_yaffs_open_EEXIST,test_yaffs_open_EEXIST_clean,"test_yaffs_open_EEXIST"},
-	{test_yaffs_open_ENOTDIR,test_yaffs_open_ENOTDIR_clean,"test_yaffs_open_ENOTDIR"},
-	{test_yaffs_open_ENOENT,test_yaffs_open_ENOENT_clean,"test_yaffs_open_ENOENT"},
-	
-	{test_yaffs_access,test_yaffs_access_clean,"test_yaffs_access"},
-	{test_yaffs_unlinking, test_yaffs_unlinking_clean,"test_yaffs_unlinking"},
-
-	{test_yaffs_lseek,test_yaffs_lseek_clean,"test_yaffs_lseek"},
-	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
-	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
-
-
-	{test_yaffs_stat,test_yaffs_stat_clean,"test_yaffs_stat"},
-	{test_yaffs_ftruncate,test_yaffs_ftruncate_clean,"test_yaffs_ftruncate"},
-	{test_yaffs_truncate,test_yaffs_truncate_clean,"test_yaffs_truncate"}
-
-	};
-
-unsigned int num_of_tests_pass=0;
-unsigned int num_of_tests_failed=0;
-unsigned int total_number_of_tests=(sizeof(test_list)/sizeof(test_template));
+static unsigned int num_of_tests_pass=0;
+static unsigned int num_of_tests_failed=0;
+static unsigned int total_number_of_tests=(sizeof(test_list)/sizeof(test_template));
 
 int main(){
 	int output=0;

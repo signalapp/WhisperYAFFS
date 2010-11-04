@@ -53,7 +53,8 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_read.o \
 		test_yaffs_lseek.o \
 		test_yaffs_access.o \
-		test_yaffs_stat.o 
+		test_yaffs_stat.o \
+		test_yaffs_close_EBADF.o
 		  
 
 YAFFSTESTOBJS  = $(COMMONTESTOBJS) $(TESTFILES)

@@ -536,7 +536,7 @@ int yflash2_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 		
 	CheckInit();
 	
-	printf("erase block %d\n",blockNumber);
+	//printf("erase block %d\n",blockNumber);
 	
 	if(blockNumber == 320)
 		fail320 = 1;

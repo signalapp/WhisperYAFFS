@@ -641,6 +641,7 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 			obj->variant_type != YAFFS_OBJECT_TYPE_DIRECTORY)
 			obj = NULL;
 
+
 		if(obj){
 
 			/* The file already exists or it might be a directory */
@@ -655,7 +656,7 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 			/* Open should fail if O_CREAT and O_EXCL are specified since
 			 * the file exists
 			 */
-			if((oflag & O_EXCL) && (oflag & O_CREAT)){
+			if(!errorReported && (oflag & O_EXCL) && (oflag & O_CREAT)){
 				openDenied = 1;
 				yaffsfs_SetError(-EEXIST);
 				errorReported = 1;
@@ -668,8 +669,14 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 			if( writeRequested && !(obj->yst_mode & S_IWRITE))
 				openDenied = 1;
 
+			if(openDenied && !errorReported ) {
+				/* Error if the file exists but permissions are refused. */
+				yaffsfs_SetError(-EACCES);
+				errorReported = 1;
+			}
+
 			/* Check sharing of an existing object. */
-			{
+			if(!openDenied){
 				yaffsfs_Handle *hx;
 				int i;
 				sharedReadAllowed = 1;
@@ -704,18 +711,37 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 				}
 			}
 
-		} else if((oflag & O_CREAT)) {
-			/* Let's see if we can create this file */
+		}
+
+		/* If we could not open an existing object, then let's see if
+		 * the directory exists. If not, error.
+		 */
+		if(!obj && !errorReported){
 			dir = yaffsfs_FindDirectory(NULL,path,&name,0);
-			if(dir  && dir->my_dev->read_only){
-				yaffsfs_SetError(-EINVAL);
-				errorReported = 1;
-			} else if(dir)
-				obj = yaffs_create_file(dir,name,mode,0,0);
-			else {
+			if(!dir){
 				yaffsfs_SetError(-ENOTDIR);
 				errorReported = 1;
 			}
+		}
+
+		if(!obj && dir && !errorReported && (oflag & O_CREAT)) {
+			/* Let's see if we can create this file if it does not exist. */
+			if(dir->my_dev->read_only){
+				yaffsfs_SetError(-EINVAL);
+				errorReported = 1;
+			} else
+				obj = yaffs_create_file(dir,name,mode,0,0);
+
+			if(!obj && !errorReported){
+				yaffsfs_SetError(-ENOSPC);
+				errorReported = 1;
+			}
+		}
+
+		if(!obj && dir && !errorReported && !(oflag & O_CREAT)) {
+			/* Error if the file does not exist and CREAT is not set. */
+			yaffsfs_SetError(-ENOENT);
+			errorReported = 1;
 		}
 
 		if(obj && !openDenied) {
@@ -743,10 +769,8 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
                                 yaffs_resize_file(obj,0);
 		} else {
 			yaffsfs_PutHandle(handle);
-			if(!errorReported) {
-				yaffsfs_SetError(!obj ? -ENOSPC : -EACCES);
-				errorReported = 1;
-			}
+			if(!errorReported) 
+				yaffsfs_SetError(0); /* Problem */
 			handle = -1;
 		}
 	}
@@ -2381,6 +2405,13 @@ int yaffs_n_handles(const YCHAR *path)
 int yaffs_get_error(void)
 {
 	return yaffsfs_GetLastError();
+}
+
+int yaffs_set_error(int error)
+{
+	/*yaffsfs_SetError does not return. So the program is assumed to have worked. */
+	yaffsfs_SetError(error);
+	return 0;
 }
 
 int yaffs_dump_dev(const YCHAR *path)

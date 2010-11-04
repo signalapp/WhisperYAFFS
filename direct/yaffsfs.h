@@ -171,6 +171,7 @@ void yaffs_add_device(struct yaffs_dev *dev);
 
 int yaffs_start_up(void);
 int yaffsfs_GetLastError(void);
+int yaffs_set_error(int error);
 /* Function to get the last error */
 int yaffs_get_error(void);
 

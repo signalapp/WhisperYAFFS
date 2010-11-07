@@ -65,7 +65,12 @@ int main(){
 			printf("test: %s failed to clean\n",test_list[x].name_of_test);		
 			num_of_tests_failed ++;	
 			num_of_tests_pass--;
-			quit_quick_tests(1);
+			get_error();
+			printf("\n\n");
+			if (EXIT_ON_ERROR){
+				quit_quick_tests(1);
+			}
+			
 		}
 			
 	}

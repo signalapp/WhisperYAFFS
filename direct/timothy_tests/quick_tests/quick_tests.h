@@ -18,6 +18,8 @@
 #include <stdio.h>
 
 #include "test_yaffs_mount.h"
+#include "test_yaffs_mount_ENOTDIR.h"
+#include "test_yaffs_mount_ENODEV.h"
 
 #include "test_yaffs_open.h"
 #include "test_yaffs_open_EISDIR.h"
@@ -59,6 +61,9 @@ typedef struct test {
 
 test_template test_list[]={
 	{test_yaffs_mount,test_yaffs_mount_clean,"test_yaffs_mount"},
+//	{test_yaffs_mount_ENOTDIR,test_yaffs_mount_ENOTDIR_clean,"test_yaffs_mount_ENOTDIR"},
+	{test_yaffs_mount_ENODEV,test_yaffs_mount_ENODEV_clean,"test_yaffs_mount_ENODEV"},
+
 	{test_yaffs_open,test_yaffs_open_clean,"test_yaffs_open"},
 	{test_yaffs_open_EISDIR,test_yaffs_open_EISDIR_clean,"test_yaffs_open_EISDIR"},
 	{test_yaffs_open_EEXIST,test_yaffs_open_EEXIST_clean,"test_yaffs_open_EEXIST"},

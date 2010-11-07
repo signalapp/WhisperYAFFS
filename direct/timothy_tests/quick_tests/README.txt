@@ -7,8 +7,8 @@ the yaffs_close function has been covered by tests
 
 tests made
 	test_yaffs_mount
+	test_yaffs_mount_ENODEV
 	test_yaffs_access
-	test_yaffs_close
 	test_yaffs_close_EBADF
 	test_yaffs_ftruncate
 	test_yaffs_lseek
@@ -21,35 +21,62 @@ tests made
 	test_yaffs_read
 	test_yaffs_stat
 	test_yaffs_truncate
+	test_yaffs_unlink
 	test_yaffs_unlink_EISDIR
 	test_yaffs_unlink_ENAMETOOLONG
 	test_yaffs_unlink_ENOENT
 	test_yaffs_unlink_ENOTDIR
 	test_yaffs_write
+
+
 tests to add
-	test_yaffs_mount_EACCES
-	test_yaffs_mount_EINVAL
-	test_yaffs_mount_ELOOP
-	test_yaffs_mount_EMFILE
+	test_yaffs_mount_EACCES		//Cannot be generated with yaffs.
+	test_yaffs_mount_EINVAL		//Cannot be generated with yaffs.
+	test_yaffs_mount_ELOOP		//Cannot be generated with yaffs.
+	test_yaffs_mount_EMFILE		//Cannot be generated with yaffs.
 	test_yaffs_mount_ENAMETOOLONG
 	test_yaffs_mount_ENOENT
-	test_yaffs_mount_ENOTDIR
+	test_yaffs_mount_ENOTDIR	//Cannot be generated with yaffs.
+
 	test_yaffs_open_EACCES
 	test_yaffs_open_ENOSPC
-	test_yaffs_open_ELOOP   Too many symbolic links were encountered in resolving pathname
-	test_yaffs_close
+	test_yaffs_open_ELOOP   //Too many symbolic links were encountered in resolving pathname
 	test yaffs_open_running_out_of_handles error
+
+	test_yaffs_close	//This function has already been called by the time this test is reached. 
+
 	test_yaffs_unlink_EACCES
 	test_yaffs_unlink_ELOOP
 	test_yaffs_unlink_ENOENT
 	test_yaffs_unlink_ENOMEM
-	check to see if an error code is generated when there isn't an error
+
 	test_yaffs_access_EACCESS
 	test_yaffs_access_ELOOP
 	test_yaffs_access_ENAMETOOLONG
 	test_yaffs_access_ENOENT
 	test_yaffs_access_ENOTDIR
 	test_yaffs_access_ENIVAL	//mode is incorrect.
+
+	test_yaffs_ftruncate_EACCES
+	test_yaffs_ftruncate_EFBIG
+	test_yaffs_ftruncate_ENIVAL
+	test_yaffs_ftruncate_EISDIR
+	test_yaffs_ftruncate_ELOOP
+	test_yaffs_ftruncate_ENOENT
+	test_yaffs_ftruncate_ENOTDIR
+	test_yaffs_ftruncate_EPERM
+
+	test_yaffs_truncate_EACCES
+	test_yaffs_truncate_EFBIG
+	test_yaffs_truncate_ENIVAL
+	test_yaffs_truncate_EISDIR
+	test_yaffs_truncate_ELOOP
+	test_yaffs_truncate_ENAMETOOLONG
+	test_yaffs_truncate_ENOENT
+	test_yaffs_truncate_ENOTDIR
+	test_yaffs_truncate_EPERM
+
+	check to see if an error code is generated when there isn't an error.
 
 
 How to add a test
@@ -98,7 +125,6 @@ How to add a test
 
 
 BUGS
-	Needing to include int random_seed; and int simulate_power_failure = 0; in any main program using yaffsfs.h
 	bug with opening a file with a name of 1,000,000 char long with no errors.
 	bug with unlinking a file with 1,000,000 get the error ENOENT but should be geting ENAMETOOLONG. 
 	

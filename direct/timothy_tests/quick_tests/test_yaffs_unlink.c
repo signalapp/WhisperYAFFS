@@ -11,9 +11,9 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_unlinking.h"
+#include "test_yaffs_unlink.h"
 
-int test_yaffs_unlinking(void){
+int test_yaffs_unlink(void){
 	int output=yaffs_unlink(FILE_PATH);
 	if (output>=0){
 		return (-test_yaffs_access());	/*return negative access. we do not want the file to be there*/
@@ -24,6 +24,6 @@ int test_yaffs_unlinking(void){
 	}
 }
 
-int test_yaffs_unlinking_clean(void){
+int test_yaffs_unlink_clean(void){
 	return test_yaffs_open();
 }

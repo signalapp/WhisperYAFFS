@@ -5,15 +5,51 @@ Made by Timothy Manning <timothy@yaffs.net> on 04/11/2010
 the yaffs_open function has been covered by tests
 the yaffs_close function has been covered by tests
 
-
-
+tests made
+	test_yaffs_mount
+	test_yaffs_access
+	test_yaffs_close
+	test_yaffs_close_EBADF
+	test_yaffs_ftruncate
+	test_yaffs_lseek
+	test_yaffs_open
+	test_yaffs_open_EEXIST
+	test_yaffs_open_EISDIR
+	test_yaffs_open_ENAMETOOLONG
+	test_yaffs_open_ENOENT
+	test_yaffs_open_ENOTDIR
+	test_yaffs_read
+	test_yaffs_stat
+	test_yaffs_truncate
+	test_yaffs_unlink_EISDIR
+	test_yaffs_unlink_ENAMETOOLONG
+	test_yaffs_unlink_ENOENT
+	test_yaffs_unlink_ENOTDIR
+	test_yaffs_write
 tests to add
+	test_yaffs_mount_EACCES
+	test_yaffs_mount_EINVAL
+	test_yaffs_mount_ELOOP
+	test_yaffs_mount_EMFILE
+	test_yaffs_mount_ENAMETOOLONG
+	test_yaffs_mount_ENOENT
+	test_yaffs_mount_ENOTDIR
 	test_yaffs_open_EACCES
 	test_yaffs_open_ENOSPC
 	test_yaffs_open_ELOOP   Too many symbolic links were encountered in resolving pathname
 	test_yaffs_close
 	test yaffs_open_running_out_of_handles error
+	test_yaffs_unlink_EACCES
+	test_yaffs_unlink_ELOOP
+	test_yaffs_unlink_ENOENT
+	test_yaffs_unlink_ENOMEM
 	check to see if an error code is generated when there isn't an error
+	test_yaffs_access_EACCESS
+	test_yaffs_access_ELOOP
+	test_yaffs_access_ENAMETOOLONG
+	test_yaffs_access_ENOENT
+	test_yaffs_access_ENOTDIR
+	test_yaffs_access_ENIVAL	//mode is incorrect.
 
 
 How to add a test
@@ -63,8 +99,11 @@ How to add a test
 
 BUGS
 	Needing to include int random_seed; and int simulate_power_failure = 0; in any main program using yaffsfs.h
-	ENOSPC error in programs test_yaffs_open_ENOTDIR and test_yaffs_open_ENOENT.
-	ENOENT been returned by yaffs_read but the handle is good and the yaffs_open function does not return an error.
+	bug with opening a file with a name of 1,000,000 char long with no errors.
+	bug with unlinking a file with 1,000,000 get the error ENOENT but should be geting ENAMETOOLONG. 
+	
+	FIXED-ENOSPC error in programs test_yaffs_open_ENOTDIR and test_yaffs_open_ENOENT.
+	FIXED-ENOENT been returned by yaffs_read but the handle is good and the yaffs_open function does not return an error.
 
 
 

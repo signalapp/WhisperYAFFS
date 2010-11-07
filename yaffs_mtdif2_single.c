@@ -67,8 +67,9 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 							    dev->
 							    data_bytes_per_chunk);
 		yaffs_pack_tags2_tags_only(pt2tp, tags);
-	} else
+	} else {
 		yaffs_pack_tags2(&pt, tags, !dev->param.no_tags_ecc);
+        }
 
 	ops.mode = MTD_OOB_AUTO;
 	ops.ooblen = (dev->param.inband_tags) ? 0 : packed_tags_size;

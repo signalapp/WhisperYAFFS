@@ -81,8 +81,9 @@ int nval_del(char *xb, int xb_size, const YCHAR * name)
 		memcpy(xb + pos, xb + pos + size, xb_size - (pos + size));
 		memset(xb + (xb_size - size), 0, size);
 		return 0;
-	} else
+	} else {
 		return -ENODATA;
+        }
 }
 
 int nval_set(char *xb, int xb_size, const YCHAR * name, const char *buf,
@@ -182,8 +183,9 @@ int nval_list(const char *xb, int xb_size, char *buf, int bsize)
 				buf++;
 			}
 			ncopied += (name_len + 1);
-		} else
+		} else {
 			filled = 1;
+                }
 		pos += size;
 		if (pos < xb_size - sizeof(int))
 			memcpy(&size, xb + pos, sizeof(int));

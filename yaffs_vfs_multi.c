@@ -2334,11 +2334,13 @@ static int yaffs_bg_thread_fn(void *data)
 					next_gc = now + HZ / 10 + 1;
 				else
 					next_gc = now + HZ * 2;
-			} else	/*
+			} else	{
+			        /*
 				 * gc not running so set to next_dir_update
 				 * to cut down on wake ups
 				 */
 				next_gc = next_dir_update;
+                        }
 		}
 		yaffs_gross_unlock(dev);
 #if 1
@@ -2605,9 +2607,9 @@ static int yaffs_parse_options(struct yaffs_options *options,
 			options_str++;
 		}
 
-		if (!strcmp(cur_opt, "inband-tags"))
+		if (!strcmp(cur_opt, "inband-tags")) {
 			options->inband_tags = 1;
-		else if (!strcmp(cur_opt, "tags-ecc-off")) {
+		} else if (!strcmp(cur_opt, "tags-ecc-off")) {
 			options->tags_ecc_on = 0;
 			options->tags_ecc_overridden = 1;
 		} else if (!strcmp(cur_opt, "tags-ecc-on")) {
@@ -2625,13 +2627,13 @@ static int yaffs_parse_options(struct yaffs_options *options,
 		} else if (!strcmp(cur_opt, "empty-lost-and-found-on")) {
 			options->empty_lost_and_found = 1;
 			options->empty_lost_and_found_overridden = 1;
-		} else if (!strcmp(cur_opt, "no-cache"))
+		} else if (!strcmp(cur_opt, "no-cache")) {
 			options->no_cache = 1;
-		else if (!strcmp(cur_opt, "no-checkpoint-read"))
+		} else if (!strcmp(cur_opt, "no-checkpoint-read")) {
 			options->skip_checkpoint_read = 1;
-		else if (!strcmp(cur_opt, "no-checkpoint-write"))
+		} else if (!strcmp(cur_opt, "no-checkpoint-write")) {
 			options->skip_checkpoint_write = 1;
-		else if (!strcmp(cur_opt, "no-checkpoint")) {
+		} else if (!strcmp(cur_opt, "no-checkpoint")) {
 			options->skip_checkpoint_read = 1;
 			options->skip_checkpoint_write = 1;
 		} else {
@@ -3268,8 +3270,9 @@ static int yaffs_proc_read(char *page,
 				    sprintf(buf, "\nDevice %d \"%s\"\n", n,
 					    dev->param.name);
 				buf = yaffs_dump_dev_part0(buf, dev);
-			} else
+			} else {
 				buf = yaffs_dump_dev_part1(buf, dev);
+                        }
 
 			break;
 		}
@@ -3489,8 +3492,9 @@ static int __init init_yaffs_fs(void)
 		my_proc_entry->write_proc = yaffs_proc_write;
 		my_proc_entry->read_proc = yaffs_proc_read;
 		my_proc_entry->data = NULL;
-	} else
+	} else {
 		return -ENOMEM;
+        }
 
 	debug_proc_entry = create_proc_entry("yaffs_stats",
 					     S_IRUGO | S_IFREG, YPROC_ROOT);
@@ -3499,8 +3503,9 @@ static int __init init_yaffs_fs(void)
 		debug_proc_entry->write_proc = NULL;
 		debug_proc_entry->read_proc = yaffs_stats_proc_read;
 		debug_proc_entry->data = NULL;
-	} else
+	} else {
 		return -ENOMEM;
+        }
 
 	/* Now add the file system entries */
 

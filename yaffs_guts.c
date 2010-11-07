@@ -1708,8 +1708,9 @@ static int yaffs_init_blocks(struct yaffs_dev *dev)
 		dev->block_info =
 		    YMALLOC_ALT(n_blocks * sizeof(struct yaffs_block_info));
 		dev->block_info_alt = 1;
-	} else
+	} else {
 		dev->block_info_alt = 0;
+        }
 
 	if (dev->block_info) {
 		/* Set up dynamic blockinfo stuff. */
@@ -1719,8 +1720,9 @@ static int yaffs_init_blocks(struct yaffs_dev *dev)
 			dev->chunk_bits =
 			    YMALLOC_ALT(dev->chunk_bit_stride * n_blocks);
 			dev->chunk_bits_alt = 1;
-		} else
+		} else {
 			dev->chunk_bits_alt = 0;
+                }
 	}
 
 	if (dev->block_info && dev->chunk_bits) {
@@ -2174,12 +2176,13 @@ static int yaffs_gc_block(struct yaffs_dev *dev, int block, int whole_block)
 									  oh,
 									  &tags,
 									  1);
-					} else
+					} else {
 						new_chunk =
 						    yaffs_write_new_chunk(dev,
 									  buffer,
 									  &tags,
 									  1);
+                                        }
 
 					if (new_chunk < 0) {
 						ret_val = YAFFS_FAIL;
@@ -2385,8 +2388,9 @@ static unsigned yaffs_find_gc_block(struct yaffs_dev *dev,
 			bi = yaffs_get_block_info(dev, selected);
 			dev->gc_pages_in_use =
 			    bi->pages_in_use - bi->soft_del_pages;
-		} else
+		} else {
 			dev->gc_not_done = 0;
+                }
 	}
 
 	if (selected) {
@@ -2921,8 +2925,9 @@ int yaffs_update_oh(struct yaffs_obj *in, const YCHAR * name, int force,
 
 			memcpy(old_name, oh->name, sizeof(oh->name));
 			memset(buffer, 0xFF, sizeof(struct yaffs_obj_hdr));
-		} else
+		} else {
 			memset(buffer, 0xFF, dev->data_bytes_per_chunk);
+                }
 
 		oh->type = in->variant_type;
 		oh->yst_mode = in->yst_mode;
@@ -2938,10 +2943,11 @@ int yaffs_update_oh(struct yaffs_obj *in, const YCHAR * name, int force,
 		if (name && *name) {
 			memset(oh->name, 0, sizeof(oh->name));
 			yaffs_load_oh_from_name(dev, oh->name, name);
-		} else if (prev_chunk_id > 0)
+		} else if (prev_chunk_id > 0) {
 			memcpy(oh->name, old_name, sizeof(oh->name));
-		else
+		} else {
 			memset(oh->name, 0, sizeof(oh->name));
+                }
 
 		oh->is_shrink = is_shrink;
 
@@ -3210,9 +3216,9 @@ static struct yaffs_cache *yaffs_grab_chunk_cache(struct yaffs_dev *dev)
 
 		}
 		return cache;
-	} else
+	} else {
 		return NULL;
-
+        }
 }
 
 /* Find a cached chunk */
@@ -3932,11 +3938,12 @@ static int yaffs_unlink_worker(struct yaffs_obj *obj)
 		default:
 			return YAFFS_FAIL;
 		}
-	} else if (yaffs_is_non_empty_dir(obj))
+	} else if (yaffs_is_non_empty_dir(obj)) {
 		return YAFFS_FAIL;
-	else
+	} else {
 		return yaffs_change_obj_name(obj, obj->my_dev->unlinked_dir,
 					     _Y("unlinked"), 0, 0);
+        }
 }
 
 static int yaffs_unlink_obj(struct yaffs_obj *obj)
@@ -4103,11 +4110,11 @@ static void yaffs_fix_hanging_objs(struct yaffs_dev *dev)
 					hanging = 0;
 				} else if (!parent
 					   || parent->variant_type !=
-					   YAFFS_OBJECT_TYPE_DIRECTORY)
+					   YAFFS_OBJECT_TYPE_DIRECTORY) {
 					hanging = 1;
-				else if (yaffs_has_null_parent(dev, parent))
+				} else if (yaffs_has_null_parent(dev, parent)) {
 					hanging = 0;
-				else {
+				} else {
 					/*
 					 * Need to follow the parent chain to see if it is hanging.
 					 */
@@ -4248,8 +4255,9 @@ static void yaffs_update_parent(struct yaffs_obj *obj)
 			   obj->obj_id));
 		}
 
-	} else
+	} else {
 		yaffs_update_oh(obj, NULL, 0, 0, 0, NULL);
+        }
 }
 
 void yaffs_update_dirty_dirs(struct yaffs_dev *dev)
@@ -4378,8 +4386,7 @@ struct yaffs_obj *yaffs_find_by_name(struct yaffs_obj *directory,
 
 			/* Special case for lost-n-found */
 			if (l->obj_id == YAFFS_OBJECTID_LOSTNFOUND) {
-				if (yaffs_strcmp(name, YAFFS_LOSTNFOUND_NAME) ==
-				    0)
+				if (!yaffs_strcmp(name, YAFFS_LOSTNFOUND_NAME))
 					return l;
 			} else if (yaffs_sum_cmp(l->sum, sum)
 				   || l->hdr_chunk <= 0) {
@@ -4468,11 +4475,15 @@ static void yaffs_load_name_from_oh(struct yaffs_dev *dev, YCHAR * name,
 				ascii_oh_name++;
 				n--;
 			}
-		} else
+		} else {
 			yaffs_strncpy(name, oh_name + 1, buff_size - 1);
-	} else
+                }
+	} else {
+#else
+        {
 #endif
 		yaffs_strncpy(name, oh_name, buff_size - 1);
+        }
 }
 
 static void yaffs_load_oh_from_name(struct yaffs_dev *dev, YCHAR * oh_name,
@@ -4511,9 +4522,12 @@ static void yaffs_load_oh_from_name(struct yaffs_dev *dev, YCHAR * oh_name,
 			yaffs_strncpy(oh_name + 1, name,
 				      YAFFS_MAX_NAME_LENGTH - 2);
 		}
-	} else
+	} else {
+#else
+        {
 #endif
 		yaffs_strncpy(oh_name, name, YAFFS_MAX_NAME_LENGTH - 1);
+        }
 
 }
 
@@ -4926,8 +4940,9 @@ int yaffs_guts_initialise(struct yaffs_dev *dev)
 			dev->tnode_width = 16;
 		else
 			dev->tnode_width = bits;
-	} else
+	} else {
 		dev->tnode_width = 16;
+        }
 
 	dev->tnode_mask = (1 << dev->tnode_width) - 1;
 
@@ -5078,8 +5093,9 @@ int yaffs_guts_initialise(struct yaffs_dev *dev)
 				if (!init_failed && !yaffs2_scan_backwards(dev))
 					init_failed = 1;
 			}
-		} else if (!yaffs1_scan(dev))
+		} else if (!yaffs1_scan(dev)) {
 			init_failed = 1;
+                }
 
 		yaffs_strip_deleted_objs(dev);
 		yaffs_fix_hanging_objs(dev);

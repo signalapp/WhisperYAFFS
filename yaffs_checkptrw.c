@@ -403,8 +403,9 @@ int yaffs_checkpt_close(struct yaffs_dev *dev)
 		YFREE(dev->checkpt_buffer);
 		dev->checkpt_buffer = NULL;
 		return 1;
-	} else
+	} else {
 		return 0;
+        }
 }
 
 int yaffs2_checkpt_invalidate_stream(struct yaffs_dev *dev)

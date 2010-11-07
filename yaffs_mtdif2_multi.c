@@ -71,8 +71,9 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 							    dev->
 							    data_bytes_per_chunk);
 		yaffs_pack_tags2_tags_only(pt2tp, tags);
-	} else
+	} else {
 		yaffs_pack_tags2(&pt, tags, !dev->param.no_tags_ecc);
+        }
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 	ops.mode = MTD_OOB_AUTO;

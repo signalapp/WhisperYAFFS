@@ -123,8 +123,9 @@ static void yaffs_init_raw_tnodes(struct yaffs_dev *dev)
 		allocator->free_tnodes = NULL;
 		allocator->n_free_tnodes = 0;
 		allocator->n_tnodes_created = 0;
-	} else
+	} else {
 		YBUG();
+	}
 }
 
 static int yaffs_create_tnodes(struct yaffs_dev *dev, int n_tnodes)
@@ -243,8 +244,9 @@ static void yaffs_init_raw_objs(struct yaffs_dev *dev)
 		allocator->allocated_obj_list = NULL;
 		allocator->free_objs = NULL;
 		allocator->n_free_objects = 0;
-	} else
+	} else {
 		YBUG();
+	}
 }
 
 static void yaffs_deinit_raw_objs(struct yaffs_dev *dev)
@@ -371,8 +373,9 @@ void yaffs_deinit_raw_tnodes_and_objs(struct yaffs_dev *dev)
 
 		YFREE(dev->allocator);
 		dev->allocator = NULL;
-	} else
+	} else {
 		YBUG();
+	}
 }
 
 void yaffs_init_raw_tnodes_and_objs(struct yaffs_dev *dev)
@@ -386,8 +389,9 @@ void yaffs_init_raw_tnodes_and_objs(struct yaffs_dev *dev)
 			yaffs_init_raw_tnodes(dev);
 			yaffs_init_raw_objs(dev);
 		}
-	} else
+	} else {
 		YBUG();
+	}
 }
 
 #endif

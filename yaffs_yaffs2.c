@@ -536,8 +536,9 @@ static int yaffs2_rd_checkpt_tnodes(struct yaffs_obj *obj)
 		if (tn) {
 			ok = (yaffs2_checkpt_rd(dev, tn, dev->tnode_size) ==
 			      dev->tnode_size);
-		} else
+		} else {
 			ok = 0;
+                }
 
 		if (tn && ok)
 			ok = yaffs_add_find_tnode_0(dev,
@@ -632,9 +633,9 @@ static int yaffs2_rd_checkpt_objs(struct yaffs_dev *dev)
 		    TENDSTR), cp.obj_id, cp.parent_id, cp.variant_type,
 		   cp.hdr_chunk));
 
-		if (ok && cp.obj_id == ~0)
+		if (ok && cp.obj_id == ~0) {
 			done = 1;
-		else if (ok) {
+		} else if (ok) {
 			obj =
 			    yaffs_find_or_create_by_number(dev, cp.obj_id,
 							   cp.variant_type);
@@ -650,8 +651,9 @@ static int yaffs2_rd_checkpt_objs(struct yaffs_dev *dev)
 					    (struct list_head *)hard_list;
 					hard_list = obj;
 				}
-			} else
+			} else {
 				ok = 0;
+                        }
 		}
 	}
 
@@ -918,8 +920,9 @@ int yaffs2_handle_hole(struct yaffs_obj *obj, loff_t new_size)
 			if (written == this_write) {
 				pos += this_write;
 				increase -= this_write;
-			} else
+			} else {
 				small_increase_ok = 0;
+                        }
 		}
 
 		yaffs_release_temp_buffer(dev, local_buffer, __LINE__);
@@ -1410,9 +1413,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 						in->yst_mode = oh->yst_mode;
 						yaffs_load_attribs(in, oh);
 						in->lazy_loaded = 0;
-					} else
+					} else {
 						in->lazy_loaded = 1;
-
+                                        }
 					in->hdr_chunk = chunk;
 
 				} else if (!in->valid) {
@@ -1476,8 +1479,7 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 							       variant.dir_variant.children);
 					} else if (!parent
 						   || parent->variant_type !=
-						   YAFFS_OBJECT_TYPE_DIRECTORY)
-					{
+						   YAFFS_OBJECT_TYPE_DIRECTORY) {
 						/* Hoosterman, another problem....
 						 * We're trying to use a non-directory as a directory
 						 */

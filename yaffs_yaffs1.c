@@ -303,8 +303,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 							       variant.dir_variant.children);
 					} else if (!parent
 						   || parent->variant_type !=
-						   YAFFS_OBJECT_TYPE_DIRECTORY)
-					{
+						   YAFFS_OBJECT_TYPE_DIRECTORY) {
 						/* Hoosterman, another problem....
 						 * We're trying to use a non-directory as a directory
 						 */

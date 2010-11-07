@@ -8,6 +8,7 @@ the yaffs_close function has been covered by tests
 tests made
 	test_yaffs_mount
 	test_yaffs_mount_ENODEV
+	test_yaffs_mount_ENAMETOOLONG
 	test_yaffs_access
 	test_yaffs_close_EBADF
 	test_yaffs_ftruncate
@@ -26,6 +27,7 @@ tests made
 	test_yaffs_unlink_ENAMETOOLONG
 	test_yaffs_unlink_ENOENT
 	test_yaffs_unlink_ENOTDIR
+	test_yaffs_unmount
 	test_yaffs_write
 
 
@@ -34,9 +36,12 @@ tests to add
 	test_yaffs_mount_EINVAL		//Cannot be generated with yaffs.
 	test_yaffs_mount_ELOOP		//Cannot be generated with yaffs.
 	test_yaffs_mount_EMFILE		//Cannot be generated with yaffs.
-	test_yaffs_mount_ENAMETOOLONG
+
 	test_yaffs_mount_ENOENT
 	test_yaffs_mount_ENOTDIR	//Cannot be generated with yaffs.
+	test_yaffs_mount_EBUSY		//called when trying to mount a new mount point with a mount point already mounted.
+
+	test_yaffs_unmount ->all error
 
 	test_yaffs_open_EACCES
 	test_yaffs_open_ENOSPC
@@ -113,20 +118,20 @@ How to add a test
 	So add this line to the test_list[]: {test_yaffs_fish, test_yaffs_fish_clean, "test_yaffs_fish"},
 
 	Also include the test's .h file in the quick_test.h file: #include "test_yaffs_fish.h"
-
-	The test file should now make and run. 
 	
-	
-	
+	The test file should now make and run(you may need to make clean first). 
 
 
 
 	PS: yaffs_fish() is a made up function for this README (in case you want to try and find this function in yaffs). 
 
 
-BUGS
+BUGS AND WARNINGS
+	remove the printf which prints yaffs_mounting.
 	bug with opening a file with a name of 1,000,000 char long with no errors.
 	bug with unlinking a file with 1,000,000 get the error ENOENT but should be geting ENAMETOOLONG. 
+
+	WARNING- If yaffs is unmounted then most functions return ENODIR.
 	
 	FIXED-ENOSPC error in programs test_yaffs_open_ENOTDIR and test_yaffs_open_ENOENT.
 	FIXED-ENOENT been returned by yaffs_read but the handle is good and the yaffs_open function does not return an error.

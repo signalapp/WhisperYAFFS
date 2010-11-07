@@ -11,23 +11,16 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_open.h"
+#include "test_yaffs_unmount.h"
 
-static int handle=0;
-
-int test_yaffs_open(void){
-
-	handle=yaffs_open(FILE_PATH,O_CREAT | O_RDWR, FILE_MODE);
-	return handle;
+int test_yaffs_unmount(void){
+	int output=0;
+	output=yaffs_unmount(YAFFS_MOUNT_POINT);
+	/*printf("output %d",output);*/
+	return output;
 }
 
-
-int test_yaffs_open_clean(void){
-	if (handle >=0){
-		return yaffs_close(handle);
-	}
-	else {
-		return 1;	/* the file failed to open so there is no need to close it*/
-	}
+int test_yaffs_unmount_clean(void){
+	return test_yaffs_mount();
+	
 }
-

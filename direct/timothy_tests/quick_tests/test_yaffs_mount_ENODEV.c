@@ -11,7 +11,7 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_mount_ENOTDIR.h"
+#include "test_yaffs_mount_ENODEV.h"
 
 static int handle=0;
 int test_yaffs_mount_ENODEV(void){

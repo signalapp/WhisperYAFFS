@@ -33,7 +33,7 @@ int test_yaffs_open_ENAMETOOLONG(void){
 
 
 	handle=yaffs_open(file_name, O_CREAT | O_TRUNC| O_RDWR ,FILE_MODE );
-	printf("handle %d \n",handle);
+
 	if (handle==-1){
 		error_code=yaffs_get_error();
 		//printf("ENAMETOOLONG def %d, Error code %d\n", ENAMETOOLONG,error_code);
@@ -46,6 +46,7 @@ int test_yaffs_open_ENAMETOOLONG(void){
 		}
 	}
 	else if (output >=0){
+		printf("handle %d \n",handle);
 		printf("non existant file opened.(which is a bad thing)\n");
 		return -1;
 	}

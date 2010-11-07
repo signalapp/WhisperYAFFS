@@ -31,7 +31,7 @@ int main(){
 
 	unsigned int x=0;	
 	init_quick_tests();
-	printf("\n\nrunning quick tests for yaffs\n");
+	printf("\n\nrunning quick tests for yaffs\n\n");
 	//printf("testing yaffs\n");
 
 	//printf("len function %d",(sizeof(test_list)/sizeof(test_template)));
@@ -50,6 +50,7 @@ int main(){
 			num_of_tests_failed ++;	
 
 			if (EXIT_ON_ERROR){
+				get_error();
 				printf("\n\n");
 				quit_quick_tests(1);
 			}
@@ -78,9 +79,6 @@ void quit_quick_tests(int exit_code){
 	
 	if (num_of_tests_pass==total_number_of_tests &&  num_of_tests_failed==0){
 		printf("\t OK \n");
-	}
-	else {
-		get_error();
 	}
 	printf("tests: %d passed %d failed\n\n\n",num_of_tests_pass,num_of_tests_failed);
 	yaffs_unmount(YAFFS_MOUNT_POINT);

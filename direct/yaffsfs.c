@@ -1844,7 +1844,7 @@ int yaffs_mount2(const YCHAR *path,int read_only)
 	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 
-	T(YAFFS_TRACE_ALWAYS,(TSTR("yaffs: Mounting %s" TENDSTR),path));
+	T(YAFFS_TRACE_MOUNT,(TSTR("yaffs: Mounting %s" TENDSTR),path));
 
 	yaffsfs_Lock();
 

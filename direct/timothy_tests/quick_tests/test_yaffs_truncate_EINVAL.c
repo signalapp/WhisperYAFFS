@@ -11,36 +11,37 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_ftruncate.h"
-
+#include "test_yaffs_truncate_EINVAL.h"
 static int handle=0;
-int test_yaffs_ftruncate(void){
+
+int test_yaffs_truncate_EINVAL(void){
+	int error=0;
+	int output=0;
 	handle=test_yaffs_open();
 	if (handle>=0){
-		return yaffs_ftruncate(handle,FILE_SIZE_TRUNCATED );
+		output= yaffs_truncate("/yaffs2/foo",-1 );
+		if (output<0){
+			error=yaffs_get_error();
+			if (abs(error)==EINVAL){
+				return 1;
+			}
+			else {
+				printf("recieved a different error than expected\n");
+				return -1;
+			}
+		}
+		else{
+			printf("truncated a file with a bad mode set.\n");
+			return -1;
+		}
+			
 	}
 	else {
-		printf("error opening file\n");
+		printf("error opening file");
 		return -1;
 	}
 }
 
-int test_yaffs_ftruncate_clean(void){
-	/* change file size back to orignal size */
-	int output=0;
-	if (handle>=0){
-		output=yaffs_ftruncate(handle,FILE_SIZE );
-		if (output>=0){
-			return yaffs_close(handle);
-		}
-		else {
-			printf("failed to truncate file\n");
-			return -1;
-		}
-	}
-	else {
-		printf("error opening file in clean function\n");
-		return -1;
-	}
-	
+int test_yaffs_truncate_EINVAL_clean(void){
+	return 1;
 }

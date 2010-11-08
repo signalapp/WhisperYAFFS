@@ -11,20 +11,17 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_open_EISDIR.h"
-
-/*EISDIR is caused by trying to open a directory */
+#include "test_yaffs_unlink_ENOENT.h"
 
 static int handle=0;
-int test_yaffs_open_EISDIR(void){
+int test_yaffs_unlink_ENOENT(void){
 	int output=0;
 	int error_code=0;
 	/*printf("path %s\n",path); */
-	handle=yaffs_open(YAFFS_MOUNT_POINT, O_CREAT | O_TRUNC| O_RDWR ,FILE_MODE );
+	handle=yaffs_unlink("/yaffs2/non_existant_file");
 	if (handle==-1){
 		error_code=yaffs_get_error();
-		//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
-		if (abs(error_code)== EISDIR){
+		if (abs(error_code)==ENOENT){
 			return 1;
 		}
 		else {
@@ -32,15 +29,15 @@ int test_yaffs_open_EISDIR(void){
 			return -1;
 		}
 	}
-	else {
-		printf("non existant directory opened.(which is a bad thing)\n");
+	else if (output >=0){
+		printf("non existant file unlinked.(which is a bad thing)\n");
 		return -1;
 	}
 
 }
-int test_yaffs_open_EISDIR_clean(void){
+int test_yaffs_unlink_ENOENT_clean(void){
 	if (handle >=0){
-		return yaffs_close(handle);
+		return test_yaffs_open();
 	}
 	else {
 		return 1;	/* the file failed to open so there is no need to close it*/

@@ -11,29 +11,16 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_lseek.h"
+#include "test_yaffs_unmount.h"
 
-static int handle=0;
-int test_yaffs_lseek(void){
-	handle=test_yaffs_open();
-	char text[20]="\0";
+int test_yaffs_unmount(void){
 	int output=0;
-	if (handle>=0){
-		if (0==yaffs_lseek(handle, 0, SEEK_SET)){
-			return 1;
-		}
-		else {
-			printf("lseek returned a different position to the expeced position\n");
-		}
-	}
-	else {
-		printf("error opening file\n");
-		return -1;
-	}
+	output=yaffs_unmount(YAFFS_MOUNT_POINT);
+	/*printf("output %d",output);*/
+	return output;
+}
+
+int test_yaffs_unmount_clean(void){
+	return test_yaffs_mount();
 	
 }
-
-int test_yaffs_lseek_clean(void){
-	return yaffs_close(handle);	
-}
-

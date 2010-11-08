@@ -23,7 +23,6 @@ int test_yaffs_open(void){
 
 
 int test_yaffs_open_clean(void){
-	handle=0;
 	if (handle >=0){
 		return yaffs_close(handle);
 	}

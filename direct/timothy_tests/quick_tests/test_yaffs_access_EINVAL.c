@@ -11,29 +11,28 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_lseek.h"
+#include "test_yaffs_access_EINVAL.h"
 
-static int handle=0;
-int test_yaffs_lseek(void){
-	handle=test_yaffs_open();
-	char text[20]="\0";
+int test_yaffs_access_EINVAL(void){
 	int output=0;
-	if (handle>=0){
-		if (0==yaffs_lseek(handle, 0, SEEK_SET)){
+	int error=0;
+	output= yaffs_access(FILE_PATH,255);
+	if (output<0){
+		error=yaffs_get_error();
+		if ( abs(error)== EINVAL){
 			return 1;
 		}
 		else {
-			printf("lseek returned a different position to the expeced position\n");
+			printf("error does not match expected error\n");
+			return -1;
 		}
 	}
-	else {
-		printf("error opening file\n");
+	else{
+		printf("accessed an existing file with bad mode (which is a bad thing\n");
 		return -1;
 	}
-	
 }
 
-int test_yaffs_lseek_clean(void){
-	return yaffs_close(handle);	
+int test_yaffs_access_EINVAL_clean(void){
+	return 1;
 }
-

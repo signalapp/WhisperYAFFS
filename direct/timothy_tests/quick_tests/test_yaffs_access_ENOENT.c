@@ -11,29 +11,31 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_lseek.h"
+#include "test_yaffs_access_ENOENT.h"
 
-static int handle=0;
-int test_yaffs_lseek(void){
-	handle=test_yaffs_open();
-	char text[20]="\0";
+
+int test_yaffs_access_ENOENT(void){
 	int output=0;
-	if (handle>=0){
-		if (0==yaffs_lseek(handle, 0, SEEK_SET)){
+	int error_code=0;
+	/*printf("path %s\n",path); */
+	output=yaffs_access("/yaffs2/non_existant_file",0);
+	if (output==-1){
+		error_code=yaffs_get_error();
+		if (abs(error_code)==ENOENT){
 			return 1;
 		}
 		else {
-			printf("lseek returned a different position to the expeced position\n");
+			printf("different error than expected\n");
+			return -1;
 		}
 	}
 	else {
-		printf("error opening file\n");
+		printf("non existant file accessed.(which is a bad thing)\n");
 		return -1;
 	}
-	
-}
 
-int test_yaffs_lseek_clean(void){
-	return yaffs_close(handle);	
+}
+int test_yaffs_access_ENOENT_clean(void){
+	return 1;
 }
 

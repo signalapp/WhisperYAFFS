@@ -11,17 +11,26 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_open_EISDIR.h"
+#include "test_yaffs_unlink_ENAMETOOLONG.h"
 
-/*EISDIR is caused by trying to open a directory */
 
 static int handle=0;
-int test_yaffs_open_EISDIR(void){
+int test_yaffs_unlink_ENAMETOOLONG(void){
 	int output=0;
 	int error_code=0;
+	int x=0;
+	int file_name_length=1000000;
+	char file_name[file_name_length];
+	
+	strcat(file_name,YAFFS_MOUNT_POINT);
+	for (x=strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
+		file_name[x]='a';
+	}
+	file_name[file_name_length-2]='\0';
+
 	/*printf("path %s\n",path); */
-	handle=yaffs_open(YAFFS_MOUNT_POINT, O_CREAT | O_TRUNC| O_RDWR ,FILE_MODE );
-	if (handle==-1){
+	output=yaffs_unlink(file_name);
+	if (output==-1){
 		error_code=yaffs_get_error();
 		//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
 		if (abs(error_code)== EISDIR){
@@ -33,12 +42,13 @@ int test_yaffs_open_EISDIR(void){
 		}
 	}
 	else {
-		printf("non existant directory opened.(which is a bad thing)\n");
+		printf("directory unlinked opened.(which is a bad thing)\n");
 		return -1;
 	}
-
+	/* the program should not get here but the compiler is complaining */
+	return -1;
 }
-int test_yaffs_open_EISDIR_clean(void){
+int test_yaffs_unlink_ENAMETOOLONG_clean(void){
 	if (handle >=0){
 		return yaffs_close(handle);
 	}

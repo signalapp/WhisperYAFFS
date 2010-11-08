@@ -14,29 +14,34 @@
 #include "test_yaffs_truncate.h"
 static int handle=0;
 
-int test_yaffs_truncate(void){
+int test_yaffs_truncate_EISDIR(void){
+	int error=0;
+	int output=0;
 	handle=test_yaffs_open();
 	if (handle>=0){
-		return yaffs_truncate(FILE_PATH,FILE_SIZE_TRUNCATED );
+		output= yaffs_truncate("/yaffs2/",10);
+		if (output<0){
+			error=yaffs_get_error();
+			if (abs(error)==EISDIR){
+				return 1;
+			}
+			else {
+				printf("recieved a different error than expected\n");
+				return -1;
+			}
+		}
+		else{
+			printf("truncated a directory\n");
+			return -1;
+		}
+			
 	}
 	else {
 		printf("error opening file");
-		return -1;
+		return 1;
 	}
 }
 
-int test_yaffs_truncate_clean(void){
-	/* change file size back to orignal size */
-	int output=0;
-	if (handle>=0){
-		output= yaffs_truncate(FILE_PATH,FILE_SIZE );
-		if (output>=0){
-			return yaffs_close(handle);
-		}
-	}
-	else {
-		printf("error opening file in clean function");
-		return -1;
-	}
-
+int test_yaffs_truncate_EISDIR_clean(void){
+	return 1;
 }

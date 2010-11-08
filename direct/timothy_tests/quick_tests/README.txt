@@ -87,6 +87,7 @@ Tests to add
 	test_yaffs_truncate_EACCES
 	test_yaffs_truncate_ELOOP
 	test_yaffs_truncate_ENAMETOOLONG
+	add a truncate function for truncating a file size to -1.
 
 
 	check to see if an error code is generated when there isn't an error.

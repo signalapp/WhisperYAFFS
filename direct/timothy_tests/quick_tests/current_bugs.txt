@@ -13,9 +13,6 @@ Current BUGS
 	The ENODEV is the error which yaffs gives instead of ENOENT.
 	BBut the mount function should just return ENAMETOOLONG.
 
-	Bug when mounting a non-existing mount point. The error code returned is 
-	ENODEV.
-
 	Bug when trying to use yaffs_access on an existing file with mode 255 
 	the error returned is EACCES it should be EINVAL(note there is no quick test file yet).
 
@@ -27,18 +24,17 @@ Current BUGS
 
 	Bug truncating a file to a size of -1 does not cause an error. 
 
-	BUG truncating a file to a size greater than the maximum file size should 
-	return the error EFBIG. However EFBIG has not been defined in yaffs and 
-	needs to be added. When a file is truncated to a large size 
-	(size =10000000000000000000000000000000000000000000) the truncate 
-	function works without any errors, which is wrong. 
-
+	
 	Bug with opening a file with bad mode. yaffs_open has two modes which 
 	are passed into it. if the modes are set to 255 the open function 
 	does not report any errors. (Also need to try this with modes set to -1.)  
 
 
 Current WARNINGS
+	
+	WARNING- truncating a file to a size greater than the maximum file size returns
+	EINVAL. In standard linux system the error EFBIG is returned. 
+	
 	WARNING- If yaffs is unmounted then most of yaffs' functions return ENODIR. 
 	some function return EBADF instead.
 

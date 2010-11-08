@@ -11,18 +11,17 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_open_EINVAL.h"
+#include "test_yaffs_ftruncate_EBADF.h"
 
 static int handle=0;
-int test_yaffs_open_EINVAL(void){
+int test_yaffs_ftruncate_EBADF(void){
 	int output=0;
 	int error_code=0;
-	/*printf("path %s\n",path); */
-	handle=yaffs_open(FILE_PATH, 255,FILE_MODE);
-	if (handle==-1){
+	output= yaffs_ftruncate(-1,FILE_SIZE_TRUNCATED );
+	if (output<0){
 		error_code=yaffs_get_error();
-		//printf("EEXIST def %d, Error code %d\n",(- EEXIST),error_code);
-		if (abs(error_code)== EINVAL){
+		//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
+		if (abs(error_code)== EBADF){
 			return 1;
 		}
 		else {
@@ -31,18 +30,12 @@ int test_yaffs_open_EINVAL(void){
 		}
 	}
 	else {
-		printf(" file opened with bad mode.(which is a bad thing)\n");
+		printf("non existant file truncated.(which is a bad thing)\n");
 		return -1;
-	}
-	/* the program should not get here but the compiler is complaining */
-	return -1;
-}
-int test_yaffs_open_EINVAL_clean(void){
-	if (handle >=0){
-		return yaffs_close(handle);
-	}
-	else {
-		return 1;	/* the file failed to open so there is no need to close it*/
 	}
 }
 
+int test_yaffs_ftruncate_EBADF_clean(void){
+	return 1;
+	
+}

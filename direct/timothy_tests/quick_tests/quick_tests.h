@@ -45,6 +45,9 @@
 #include "test_yaffs_unlink_ENOENT.h"
 
 #include "test_yaffs_ftruncate.h"
+#include "test_yaffs_ftruncate_EBADF.h"
+#include "test_yaffs_ftruncate_EINVAL.h"
+#include "test_yaffs_ftruncate_EFBIG.h"
 
 #include "test_yaffs_truncate.h"
 #include "test_yaffs_truncate_ENOTDIR.h"
@@ -117,7 +120,11 @@ test_template test_list[]={
 
 
 	{test_yaffs_stat,test_yaffs_stat_clean,"test_yaffs_stat"},
+
 	{test_yaffs_ftruncate,test_yaffs_ftruncate_clean,"test_yaffs_ftruncate"},
+	{test_yaffs_ftruncate_EBADF,test_yaffs_ftruncate_EBADF_clean,"test_yaffs_ftruncate_EBADF"},
+	{test_yaffs_ftruncate_EINVAL,test_yaffs_ftruncate_EINVAL_clean,"test_yaffs_ftruncate_EINVAL"},
+	{test_yaffs_ftruncate_EFBIG,test_yaffs_ftruncate_EFBIG_clean,"test_yaffs_ftruncate_EFBIG"},
 
 	{test_yaffs_truncate,test_yaffs_truncate_clean,"test_yaffs_truncate"},
 	{test_yaffs_truncate_ENOTDIR,test_yaffs_truncate_ENOTDIR_clean,"test_yaffs_truncate_ENOTDIR"},

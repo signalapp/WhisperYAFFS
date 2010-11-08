@@ -32,12 +32,11 @@ int test_yaffs_open_EISDIR(void){
 			return -1;
 		}
 	}
-	else if (output >=0){
+	else {
 		printf("non existant directory opened.(which is a bad thing)\n");
 		return -1;
 	}
-	/* the program should not get here but the compiler is complaining */
-	return -1;
+
 }
 int test_yaffs_open_EISDIR_clean(void){
 	if (handle >=0){

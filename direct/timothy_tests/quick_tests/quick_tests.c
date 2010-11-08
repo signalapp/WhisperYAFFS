@@ -41,6 +41,7 @@ int main(){
 		output=test_list[x].p_function();	/*run test*/
 		if (output>=0){
 			/*test has passed*/
+			printf("\ttest %s passed\n",test_list[x].name_of_test); 
 			num_of_tests_pass++;
 		}
 		else {

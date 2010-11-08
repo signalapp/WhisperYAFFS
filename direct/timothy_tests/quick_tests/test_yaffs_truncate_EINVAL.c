@@ -43,5 +43,5 @@ int test_yaffs_truncate_EINVAL(void){
 }
 
 int test_yaffs_truncate_EINVAL_clean(void){
-	return -1;
+	return 1;
 }

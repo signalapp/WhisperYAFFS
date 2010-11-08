@@ -50,7 +50,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_open.o test_yaffs_open_ENOENT.o test_yaffs_open_ENOTDIR.o test_yaffs_open_EEXIST.o test_yaffs_open_EISDIR.o test_yaffs_open_ENAMETOOLONG.o \
 		test_yaffs_open_EINVAL.o test_yaffs_open_EINVAL2.o \
 		test_yaffs_unlink.o  test_yaffs_unlink_EISDIR.o test_yaffs_unlink_ENOENT.o test_yaffs_unlink_ENAMETOOLONG.o test_yaffs_unlink_ENOTDIR.o\
-		test_yaffs_ftruncate.o \
+		test_yaffs_ftruncate.o test_yaffs_ftruncate_EBADF.o test_yaffs_ftruncate_EINVAL.o test_yaffs_ftruncate_EFBIG.o \
 		test_yaffs_truncate.o test_yaffs_truncate_ENOTDIR.o test_yaffs_truncate_EISDIR.o test_yaffs_truncate_ENOENT.o test_yaffs_truncate_EINVAL.o \
 		test_yaffs_truncate_EFBIG.o\
 		test_yaffs_write.o \

@@ -11,37 +11,41 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_truncate_EFBIG.h"
-static int handle=0;
+#include "test_yaffs_ftruncate_EFBIG.h"
 
-int test_yaffs_truncate_EFBIG(void){
-	int error=0;
+static int handle=0;
+int test_yaffs_ftruncate_EFBIG(void){
 	int output=0;
+	int error_code=0;
 	handle=test_yaffs_open();
 	if (handle>=0){
-		output= yaffs_truncate("/yaffs2/foo",10000000000000000000000000000000000000000000 );
+		output=yaffs_ftruncate(handle,10000000000000000000000000000000);
 		if (output<0){
-			error=yaffs_get_error();
-			if (abs(error)==EINVAL){	/*in yaffs EINVAL is used instead of EFBIG */
+			error_code=yaffs_get_error();
+			//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
+			if (abs(error_code)== EINVAL){	/* yaffs uses the error EINVAL instead of EFBIG */
 				return 1;
 			}
 			else {
-				printf("recieved a different error than expected\n");
+				printf("different error than expected\n");
 				return -1;
 			}
 		}
-		else{
-			printf("truncated a file to a massive size\n");
+		else {
+			printf("file truncated to a very large size.(which is a bad thing)\n");
 			return -1;
 		}
-			
 	}
 	else {
-		printf("error opening file");
+		printf("error opening file\n");
 		return -1;
 	}
+
+	
+	
 }
 
-int test_yaffs_truncate_EFBIG_clean(void){
+int test_yaffs_ftruncate_EFBIG_clean(void){
 	return 1;
+	
 }

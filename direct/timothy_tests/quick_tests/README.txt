@@ -15,7 +15,11 @@ Tests made
 	test_yaffs_access_ENOENT
 
 	test_yaffs_close_EBADF
+
 	test_yaffs_ftruncate
+	test_yaffs_ftruncate_EBADF
+	test_yaffs_ftruncate_ENIVAL
+
 	test_yaffs_lseek
 
 	test_yaffs_open
@@ -47,6 +51,7 @@ Tests made
 	test_yaffs_unmount
 	test_yaffs_write
 
+	add a test where a directory is moved. /fluffy/box. move "fluffy" to "/fluffy/frog". 
 
 Tests to add
 	test_yaffs_mount_EACCES		//Cannot be generated with yaffs.
@@ -78,7 +83,6 @@ Tests to add
 
 	test_yaffs_ftruncate_EACCES
 	test_yaffs_ftruncate_EFBIG
-	test_yaffs_ftruncate_ENIVAL
 	test_yaffs_ftruncate_EISDIR
 	test_yaffs_ftruncate_ELOOP
 	test_yaffs_ftruncate_ENOENT

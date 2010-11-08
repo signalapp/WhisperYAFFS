@@ -277,7 +277,7 @@ static int yaffsfs_PutHandle(int handle)
 
 
 /*
- *  Stuff to search for a directory from a path
+ *  Stuff to handle names.
  */
 
 
@@ -300,7 +300,22 @@ int yaffsfs_IsPathDivider(YCHAR ch)
 	return 0;
 }
 
+int yaffsfs_CheckNameLength(const char *name)
+{
+	int retVal = 0;		
 
+	new_nameLength = yaffs_strnlen(newname,YAFFS_MAX_NAME_LENGTH+1);
+		
+	if(new_nameLength == 0){
+		yaffsfs_SetError(-ENOENT);
+		retVal = -1;
+	} else if (new_nameLength > YAFFS_MAX_NAME_LENGTH){
+		yaffsfs_SetError(-ENAMETOOLONG);
+		retVal = -1;
+	}
+
+	return retVal;	
+}
 
 LIST_HEAD(yaffsfs_deviceList);
 
@@ -382,48 +397,6 @@ static struct yaffs_dev *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPat
 	return retval;
 }
 
-#if 0
-static struct yaffs_dev *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPath)
-{
-	yaffsfs_DeviceConfiguration *cfg = yaffsfs_configurationList;
-	const YCHAR *leftOver;
-	const YCHAR *p;
-	struct yaffs_dev *retval = NULL;
-	int thisMatchLength;
-	int longestMatch = -1;
-
-	/*
-	 * Check all configs, choose the one that:
-	 * 1) Actually matches a prefix (ie /a amd /abc will not match
-	 * 2) Matches the longest.
-	 */
-	while(cfg && cfg->prefix && cfg->dev){
-		leftOver = path;
-		p = cfg->prefix;
-		thisMatchLength = 0;
-
-		while(*p &&  /* unmatched part of prefix */
-		      !(yaffsfs_IsPathDivider(*p) && (p[1] == 0)) &&
-		      *leftOver && yaffsfs_Match(*p,*leftOver)){
-			p++;
-			leftOver++;
-			thisMatchLength++;
-		}
-
-
-		if((!*p || (yaffsfs_IsPathDivider(*p) && (p[1] == 0))) &&  /* end of prefix */
-		   (!*leftOver || yaffsfs_IsPathDivider(*leftOver)) && /* no more in this path name part */
-		   (thisMatchLength > longestMatch)){
-			/* Matched prefix */
-			*restOfPath = (YCHAR *)leftOver;
-			retval = cfg->dev;
-			longestMatch = thisMatchLength;
-		}
-		cfg++;
-	}
-	return retval;
-}
-#endif
 
 static struct yaffs_obj *yaffsfs_FindRoot(const YCHAR *path, YCHAR **restOfPath)
 {
@@ -2356,15 +2329,7 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 			retVal = -1;
 		}
 		
-		new_nameLength = yaffs_strnlen(newname,YAFFS_MAX_NAME_LENGTH+1);
-		
-		if(new_nameLength == 0){
-			yaffsfs_SetError(-ENOENT);
-			retVal = -1;
-		} else if (new_nameLength > YAFFS_MAX_NAME_LENGTH){
-			yaffsfs_SetError(-ENAMETOOLONG);
-			retVal = -1;
-		}
+		retVal = yaffsfs_CheckNameLength(newname);
 		
 		if(retVal == 0) {
 			link = yaffs_link_obj(newdir,newname,obj);

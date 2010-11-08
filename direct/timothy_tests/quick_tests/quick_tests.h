@@ -43,13 +43,21 @@
 #include "test_yaffs_unlink_ENOENT.h"
 
 #include "test_yaffs_ftruncate.h"
+
 #include "test_yaffs_truncate.h"
+#include "test_yaffs_truncate_ENOTDIR.h"
+#include "test_yaffs_truncate_EISDIR.h"
+#include "test_yaffs_truncate_ENOENT.h"
+#include "test_yaffs_truncate_EINVAL.h"
+
 #include "test_yaffs_write.h"
 #include "test_yaffs_read.h"
 #include "test_yaffs_lseek.h"
 
 #include "test_yaffs_access.h"
 #include "test_yaffs_access_EINVAL.h"
+#include "test_yaffs_access_ENOTDIR.h"
+#include "test_yaffs_access_ENOENT.h"
 
 #include "test_yaffs_stat.h"
 #include "yaffsfs.h"
@@ -70,7 +78,7 @@ typedef struct test {
 test_template test_list[]={
 	{test_yaffs_mount,test_yaffs_mount_clean,"test_yaffs_mount"},
 	{test_yaffs_mount_ENODEV,test_yaffs_mount_ENODEV_clean,"test_yaffs_mount_ENODEV"},
-	{test_yaffs_mount_ENAMETOOLONG,test_yaffs_mount_ENAMETOOLONG_clean,"test_yaffs_mount_ENAMETOOLONG"},
+//	{test_yaffs_mount_ENAMETOOLONG,test_yaffs_mount_ENAMETOOLONG_clean,"test_yaffs_mount_ENAMETOOLONG"},
 	{test_yaffs_mount_ENOENT,test_yaffs_mount_ENOENT_clean,"test_yaffs_mount_ENOENT"},
 	{test_yaffs_mount_EBUSY,test_yaffs_mount_EBUSY_clean,"test_yaffs_mount_EBUSY"},
 
@@ -87,6 +95,8 @@ test_template test_list[]={
 
 	{test_yaffs_access,test_yaffs_access_clean,"test_yaffs_access"},
 	{test_yaffs_access_EINVAL,test_yaffs_access_EINVAL_clean,"test_yaffs_access_EINVAL"},
+	{test_yaffs_access_ENOTDIR,test_yaffs_access_ENOTDIR_clean,"test_yaffs_access_ENOTDIR"},
+	{test_yaffs_access_ENOENT,test_yaffs_access_ENOENT_clean,"test_yaffs_access_ENOENT"},
 
 	{test_yaffs_unlink, test_yaffs_unlink_clean,"test_yaffs_unlink"},
 	{test_yaffs_unlink_EISDIR,test_yaffs_unlink_EISDIR_clean,"test_yaffs_unlink_EISDIR"},
@@ -103,8 +113,12 @@ test_template test_list[]={
 
 	{test_yaffs_stat,test_yaffs_stat_clean,"test_yaffs_stat"},
 	{test_yaffs_ftruncate,test_yaffs_ftruncate_clean,"test_yaffs_ftruncate"},
-	{test_yaffs_truncate,test_yaffs_truncate_clean,"test_yaffs_truncate"}
 
+	{test_yaffs_truncate,test_yaffs_truncate_clean,"test_yaffs_truncate"},
+	{test_yaffs_truncate_ENOTDIR,test_yaffs_truncate_ENOTDIR_clean,"test_yaffs_truncate_ENOTDIR"},
+	{test_yaffs_truncate_EISDIR,test_yaffs_truncate_EISDIR_clean,"test_yaffs_truncate_EISDIR"},
+	{test_yaffs_truncate_EINVAL,test_yaffs_truncate_EINVAL_clean,"test_yaffs_truncate_EINVAL"},
+	{test_yaffs_truncate_ENOENT,test_yaffs_truncate_ENOENT_clean,"test_yaffs_truncate_ENOENT"}
 	};
 
 void init_quick_tests(void);

@@ -2,36 +2,50 @@
 Made by Timothy Manning <timothy@yaffs.net> on 04/11/2010
 
 
-tests made
+Tests made
 	test_yaffs_mount
 	test_yaffs_mount_ENODEV
 	test_yaffs_mount_ENAMETOOLONG
 	test_yaffs_mount_ENOENT
 	test_yaffs_mount_EBUSY		//called when trying to mount a new mount point with a mount point already mounted.
+
 	test_yaffs_access
+	test_yaffs_access_ENIVAL	//when the mode is incorrect.
+	test_yaffs_access_ENOTDIR
+	test_yaffs_access_ENOENT
+
 	test_yaffs_close_EBADF
 	test_yaffs_ftruncate
 	test_yaffs_lseek
+
 	test_yaffs_open
 	test_yaffs_open_EEXIST
 	test_yaffs_open_EISDIR
 	test_yaffs_open_ENAMETOOLONG
 	test_yaffs_open_ENOENT
 	test_yaffs_open_ENOTDIR
+
 	test_yaffs_read
 	test_yaffs_stat
+
 	test_yaffs_truncate
+	test_yaffs_truncate_ENOTDIR
+	test_yaffs_truncate_EISDIR
+	test_yaffs_truncate_ENOENT
+	test_yaffs_truncate_ENIVAL
+
 	test_yaffs_unlink
 	test_yaffs_unlink_EISDIR
 	test_yaffs_unlink_ENAMETOOLONG
 	test_yaffs_unlink_ENOENT
 	test_yaffs_unlink_ENOTDIR
 	test_yaffs_unlink_ENOENT
+
 	test_yaffs_unmount
 	test_yaffs_write
 
 
-tests to add
+Tests to add
 	test_yaffs_mount_EACCES		//Cannot be generated with yaffs.
 	test_yaffs_mount_EINVAL		//Cannot be generated with yaffs.
 	test_yaffs_mount_ELOOP		//Cannot be generated with yaffs.
@@ -57,9 +71,7 @@ tests to add
 	test_yaffs_access_EACCESS
 	test_yaffs_access_ELOOP
 	test_yaffs_access_ENAMETOOLONG
-	test_yaffs_access_ENOENT
-	test_yaffs_access_ENOTDIR
-	test_yaffs_access_ENIVAL	//mode is incorrect.
+	test_yaffs_access_ENOENT_generated_with_a_dangling_symbloic_link
 
 	test_yaffs_ftruncate_EACCES
 	test_yaffs_ftruncate_EFBIG
@@ -72,12 +84,8 @@ tests to add
 
 	test_yaffs_truncate_EACCES
 	test_yaffs_truncate_EFBIG
-	test_yaffs_truncate_ENIVAL
-	test_yaffs_truncate_EISDIR
 	test_yaffs_truncate_ELOOP
 	test_yaffs_truncate_ENAMETOOLONG
-	test_yaffs_truncate_ENOENT
-	test_yaffs_truncate_ENOTDIR
 	test_yaffs_truncate_EPERM
 
 	check to see if an error code is generated when there isn't an error.
@@ -91,14 +99,19 @@ How to add a test
 	Test_yaffs_[function of yaffs which is been tested]_[error trying to be generated]
 	
 	The .c file needs to contain two functions.
-	The first function needs to contain the code for the main test and will return -1 on a failure and 0 or greater on a success.
-	The second function needs contain the code for cleaning up after the test. Cleaning up may include closing some open handles, recreating a file, ect. 
+	The first function needs to contain the code for the main test and will 
+	return -1 on a failure and 0 or greater on a success.
+	The second function needs contain the code for cleaning up after the test. 
+	Cleaning up may include closing some open handles, recreating a file, ect. 
 	This second function needs to return -1 on a failure and 0 or greater on success.
 
-	The name of first function needs to be called the same as the file name (without the .c or .h)
-	The second function's name needs be the same as the first function but with "_clean" added on the end.
+	The name of first function needs to be called the same as the file 
+	name (without the .c or .h)
+	The second function's name needs be the same as the first function but 
+	with "_clean" added on the end.
 	
-	So if a test is been created for the yaffs function yaffs_foo() then create these files
+	So if a test is been created for the yaffs function yaffs_foo() then 
+	create these files
 	test_yaffs_foo.c
 		Contains int test_yaffs_foo(void); int test_yaffs_foo_clean(void);
 	test_yaffs_foo.h
@@ -106,11 +119,15 @@ How to add a test
 
 	Next write the test code in these files then add these files to the Makefile.
 
-	Add the name of the test files' object file (test_yaffs_foo.o ) to the TESTFILES tag around line 50 of the Makefile.	
+	Add the name of the test files' object file (test_yaffs_foo.o ) to the 
+	TESTFILES tag around line 50 of the Makefile.	
 
 	Now add the test functions to the test_list[] array in quick_tests.h
-	The order of the tests matters. The idea is to test each yaffs_function individualy and only using tested yaffs_components before using this new yaffs_function. 
-	This array consists of: {[test function], [the clean function], [name of the tests which will be printed when the test fails]},	
+	The order of the tests matters. The idea is to test each yaffs_function 
+	individualy and only using tested yaffs_components before using this new 
+	yaffs_function. 
+	This array consists of: 
+	{[test function], [the clean function], [name of the tests which will be printed when the test fails]},	
 	
 	So add this line to the test_list[]: {test_yaffs_foo, test_yaffs_foo_clean, "test_yaffs_foo"},
 
@@ -120,7 +137,8 @@ How to add a test
 
 
 
-	PS: yaffs_foo() is a made up function for this README (in case you want to find this function in yaffs). 
+	PS: yaffs_foo() is a made up function for this README (in case you want 
+	to find this function in yaffs). 
 
 
 

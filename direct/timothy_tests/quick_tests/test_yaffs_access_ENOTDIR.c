@@ -11,26 +11,18 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_mount_ENOENT.h"
+#include "test_yaffs_access_ENOTDIR.h"
 
-
-int test_yaffs_mount_ENOENT(void){
+static int handle=0;
+int test_yaffs_access_ENOTDIR(void){
 	int output=0;
 	int error_code=0;
 	/*printf("path %s\n",path); */
-	
-	
-	/* if a second file system is mounted then yaffs will return EBUSY. so first unmount yaffs */
-	output=test_yaffs_unmount();
-	if (output<0){
-		printf("yaffs failed to unmount\n");
-		return -1;
-	} 
-
-	output=yaffs_mount("/non_existaint_mount_point/");
+	output=yaffs_access("/nonexisting_dir/foo",0);
 	if (output==-1){
 		error_code=yaffs_get_error();
-		if (abs(error_code)==ENODEV){
+		//printf("EISDIR def %d, Error code %d\n", ENOTDIR,error_code);
+		if (abs(error_code)==ENOTDIR){
 			return 1;
 		}
 		else {
@@ -39,12 +31,12 @@ int test_yaffs_mount_ENOENT(void){
 		}
 	}
 	else {
-		printf("non existant mount point mounted.(which is a bad thing)\n");
+		printf("non existant directory accessed.(which is a bad thing)\n");
 		return -1;
 	}
 
 }
-int test_yaffs_mount_ENOENT_clean(void){
-	return test_yaffs_mount();
+int test_yaffs_access_ENOTDIR_clean(void){
+	return 1;
 }
 

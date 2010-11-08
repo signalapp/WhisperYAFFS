@@ -11,26 +11,17 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_mount_ENOENT.h"
+#include "test_yaffs_access_ENOENT.h"
 
 
-int test_yaffs_mount_ENOENT(void){
+int test_yaffs_access_ENOENT(void){
 	int output=0;
 	int error_code=0;
 	/*printf("path %s\n",path); */
-	
-	
-	/* if a second file system is mounted then yaffs will return EBUSY. so first unmount yaffs */
-	output=test_yaffs_unmount();
-	if (output<0){
-		printf("yaffs failed to unmount\n");
-		return -1;
-	} 
-
-	output=yaffs_mount("/non_existaint_mount_point/");
+	output=yaffs_access("/yaffs2/non_existant_file",0);
 	if (output==-1){
 		error_code=yaffs_get_error();
-		if (abs(error_code)==ENODEV){
+		if (abs(error_code)==ENOENT){
 			return 1;
 		}
 		else {
@@ -39,12 +30,12 @@ int test_yaffs_mount_ENOENT(void){
 		}
 	}
 	else {
-		printf("non existant mount point mounted.(which is a bad thing)\n");
+		printf("non existant file accessed.(which is a bad thing)\n");
 		return -1;
 	}
 
 }
-int test_yaffs_mount_ENOENT_clean(void){
-	return test_yaffs_mount();
+int test_yaffs_access_ENOENT_clean(void){
+	return 1;
 }
 

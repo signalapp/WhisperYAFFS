@@ -11,18 +11,15 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_mount_ENAMETOOLONG.h"
+#include "test_yaffs_mount_ENOENT.h"
 
 
-
-
-int test_yaffs_mount_ENAMETOOLONG(void){
+int test_yaffs_mount_ENOENT(void){
 	int output=0;
-	int x;
 	int error_code=0;
-	int file_name_length=1000000;
-	char file_name[file_name_length];
-
+	/*printf("path %s\n",path); */
+	
+	
 	/* if a second file system is mounted then yaffs will return EBUSY. so first unmount yaffs */
 	output=test_yaffs_unmount();
 	if (output<0){
@@ -30,20 +27,10 @@ int test_yaffs_mount_ENAMETOOLONG(void){
 		return -1;
 	} 
 
-	strcat(file_name,YAFFS_MOUNT_POINT);
-	for (x=strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
-		file_name[x]='a';
-	}
-	file_name[file_name_length-2]='\0';
-	
-	//printf("file name: %s\n",file_name);
-
-
-	output=yaffs_mount(file_name);
-
+	output=yaffs_mount("/non_existaint_mount_point/");
 	if (output==-1){
 		error_code=yaffs_get_error();
-		if (abs(error_code)== ENAMETOOLONG){
+		if (abs(error_code)==ENOENT){
 			return 1;
 		}
 		else {
@@ -52,13 +39,12 @@ int test_yaffs_mount_ENAMETOOLONG(void){
 		}
 	}
 	else {
-		printf("mounted a too long mount point name.(which is a bad thing)\n");
+		printf("non existant mount point mounted.(which is a bad thing)\n");
 		return -1;
 	}
-	/* the program should not get here but the compiler is complaining */
-	return -1;
+
 }
-int test_yaffs_mount_ENAMETOOLONG_clean(void){
+int test_yaffs_mount_ENOENT_clean(void){
 	return test_yaffs_mount();
 }
 

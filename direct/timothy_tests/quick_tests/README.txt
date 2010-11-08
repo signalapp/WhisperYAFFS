@@ -9,6 +9,7 @@ tests made
 	test_yaffs_mount
 	test_yaffs_mount_ENODEV
 	test_yaffs_mount_ENAMETOOLONG
+	test_yaffs_mount_ENOENT
 	test_yaffs_access
 	test_yaffs_close_EBADF
 	test_yaffs_ftruncate
@@ -37,7 +38,7 @@ tests to add
 	test_yaffs_mount_ELOOP		//Cannot be generated with yaffs.
 	test_yaffs_mount_EMFILE		//Cannot be generated with yaffs.
 
-	test_yaffs_mount_ENOENT
+
 	test_yaffs_mount_ENOTDIR	//Cannot be generated with yaffs.
 	test_yaffs_mount_EBUSY		//called when trying to mount a new mount point with a mount point already mounted.
 
@@ -127,12 +128,14 @@ How to add a test
 
 
 BUGS AND WARNINGS
-	remove the printf which prints yaffs_mounting.
 	bug with opening a file with a name of 1,000,000 char long with no errors.
 	bug with unlinking a file with 1,000,000 get the error ENOENT but should be geting ENAMETOOLONG. 
+	bug with mounting a too long non-existant mount point. there are two errors here, ENOENT and ENAMETOOLONG.
+	bug with mounting a non-existing mount point get the error ENODEV. should be getting ENOENT.
 
 	WARNING- If yaffs is unmounted then most functions return ENODIR.
 	
+	FIXED-remove the printf which prints yaffs_mounting.
 	FIXED-ENOSPC error in programs test_yaffs_open_ENOTDIR and test_yaffs_open_ENOENT.
 	FIXED-ENOENT been returned by yaffs_read but the handle is good and the yaffs_open function does not return an error.
 

@@ -20,6 +20,7 @@
 #include "test_yaffs_mount.h"
 #include "test_yaffs_mount_ENODEV.h"
 #include "test_yaffs_mount_ENAMETOOLONG.h"
+#include "test_yaffs_mount_ENOENT.h"
 
 #include "test_yaffs_unmount.h"
 
@@ -65,6 +66,7 @@ test_template test_list[]={
 	{test_yaffs_mount,test_yaffs_mount_clean,"test_yaffs_mount"},
 	{test_yaffs_mount_ENODEV,test_yaffs_mount_ENODEV_clean,"test_yaffs_mount_ENODEV"},
 	{test_yaffs_mount_ENAMETOOLONG,test_yaffs_mount_ENAMETOOLONG_clean,"test_yaffs_mount_ENAMETOOLONG"},
+	{test_yaffs_mount_ENOENT,test_yaffs_mount_ENOENT_clean,"test_yaffs_mount_ENOENT"},
 
 	{test_yaffs_unmount,test_yaffs_unmount_clean,"test_yaffs_unmount"},
 

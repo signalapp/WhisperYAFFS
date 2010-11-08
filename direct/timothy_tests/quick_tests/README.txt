@@ -24,6 +24,8 @@ Tests made
 	test_yaffs_open_ENAMETOOLONG
 	test_yaffs_open_ENOENT
 	test_yaffs_open_ENOTDIR
+	test_yaffs_open_EINVAL
+	test_yaffs_open_EINVAL2 //the function open has to modes which can be set, so two modes are needed.
 
 	test_yaffs_read
 	test_yaffs_stat
@@ -33,6 +35,7 @@ Tests made
 	test_yaffs_truncate_EISDIR
 	test_yaffs_truncate_ENOENT
 	test_yaffs_truncate_ENIVAL
+	test_yaffs_truncate_EFBIG
 
 	test_yaffs_unlink
 	test_yaffs_unlink_EISDIR
@@ -80,13 +83,11 @@ Tests to add
 	test_yaffs_ftruncate_ELOOP
 	test_yaffs_ftruncate_ENOENT
 	test_yaffs_ftruncate_ENOTDIR
-	test_yaffs_ftruncate_EPERM
 
 	test_yaffs_truncate_EACCES
-	test_yaffs_truncate_EFBIG
 	test_yaffs_truncate_ELOOP
 	test_yaffs_truncate_ENAMETOOLONG
-	test_yaffs_truncate_EPERM
+
 
 	check to see if an error code is generated when there isn't an error.
 

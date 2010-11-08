@@ -27,6 +27,16 @@ Current BUGS
 
 	Bug truncating a file to a size of -1 does not cause an error. 
 
+	BUG truncating a file to a size greater than the maximum file size should 
+	return the error EFBIG. However EFBIG has not been defined in yaffs and 
+	needs to be added. When a file is truncated to a large size 
+	(size =10000000000000000000000000000000000000000000) the truncate 
+	function works without any errors, which is wrong. 
+
+	Bug with opening a file with bad mode. yaffs_open has two modes which 
+	are passed into it. if the modes are set to 255 the open function 
+	does not report any errors. (Also need to try this with modes set to -1.)  
+
 
 Current WARNINGS
 	WARNING- If yaffs is unmounted then most of yaffs' functions return ENODIR. 

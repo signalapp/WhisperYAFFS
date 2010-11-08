@@ -31,6 +31,8 @@
 #include "test_yaffs_open_ENOENT.h"
 #include "test_yaffs_open_ENOTDIR.h"
 #include "test_yaffs_open_ENAMETOOLONG.h"
+#include "test_yaffs_open_EINVAL.h"
+#include "test_yaffs_open_EINVAL2.h"
 
 #include "test_yaffs_close_EBADF.h"
 
@@ -49,6 +51,7 @@
 #include "test_yaffs_truncate_EISDIR.h"
 #include "test_yaffs_truncate_ENOENT.h"
 #include "test_yaffs_truncate_EINVAL.h"
+#include "test_yaffs_truncate_EFBIG.h"
 
 #include "test_yaffs_write.h"
 #include "test_yaffs_read.h"
@@ -90,6 +93,8 @@ test_template test_list[]={
 	{test_yaffs_open_ENOTDIR,test_yaffs_open_ENOTDIR_clean,"test_yaffs_open_ENOTDIR"},
 	{test_yaffs_open_ENOENT,test_yaffs_open_ENOENT_clean,"test_yaffs_open_ENOENT"},
 	{test_yaffs_open_ENAMETOOLONG,test_yaffs_open_ENAMETOOLONG_clean,"test_yaffs_open_ENAMETOOLONG"},
+	{test_yaffs_open_EINVAL,test_yaffs_open_EINVAL_clean,"test_yaffs_open_EINVAL"},
+	{test_yaffs_open_EINVAL2,test_yaffs_open_EINVAL2_clean,"test_yaffs_open_EINVAL2"},
 	
 	{test_yaffs_close_EBADF,test_yaffs_close_EBADF_clean,"test_yaffs_close_EBADF"},
 
@@ -118,7 +123,8 @@ test_template test_list[]={
 	{test_yaffs_truncate_ENOTDIR,test_yaffs_truncate_ENOTDIR_clean,"test_yaffs_truncate_ENOTDIR"},
 	{test_yaffs_truncate_EISDIR,test_yaffs_truncate_EISDIR_clean,"test_yaffs_truncate_EISDIR"},
 	{test_yaffs_truncate_EINVAL,test_yaffs_truncate_EINVAL_clean,"test_yaffs_truncate_EINVAL"},
-	{test_yaffs_truncate_ENOENT,test_yaffs_truncate_ENOENT_clean,"test_yaffs_truncate_ENOENT"}
+	{test_yaffs_truncate_ENOENT,test_yaffs_truncate_ENOENT_clean,"test_yaffs_truncate_ENOENT"},
+	{test_yaffs_truncate_EFBIG,test_yaffs_truncate_EFBIG_clean,"test_yaffs_truncate_EFBIG"}
 	};
 
 void init_quick_tests(void);

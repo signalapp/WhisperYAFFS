@@ -21,6 +21,7 @@
 #include "test_yaffs_mount_ENODEV.h"
 #include "test_yaffs_mount_ENAMETOOLONG.h"
 #include "test_yaffs_mount_ENOENT.h"
+#include "test_yaffs_mount_EBUSY.h"
 
 #include "test_yaffs_unmount.h"
 
@@ -39,13 +40,17 @@
 #include "test_yaffs_unlink_ENOENT.h"
 #include "test_yaffs_unlink_ENAMETOOLONG.h"
 #include "test_yaffs_unlink_ENOTDIR.h"
+#include "test_yaffs_unlink_ENOENT.h"
 
 #include "test_yaffs_ftruncate.h"
 #include "test_yaffs_truncate.h"
 #include "test_yaffs_write.h"
 #include "test_yaffs_read.h"
 #include "test_yaffs_lseek.h"
+
 #include "test_yaffs_access.h"
+#include "test_yaffs_access_EINVAL.h"
+
 #include "test_yaffs_stat.h"
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -67,6 +72,7 @@ test_template test_list[]={
 	{test_yaffs_mount_ENODEV,test_yaffs_mount_ENODEV_clean,"test_yaffs_mount_ENODEV"},
 	{test_yaffs_mount_ENAMETOOLONG,test_yaffs_mount_ENAMETOOLONG_clean,"test_yaffs_mount_ENAMETOOLONG"},
 	{test_yaffs_mount_ENOENT,test_yaffs_mount_ENOENT_clean,"test_yaffs_mount_ENOENT"},
+	{test_yaffs_mount_EBUSY,test_yaffs_mount_EBUSY_clean,"test_yaffs_mount_EBUSY"},
 
 	{test_yaffs_unmount,test_yaffs_unmount_clean,"test_yaffs_unmount"},
 
@@ -80,12 +86,14 @@ test_template test_list[]={
 	{test_yaffs_close_EBADF,test_yaffs_close_EBADF_clean,"test_yaffs_close_EBADF"},
 
 	{test_yaffs_access,test_yaffs_access_clean,"test_yaffs_access"},
+	{test_yaffs_access_EINVAL,test_yaffs_access_EINVAL_clean,"test_yaffs_access_EINVAL"},
 
 	{test_yaffs_unlink, test_yaffs_unlink_clean,"test_yaffs_unlink"},
 	{test_yaffs_unlink_EISDIR,test_yaffs_unlink_EISDIR_clean,"test_yaffs_unlink_EISDIR"},
 	{test_yaffs_unlink_ENOENT,test_yaffs_unlink_ENOENT_clean,"test_yaffs_unlink_ENOENT"},
 	{test_yaffs_unlink_ENAMETOOLONG,test_yaffs_unlink_ENAMETOOLONG_clean,"test_yaffs_unlink_ENAMETOOLONG"},
 	{test_yaffs_unlink_ENOTDIR,test_yaffs_unlink_ENOTDIR_clean,"test_yaffs_unlink_ENOTDIR"},
+	{test_yaffs_unlink_ENOENT,test_yaffs_unlink_ENOENT_clean,"test_yaffs_unlink_ENOENT"},
 
 
 	{test_yaffs_lseek,test_yaffs_lseek_clean,"test_yaffs_lseek"},

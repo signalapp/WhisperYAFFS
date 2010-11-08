@@ -13,13 +13,12 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __test_yaffs_unlink_ENOENT_h__
-#define __test_yaffs_unlink_ENOENT_h__
-
+#ifndef __test_yaffs__access_EINVAL_h__
+#define __test_yaffs_access_EINVAL_h__
 #include "lib.h"
 #include "yaffsfs.h"
 #include "test_yaffs_open.h"
-
-int test_yaffs_unlink_ENOENT(void);
-int test_yaffs_unlink_ENOENT_clean(void);
+#include "test_yaffs_lseek.h"
+int test_yaffs_access_EINVAL(void);
+int test_yaffs_access_EINVAL_clean(void);
 #endif

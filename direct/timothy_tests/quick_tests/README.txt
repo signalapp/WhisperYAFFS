@@ -2,14 +2,12 @@
 Made by Timothy Manning <timothy@yaffs.net> on 04/11/2010
 
 
-the yaffs_open function has been covered by tests
-the yaffs_close function has been covered by tests
-
 tests made
 	test_yaffs_mount
 	test_yaffs_mount_ENODEV
 	test_yaffs_mount_ENAMETOOLONG
 	test_yaffs_mount_ENOENT
+	test_yaffs_mount_EBUSY		//called when trying to mount a new mount point with a mount point already mounted.
 	test_yaffs_access
 	test_yaffs_close_EBADF
 	test_yaffs_ftruncate
@@ -28,6 +26,7 @@ tests made
 	test_yaffs_unlink_ENAMETOOLONG
 	test_yaffs_unlink_ENOENT
 	test_yaffs_unlink_ENOTDIR
+	test_yaffs_unlink_ENOENT
 	test_yaffs_unmount
 	test_yaffs_write
 
@@ -37,12 +36,12 @@ tests to add
 	test_yaffs_mount_EINVAL		//Cannot be generated with yaffs.
 	test_yaffs_mount_ELOOP		//Cannot be generated with yaffs.
 	test_yaffs_mount_EMFILE		//Cannot be generated with yaffs.
-
-
 	test_yaffs_mount_ENOTDIR	//Cannot be generated with yaffs.
-	test_yaffs_mount_EBUSY		//called when trying to mount a new mount point with a mount point already mounted.
 
-	test_yaffs_unmount ->all error
+	test_yaffs_umount_ENODEV
+	test_yaffs_umount_ENAMETOOLONG
+	test_yaffs_umount_ENOENT
+	test_yaffs_umount_EBUSY
 
 	test_yaffs_open_EACCES
 	test_yaffs_open_ENOSPC
@@ -53,7 +52,6 @@ tests to add
 
 	test_yaffs_unlink_EACCES
 	test_yaffs_unlink_ELOOP
-	test_yaffs_unlink_ENOENT
 	test_yaffs_unlink_ENOMEM
 
 	test_yaffs_access_EACCESS
@@ -100,44 +98,31 @@ How to add a test
 	The name of first function needs to be called the same as the file name (without the .c or .h)
 	The second function's name needs be the same as the first function but with "_clean" added on the end.
 	
-	So if a test is been created for the yaffs function yaffs_fish() then create these files
-	Test_yaffs_fish.c
-		Contains int test_yaffs_fish(void); int test_yaffs_fish_clean(void);
-	Test_yaffs_fish.h
+	So if a test is been created for the yaffs function yaffs_foo() then create these files
+	test_yaffs_foo.c
+		Contains int test_yaffs_foo(void); int test_yaffs_foo_clean(void);
+	test_yaffs_foo.h
 		Which includes "lib.h", "yaffsfs.h" header files.
 
 	Next write the test code in these files then add these files to the Makefile.
 
-	Add the name of the test files' object file (test_yaffs_fish.o ) to the TESTFILES tag around line 50 of the Makefile.	
-
-
+	Add the name of the test files' object file (test_yaffs_foo.o ) to the TESTFILES tag around line 50 of the Makefile.	
 
 	Now add the test functions to the test_list[] array in quick_tests.h
 	The order of the tests matters. The idea is to test each yaffs_function individualy and only using tested yaffs_components before using this new yaffs_function. 
 	This array consists of: {[test function], [the clean function], [name of the tests which will be printed when the test fails]},	
 	
-	So add this line to the test_list[]: {test_yaffs_fish, test_yaffs_fish_clean, "test_yaffs_fish"},
+	So add this line to the test_list[]: {test_yaffs_foo, test_yaffs_foo_clean, "test_yaffs_foo"},
 
-	Also include the test's .h file in the quick_test.h file: #include "test_yaffs_fish.h"
+	Also include the test's .h file in the quick_test.h file: #include "test_yaffs_foo.h"
 	
 	The test file should now make and run(you may need to make clean first). 
 
 
 
-	PS: yaffs_fish() is a made up function for this README (in case you want to try and find this function in yaffs). 
+	PS: yaffs_foo() is a made up function for this README (in case you want to find this function in yaffs). 
 
 
-BUGS AND WARNINGS
-	bug with opening a file with a name of 1,000,000 char long with no errors.
-	bug with unlinking a file with 1,000,000 get the error ENOENT but should be geting ENAMETOOLONG. 
-	bug with mounting a too long non-existant mount point. there are two errors here, ENOENT and ENAMETOOLONG.
-	bug with mounting a non-existing mount point get the error ENODEV. should be getting ENOENT.
-
-	WARNING- If yaffs is unmounted then most functions return ENODIR.
-	
-	FIXED-remove the printf which prints yaffs_mounting.
-	FIXED-ENOSPC error in programs test_yaffs_open_ENOTDIR and test_yaffs_open_ENOENT.
-	FIXED-ENOENT been returned by yaffs_read but the handle is good and the yaffs_open function does not return an error.
 
 
 

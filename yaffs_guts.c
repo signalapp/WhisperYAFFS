@@ -604,12 +604,10 @@ static u16 yaffs_calc_name_sum(const YCHAR * name)
 
 void yaffs_set_obj_name(struct yaffs_obj *obj, const YCHAR * name)
 {
-#ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
-	memset(obj->short_name, 0,
-	       sizeof(YCHAR) * (YAFFS_SHORT_NAME_LENGTH + 1));
-	if (name
-	    && yaffs_strnlen(name,
-			     YAFFS_SHORT_NAME_LENGTH + 1) <=
+#ifndef CONFIG_YAFFS_NO_SHORT_NAMES
+	memset(obj->short_name, 0, sizeof(obj->short_name));
+	if (name && 
+	        yaffs_strnlen(name, YAFFS_SHORT_NAME_LENGTH + 1) <=
 	    YAFFS_SHORT_NAME_LENGTH)
 		yaffs_strcpy(obj->short_name, name);
 	else
@@ -4540,7 +4538,7 @@ int yaffs_get_obj_name(struct yaffs_obj *obj, YCHAR * name, int buffer_size)
 	if (obj->obj_id == YAFFS_OBJECTID_LOSTNFOUND) {
 		yaffs_strncpy(name, YAFFS_LOSTNFOUND_NAME, buffer_size - 1);
 	}
-#ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
+#ifndef CONFIG_YAFFS_NO_SHORT_NAMES
 	else if (obj->short_name[0]) {
 		yaffs_strcpy(name, obj->short_name);
 	}

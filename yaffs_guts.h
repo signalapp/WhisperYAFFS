@@ -422,7 +422,7 @@ struct yaffs_obj {
 
 	u32 yst_mode;
 
-#ifdef CONFIG_YAFFS_SHORT_NAMES_IN_RAM
+#ifndef CONFIG_YAFFS_NO_SHORT_NAMES
 	YCHAR short_name[YAFFS_SHORT_NAME_LENGTH + 1];
 #endif
 

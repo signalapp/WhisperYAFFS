@@ -2432,10 +2432,6 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	param->use_nand_ecc = 1;
 #endif
 
-#ifdef CONFIG_YAFFS_DISABLE_WIDE_TNODES
-	param->wide_tnodes_disabled = 1;
-#endif
-
 	param->skip_checkpt_rd = options.skip_checkpoint_read;
 	param->skip_checkpt_wr = options.skip_checkpoint_write;
 

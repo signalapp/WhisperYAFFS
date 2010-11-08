@@ -19,8 +19,12 @@ Tests made
 	test_yaffs_ftruncate
 	test_yaffs_ftruncate_EBADF
 	test_yaffs_ftruncate_ENIVAL
+	test_yaffs_ftruncate_EFBIG
 
 	test_yaffs_lseek
+	test_yaffs_lseek_EBADF
+	test_yaffs_lseek_EINVAL
+	test_yaffs_lseek_EFBIG
 
 	test_yaffs_open
 	test_yaffs_open_EEXIST
@@ -29,7 +33,7 @@ Tests made
 	test_yaffs_open_ENOENT
 	test_yaffs_open_ENOTDIR
 	test_yaffs_open_EINVAL
-	test_yaffs_open_EINVAL2 //the function open has to modes which can be set, so two modes are needed.
+	test_yaffs_open_EINVAL2 //the function open has two modes which can be set, so two tests modes are needed.
 
 	test_yaffs_read
 	test_yaffs_stat
@@ -70,8 +74,8 @@ Tests to add
 	test_yaffs_open_ELOOP   //Too many symbolic links were encountered in resolving pathname
 	test yaffs_open_running_out_of_handles error
 
-	test_yaffs_close	//This function has already been called by the time this test is reached. 
-
+	test_yaffs_close	//This function has already been called by the time this test is reached.
+	
 	test_yaffs_unlink_EACCES
 	test_yaffs_unlink_ELOOP
 	test_yaffs_unlink_ENOMEM
@@ -81,20 +85,20 @@ Tests to add
 	test_yaffs_access_ENAMETOOLONG
 	test_yaffs_access_ENOENT_generated_with_a_dangling_symbloic_link
 
-	test_yaffs_ftruncate_EACCES
-	test_yaffs_ftruncate_EFBIG
-	test_yaffs_ftruncate_EISDIR
-	test_yaffs_ftruncate_ELOOP
-	test_yaffs_ftruncate_ENOENT
-	test_yaffs_ftruncate_ENOTDIR
+	test_yaffs_ftruncate_EACCES	
+	test_yaffs_ftruncate_EISDIR	//
+	test_yaffs_ftruncate_ELOOP	//
+	test_yaffs_ftruncate_ENOENT	//
+	test_yaffs_ftruncate_ENOTDIR	//
 
 	test_yaffs_truncate_EACCES
 	test_yaffs_truncate_ELOOP
 	test_yaffs_truncate_ENAMETOOLONG
 	add a truncate function for truncating a file size to -1.
 
-
-	check to see if an error code is generated when there isn't an error.
+	What happens if a handle is opened to a file and the file is then deleted?
+	Check to see if yaffs generates an error code for no reason.
+	What happens when a file is opened with no modes set?
 
 
 How to add a test

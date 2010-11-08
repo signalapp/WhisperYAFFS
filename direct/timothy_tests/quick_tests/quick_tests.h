@@ -49,6 +49,7 @@
 #include "test_yaffs_ftruncate_EINVAL.h"
 #include "test_yaffs_ftruncate_EFBIG.h"
 
+
 #include "test_yaffs_truncate.h"
 #include "test_yaffs_truncate_ENOTDIR.h"
 #include "test_yaffs_truncate_EISDIR.h"
@@ -58,7 +59,11 @@
 
 #include "test_yaffs_write.h"
 #include "test_yaffs_read.h"
+
 #include "test_yaffs_lseek.h"
+#include "test_yaffs_lseek_EBADF.h"
+#include "test_yaffs_lseek_EINVAL.h"
+#include "test_yaffs_lseek_EFBIG.h"
 
 #include "test_yaffs_access.h"
 #include "test_yaffs_access_EINVAL.h"
@@ -115,6 +120,10 @@ test_template test_list[]={
 
 
 	{test_yaffs_lseek,test_yaffs_lseek_clean,"test_yaffs_lseek"},
+	{test_yaffs_lseek_EBADF,test_yaffs_lseek_EBADF_clean,"test_yaffs_lseek_EBADF"},
+	{test_yaffs_lseek_EINVAL,test_yaffs_lseek_EINVAL_clean,"test_yaffs_lseek_EINVAL"},
+	{test_yaffs_lseek_EFBIG,test_yaffs_lseek_EFBIG_clean,"test_yaffs_lseek_EFBIG"},
+
 	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
 	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 

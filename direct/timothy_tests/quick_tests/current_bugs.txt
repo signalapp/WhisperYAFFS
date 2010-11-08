@@ -29,6 +29,9 @@ Current BUGS
 	are passed into it. if the modes are set to 255 the open function 
 	does not report any errors. (Also need to try this with modes set to -1.)  
 
+	Bug with lseeking to a very large size (size =100000000000000000000000000000000000000) without causing an error.
+	Should cause the error EINVAL.
+
 
 Current WARNINGS
 	

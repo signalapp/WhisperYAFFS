@@ -35,6 +35,8 @@
 #define NAME_MAX	256
 #endif
 
+#define YAFFS_MAX_FILE_SIZE (0x7FFFFFFF)
+
 
 struct yaffs_dirent{
     long d_ino;                 /* inode number */
@@ -180,8 +182,8 @@ void * yaffs_getdev(const YCHAR *path);
 int yaffs_dump_dev(const YCHAR *path);
 
 /* Trace control functions */
-int yaffs_set_trace(unsigned int tm);
-unsigned int yaffs_get_trace(void);
+unsigned  yaffs_set_trace(unsigned tm);
+unsigned  yaffs_get_trace(void);
 #endif
 
 

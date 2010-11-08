@@ -67,14 +67,14 @@ static yaffsfs_Inode yaffsfs_inode[YAFFSFS_N_HANDLES];
 static yaffsfs_Handle yaffsfs_handle[YAFFSFS_N_HANDLES];
 static int yaffsfs_handlesInitialised;
 
-unsigned int yaffs_trace_mask;
 
-int yaffs_set_trace(unsigned int tm) 
+unsigned yaffs_set_trace(unsigned  tm) 
 {
-	return yaffs_trace_mask=tm;
+	yaffs_trace_mask = tm;
+	return yaffs_trace_mask;
 }
 
-unsigned int yaffs_get_trace(void)
+unsigned yaffs_get_trace(void)
 {
 	return yaffs_trace_mask;
 }
@@ -304,12 +304,12 @@ int yaffsfs_CheckNameLength(const char *name)
 {
 	int retVal = 0;		
 
-	new_nameLength = yaffs_strnlen(newname,YAFFS_MAX_NAME_LENGTH+1);
+	int nameLength = yaffs_strnlen(name,YAFFS_MAX_NAME_LENGTH+1);
 		
-	if(new_nameLength == 0){
+	if(nameLength == 0){
 		yaffsfs_SetError(-ENOENT);
 		retVal = -1;
-	} else if (new_nameLength > YAFFS_MAX_NAME_LENGTH){
+	} else if (nameLength > YAFFS_MAX_NAME_LENGTH){
 		yaffsfs_SetError(-ENAMETOOLONG);
 		retVal = -1;
 	}
@@ -1021,12 +1021,13 @@ int yaffs_truncate(const YCHAR *path,off_t new_size)
 	else if(obj->variant_type != YAFFS_OBJECT_TYPE_FILE)
 		yaffsfs_SetError(-EISDIR);
 	else if(obj->my_dev->read_only)
+		yaffsfs_SetError(-EACCES);
+	else if(new_size < 0 || new_size > YAFFS_MAX_FILE_SIZE)
 		yaffsfs_SetError(-EINVAL);
 	else
 		result = yaffs_resize_file(obj,new_size);
 
 	yaffsfs_Unlock();
-
 
 	return (result) ? 0 : -1;
 }
@@ -1045,12 +1046,13 @@ int yaffs_ftruncate(int fd, off_t new_size)
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 	else if(obj->my_dev->read_only)
+		yaffsfs_SetError(-EACCES);
+	else if( new_size < 0 || new_size > YAFFS_MAX_FILE_SIZE)
 		yaffsfs_SetError(-EINVAL);
 	else
 		/* resize the file */
 		result = yaffs_resize_file(obj,new_size);
 	yaffsfs_Unlock();
-
 
 	return (result) ? 0 : -1;
 
@@ -1165,8 +1167,7 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 		yaffsfs_SetError(-EINVAL);
 		rename_allowed = 0;
 	} else if(olddir->my_dev != newdir->my_dev) {
-		/* oops must be on same device */
-		/* todo error */
+		/* Rename must be on same device */
 		yaffsfs_SetError(-EXDEV);
 		rename_allowed = 0;
 	} else if(obj && obj->variant_type == YAFFS_OBJECT_TYPE_DIRECTORY) {
@@ -1654,6 +1655,11 @@ int yaffs_access(const YCHAR *path, int amode)
 	struct yaffs_obj *obj;
 
 	int retval = 0;
+
+	if(amode & ~(R_OK | W_OK | X_OK)){
+		yaffsfs_SetError(-EINVAL);
+		return -1;
+	}
 
 	yaffsfs_Lock();
 
@@ -2269,7 +2275,6 @@ int yaffs_readlink(const YCHAR *path, YCHAR *buf, int bufsiz)
 	struct yaffs_obj *obj = NULL;
 	int retVal;
 
-
 	yaffsfs_Lock();
 
 	obj = yaffsfs_FindObject(NULL,path,0,1);
@@ -2296,8 +2301,6 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 	struct yaffs_obj *obj = NULL;
 	struct yaffs_obj *target = NULL;
 	int retVal = 0;
-	int new_nameLength = 0;
-
 
 	yaffsfs_Lock();
 

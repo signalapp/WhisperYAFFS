@@ -54,7 +54,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_truncate.o test_yaffs_truncate_ENOTDIR.o test_yaffs_truncate_EISDIR.o test_yaffs_truncate_ENOENT.o test_yaffs_truncate_EINVAL.o \
 		test_yaffs_truncate_EFBIG.o\
 		test_yaffs_write.o \
-		test_yaffs_read.o \
+		test_yaffs_read.o test_yaffs_read_EBADF.o \
 		test_yaffs_lseek.o test_yaffs_lseek_EBADF.o test_yaffs_lseek_EINVAL.o test_yaffs_lseek_EFBIG.o \
 		test_yaffs_access.o test_yaffs_access_EINVAL.o test_yaffs_access_ENOTDIR.o test_yaffs_access_ENOENT.o\
 		test_yaffs_stat.o \

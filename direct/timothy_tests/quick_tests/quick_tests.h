@@ -58,7 +58,9 @@
 #include "test_yaffs_truncate_EFBIG.h"
 
 #include "test_yaffs_write.h"
+
 #include "test_yaffs_read.h"
+#include "test_yaffs_read_EBADF.h"
 
 #include "test_yaffs_lseek.h"
 #include "test_yaffs_lseek_EBADF.h"
@@ -125,8 +127,9 @@ test_template test_list[]={
 	{test_yaffs_lseek_EFBIG,test_yaffs_lseek_EFBIG_clean,"test_yaffs_lseek_EFBIG"},
 
 	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
-	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 
+	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
+	{test_yaffs_read_EBADF,test_yaffs_read_EBADF_clean,"test_yaffs_read_EBADF"},
 
 	{test_yaffs_stat,test_yaffs_stat_clean,"test_yaffs_stat"},
 

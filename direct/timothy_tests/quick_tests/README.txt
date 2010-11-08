@@ -36,6 +36,8 @@ Tests made
 	test_yaffs_open_EINVAL2 //the function open has two modes which can be set, so two tests modes are needed.
 
 	test_yaffs_read
+	test_yaffs_read_EBADF
+
 	test_yaffs_stat
 
 	test_yaffs_truncate
@@ -76,6 +78,11 @@ Tests to add
 
 	test_yaffs_close	//This function has already been called by the time this test is reached.
 	
+
+	test_yaffs_read_EINVAL	//test exists but is not finshed yet. 
+	test_yaffs_read_EISDIR 		//Cannot be generated with yaffs.
+	test what happens if you read off the end of the file?
+
 	test_yaffs_unlink_EACCES
 	test_yaffs_unlink_ELOOP
 	test_yaffs_unlink_ENOMEM
@@ -86,10 +93,10 @@ Tests to add
 	test_yaffs_access_ENOENT_generated_with_a_dangling_symbloic_link
 
 	test_yaffs_ftruncate_EACCES	
-	test_yaffs_ftruncate_EISDIR	//
-	test_yaffs_ftruncate_ELOOP	//
-	test_yaffs_ftruncate_ENOENT	//
-	test_yaffs_ftruncate_ENOTDIR	//
+	test_yaffs_ftruncate_EISDIR	//Cannot be generated with yaffs.
+	test_yaffs_ftruncate_ELOOP	//Cannot be generated with yaffs.
+	test_yaffs_ftruncate_ENOENT	//Cannot be generated with yaffs.
+	test_yaffs_ftruncate_ENOTDIR	//Cannot be generated with yaffs.
 
 	test_yaffs_truncate_EACCES
 	test_yaffs_truncate_ELOOP

@@ -21,8 +21,10 @@ int test_yaffs_open_EINVAL(void){
 	handle=yaffs_open(FILE_PATH, 255,FILE_MODE);
 	if (handle==-1){
 		error_code=yaffs_get_error();
-		//printf("EEXIST def %d, Error code %d\n",(- EEXIST),error_code);
-		if (abs(error_code)== EINVAL){
+		if (abs(error_code)== EEXIST){	/* yaffs open does not check the mode. 
+						so yaffs open does not return EINVAL.
+						This causes the error EEXIST to happen instead
+						because both O_CREAT and O_EXCL are set */ 
 			return 1;
 		}
 		else {

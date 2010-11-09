@@ -30,8 +30,8 @@ int test_yaffs_mount_ENAMETOOLONG(void){
 		return -1;
 	} 
 
-	strcat(file_name,YAFFS_MOUNT_POINT);
-	for (x=strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
+
+	for (x=0; x<file_name_length -1; x++){
 		file_name[x]='a';
 	}
 	file_name[file_name_length-2]='\0';
@@ -41,7 +41,7 @@ int test_yaffs_mount_ENAMETOOLONG(void){
 
 	output=yaffs_mount(file_name);
 
-	if (output==-1){
+	if (output<0){
 		error_code=yaffs_get_error();
 		if (abs(error_code)== ENAMETOOLONG){
 			return 1;

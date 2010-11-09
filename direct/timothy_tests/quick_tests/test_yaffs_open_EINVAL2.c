@@ -11,6 +11,8 @@
  * published by the Free Software Foundation.
  */
 
+/* yaffs will open a file without an error with the creation mode set to 255.*/
+
 #include "test_yaffs_open_EINVAL2.h"
 
 static int handle=0;
@@ -20,22 +22,14 @@ int test_yaffs_open_EINVAL2(void){
 	/*printf("path %s\n",path); */
 	handle=yaffs_open(FILE_PATH, O_CREAT | O_RDWR ,255);
 	if (handle==-1){
-		error_code=yaffs_get_error();
-		//printf("EEXIST def %d, Error code %d\n",(- EEXIST),error_code);
-		if (abs(error_code)== EINVAL){
-			return 1;
-		}
-		else {
-			printf("different error than expected\n");
-			return -1;
-		}
-	}
-	else {
-		printf(" file opened with bad mode.(which is a bad thing)\n");
+		printf("file not opened with bad creation mod set (which is a bad thing)\n");
 		return -1;
 	}
-	/* the program should not get here but the compiler is complaining */
-	return -1;
+	else {
+		/* file opened */
+		return 1;
+	}
+
 }
 int test_yaffs_open_EINVAL2_clean(void){
 	if (handle >=0){

@@ -3,31 +3,29 @@ Made by Timothy Manning <timothy@yaffs.net> on 08/11/2010
 
 
 Current BUGS 
-	Bug with opening a file with a name of 1,000,000 char long with no errors.
 
-	Bug with unlinking a file with 1,000,000 get the error ENOENT but should
-	be geting ENAMETOOLONG. 
+	NAME SIZE
+		Bug with opening a file with a name of 1,000,000 char long with no errors.
+		The open function should be returning ENAMETOOLONG.
 
-	Bug with mounting a too long non-existant mount point is returning 
-	ENODEV. there are two errors here, ENOENT and ENAMETOOLONG.
-	The ENODEV is the error which yaffs gives instead of ENOENT.
-	BBut the mount function should just return ENAMETOOLONG.
+		Bug with unlinking a file with 1,000,000 get the error ENOENT but should
+		be geting ENAMETOOLONG. 
 
-	Bug when trying to use yaffs_access on an existing file with mode 255 
-	the error returned is EACCES it should be EINVAL(note there is no quick test file yet).
+		Bug with mounting a too long non-existant mount point is returning 
+		ENODEV. yaffs_mount should be returning ENAMETOOLONG.
+		When the name is passed into the yaffs_mount function the length of the
+		mount point decreases from around 10000000 to 200. This needs to be investigated.
 
-	Bug when trying to access a non-existing directory the error ENOENT is 
-	returned. It should be ENOTDIR.
 
-	Bug when trying to truncate a file in a non-existing directory. The error
-	returned is ENOENT it should be ENOTDIR.
+	ENOTDIR ERRORS
+		Bug when trying to access a non-existing directory the error ENOENT is 
+		returned. It should be ENOTDIR.
 
-	Bug truncating a file to a size of -1 does not cause an error. 
+		Bug when trying to truncate a file in a non-existing directory. The error
+		returned is ENOENT it should be ENOTDIR.
 
-	
-	Bug with opening a file with bad mode. yaffs_open has two modes which 
-	are passed into it. if the modes are set to 255 the open function 
-	does not report any errors. (Also need to try this with modes set to -1.)  
+	Bug with truncating to a very large size. The yaffs_truncate function truncates the file to a massive size without any errors.
+	The function should return the error EINVAL. 
 
 	Bug with lseeking to a very large size (size =100000000000000000000000000000000000000) without causing an error.
 	Should cause the error EINVAL.
@@ -35,11 +33,17 @@ Current BUGS
 
 Current WARNINGS
 	
-	WARNING- truncating a file to a size greater than the maximum file size returns
-	EINVAL. In standard linux system the error EFBIG is returned. 
-	
+	<<WHAT FUNCTIONS>>
 	WARNING- If yaffs is unmounted then most of yaffs' functions return ENODIR. 
 	some function return EBADF instead.
+
+	WARNING-the function yaffs_open does not check the mode passed to it. 
+	This means that yaffs open does not return EINVAL if a bad mode is passed to it.
+	However this causes the error EEXIST to happen instead, because both O_CREAT and O_EXCL  flags are set.
+
+	WARNING- yaffs_open will work with either of the two mode set to 255.
+	However there are only 4 or 5 flags that can be set for each of the modes.
+	This means that the programmer may not be setting the flags properly.  
 
 	WARNING- When mounting a non-existing mount point the error ENODEV is returned.
 	The quick tests have been altered to accommodate this error code.    

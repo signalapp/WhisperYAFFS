@@ -1821,7 +1821,7 @@ int yaffs_mount2(const YCHAR *path,int read_only)
 	int retVal=-1;
 	int result=YAFFS_FAIL;
 	struct yaffs_dev *dev=NULL;
-	YCHAR *dummy;
+	YCHAR *restOfPath;
 
 	T(YAFFS_TRACE_MOUNT,(TSTR("yaffs: Mounting %s" TENDSTR),path));
 
@@ -1829,8 +1829,8 @@ int yaffs_mount2(const YCHAR *path,int read_only)
 
 	yaffsfs_InitHandles();
 
-	dev = yaffsfs_FindDevice(path,&dummy);
-	if(dev){
+	dev = yaffsfs_FindDevice(path,&restOfPath);
+	if(dev && !(*restOfPath)){
 		if(!dev->is_mounted){
 			dev->read_only = read_only ? 1 : 0;
 			result = yaffs_guts_initialise(dev);

@@ -2744,35 +2744,36 @@ static struct {
 	char *mask_name;
 	unsigned mask_bitfield;
 } mask_flags[] = {
-	{
-	"allocate", YAFFS_TRACE_ALLOCATE}, {
-	"always", YAFFS_TRACE_ALWAYS}, {
-	"background", YAFFS_TRACE_BACKGROUND}, {
-	"bad_blocks", YAFFS_TRACE_BAD_BLOCKS}, {
-	"buffers", YAFFS_TRACE_BUFFERS}, {
-	"bug", YAFFS_TRACE_BUG}, {
-	"checkpt", YAFFS_TRACE_CHECKPOINT}, {
-	"deletion", YAFFS_TRACE_DELETION}, {
-	"erase", YAFFS_TRACE_ERASE}, {
-	"error", YAFFS_TRACE_ERROR}, {
-	"gc_detail", YAFFS_TRACE_GC_DETAIL}, {
-	"gc", YAFFS_TRACE_GC}, {
-	"lock", YAFFS_TRACE_LOCK}, {
-	"mtd", YAFFS_TRACE_MTD}, {
-	"nandaccess", YAFFS_TRACE_NANDACCESS}, {
-	"os", YAFFS_TRACE_OS}, {
-	"scan_debug", YAFFS_TRACE_SCAN_DEBUG}, {
-	"scan", YAFFS_TRACE_SCAN}, {
-	"tracing", YAFFS_TRACE_TRACING}, {
-	"sync", YAFFS_TRACE_SYNC}, {
-	"write", YAFFS_TRACE_WRITE}, {
-	"verify", YAFFS_TRACE_VERIFY}, {
-	"verify_nand", YAFFS_TRACE_VERIFY_NAND}, {
-	"verify_full", YAFFS_TRACE_VERIFY_FULL}, {
-	"verify_all", YAFFS_TRACE_VERIFY_ALL}, {
-	"all", 0xffffffff}, {
-	"none", 0}, {
-NULL, 0},};
+	{"allocate", YAFFS_TRACE_ALLOCATE}, 
+	{"always", YAFFS_TRACE_ALWAYS},
+	{"background", YAFFS_TRACE_BACKGROUND},
+	{"bad_blocks", YAFFS_TRACE_BAD_BLOCKS},
+	{"buffers", YAFFS_TRACE_BUFFERS},
+	{"bug", YAFFS_TRACE_BUG},
+	{"checkpt", YAFFS_TRACE_CHECKPOINT},
+	{"deletion", YAFFS_TRACE_DELETION},
+	{"erase", YAFFS_TRACE_ERASE},
+	{"error", YAFFS_TRACE_ERROR},
+	{"gc_detail", YAFFS_TRACE_GC_DETAIL},
+	{"gc", YAFFS_TRACE_GC},
+	{"lock", YAFFS_TRACE_LOCK},
+	{"mtd", YAFFS_TRACE_MTD},
+	{"nandaccess", YAFFS_TRACE_NANDACCESS},
+	{"os", YAFFS_TRACE_OS},
+	{"scan_debug", YAFFS_TRACE_SCAN_DEBUG},
+	{"scan", YAFFS_TRACE_SCAN},
+	{"mount", YAFFS_TRACE_MOUNT},
+	{"tracing", YAFFS_TRACE_TRACING},
+	{"sync", YAFFS_TRACE_SYNC},
+	{"write", YAFFS_TRACE_WRITE},
+	{"verify", YAFFS_TRACE_VERIFY},
+	{"verify_nand", YAFFS_TRACE_VERIFY_NAND},
+	{"verify_full", YAFFS_TRACE_VERIFY_FULL},
+	{"verify_all", YAFFS_TRACE_VERIFY_ALL},
+	{"all", 0xffffffff},
+	{"none", 0},
+	{NULL, 0},
+};
 
 #define MAX_MASK_NAME_LENGTH 40
 static int yaffs_proc_write_trace_options(struct file *file, const char *buf,

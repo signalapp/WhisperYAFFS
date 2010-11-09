@@ -5058,7 +5058,7 @@ int yaffs_guts_initialise(struct yaffs_dev *dev)
 		if (dev->param.is_yaffs2) {
 			if (yaffs2_checkpt_restore(dev)) {
 				yaffs_check_obj_details_loaded(dev->root_dir);
-				T(YAFFS_TRACE_ALWAYS,
+				T(YAFFS_TRACE_CHECKPOINT | YAFFS_TRACE_MOUNT,
 				  (TSTR
 				   ("yaffs: restored from checkpoint"
 				    TENDSTR)));

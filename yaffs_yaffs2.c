@@ -828,7 +828,7 @@ int yaffs_checkpoint_save(struct yaffs_dev *dev)
 		yaffs2_wr_checkpt_data(dev);
 	}
 
-	T(YAFFS_TRACE_ALWAYS,
+	T(YAFFS_TRACE_CHECKPOINT | YAFFS_TRACE_MOUNT,
 	  (TSTR("save exit: is_checkpointed %d" TENDSTR),
 	   dev->is_checkpointed));
 

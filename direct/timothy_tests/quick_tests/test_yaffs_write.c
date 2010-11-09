@@ -27,5 +27,10 @@ int test_yaffs_write(void){
 }
 
 int test_yaffs_write_clean(void){
-	return yaffs_close(handle);
+	if (handle>=0){
+		return yaffs_close(handle);
+	}
+	else {
+		return 1; /* no handle was opened so there is no need to close a handle */
+	}	
 }

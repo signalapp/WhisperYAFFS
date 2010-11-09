@@ -10,7 +10,7 @@ Tests made
 	test_yaffs_mount_EBUSY		//called when trying to mount a new mount point with a mount point already mounted.
 
 	test_yaffs_access
-	test_yaffs_access_ENIVAL	//when the mode is incorrect.
+	test_yaffs_access_ENIVAL
 	test_yaffs_access_ENOTDIR
 	test_yaffs_access_ENOENT
 
@@ -37,6 +37,7 @@ Tests made
 
 	test_yaffs_read
 	test_yaffs_read_EBADF
+	test_yaffs_read_EINVAL
 
 	test_yaffs_stat
 
@@ -55,9 +56,12 @@ Tests made
 	test_yaffs_unlink_ENOENT
 
 	test_yaffs_unmount
+	test_yaffs_unmount_ENOENT
+	test_yaffs_unmount_ENAMETOOLONG
+
 	test_yaffs_write
 
-	add a test where a directory is moved. /fluffy/box. move "fluffy" to "/fluffy/frog". 
+	
 
 Tests to add
 	test_yaffs_mount_EACCES		//Cannot be generated with yaffs.
@@ -66,10 +70,9 @@ Tests to add
 	test_yaffs_mount_EMFILE		//Cannot be generated with yaffs.
 	test_yaffs_mount_ENOTDIR	//Cannot be generated with yaffs.
 
-	test_yaffs_umount_ENODEV
-	test_yaffs_umount_ENAMETOOLONG
-	test_yaffs_umount_ENOENT
-	test_yaffs_umount_EBUSY
+	test_yaffs_umount_ENODEV	//Cannot be generated with yaffs.
+	test_yaffs_umount_ENOENT	//Cannot be generated with yaffs.
+	test_yaffs_umount_EBUSY		//when files are open and yaffs is unmounted.
 
 	test_yaffs_open_EACCES
 	test_yaffs_open_ENOSPC
@@ -78,10 +81,19 @@ Tests to add
 
 	test_yaffs_close	//This function has already been called by the time this test is reached.
 	
-
-	test_yaffs_read_EINVAL	//test exists but is not finshed yet. 
+	test_yaffs_stat_EBADF
+	test_yaffs_stat_ELOOP
+	test_yaffs_stat_EACCES
+	test_yaffs_stat_ENAMETOOLONG
+	test_yaffs_stat_ENOTDIR
+	 
 	test_yaffs_read_EISDIR 		//Cannot be generated with yaffs.
 	test what happens if you read off the end of the file?
+
+	test_yaffs_write_EBADF
+	test_yaffs_write_EFBIG
+	test_yaffs_write_EINVAL
+	What happens when you run out of space?
 
 	test_yaffs_unlink_EACCES
 	test_yaffs_unlink_ELOOP
@@ -106,7 +118,10 @@ Tests to add
 	What happens if a handle is opened to a file and the file is then deleted?
 	Check to see if yaffs generates an error code for no reason.
 	What happens when a file is opened with no modes set?
+	Add a test where a directory is moved. /fluffy/box. move "fluffy" to "/fluffy/frog". 
+	What happens when yaffs is unmounted twice?
 
+	What happens when open a handle, unmount yaffs and then try to use the handle? 
 
 How to add a test
 	First create the test .c and .h file.

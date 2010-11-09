@@ -13,13 +13,14 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __test_yaffs_read_EINVAL_h__
-#define __test_yaffs_read_EINVAL_h__
+#ifndef __test_yaffs_unmount_ENOENT_h__
+#define __test_yaffs_unmount_ENOENT_h__
+
 #include "lib.h"
 #include "yaffsfs.h"
-#include "test_yaffs_open.h"
+#include "test_yaffs_unmount.h"
+#include "test_yaffs_mount.h"
 
-
-int test_yaffs_read_EINVAL(void);
-int test_yaffs_read_EINVAL_clean(void);
+int test_yaffs_unmount_ENOENT(void);
+int test_yaffs_unmount_ENOENT_clean(void);
 #endif

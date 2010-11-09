@@ -11,29 +11,33 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_unlink_ENAMETOOLONG.h"
+#include "test_yaffs_unmount_ENAMETOOLONG.h"
 
 
 
-int test_yaffs_unlink_ENAMETOOLONG(void){
+
+int test_yaffs_unmount_ENAMETOOLONG(void){
 	int output=0;
+	int x;
 	int error_code=0;
-	int x=0;
 	int file_name_length=1000000;
 	char file_name[file_name_length];
-	
-	strcat(file_name,YAFFS_MOUNT_POINT);
-	for (x=strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
+
+
+
+	for (x=0; x<file_name_length -1; x++){
 		file_name[x]='a';
 	}
 	file_name[file_name_length-2]='\0';
+	
+	//printf("file name: %s\n",file_name);
 
-	/*printf("path %s\n",path); */
-	output=yaffs_unlink(file_name);
-	if (output==-1){
+
+	output=yaffs_unmount(file_name);
+
+	if (output<0){
 		error_code=yaffs_get_error();
-		//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
-		if (abs(error_code)== EISDIR){
+		if (abs(error_code)== ENAMETOOLONG){
 			return 1;
 		}
 		else {
@@ -42,12 +46,14 @@ int test_yaffs_unlink_ENAMETOOLONG(void){
 		}
 	}
 	else {
-		printf("directory unlinked opened.(which is a bad thing)\n");
+		printf("mounted a too long mount point name.(which is a bad thing)\n");
 		return -1;
 	}
+	/* the program should not get here but the compiler is complaining */
+	return -1;
 }
 
-int test_yaffs_unlink_ENAMETOOLONG_clean(void){
+int test_yaffs_unmount_ENAMETOOLONG_clean(void){
 	return 1;
 }
 

@@ -13,7 +13,7 @@
 
 #include "test_yaffs_read.h"
 
-static int handle=0;
+static int handle=-1;
 
 int test_yaffs_read(void){
 	handle=test_yaffs_open();
@@ -46,5 +46,10 @@ int test_yaffs_read(void){
 }
 
 int test_yaffs_read_clean(void){
-	return yaffs_close(handle);
+	if (handle>=0){
+		return yaffs_close(handle);
+	}
+	else {
+		return 1; /* no handle was opened so there is no need to close a handle */
+	}	
 }

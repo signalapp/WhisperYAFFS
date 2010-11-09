@@ -26,7 +26,7 @@ int test_yaffs_truncate_EINVAL(void){
 				return 1;
 			}
 			else {
-				printf("recieved a different error than expected\n");
+				printf("received a different error than expected\n");
 				return -1;
 			}
 		}

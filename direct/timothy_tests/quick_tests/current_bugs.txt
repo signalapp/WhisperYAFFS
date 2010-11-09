@@ -15,6 +15,9 @@ Current BUGS
 		ENODEV. yaffs_mount should be returning ENAMETOOLONG.
 		When the name is passed into the yaffs_mount function the length of the
 		mount point decreases from around 10000000 to 200. This needs to be investigated.
+		
+		Bug with unmounting a too long non-existing mountpoint. 
+		The error returned is ENODEV. It should be ENAMETOOLONG.
 
 
 	ENOTDIR ERRORS
@@ -30,12 +33,24 @@ Current BUGS
 	Bug with lseeking to a very large size (size =100000000000000000000000000000000000000) without causing an error.
 	Should cause the error EINVAL.
 
+	Bug with unmounting a non-existing mountpoint. The function returns ENODEV 
+	but should be returning EINVAL.
+	
+	Bug with reading -1 bytes of a file without an error (test is in test_yaffs_read_EINVAL).
+	It should return EINVAL.
+
+	Unmount2 forcing the unmount needs to break the handles so they return EBADF.
+
 
 Current WARNINGS
 	
-	<<WHAT FUNCTIONS>>
 	WARNING- If yaffs is unmounted then most of yaffs' functions return ENODIR. 
-	some function return EBADF instead.
+	But some function return EBADF instead.
+	Functions which return ENOTDIR: open, close, access, unlink, lseek, write, read
+
+	Functions which return ENOENT: access, stat
+	
+
 
 	WARNING-the function yaffs_open does not check the mode passed to it. 
 	This means that yaffs open does not return EINVAL if a bad mode is passed to it.

@@ -17,28 +17,38 @@ int test_yaffs_stat(void){
 	int mode=0;
 	int size=0;
 	mode =yaffs_test_stat_mode();
-/*	printf("\nmode %o\n",mode);
-	printf("expected mode %o \n",FILE_MODE);
-	printf("anding together %o\n",FILE_MODE & mode);
-	printf("%d\n",FILE_MODE == (FILE_MODE & mode));
-*/	if (FILE_MODE == (FILE_MODE & mode)){
-		mode=1;
-	}
-	else {
-		printf("mode did not match expected file mode\n");
-		return -1;
-	}
-	size=yaffs_test_stat_size();
-	if (size==FILE_SIZE){
-		size=1;
-	}
-	else {
-		printf("file size %d, expected file size %d\n",size,FILE_SIZE);
-		printf("mode did not match expected file mode\n");
-		return -1;
-	}
 	
-	if (mode && size){
+	if (mode>=0){
+	
+		if (FILE_MODE == (FILE_MODE & mode)){
+			mode=1;
+		}
+		else {
+			printf("mode did not match expected file mode\n");
+			return -1;
+		}
+	}
+	else {
+		mode =-1;
+	}
+
+	size=yaffs_test_stat_size();
+	if (size >=0){
+		if (size==FILE_SIZE){
+			size=1;
+		}
+		else {
+			printf("file size %d, expected file size %d\n",size,FILE_SIZE);
+			printf("mode did not match expected file mode\n");
+			return -1;
+		}
+	}
+	else {
+		size =-1;
+	}	
+
+
+	if ((mode>0) && (size>0)){
 		return 1;
 	}
 	else {
@@ -61,7 +71,7 @@ int yaffs_test_stat_mode(void){
 		return stat.st_mode;	
 	}
 	else {
-		printf("failed to stat file\n") ;
+		printf("failed to stat file mode\n") ;
 		return -1;
 	}
 }
@@ -74,7 +84,7 @@ int yaffs_test_stat_size(void){
 		return stat.st_size;	
 	}
 	else {
-		printf("failed to stat file\n") ;
+		printf("failed to stat file size\n") ;
 		return -1;
 	}
 }

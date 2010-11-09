@@ -11,25 +11,26 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_read_EBADF.h"
+#include "test_yaffs_read_EINVAL.h"
 
 static int handle=0;
 
-int test_yaffs_read_EBADF(void){
+int test_yaffs_read_EINVAL(void){
+	int error_code=0;
 	handle=test_yaffs_open();
 	char text[20]="\0";
 	int output=0;
-	//printf("handle %d\n",handle);
+
 	if (handle>=0){
-		output=yaffs_read(-1, text, FILE_TEXT_NBYTES);
-		//printf("yaffs_test_read output: %d\n",output);
-		//printf("text in file is: '%s' expected text is '%s'\n",text,FILE_TEXT);
+		output=yaffs_read(handle, text, -1);
+
 		if (output<0){ 
-			if (0==memcmp(text,FILE_TEXT,FILE_TEXT_NBYTES)){
+			error_code=yaffs_get_error();
+			if (abs(error_code)== EINVAL){
 				return 1;
 			}
 			else {
-				printf("returned error does not match the the expected error\n");
+				printf("different error than expected\n");
 				return -1;
 			}
 		}
@@ -45,6 +46,11 @@ int test_yaffs_read_EBADF(void){
 	
 }
 
-int test_yaffs_read_EBADF_clean(void){
-	return yaffs_close(handle);
+int test_yaffs_read_EINVAL_clean(void){
+	if (handle>=0){
+		return yaffs_close(handle);
+	}
+	else {
+		return 1; /* no handle was opened so there is no need to close a handle */
+	}	
 }

@@ -11,25 +11,19 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_lseek_EFBIG.h"
+#include "test_yaffs_mount_ENOENT.h"
 
-static int handle=-1;
 
-int test_yaffs_lseek_EFBIG(void){
-	handle=test_yaffs_open();
-	int error_code=0;
+int test_yaffs_unmount_ENOENT(void){
 	int output=0;
-
-	if (handle<0){
-		printf("failed to open file\n");
-		return -1;
-	}
+	int error_code=0;
+	/*printf("path %s\n",path); */
 	
-	yaffs_lseek(handle, 100000000000000000000000000000000000000, SEEK_SET);
+	
 
-	if (output<0){
+	output=yaffs_unmount("/non_existaint_mount_point/");
+	if (output==-1){
 		error_code=yaffs_get_error();
-		//printf("EISDIR def %d, Error code %d\n", ENOTDIR,error_code);
 		if (abs(error_code)==EINVAL){
 			return 1;
 		}
@@ -39,17 +33,12 @@ int test_yaffs_lseek_EFBIG(void){
 		}
 	}
 	else {
-		printf("lseeked to a very large size (which is a bad thing)\n");
+		printf("non existant mount point unmounted.(which is a bad thing)\n");
 		return -1;
 	}
-}
 
-int test_yaffs_lseek_EFBIG_clean(void){
-	if (handle>=0){
-		return yaffs_close(handle);
-	}
-	else {
-		return -1; /* no handle was opened so there is no need to close a handle */
-	}	
+}
+int test_yaffs_unmount_ENOENT_clean(void){
+	return 1;
 }
 

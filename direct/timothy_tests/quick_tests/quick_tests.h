@@ -24,6 +24,8 @@
 #include "test_yaffs_mount_EBUSY.h"
 
 #include "test_yaffs_unmount.h"
+#include "test_yaffs_unmount_ENOENT.h"
+#include "test_yaffs_unmount_ENAMETOOLONG.h"
 
 #include "test_yaffs_open.h"
 #include "test_yaffs_open_EISDIR.h"
@@ -61,6 +63,7 @@
 
 #include "test_yaffs_read.h"
 #include "test_yaffs_read_EBADF.h"
+#include "test_yaffs_read_EINVAL.h"
 
 #include "test_yaffs_lseek.h"
 #include "test_yaffs_lseek_EBADF.h"
@@ -89,14 +92,16 @@ typedef struct test {
 
 
 test_template test_list[]={
-	{test_yaffs_mount,test_yaffs_mount_clean,"test_yaffs_mount"},
+/*	{test_yaffs_mount,test_yaffs_mount_clean,"test_yaffs_mount"},
 	{test_yaffs_mount_ENODEV,test_yaffs_mount_ENODEV_clean,"test_yaffs_mount_ENODEV"},
 	{test_yaffs_mount_ENAMETOOLONG,test_yaffs_mount_ENAMETOOLONG_clean,"test_yaffs_mount_ENAMETOOLONG"},
 	{test_yaffs_mount_ENOENT,test_yaffs_mount_ENOENT_clean,"test_yaffs_mount_ENOENT"},
 	{test_yaffs_mount_EBUSY,test_yaffs_mount_EBUSY_clean,"test_yaffs_mount_EBUSY"},
 
 	{test_yaffs_unmount,test_yaffs_unmount_clean,"test_yaffs_unmount"},
-
+	{test_yaffs_unmount_ENOENT,test_yaffs_unmount_ENOENT_clean,"test_yaffs_unmount_ENOENT"},
+	{test_yaffs_unmount_ENAMETOOLONG,test_yaffs_unmount_ENAMETOOLONG_clean,"test_yaffs_unmount_ENAMETOOLONG"},
+*/
 	{test_yaffs_open,test_yaffs_open_clean,"test_yaffs_open"},
 	{test_yaffs_open_EISDIR,test_yaffs_open_EISDIR_clean,"test_yaffs_open_EISDIR"},
 	{test_yaffs_open_EEXIST,test_yaffs_open_EEXIST_clean,"test_yaffs_open_EEXIST"},
@@ -130,6 +135,7 @@ test_template test_list[]={
 
 	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 	{test_yaffs_read_EBADF,test_yaffs_read_EBADF_clean,"test_yaffs_read_EBADF"},
+	{test_yaffs_read_EINVAL,test_yaffs_read_EINVAL_clean,"test_yaffs_read_EINVAL"},
 
 	{test_yaffs_stat,test_yaffs_stat_clean,"test_yaffs_stat"},
 

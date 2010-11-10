@@ -11,44 +11,24 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_ftruncate_EINVAL.h"
+#include "test_yaffs_fstat.h"
 
 static int handle=0;
-int test_yaffs_ftruncate_EINVAL(void){
-	int output=0;
-	int error_code=0;
+int test_yaffs_fstat(void){
+	struct yaffs_stat stat;
 	handle=test_yaffs_open();
 	if (handle>=0){
-		output=yaffs_ftruncate(handle,-1 );
-		if (output<0){
-			error_code=yaffs_get_error();
-			//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
-			if (abs(error_code)== EINVAL){
-				return 1;
-			}
-			else {
-				printf("different error than expected\n");
-				return -1;
-			}
-		}
-		else {
-			printf("file truncated to a negative size.(which is a bad thing)\n");
-			return -1;
-		}
+		return 	yaffs_fstat(handle , &stat);;
 	}
 	else {
 		printf("error opening file\n");
 		return -1;
 	}
-
-	
-	
 }
 
-int test_yaffs_ftruncate_EINVAL_clean(void){
+int test_yaffs_fstat_clean(void){
 	if (handle<0){
 		return yaffs_close(handle);
 	}
 	return 1;
-	
 }

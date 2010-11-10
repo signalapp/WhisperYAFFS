@@ -79,6 +79,12 @@
 #include "test_yaffs_access_ENOENT.h"
 
 #include "test_yaffs_stat.h"
+#include "test_yaffs_stat_ENOENT.h"
+#include "test_yaffs_stat_ENOTDIR.h"
+
+#include "test_yaffs_fstat.h"
+#include "test_yaffs_fstat_EBADF.h"
+
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
 #include "lib.h"
@@ -144,6 +150,11 @@ test_template test_list[]={
 	{test_yaffs_read_EINVAL,test_yaffs_read_EINVAL_clean,"test_yaffs_read_EINVAL"},
 
 	{test_yaffs_stat,test_yaffs_stat_clean,"test_yaffs_stat"},
+	{test_yaffs_stat_ENOENT,test_yaffs_stat_ENOENT_clean,"test_yaffs_stat_ENOENT"},
+	{test_yaffs_stat_ENOTDIR,test_yaffs_stat_ENOTDIR_clean,"test_yaffs_stat_ENOTDIR"},
+
+	{test_yaffs_fstat,test_yaffs_fstat_clean,"test_yaffs_fstat"},
+	{test_yaffs_fstat_EBADF,test_yaffs_fstat_EBADF_clean,"test_yaffs_fstat_EBADF"},
 
 	{test_yaffs_ftruncate,test_yaffs_ftruncate_clean,"test_yaffs_ftruncate"},
 	{test_yaffs_ftruncate_EBADF,test_yaffs_ftruncate_EBADF_clean,"test_yaffs_ftruncate_EBADF"},

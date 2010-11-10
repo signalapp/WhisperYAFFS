@@ -27,6 +27,9 @@ Current BUGS
 		Bug when trying to truncate a file in a non-existing directory. The error
 		returned is ENOENT it should be ENOTDIR.
 
+		Bug when trying to stat a file in a non-existing directory. The error 
+		returned is ENOENT, it should be ENOTDIR 
+
 	Bug with truncating to a very large size. The yaffs_truncate function truncates the file to a massive size without any errors.
 	The function should return the error EINVAL. 
 
@@ -35,13 +38,31 @@ Current BUGS
 
 	Bug with unmounting a non-existing mountpoint. The function returns ENODEV 
 	but should be returning EINVAL.
-	
-	Bug with reading -1 bytes of a file without an error (test is in test_yaffs_read_EINVAL).
-	It should return EINVAL.
 
 	Unmount2 forcing the unmount needs to break the handles so they return EBADF.
 
-	A read of -1 bytes tries to read 4 gig of data 
+	Bug with reading -1 bytes of a file without an error (test is in test_yaffs_read_EINVAL).
+	It should return EINVAL. This is because it was reading an empty file. 
+	When text is added to the file a read of -1 bytes tries to read 4 gig of data 
+
+	Bug when writing a file. the writhing to the file causes the file size to exceed the size of yaffs file system memory.
+	Output of test:
+		test_yaffs_write_EFBIG 
+		AddrToChunk of offset -2147483648 gives chunk -1048576 start 0
+		AddrToChunk of offset -2147481600 gives chunk -1048575 start 0
+		AddrToChunk of offset -2147479552 gives chunk -1048574 start 0	
+		AddrToChunk of offset -2147477504 gives chunk -1048573 start 0
+		AddrToChunk of offset -2147475456 gives chunk -1048572 start 0
+		AddrToChunk of offset -2147473408 gives chunk -1048571 start 0
+		AddrToChunk of offset -2147471360 gives chunk -1048570 start 0
+		AddrToChunk of offset -2147469312 gives chunk -1048569 start 0	
+		AddrToChunk of offset -2147467264 gives chunk -1048568 start 0
+		AddrToChunk of offset -2147465216 gives chunk -1048567 start 0
+		wrote a large amount of text to a file.(which is a bad thing)
+		test: test_yaffs_write_EFBIG failed
+		yaffs_error code 0
+		error is : Unknown error code
+
 
 Current WARNINGS
 	

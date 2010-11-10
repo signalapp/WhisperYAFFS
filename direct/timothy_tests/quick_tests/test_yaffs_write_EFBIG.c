@@ -22,8 +22,16 @@ int test_yaffs_write_EFBIG(void)
 	handle=test_yaffs_open();
 	int x=0;
 	
-	long int file_name_length=100000000000;
-
+	int file_name_length=20000;
+	if (handle<0){
+		printf("failed to open file\n");
+		return -1;
+	}
+	output=yaffs_lseek(handle,0x7FFFFF00, SEEK_SET);
+	if (output<0){
+		printf("failed to seek\n");
+		return -1;
+	}
 	file_name = malloc(file_name_length);
 	if(!file_name){
 		printf("unable to create file text\n");

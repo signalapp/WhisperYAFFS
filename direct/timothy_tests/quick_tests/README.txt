@@ -41,6 +41,11 @@ Tests made
 
 
 	test_yaffs_stat
+	test_yaffs_stat_ENOENT
+	test_yaffs_stat_ENOTDIR
+
+	test_yaffs_fstat
+	test_yaffs_fstat_EBADF
 
 	test_yaffs_truncate
 	test_yaffs_truncate_ENOTDIR
@@ -102,6 +107,9 @@ Tests to add
 	test_yaffs_unlink_ELOOP
 	test_yaffs_unlink_ENOMEM
 
+	test_yaffs_stat_EACCES
+	test_yaffs_stat_ELOOP
+
 	test_yaffs_access_EACCESS
 	test_yaffs_access_ELOOP
 	test_yaffs_access_ENAMETOOLONG
@@ -116,7 +124,7 @@ Tests to add
 	test_yaffs_truncate_EACCES
 	test_yaffs_truncate_ELOOP
 	test_yaffs_truncate_ENAMETOOLONG
-	add a truncate function for truncating a file size to -1.
+	Add a truncate function for truncating a file size to -1.
 
 	What happens if a handle is opened to a file and the file is then deleted?
 	Check to see if yaffs generates an error code for no reason.

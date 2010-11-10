@@ -38,6 +38,7 @@ int main(){
 	for (x=0;x<total_number_of_tests;x++){
 		//printf("x %d\n",x);
 		yaffs_set_error(0);	/*reset the last error to 0 */
+		printf("\nrunning test: %s \n",test_list[x].name_of_test);
 		output=test_list[x].p_function();	/*run test*/
 		if (output>=0){
 			/*test has passed*/
@@ -60,6 +61,7 @@ int main(){
 				printf("\n\n");
 			}
 		}
+		output=0;
 		output=test_list[x].p_function_clean();	/*clean the test*/
 		if (output <0){
 			/* if the test failed to clean it's self then */
@@ -72,8 +74,9 @@ int main(){
 				quit_quick_tests(1);
 			}
 			
+		} else {
+			printf("\ttest clean: %s passed\n",test_list[x].name_of_test);
 		}
-			
 	}
 	/*this is where the loop should break to*/
 	quit_quick_tests(0);

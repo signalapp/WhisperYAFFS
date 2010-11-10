@@ -39,6 +39,7 @@ Tests made
 	test_yaffs_read_EBADF
 	test_yaffs_read_EINVAL
 
+
 	test_yaffs_stat
 
 	test_yaffs_truncate
@@ -58,8 +59,10 @@ Tests made
 	test_yaffs_unmount
 	test_yaffs_unmount_ENOENT
 	test_yaffs_unmount_ENAMETOOLONG
+	test_yaffs_umount_EBUSY	//cause by having a file handle open and then trying to unmount yaffs.
 
 	test_yaffs_write
+	test_yaffs_write_EBADF
 
 	
 
@@ -72,7 +75,7 @@ Tests to add
 
 	test_yaffs_umount_ENODEV	//Cannot be generated with yaffs.
 	test_yaffs_umount_ENOENT	//Cannot be generated with yaffs.
-	test_yaffs_umount_EBUSY		//when files are open and yaffs is unmounted.
+			
 
 	test_yaffs_open_EACCES
 	test_yaffs_open_ENOSPC
@@ -88,9 +91,9 @@ Tests to add
 	test_yaffs_stat_ENOTDIR
 	 
 	test_yaffs_read_EISDIR 		//Cannot be generated with yaffs.
+	test_yaffs_read_EFBIG
 	test what happens if you read off the end of the file?
 
-	test_yaffs_write_EBADF
 	test_yaffs_write_EFBIG
 	test_yaffs_write_EINVAL
 	What happens when you run out of space?

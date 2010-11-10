@@ -26,6 +26,7 @@
 #include "test_yaffs_unmount.h"
 #include "test_yaffs_unmount_ENOENT.h"
 #include "test_yaffs_unmount_ENAMETOOLONG.h"
+#include "test_yaffs_unmount_EBUSY.h"
 
 #include "test_yaffs_open.h"
 #include "test_yaffs_open_EISDIR.h"
@@ -60,6 +61,8 @@
 #include "test_yaffs_truncate_EFBIG.h"
 
 #include "test_yaffs_write.h"
+#include "test_yaffs_write_EBADF.h"
+#include "test_yaffs_write_EFBIG.h"
 
 #include "test_yaffs_read.h"
 #include "test_yaffs_read_EBADF.h"
@@ -92,7 +95,7 @@ typedef struct test {
 
 
 test_template test_list[]={
-/*	{test_yaffs_mount,test_yaffs_mount_clean,"test_yaffs_mount"},
+	{test_yaffs_mount,test_yaffs_mount_clean,"test_yaffs_mount"},
 	{test_yaffs_mount_ENODEV,test_yaffs_mount_ENODEV_clean,"test_yaffs_mount_ENODEV"},
 	{test_yaffs_mount_ENAMETOOLONG,test_yaffs_mount_ENAMETOOLONG_clean,"test_yaffs_mount_ENAMETOOLONG"},
 	{test_yaffs_mount_ENOENT,test_yaffs_mount_ENOENT_clean,"test_yaffs_mount_ENOENT"},
@@ -101,7 +104,8 @@ test_template test_list[]={
 	{test_yaffs_unmount,test_yaffs_unmount_clean,"test_yaffs_unmount"},
 	{test_yaffs_unmount_ENOENT,test_yaffs_unmount_ENOENT_clean,"test_yaffs_unmount_ENOENT"},
 	{test_yaffs_unmount_ENAMETOOLONG,test_yaffs_unmount_ENAMETOOLONG_clean,"test_yaffs_unmount_ENAMETOOLONG"},
-*/
+	{test_yaffs_unmount_EBUSY,test_yaffs_unmount_EBUSY_clean,"test_yaffs_unmount_EBUSY"},
+
 	{test_yaffs_open,test_yaffs_open_clean,"test_yaffs_open"},
 	{test_yaffs_open_EISDIR,test_yaffs_open_EISDIR_clean,"test_yaffs_open_EISDIR"},
 	{test_yaffs_open_EEXIST,test_yaffs_open_EEXIST_clean,"test_yaffs_open_EEXIST"},
@@ -132,6 +136,8 @@ test_template test_list[]={
 	{test_yaffs_lseek_EFBIG,test_yaffs_lseek_EFBIG_clean,"test_yaffs_lseek_EFBIG"},
 
 	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
+	{test_yaffs_write_EBADF,test_yaffs_write_EBADF_clean,"test_yaffs_write_EBADF"},
+	{test_yaffs_write_EFBIG,test_yaffs_write_EFBIG_clean,"test_yaffs_write_EFBIG"},
 
 	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 	{test_yaffs_read_EBADF,test_yaffs_read_EBADF_clean,"test_yaffs_read_EBADF"},

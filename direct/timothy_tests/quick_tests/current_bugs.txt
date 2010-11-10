@@ -41,6 +41,7 @@ Current BUGS
 
 	Unmount2 forcing the unmount needs to break the handles so they return EBADF.
 
+	A read of -1 bytes tries to read 4 gig of data 
 
 Current WARNINGS
 	

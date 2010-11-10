@@ -15,11 +15,24 @@
 
 static int handle=0;
 
+static char *file_name = NULL;
 int test_yaffs_read_EINVAL(void){
 	int error_code=0;
 	handle=test_yaffs_open();
-	char text[20]="\0";
-	int output=0;
+	char text[2000000]="\0";
+	int output=0;	
+	
+	if (handle<0){
+		printf("could not open file\n");
+		return -1;
+	}	
+
+	/*there needs a large amout of test in the file in order to trigger EINVAL */
+	output=test_yaffs_read_EINVAL_init();
+	if (output<0){
+		printf("could not write text to the file\n");
+		return -1; 
+	}
 
 	if (handle>=0){
 		output=yaffs_read(handle, text, -1);
@@ -35,7 +48,7 @@ int test_yaffs_read_EINVAL(void){
 			}
 		}
 		else{
-			printf("read a non-existing file (which is a bad thing)\n");
+			printf("read a negative number of bytes (which is a bad thing)\n");
 			return -1;
 		}
 	}
@@ -47,10 +60,86 @@ int test_yaffs_read_EINVAL(void){
 }
 
 int test_yaffs_read_EINVAL_clean(void){
+	int output=0;
 	if (handle>=0){
-		return yaffs_close(handle);
+		output=test_yaffs_read_EINVAL_init_clean();
+		if(output>=0){
+			output=yaffs_close(handle);
+			if (output>=0){
+				return 1;
+			} else {
+				printf("could not close the handle\n");
+				return -1;
+			}
+		} else {
+			printf("failed to fix the file\n");
+			return -1;
+		}
 	}
-	else {
-		return 1; /* no handle was opened so there is no need to close a handle */
-	}	
+
 }
+
+int test_yaffs_read_EINVAL_init(void)
+{
+	int output=0;
+	int error_code=0;
+	int x=0;
+	
+	int file_name_length=1000000;
+
+	file_name = malloc(file_name_length);
+	if(!file_name){
+		printf("unable to create file text\n");
+		return -1;
+	}
+	
+	strcat(file_name,YAFFS_MOUNT_POINT);
+	for (x=strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
+		file_name[x]='a';
+	}
+	file_name[file_name_length-2]='\0';
+
+
+
+	if (handle>=0){
+		output= yaffs_write(handle, file_name, file_name_length-1);
+		if (output<0){
+			printf("could not write text to file\n");
+			return -1;
+		} else {
+			
+			return 1;
+		}
+
+	} else {
+		printf("error opening file\n");
+		return -1;
+	}
+	
+}
+
+int test_yaffs_read_EINVAL_init_clean(void)
+{
+	int output=1;
+	if(file_name){
+		free(file_name);
+		file_name = NULL;
+	}
+
+	
+	output= yaffs_truncate(FILE_PATH,FILE_SIZE );	
+	if (output>=0){
+		output=test_yaffs_write();
+		if (output>=0){
+			return 1;
+		} else {
+			printf("failed to write to file\n");
+			return -1;
+		}
+	} else {
+		printf("failed to truncate file\n");
+		return -1;
+	}
+
+}
+

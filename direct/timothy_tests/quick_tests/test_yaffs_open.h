@@ -21,4 +21,5 @@
 
 int test_yaffs_open(void);
 int test_yaffs_open_clean(void);
+
 #endif

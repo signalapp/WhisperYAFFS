@@ -21,4 +21,5 @@
 
 int test_yaffs_open_ENOTDIR(void);
 int test_yaffs_open_ENOTDIR_clean(void);
+
 #endif

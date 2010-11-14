@@ -59,7 +59,10 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_access.o test_yaffs_access_EINVAL.o test_yaffs_access_ENOTDIR.o test_yaffs_access_ENOENT.o\
 		test_yaffs_stat.o test_yaffs_stat_ENOENT.o test_yaffs_stat_ENOTDIR.o \
 		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o \
-		test_yaffs_close_EBADF.o
+		test_yaffs_close_EBADF.o\
+		test_yaffs_chmod.o test_yaffs_chmod_ENOENT.o test_yaffs_chmod_ENOTDIR.o test_yaffs_chmod_EINVAL.o \
+		test_yaffs_chmod_EINVAL2.o\
+		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o
 		  
 
 YAFFSTESTOBJS  = $(COMMONTESTOBJS) $(TESTFILES)

@@ -85,12 +85,21 @@
 #include "test_yaffs_fstat.h"
 #include "test_yaffs_fstat_EBADF.h"
 
+#include "test_yaffs_chmod.h"
+#include "test_yaffs_chmod_ENOENT.h"
+#include "test_yaffs_chmod_ENOTDIR.h"
+#include "test_yaffs_chmod_EINVAL.h"
+#include "test_yaffs_chmod_EINVAL2.h"
+
+#include "test_yaffs_fchmod.h"
+#include "test_yaffs_fchmod_EBADF.h"
+
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
 #include "lib.h"
 
 
-#define EXIT_ON_ERROR 0
+
 
 typedef struct test {
 	int (*p_function)(void);	/*pointer to test function*/
@@ -166,7 +175,16 @@ test_template test_list[]={
 	{test_yaffs_truncate_EISDIR,test_yaffs_truncate_EISDIR_clean,"test_yaffs_truncate_EISDIR"},
 	{test_yaffs_truncate_EINVAL,test_yaffs_truncate_EINVAL_clean,"test_yaffs_truncate_EINVAL"},
 	{test_yaffs_truncate_ENOENT,test_yaffs_truncate_ENOENT_clean,"test_yaffs_truncate_ENOENT"},
-	{test_yaffs_truncate_EFBIG,test_yaffs_truncate_EFBIG_clean,"test_yaffs_truncate_EFBIG"}
+	{test_yaffs_truncate_EFBIG,test_yaffs_truncate_EFBIG_clean,"test_yaffs_truncate_EFBIG"},
+
+	{test_yaffs_chmod,test_yaffs_chmod_clean,"test_yaffs_chmod"},
+	{test_yaffs_chmod_ENOENT,test_yaffs_chmod_ENOENT_clean,"test_yaffs_chmod_ENOENT"},
+	{test_yaffs_chmod_ENOTDIR,test_yaffs_chmod_ENOTDIR_clean,"test_yaffs_chmod_ENOTDIR"},
+	{test_yaffs_chmod_EINVAL,test_yaffs_chmod_EINVAL_clean,"test_yaffs_chmod_EINVAL"},
+	{test_yaffs_chmod_EINVAL2,test_yaffs_chmod_EINVAL2_clean,"test_yaffs_chmod_EINVAL2"},
+
+	{test_yaffs_fchmod,test_yaffs_fchmod_clean,"test_yaffs_fchmod"},
+	{test_yaffs_fchmod_EBADF,test_yaffs_fchmod_EBADF_clean,"test_yaffs_fchmod_EBADF"}
 	};
 
 void init_quick_tests(void);

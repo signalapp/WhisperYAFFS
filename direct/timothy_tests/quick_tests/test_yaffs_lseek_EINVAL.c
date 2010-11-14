@@ -15,41 +15,38 @@
 
 int handle=-1;
 
-int test_yaffs_lseek_EINVAL(void){
-	handle=test_yaffs_open();
-	int error_code=0;
-	int output=0;
+int test_yaffs_lseek_EINVAL(void)
+{
+	handle = test_yaffs_open();
+	int error_code = 0;
+	int output = 0;
 
-	if (handle<0){
-		printf("failed to open file\n");
+	if (handle < 0){
+		print_message("failed to open file\n", 2);
 		return -1;
 	}
-	
 
-	output=yaffs_lseek(handle, 0, -1);
+	output = yaffs_lseek(handle, 0, -1);
 
-	if (output<0){
-		error_code=yaffs_get_error();
-		//printf("EISDIR def %d, Error code %d\n", ENOTDIR,error_code);
-		if (abs(error_code)==EINVAL){
+	if (output < 0){
+		error_code = yaffs_get_error();
+		if (abs(error_code) == EINVAL){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n", 2);
 			return -1;
 		}
-	}
-	else {
-		printf("lseeked to a negative position (which is a bad thing)\n");
+	} else {
+		print_message("lseeked to a negative position (which is a bad thing)\n", 2);
 		return -1;
 	}
 }
 
-int test_yaffs_lseek_EINVAL_clean(void){
-	if (handle>=0){
+int test_yaffs_lseek_EINVAL_clean(void)
+{
+	if (handle >= 0){
 		return yaffs_close(handle);
-	}
-	else {
+	} else {
 		return 1; /* no handle was opened so there is no need to close a handle */
 	}	
 }

@@ -13,33 +13,32 @@
 
 #include "test_yaffs_unlink_ENOENT.h"
 
-static int handle=0;
-int test_yaffs_unlink_ENOENT(void){
-	int output=0;
+static int handle=-1;
+
+int test_yaffs_unlink_ENOENT(void)
+{
 	int error_code=0;
-	/*printf("path %s\n",path); */
+
 	handle=yaffs_unlink("/yaffs2/non_existant_file");
 	if (handle==-1){
 		error_code=yaffs_get_error();
-		if (abs(error_code)==ENOENT){
+		if (abs(error_code) == ENOENT){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	}
-	else if (output >=0){
-		printf("non existant file unlinked.(which is a bad thing)\n");
+	} else {
+		print_message("non existant file unlinked.(which is a bad thing)\n",2);
 		return -1;
 	}
 
 }
-int test_yaffs_unlink_ENOENT_clean(void){
-	if (handle >=0){
+int test_yaffs_unlink_ENOENT_clean(void)
+{
+	if (handle >= 0){
 		return test_yaffs_open();
-	}
-	else {
+	} else {
 		return 1;	/* the file failed to open so there is no need to close it*/
 	}
 }

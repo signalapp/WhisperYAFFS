@@ -13,42 +13,48 @@
 
 #include "test_yaffs_ftruncate_EINVAL.h"
 
-static int handle=0;
-int test_yaffs_ftruncate_EINVAL(void){
+static int handle = -1;
+
+int test_yaffs_ftruncate_EINVAL(void)
+{
 	int output=0;
 	int error_code=0;
 	handle=test_yaffs_open();
-	if (handle>=0){
-		output=yaffs_ftruncate(handle,-1 );
+
+	if (handle >= 0){
+		output = yaffs_ftruncate(handle,-1 );
 		if (output<0){
-			error_code=yaffs_get_error();
-			//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
-			if (abs(error_code)== EINVAL){
+			error_code = yaffs_get_error();
+			if (abs(error_code) == EINVAL){
 				return 1;
-			}
-			else {
-				printf("different error than expected\n");
+			} else {
+				print_message("different error than expected\n", 2);
 				return -1;
 			}
-		}
-		else {
-			printf("file truncated to a negative size.(which is a bad thing)\n");
+		} else {
+			print_message("file truncated to a negative size.(which is a bad thing)\n", 2);
 			return -1;
 		}
-	}
-	else {
-		printf("error opening file\n");
+	} else {
+		print_message("error opening file\n", 2);
 		return -1;
-	}
-
-	
-	
+	}	
 }
 
-int test_yaffs_ftruncate_EINVAL_clean(void){
-	if (handle<0){
-		return yaffs_close(handle);
+int test_yaffs_ftruncate_EINVAL_clean(void)
+{
+	/* change file size back to orignal size */
+	int output = 0;
+	if (handle >= 0){
+		output = yaffs_ftruncate(handle,FILE_SIZE );
+		if (output >= 0){
+			return yaffs_close(handle);
+		} else {
+			print_message("failed to truncate file\n", 2);
+			return -1;
+		}
+	} else {
+		/* the file was not opened so the file could not be truncated */
+		return 1;
 	}
-	return 1;
-	
 }

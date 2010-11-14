@@ -12,11 +12,13 @@
  */
 
 #include "test_yaffs_truncate_ENOENT.h"
-static int handle=0;
+static int handle = -1;
 
-int test_yaffs_truncate_ENOENT(void){
+int test_yaffs_truncate_ENOENT(void)
+{
 	int error=0;
 	int output=0;
+
 	handle=test_yaffs_open();
 	if (handle>=0){
 		output= yaffs_truncate("/yaffs2/non_existing_file",FILE_SIZE_TRUNCATED );
@@ -24,24 +26,21 @@ int test_yaffs_truncate_ENOENT(void){
 			error=yaffs_get_error();
 			if (abs(error)==ENOENT){
 				return 1;
-			}
-			else {
-				printf("received a different error than expected\n");
+			} else {
+				print_message("received a different error than expected\n",2);
 				return -1;
 			}
-		}
-		else{
-			printf("truncated a nonexisting file\n");
+		} else{
+			print_message("truncated a nonexisting file\n",2);
 			return -1;
-		}
-			
-	}
-	else {
-		printf("error opening file");
+		}		
+	} else {
+		print_message("error opening file",2);
 		return -1;
 	}
 }
 
-int test_yaffs_truncate_ENOENT_clean(void){
+int test_yaffs_truncate_ENOENT_clean(void)
+{
 	return 1;
 }

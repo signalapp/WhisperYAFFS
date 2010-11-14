@@ -15,45 +15,40 @@
 
 
 
-static int handle=0;
-int test_yaffs_open_ENAMETOOLONG(void){
-	int output=0;
-	int x;
-	int error_code=0;
-	int file_name_length=1000000;
+static int handle = -1;
+
+int test_yaffs_open_ENAMETOOLONG(void)
+{
+	int output = 0;
+	int x = 0;
+	int error_code = 0;
+	int file_name_length = 1000000;
 	char file_name[file_name_length];
 
 	strcat(file_name,YAFFS_MOUNT_POINT);
-	for (x=strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
-		file_name[x]='a';
+	for (x = strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
+		file_name[x] = 'a';
 	}
 	file_name[file_name_length-2]='\0';
-	
-	//printf("file name: %s\n",file_name);
+	handle = yaffs_open(file_name, O_CREAT | O_TRUNC| O_RDWR ,FILE_MODE );
 
+	if (handle == -1){
+		error_code = yaffs_get_error();
 
-	handle=yaffs_open(file_name, O_CREAT | O_TRUNC| O_RDWR ,FILE_MODE );
-
-	if (handle==-1){
-		error_code=yaffs_get_error();
-		//printf("ENAMETOOLONG def %d, Error code %d\n", ENAMETOOLONG,error_code);
-		if (abs(error_code)== ENAMETOOLONG){
+		if (abs(error_code) == ENAMETOOLONG){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	}
-	else if (output >=0){
-		printf("handle %d \n",handle);
-		printf("non existant file opened.(which is a bad thing)\n");
+	} else {
+		//printf("handle %d \n",handle);
+		print_message("non existant file opened.(which is a bad thing)\n", 2);
 		return -1;
 	}
-	/* the program should not get here but the compiler is complaining */
-	return -1;
 }
-int test_yaffs_open_ENAMETOOLONG_clean(void){
+int test_yaffs_open_ENAMETOOLONG_clean(void)
+{
 	if (handle >=0){
 		return yaffs_close(handle);
 	}

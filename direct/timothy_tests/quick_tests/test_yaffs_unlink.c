@@ -13,17 +13,18 @@
 
 #include "test_yaffs_unlink.h"
 
-int test_yaffs_unlink(void){
+int test_yaffs_unlink(void)
+{
 	int output=yaffs_unlink(FILE_PATH);
 	if (output>=0){
 		return (-test_yaffs_access());	/*return negative access. we do not want the file to be there*/
-	}
-	else {
-		printf("failed to unlink file\n") ;
+	} else {
+		print_message("failed to unlink file\n",2) ;
 		return -1;
 	}
 }
 
-int test_yaffs_unlink_clean(void){
+int test_yaffs_unlink_clean(void)
+{
 	return test_yaffs_open();
 }

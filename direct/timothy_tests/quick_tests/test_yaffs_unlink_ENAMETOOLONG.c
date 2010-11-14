@@ -15,7 +15,8 @@
 
 
 
-int test_yaffs_unlink_ENAMETOOLONG(void){
+int test_yaffs_unlink_ENAMETOOLONG(void)
+{
 	int output=0;
 	int error_code=0;
 	int x=0;
@@ -28,26 +29,23 @@ int test_yaffs_unlink_ENAMETOOLONG(void){
 	}
 	file_name[file_name_length-2]='\0';
 
-	/*printf("path %s\n",path); */
 	output=yaffs_unlink(file_name);
 	if (output==-1){
 		error_code=yaffs_get_error();
-		//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
 		if (abs(error_code)== EISDIR){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	}
-	else {
-		printf("directory unlinked opened.(which is a bad thing)\n");
+	} else {
+		print_message("directory unlinked opened.(which is a bad thing)\n",2);
 		return -1;
 	}
 }
 
-int test_yaffs_unlink_ENAMETOOLONG_clean(void){
+int test_yaffs_unlink_ENAMETOOLONG_clean(void)
+{
 	return 1;
 }
 

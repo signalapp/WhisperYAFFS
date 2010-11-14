@@ -15,27 +15,28 @@
 
 #include "test_yaffs_open_EINVAL2.h"
 
-static int handle=0;
-int test_yaffs_open_EINVAL2(void){
-	int output=0;
-	int error_code=0;
-	/*printf("path %s\n",path); */
+static int handle = -1;
+
+int test_yaffs_open_EINVAL2(void)
+{
+
 	handle=yaffs_open(FILE_PATH, O_CREAT | O_RDWR ,255);
-	if (handle==-1){
-		printf("file not opened with bad creation mod set (which is a bad thing)\n");
+
+	/* yaffs_open does not check the modes passed into it. This means that the file should open */
+	if (handle < 0){
+		print_message("file not opened with bad creation mode set (which is a bad thing)\n",2);
 		return -1;
-	}
-	else {
+	} else {
 		/* file opened */
 		return 1;
 	}
-
 }
-int test_yaffs_open_EINVAL2_clean(void){
-	if (handle >=0){
+
+int test_yaffs_open_EINVAL2_clean(void)
+{
+	if (handle >= 0){
 		return yaffs_close(handle);
-	}
-	else {
+	} else {
 		return 1;	/* the file failed to open so there is no need to close it*/
 	}
 }

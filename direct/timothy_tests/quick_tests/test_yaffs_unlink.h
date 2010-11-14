@@ -23,4 +23,5 @@
 
 int test_yaffs_unlink(void);
 int test_yaffs_unlink_clean(void);
+
 #endif

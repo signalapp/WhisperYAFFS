@@ -13,37 +13,35 @@
 
 #include "test_yaffs_open_EINVAL.h"
 
-static int handle=0;
-int test_yaffs_open_EINVAL(void){
-	int output=0;
-	int error_code=0;
-	/*printf("path %s\n",path); */
+static int handle = -1;
+
+int test_yaffs_open_EINVAL(void)
+{
+	int error_code = 0;
+
 	handle=yaffs_open(FILE_PATH, 255,FILE_MODE);
-	if (handle==-1){
-		error_code=yaffs_get_error();
-		if (abs(error_code)== EEXIST){	/* yaffs open does not check the mode. 
+	if (handle == -1){
+		error_code = yaffs_get_error();
+		if (abs(error_code) == EEXIST){	/* yaffs open does not check the mode which is passed into the functon. 
 						so yaffs open does not return EINVAL.
 						This causes the error EEXIST to happen instead
 						because both O_CREAT and O_EXCL are set */ 
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	}
-	else {
-		printf(" file opened with bad mode.(which is a bad thing)\n");
+	} else {
+		print_message(" file opened with bad mode.(which is a bad thing)\n",2);
 		return -1;
 	}
-	/* the program should not get here but the compiler is complaining */
-	return -1;
 }
-int test_yaffs_open_EINVAL_clean(void){
-	if (handle >=0){
+
+int test_yaffs_open_EINVAL_clean(void)
+{
+	if (handle >= 0){
 		return yaffs_close(handle);
-	}
-	else {
+	} else {
 		return 1;	/* the file failed to open so there is no need to close it*/
 	}
 }

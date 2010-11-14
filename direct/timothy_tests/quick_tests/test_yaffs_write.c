@@ -13,24 +13,24 @@
 
 #include "test_yaffs_write.h"
 
-static int handle=0;
-int test_yaffs_write(void){
+static int handle=-1;
+
+int test_yaffs_write(void)
+{
 	handle=test_yaffs_open();
 	if (handle>=0){
 		return yaffs_write(handle, FILE_TEXT, FILE_TEXT_NBYTES);
-	}
-	else {
+	} else {
 		printf("error opening file\n");
 		return -1;
 	}
-	
 }
 
-int test_yaffs_write_clean(void){
+int test_yaffs_write_clean(void)
+{
 	if (handle>=0){
 		return yaffs_close(handle);
-	}
-	else {
+	} else {
 		return 1; /* no handle was opened so there is no need to close a handle */
 	}	
 }

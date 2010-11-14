@@ -13,32 +13,27 @@
 
 #include "test_yaffs_mount_ENOENT.h"
 
-
-int test_yaffs_unmount_ENOENT(void){
+int test_yaffs_unmount_ENOENT(void)
+{
 	int output=0;
 	int error_code=0;
-	/*printf("path %s\n",path); */
-	
-	
 
 	output=yaffs_unmount("/non_existaint_mount_point/");
 	if (output==-1){
 		error_code=yaffs_get_error();
 		if (abs(error_code)==EINVAL){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	}
-	else {
-		printf("non existant mount point unmounted.(which is a bad thing)\n");
+	} else {
+		print_message("non existant mount point unmounted.(which is a bad thing)\n",2);
 		return -1;
 	}
-
 }
-int test_yaffs_unmount_ENOENT_clean(void){
+int test_yaffs_unmount_ENOENT_clean(void)
+{
 	return 1;
 }
 

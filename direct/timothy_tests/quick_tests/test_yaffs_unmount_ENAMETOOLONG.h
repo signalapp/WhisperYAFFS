@@ -24,4 +24,5 @@
 
 int test_yaffs_unmount_ENAMETOOLONG(void);
 int test_yaffs_unmount_ENAMETOOLONG_clean(void);
+
 #endif

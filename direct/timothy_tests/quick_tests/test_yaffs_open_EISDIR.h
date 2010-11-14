@@ -21,4 +21,5 @@
 
 int test_yaffs_open_EISDIR(void);
 int test_yaffs_open_EISDIR_clean(void);
+
 #endif

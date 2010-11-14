@@ -14,26 +14,27 @@
 #include "test_yaffs_lseek_EBADF.h"
 
 
-int test_yaffs_lseek_EBADF(void){
+int test_yaffs_lseek_EBADF(void)
+{
 	int error_code=0;
 	int output=yaffs_lseek(-1, 0, SEEK_SET);
+
 	if (output<0){
 		error_code=yaffs_get_error();
-		//printf("EISDIR def %d, Error code %d\n", ENOTDIR,error_code);
 		if (abs(error_code)==EBADF){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n", 2);
 			return -1;
 		}
-	}
-	else {
-		printf("lseeked to a negative position\n");
+	} else {
+		print_message("lseeked to a negative position\n", 2);
+		return -1;
 	}
 }
 
-int test_yaffs_lseek_EBADF_clean(void){
+int test_yaffs_lseek_EBADF_clean(void)
+{
 	return 1;	
 }
 

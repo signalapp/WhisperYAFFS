@@ -13,29 +13,29 @@
 
 #include "test_yaffs_stat_ENOENT.h"
 
-int test_yaffs_stat_ENOENT(void){
+int test_yaffs_stat_ENOENT(void)
+{
 	int error_code=0;
 	struct yaffs_stat stat;
 	int output=0;
 	char text[100];
 	text[0] ='\0';
-	output=yaffs_stat("/yaffs2/non-existing_file", &stat);;
+	output=yaffs_stat("/yaffs2/non-existing_file", &stat);
 	if (output<0){ 
 		error_code=yaffs_get_error();
 		if (abs(error_code)==ENOENT){
 			return 1;
-		}
-		else {
-			printf("returned error does not match the the expected error\n");
+		} else {
+			print_message("returned error does not match the the expected error\n",2);
 			return -1;
 		}
-	}
-	else{
-		printf("stated a non-existing file (which is a bad thing)\n");
+	} else{
+		print_message("stated a non-existing file (which is a bad thing)\n",2);
 		return -1;
 	}	
 }
 
-int test_yaffs_stat_ENOENT_clean(void){
+int test_yaffs_stat_ENOENT_clean(void)
+{
 	return 1;
 }

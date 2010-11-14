@@ -3,11 +3,18 @@ Made by Timothy Manning <timothy@yaffs.net> on 04/11/2010
 
 
 Tests made
+	test_yaffs_chmod
+	test_yaffs_chmod_ENOENT
+	test_yaffs_chmod_ENOTDIR
+
+	test_yaffs_fchmod
+	test_yaffs_fchmod_EBADF
+
 	test_yaffs_mount
 	test_yaffs_mount_ENODEV
 	test_yaffs_mount_ENAMETOOLONG
 	test_yaffs_mount_ENOENT
-	test_yaffs_mount_EBUSY		//called when trying to mount a new mount point with a mount point already mounted.
+	test_yaffs_mount_EBUSY		//caused by trying to mount a new mount point with a mount point already mounted.
 
 	test_yaffs_access
 	test_yaffs_access_ENIVAL
@@ -33,7 +40,7 @@ Tests made
 	test_yaffs_open_ENOENT
 	test_yaffs_open_ENOTDIR
 	test_yaffs_open_EINVAL
-	test_yaffs_open_EINVAL2 //the function open has two modes which can be set, so two tests modes are needed.
+	test_yaffs_open_EINVAL2 //the function open has two modes which can be set, so two tests are needed.
 
 	test_yaffs_read
 	test_yaffs_read_EBADF
@@ -59,7 +66,6 @@ Tests made
 	test_yaffs_unlink_ENAMETOOLONG
 	test_yaffs_unlink_ENOENT
 	test_yaffs_unlink_ENOTDIR
-	test_yaffs_unlink_ENOENT
 
 	test_yaffs_unmount
 	test_yaffs_unmount_ENOENT
@@ -72,6 +78,14 @@ Tests made
 	
 
 Tests to add
+	test_yaffs_chmod_EACCES
+	test_yaffs_chmod_ELOOP
+	test_yaffs_chmod_ENAMETOOLONG
+
+
+	test_yaffs_fchmod_EACCES
+	test_yaffs_fchmod_ELOOP
+
 	test_yaffs_mount_EACCES		//Cannot be generated with yaffs.
 	test_yaffs_mount_EINVAL		//Cannot be generated with yaffs.
 	test_yaffs_mount_ELOOP		//Cannot be generated with yaffs.
@@ -84,7 +98,7 @@ Tests to add
 
 	test_yaffs_open_EACCES
 	test_yaffs_open_ENOSPC
-	test_yaffs_open_ELOOP   //Too many symbolic links were encountered in resolving pathname
+	test_yaffs_open_ELOOP   
 	test yaffs_open_running_out_of_handles error
 
 	test_yaffs_close	//This function has already been called by the time this test is reached.
@@ -133,6 +147,8 @@ Tests to add
 	What happens when yaffs is unmounted twice?
 
 	What happens when open a handle, unmount yaffs and then try to use the handle? 
+
+	What happens when a mount point is mounted using mount2 with read only mode set and then a file is chmoded? 
 
 How to add a test
 	First create the test .c and .h file.

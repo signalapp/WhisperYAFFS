@@ -23,4 +23,5 @@
 
 int test_yaffs_mount_ENOENT(void);
 int test_yaffs_mount_ENOENT_clean(void);
+
 #endif

@@ -13,37 +13,38 @@
 
 #include "test_yaffs_lseek.h"
 
-static int handle=0;
-int test_yaffs_lseek(void){
-	handle=test_yaffs_open();
+static int handle = -1;
+
+int test_yaffs_lseek(void)
+{
 	int output=0;
-	if (handle>=0){
-		output=yaffs_lseek(handle, 0, SEEK_SET);
-		if (output==0){
+	handle = test_yaffs_open();
+
+
+	if (handle >= 0){
+		output = yaffs_lseek(handle, 0, SEEK_SET);
+		if (output == 0){
 			return 1;
-		}
-		else {
+		} else {
 			if (output<0){
-				printf("lseek failed to seek\n");
-			}
-			else {
-				printf("lseek returned a different position to the expeced position\n");
+				print_message("lseek failed to seek\n",2);
+			} else {
+				print_message("lseek returned a different position to the expeced position\n", 2);
 				return -1;
 			}
 		}
-	}
-	else {
-		printf("error opening file\n");
+	} else {
+		print_message("error opening file\n", 2);
 		return -1;
 	}
 	
 }
 
-int test_yaffs_lseek_clean(void){
+int test_yaffs_lseek_clean(void)
+{
 	if (handle>=0){
 		return yaffs_close(handle);
-	}
-	else {
+	} else {
 		return 1; /* no handle was opened so there is no need to close a handle */
 	}
 

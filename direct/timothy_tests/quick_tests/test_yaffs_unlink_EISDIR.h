@@ -21,4 +21,5 @@
 
 int test_yaffs_unlink_EISDIR(void);
 int test_yaffs_unlink_EISDIR_clean(void);
+
 #endif

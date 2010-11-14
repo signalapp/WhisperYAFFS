@@ -13,47 +13,37 @@
 
 #include "test_yaffs_unmount_ENAMETOOLONG.h"
 
-
-
-
-int test_yaffs_unmount_ENAMETOOLONG(void){
+int test_yaffs_unmount_ENAMETOOLONG(void)
+{
 	int output=0;
-	int x;
+	int x=0;
 	int error_code=0;
 	int file_name_length=1000000;
 	char file_name[file_name_length];
-
-
 
 	for (x=0; x<file_name_length -1; x++){
 		file_name[x]='a';
 	}
 	file_name[file_name_length-2]='\0';
 	
-	//printf("file name: %s\n",file_name);
-
-
 	output=yaffs_unmount(file_name);
 
 	if (output<0){
 		error_code=yaffs_get_error();
 		if (abs(error_code)== ENAMETOOLONG){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	}
-	else {
-		printf("mounted a too long mount point name.(which is a bad thing)\n");
+	} else {
+		print_message("mounted a too long mount point name.(which is a bad thing)\n",2);
 		return -1;
 	}
-	/* the program should not get here but the compiler is complaining */
-	return -1;
 }
 
-int test_yaffs_unmount_ENAMETOOLONG_clean(void){
+int test_yaffs_unmount_ENAMETOOLONG_clean(void)
+{
 	return 1;
 }
 

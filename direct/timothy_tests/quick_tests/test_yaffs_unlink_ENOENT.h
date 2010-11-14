@@ -22,4 +22,5 @@
 
 int test_yaffs_unlink_ENOENT(void);
 int test_yaffs_unlink_ENOENT_clean(void);
+
 #endif

@@ -21,4 +21,5 @@
 
 int test_yaffs_mount_ENODEV(void);
 int test_yaffs_mount_ENODEV_clean(void);
+
 #endif

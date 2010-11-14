@@ -13,26 +13,28 @@
 
 #include "test_yaffs_access_EINVAL.h"
 
-int test_yaffs_access_EINVAL(void){
+int test_yaffs_access_EINVAL(void)
+{
 	int output=0;
 	int error=0;
+
 	output= yaffs_access(FILE_PATH,255);
 	if (output<0){
 		error=yaffs_get_error();
 		if ( abs(error)== EINVAL){
 			return 1;
-		}
-		else {
-			printf("error does not match expected error\n");
+		} else {
+			print_message("error does not match expected error\n",2);
 			return -1;
 		}
-	}
-	else{
-		printf("accessed an existing file with bad mode (which is a bad thing\n");
+	} else{
+		print_message("accessed an existing file with bad mode (which is a bad thing\n",2);
+
 		return -1;
 	}
 }
 
-int test_yaffs_access_EINVAL_clean(void){
+int test_yaffs_access_EINVAL_clean(void)
+{
 	return 1;
 }

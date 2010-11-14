@@ -13,7 +13,8 @@
 
 #include "test_yaffs_stat_ENOTDIR.h"
 
-int test_yaffs_stat_ENOTDIR(void){
+int test_yaffs_stat_ENOTDIR(void)
+{
 	int error_code=0;
 	struct yaffs_stat stat;
 	int output=0;
@@ -24,18 +25,17 @@ int test_yaffs_stat_ENOTDIR(void){
 		error_code=yaffs_get_error();
 		if (abs(error_code)==ENOTDIR){
 			return 1;
-		}
-		else {
-			printf("returned error does not match the the expected error\n");
+		} else {
+			print_message("returned error does not match the the expected error\n",2);
 			return -1;
 		}
-	}
-	else{
-		printf("stated a non-existing file (which is a bad thing)\n");
+	} else {
+		print_message("stated a non-existing file (which is a bad thing)\n",2);
 		return -1;
 	}	
 }
 
-int test_yaffs_stat_ENOTDIR_clean(void){
+int test_yaffs_stat_ENOTDIR_clean(void)
+{
 	return 1;
 }

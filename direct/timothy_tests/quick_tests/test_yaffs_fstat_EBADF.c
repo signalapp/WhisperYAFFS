@@ -14,29 +14,28 @@
 #include "test_yaffs_fstat_EBADF.h"
 
 
-int test_yaffs_fstat_EBADF(void){
-	int output=0;
+int test_yaffs_fstat_EBADF(void)
+{
+	int output = 0;
 	struct yaffs_stat stat;
-	int error_code=0;
-	output=yaffs_fstat(-1 , &stat);
-	if (output<0){
-		error_code=yaffs_get_error();
-		//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
-		if (abs(error_code)== EBADF){
+	int error_code = 0;
+
+	output = yaffs_fstat(-1 , &stat);
+	if (output < 0){
+		error_code = yaffs_get_error();
+		if (abs(error_code) == EBADF){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n", 2);
 			return -1;
 		}
-	}
-	else {
-		printf("non existant file truncated.(which is a bad thing)\n");
+	} else {
+		print_message("non existant file truncated.(which is a bad thing)\n", 2 );
 		return -1;
 	}
 }
 
-int test_yaffs_fstat_EBADF_clean(void){
-	return 1;
-	
+int test_yaffs_fstat_EBADF_clean(void)
+{
+	return 1;	
 }

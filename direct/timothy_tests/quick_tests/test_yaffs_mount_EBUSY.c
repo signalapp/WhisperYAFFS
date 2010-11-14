@@ -14,7 +14,8 @@
 #include "test_yaffs_mount_EBUSY.h"
 
 
-int test_yaffs_mount_EBUSY(void){
+int test_yaffs_mount_EBUSY(void)
+{
 	int output=0;
 	int error_code=0;
 
@@ -24,19 +25,18 @@ int test_yaffs_mount_EBUSY(void){
 		//printf("EISDIR def %d, Error code %d\n", ENOTDIR,error_code);
 		if (abs(error_code)==EBUSY){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	}
-	else if (output >=0){
-		printf("mounted the same mount point twice.(which is a bad thing)\n");
+	} else {
+		print_message("mounted the same mount point twice.(which is a bad thing)\n", 2);
 		return -1;
 	}
-
 }
-int test_yaffs_mount_EBUSY_clean(void){
+
+int test_yaffs_mount_EBUSY_clean(void)
+{
 	return 1;
 }
 

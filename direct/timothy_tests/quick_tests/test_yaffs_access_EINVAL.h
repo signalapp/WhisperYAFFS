@@ -17,8 +17,6 @@
 #define __test_yaffs_access_EINVAL_h__
 #include "lib.h"
 #include "yaffsfs.h"
-#include "test_yaffs_open.h"
-#include "test_yaffs_lseek.h"
 int test_yaffs_access_EINVAL(void);
 int test_yaffs_access_EINVAL_clean(void);
 #endif

@@ -12,9 +12,10 @@
  */
 
 #include "test_yaffs_truncate_EFBIG.h"
-static int handle=0;
+static int handle = -1;
 
-int test_yaffs_truncate_EFBIG(void){
+int test_yaffs_truncate_EFBIG(void)
+{
 	int error=0;
 	int output=0;
 	handle=test_yaffs_open();
@@ -24,24 +25,22 @@ int test_yaffs_truncate_EFBIG(void){
 			error=yaffs_get_error();
 			if (abs(error)==EINVAL){	/*in yaffs EINVAL is used instead of EFBIG */
 				return 1;
-			}
-			else {
-				printf("received a different error than expected\n");
+			} else {
+				print_message("received a different error than expected\n",2);
 				return -1;
 			}
-		}
-		else{
-			printf("truncated a file to a massive size\n");
+		} else{
+			print_message("truncated a file to a massive size\n",2);
 			return -1;
 		}
 			
-	}
-	else {
-		printf("error opening file");
+	} else {
+		print_message("error opening file\n",2);
 		return -1;
 	}
 }
 
-int test_yaffs_truncate_EFBIG_clean(void){
+int test_yaffs_truncate_EFBIG_clean(void)
+{
 	return 1;
 }

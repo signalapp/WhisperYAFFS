@@ -13,14 +13,14 @@
 
 #include "test_yaffs_mount.h"
 
-int test_yaffs_mount(void){
-	int output=0;
-	output=yaffs_mount(YAFFS_MOUNT_POINT);
-	/*printf("output %d",output);*/
+int test_yaffs_mount(void)
+{
+	int output = 0;
+	output = yaffs_mount(YAFFS_MOUNT_POINT);
 	return output;
 }
 
-int test_yaffs_mount_clean(void){
-	return 1;
-	
+int test_yaffs_mount_clean(void)
+{
+	return 1;	
 }

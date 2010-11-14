@@ -21,4 +21,5 @@
 
 int test_yaffs_mount_EBUSY(void);
 int test_yaffs_mount_EBUSY_clean(void);
+
 #endif

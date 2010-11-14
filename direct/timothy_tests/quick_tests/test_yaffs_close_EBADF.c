@@ -15,48 +15,48 @@
 
 #include "test_yaffs_open.h"
 
-static int handle=0;
+static int handle = 0;
 
-int test_yaffs_close_EBADF(void){
-	int output=0;
-	int error_code=0;
-	handle=test_yaffs_open();
-	if (handle>=0){
-		output=yaffs_close(handle);
-		if (output>=0){
-			output=yaffs_close(handle);
-			if (output<0){
-				/*error has happened */
-				error_code=yaffs_get_error();
-				//printf("EBADF def %d, Error code %d\n",(- EBADF),error_code);
-				if (abs(error_code)== EBADF){
+int test_yaffs_close_EBADF(void)
+{
+	int output = 0;
+	int error_code = 0;
+
+	handle = test_yaffs_open();
+	if (handle >= 0){
+		output = yaffs_close(handle);
+		if (output >= 0){
+			output = yaffs_close(handle);
+			if (output < 0){
+				error_code = yaffs_get_error();
+				if (abs(error_code) == EBADF){
 					return 1;
-				}
-				else {
-					printf("different error than expected\n");
+				} else {
+					print_message("different error than expected\n",2);
 					return -1;
 				}
-			}
-			else {
-				printf("closed the same handle twice. (which is a bad thing)\n");
+			} else {
+				print_message("closed the same handle twice. (which is a bad thing)\n", 2);
 				return -1;
 			}
-		}
-		else {
-			printf("failed to close the handle the firs time\n");
+		} else {
+			print_message("failed to close the handle the firs time\n", 2);
 			return -1;
 		}	
-	}
-	else {
-		printf("failed to open file\n");
+	} else {
+		print_message("failed to open file\n", 2);
 		return -1;
 	}
 
 }
 
 
-int test_yaffs_close_EBADF_clean(void){
-	/* there is nothing that needs to be recreated */	
-	return 1;
+int test_yaffs_close_EBADF_clean(void)
+{
+	if (handle <= 0){
+		return yaffs_close(handle);
+	} else {
+		return 1;
+	}
 }
 

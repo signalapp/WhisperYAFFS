@@ -21,4 +21,5 @@
 
 int test_yaffs_open_EINVAL2(void);
 int test_yaffs_open_EINVAL2_clean(void);
+
 #endif

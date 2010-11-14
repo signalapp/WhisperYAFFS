@@ -13,21 +13,23 @@
 
 #include "test_yaffs_fstat.h"
 
-static int handle=0;
-int test_yaffs_fstat(void){
+static int handle = -1;
+int test_yaffs_fstat(void)
+{
 	struct yaffs_stat stat;
-	handle=test_yaffs_open();
-	if (handle>=0){
-		return 	yaffs_fstat(handle , &stat);;
-	}
-	else {
-		printf("error opening file\n");
+	handle = test_yaffs_open();
+
+	if (handle >= 0){
+		return 	yaffs_fstat(handle , &stat);
+	} else {
+		print_message( "error opening file\n", 2 );
 		return -1;
 	}
 }
 
-int test_yaffs_fstat_clean(void){
-	if (handle<0){
+int test_yaffs_fstat_clean(void)
+{
+	if (handle <= 0){
 		return yaffs_close(handle);
 	}
 	return 1;

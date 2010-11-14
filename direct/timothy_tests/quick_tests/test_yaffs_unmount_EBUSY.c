@@ -14,39 +14,38 @@
 #include "test_yaffs_mount_EBUSY.h"
 
 static int handle=-1;
-int test_yaffs_unmount_EBUSY(void){
+
+int test_yaffs_unmount_EBUSY(void)
+{
 	int output=0;
 	int error_code=0;
-	/*printf("path %s\n",path); */
+
 	handle=yaffs_open(FILE_PATH,O_CREAT | O_RDWR, FILE_MODE);
 	if (handle<0){
 		printf("failed to open file\n");
 		return -1;
 	}
 
-
 	output=yaffs_unmount(YAFFS_MOUNT_POINT);
 	if (output==-1){
 		error_code=yaffs_get_error();
 		if (abs(error_code)==EBUSY){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	}
-	else {
-		printf("non existant mount point unmounted.(which is a bad thing)\n");
+	} else {
+		print_message("non existant mount point unmounted.(which is a bad thing)\n",2);
 		return -1;
 	}
 
 }
-int test_yaffs_unmount_EBUSY_clean(void){
+int test_yaffs_unmount_EBUSY_clean(void)
+{
 	if (handle>=0){
 		return yaffs_close(handle);	
-	}
-	else {
+	} else {
 		return 1;
 	}
 }

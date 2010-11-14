@@ -22,4 +22,5 @@
 
 int test_yaffs_read(void);
 int test_yaffs_read_clean(void);
+
 #endif

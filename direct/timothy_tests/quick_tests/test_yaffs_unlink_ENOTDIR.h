@@ -21,4 +21,5 @@
 
 int test_yaffs_unlink_ENOTDIR(void);
 int test_yaffs_unlink_ENOTDIR_clean(void);
+
 #endif

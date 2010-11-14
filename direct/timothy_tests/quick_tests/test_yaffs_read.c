@@ -15,37 +15,33 @@
 
 static int handle=-1;
 
-int test_yaffs_read(void){
-	handle=test_yaffs_open();
-	char text[20]="\0";
+int test_yaffs_read(void)
+{
+	char text[20] = "\0";
 	int output=0;
-	//printf("handle %d\n",handle);
+
+	handle = test_yaffs_open();
 	if (handle>=0){
 		output=yaffs_read(handle, text, FILE_TEXT_NBYTES);
-		//printf("yaffs_test_read output: %d\n",output);
-		//printf("text in file is: '%s' expected text is '%s'\n",text,FILE_TEXT);
 		if (output>0){ 
 			if (0==memcmp(text,FILE_TEXT,FILE_TEXT_NBYTES)){
 				return 1;
-			}
-			else {
-				printf("returned text does not match the the expected text that should be in the file\n");
+			} else {
+				print_message("returned text does not match the the expected text that should be in the file\n", 2);
 				return -1;
 			}
-		}
-		else{
-			printf("error reading file\n");
+		} else{
+			print_message("error reading file\n", 2);
 			return -1;
 		}
-	}
-	else {
-		printf("error opening file\n");
+	} else {
+		print_message("error opening file\n", 2);
 		return -1;
 	}
-	
 }
 
-int test_yaffs_read_clean(void){
+int test_yaffs_read_clean(void)
+{
 	if (handle>=0){
 		return yaffs_close(handle);
 	}

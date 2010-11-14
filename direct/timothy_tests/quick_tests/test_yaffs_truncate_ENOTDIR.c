@@ -12,9 +12,11 @@
  */
 
 #include "test_yaffs_truncate_ENOTDIR.h"
-static int handle=0;
 
-int test_yaffs_truncate_ENOTDIR(void){
+static int handle = -1;
+
+int test_yaffs_truncate_ENOTDIR(void)
+{
 	int error=0;
 	int output=0;
 	handle=test_yaffs_open();
@@ -24,24 +26,22 @@ int test_yaffs_truncate_ENOTDIR(void){
 			error=yaffs_get_error();
 			if (abs(error)==ENOTDIR){
 				return 1;
-			}
-			else {
-				printf("received a different error than expected\n");
+			} else {
+				print_message("received a different error than expected\n",2);
 				return -1;
 			}
-		}
-		else{
-			printf("truncated a nonexisting file\n");
+		} else{
+			print_message("truncated a nonexisting file\n",2);
 			return -1;
 		}
 			
-	}
-	else {
-		printf("error opening file");
+	} else {
+		print_message("error opening file\n",2);
 		return -1;
 	}
 }
 
-int test_yaffs_truncate_ENOTDIR_clean(void){
+int test_yaffs_truncate_ENOTDIR_clean(void)
+{
 	return 1;
 }

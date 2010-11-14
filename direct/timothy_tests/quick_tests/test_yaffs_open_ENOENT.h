@@ -21,4 +21,5 @@
 
 int test_yaffs_open_ENOENT(void);
 int test_yaffs_open_ENOENT_clean(void);
+
 #endif

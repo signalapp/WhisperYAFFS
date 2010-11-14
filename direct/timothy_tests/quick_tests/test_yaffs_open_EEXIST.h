@@ -21,4 +21,5 @@
 
 int test_yaffs_open_EEXIST(void);
 int test_yaffs_open_EEXIST_clean(void);
+
 #endif

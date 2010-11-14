@@ -15,35 +15,33 @@
 
 /*EISDIR is caused by trying to unlink a directory */
 
-static int handle=0;
-int test_yaffs_unlink_EISDIR(void){
-	int output=0;
+static int handle=-1;
+
+int test_yaffs_unlink_EISDIR(void)
+{
 	int error_code=0;
-	/*printf("path %s\n",path); */
+
 	handle=yaffs_unlink(YAFFS_MOUNT_POINT);
 	if (handle==-1){
 		error_code=yaffs_get_error();
-		//printf("EISDIR def %d, Error code %d\n", EISDIR,error_code);
 		if (abs(error_code)== EISDIR){
 			return 1;
-		}
-		else {
-			printf("different error than expected\n");
+		} else {
+			print_message("different error than expected\n",2);
 			return -1;
 		}
 	}
-	else if (output >=0){
-		printf("directory unlinked opened.(which is a bad thing)\n");
+	else {
+		print_message("directory unlinked opened.(which is a bad thing)\n",2);
 		return -1;
 	}
-	/* the program should not get here but the compiler is complaining */
-	return -1;
+
 }
-int test_yaffs_unlink_EISDIR_clean(void){
+int test_yaffs_unlink_EISDIR_clean(void)
+{
 	if (handle >=0){
 		return yaffs_close(handle);
-	}
-	else {
+	}else {
 		return 1;	/* the file failed to open so there is no need to close it*/
 	}
 }

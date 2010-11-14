@@ -13,10 +13,13 @@
 
 #include "test_yaffs_write_EBADF.h"
 
-static int handle=0;
-int test_yaffs_write_EBADF(void){
+static int handle= -1;
+
+int test_yaffs_write_EBADF(void)
+{
 	int output=0;
 	int error_code=0;
+
 	handle=test_yaffs_open();
 	if (handle>=0){
 		output= yaffs_write(-1, FILE_TEXT, FILE_TEXT_NBYTES);
@@ -25,30 +28,26 @@ int test_yaffs_write_EBADF(void){
 			//printf("EISDIR def %d, Error code %d\n", ENOTDIR,error_code);
 			if (abs(error_code)==EBADF){
 				return 1;
-			}
-			else {
-				printf("different error than expected\n");
+			} else {
+				print_message("different error than expected\n",2);
 				return -1;
 			}
-		}
-		else {
-			printf("wrote to a bad handle.(which is a bad thing)\n");
+		} else {
+			print_message("wrote to a bad handle.(which is a bad thing)\n",2);
 			return -1;
 		}
 
-	}
-	else {
-		printf("error opening file\n");
+	} else {
+		print_message("error opening file\n",2);
 		return -1;
 	}
-	
 }
 
-int test_yaffs_write_EBADF_clean(void){
+int test_yaffs_write_EBADF_clean(void)
+{
 	if (handle>=0){
 		return yaffs_close(handle);
-	}
-	else {
+	} else {
 		return 1; /* no handle was opened so there is no need to close a handle */
 	}	
 }

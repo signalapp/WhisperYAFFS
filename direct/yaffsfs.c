@@ -31,7 +31,8 @@
 #define YAFFSFS_RW_SIZE  (1<<YAFFSFS_RW_SHIFT)
 
 /* Some forward references */
-static struct yaffs_obj *yaffsfs_FindObject(struct yaffs_obj *relativeDirectory, const YCHAR *path, int symDepth, int getEquiv);
+static struct yaffs_obj *yaffsfs_FindObject(struct yaffs_obj *relativeDirectory,
+			const YCHAR *path, int symDepth, int getEquiv);
 static void yaffsfs_RemoveObjectCallback(struct yaffs_obj *obj);
 
 unsigned int yaffs_wr_attempts;
@@ -870,7 +871,16 @@ int yaffsfs_do_read(int fd, void *vbuf, unsigned int nbyte, int isPread, int off
 			nToRead = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
 			if(nToRead > nbyte)
 				nToRead = nbyte;
-			nRead = yaffs_file_rd(obj,buf,pos,nToRead);
+
+			/* Tricky bit... 
+			 * Need to reverify object in case the device was
+			 * unmounted in another thread.
+			 */
+			obj = yaffsfs_GetHandleObject(fd);
+			if(!obj)
+				nRead = 0;
+			else
+				nRead = yaffs_file_rd(obj,buf,pos,nToRead);
 
 			if(nRead > 0){
 				totalRead += nRead;
@@ -953,11 +963,21 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 		yaffsfs_GetHandle(fd);
 		pos = startPos;
 		while(nbyte > 0) {
+
 			nToWrite = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
 			if(nToWrite > nbyte)
 				nToWrite = nbyte;
 
-			nWritten = yaffs_wr_file(obj,buf,pos,nToWrite,write_trhrough);
+			/* Tricky bit... 
+			 * Need to reverify object in case the device was
+			 * remounted or unmounted in another thread.
+			 */
+			obj = yaffsfs_GetHandleObject(fd);
+			if(!obj || obj->my_dev->read_only)
+				nWritten = 0;
+			else
+				nWritten = yaffs_wr_file(obj,buf,pos,nToWrite,
+							write_trhrough);
 			if(nWritten > 0){
 				totalWritten += nWritten;
 				pos += nWritten;
@@ -1942,7 +1962,8 @@ int yaffs_unmount2(const YCHAR *path, int force)
 			yaffs_checkpoint_save(dev);
 
 			for(i = inUse = 0; i < YAFFSFS_N_HANDLES && !inUse; i++){
-				if(yaffsfs_handle[i].useCount > 0 && yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj->my_dev == dev)
+				if(yaffsfs_handle[i].useCount > 0 && 
+				yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj->my_dev == dev)
 					inUse = 1; /* the device is in use, can't unmount */
 			}
 

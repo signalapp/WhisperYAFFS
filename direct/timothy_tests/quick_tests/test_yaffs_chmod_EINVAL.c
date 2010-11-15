@@ -16,7 +16,9 @@
 int test_yaffs_chmod_EINVAL(void)
 {
 	int error=0;
-	int output=yaffs_chmod("/non_existing_directory/foo",0);
+	int output;
+
+	output = yaffs_chmod("/yaffs2/foo",11111);
 
 	if (output<0){
 		error=yaffs_get_error();

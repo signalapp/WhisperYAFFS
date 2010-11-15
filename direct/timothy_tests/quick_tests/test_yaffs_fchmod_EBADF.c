@@ -13,19 +13,11 @@
 
 #include "test_yaffs_fchmod_EBADF.h"
 
-static int handle = -1;
 
 int test_yaffs_fchmod_EBADF(void)
 {
 	int error = 0;
 	int output = 0;
-	
-	handle = test_yaffs_open();
-
-	if (handle < 0){
-		print_message("failed to open file\n",2);
-		return -1;
-	}
 
 	output = yaffs_fchmod(-1,S_IREAD||S_IWRITE);
 
@@ -47,10 +39,6 @@ int test_yaffs_fchmod_EBADF(void)
 
 int test_yaffs_fchmod_EBADF_clean(void)
 {
-	if (handle >= 0) {
-		printf("handle %d\n",handle);
-		return yaffs_close(handle);
-	}
 	return 1;
 
 }

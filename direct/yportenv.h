@@ -163,6 +163,10 @@
 #define ENOSPC	28
 #endif
 
+#ifndef EROFS
+#define EROFS	30
+#endif
+
 #ifndef ERANGE
 #define ERANGE 34
 #endif

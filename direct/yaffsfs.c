@@ -1737,8 +1737,12 @@ int yaffs_access(const YCHAR *path, int amode)
 int yaffs_chmod(const YCHAR *path, mode_t mode)
 {
 	struct yaffs_obj *obj;
-
 	int retVal = -1;
+
+	if(mode & ~(0777)){
+		yaffsfs_SetError(-EINVAL);
+		return -1;
+	}
 
 	yaffsfs_Lock();
 
@@ -1747,7 +1751,7 @@ int yaffs_chmod(const YCHAR *path, mode_t mode)
 	if(!obj)
 		yaffsfs_SetError(-ENOENT);
 	else if(obj->my_dev->read_only)
-		yaffsfs_SetError(-EINVAL);
+		yaffsfs_SetError(-EROFS);
 	else
 		retVal = yaffsfs_DoChMod(obj,mode);
 
@@ -1761,16 +1765,20 @@ int yaffs_chmod(const YCHAR *path, mode_t mode)
 int yaffs_fchmod(int fd, mode_t mode)
 {
 	struct yaffs_obj *obj;
-
 	int retVal = -1;
+
+	if(mode & ~(0777)){
+		yaffsfs_SetError(-EINVAL);
+		return -1;
+	}
 
 	yaffsfs_Lock();
 	obj = yaffsfs_GetHandleObject(fd);
 
 	if(!obj)
-		yaffsfs_SetError(-ENOENT);
+		yaffsfs_SetError(-EBADF);
 	else if(obj->my_dev->read_only)
-		yaffsfs_SetError(-EINVAL);
+		yaffsfs_SetError(-EROFS);
 	else
 		retVal = yaffsfs_DoChMod(obj,mode);
 

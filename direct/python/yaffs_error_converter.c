@@ -37,6 +37,7 @@ const error_entry error_list[] = {
 	{ ENOTDIR , "ENOTDIR"},
 	{ EISDIR , "EISDIR"},
 	{ ENFILE, "ENFILE"},
+	{ EROFS, "EROFS"},
 	{ 0, NULL }
 };
 

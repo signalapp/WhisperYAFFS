@@ -15,7 +15,7 @@
 
 #include "test_yaffs_open.h"
 
-static int handle = 0;
+static int handle = -1;
 
 int test_yaffs_close_EBADF(void)
 {

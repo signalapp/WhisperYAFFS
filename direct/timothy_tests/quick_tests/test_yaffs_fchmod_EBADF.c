@@ -40,5 +40,4 @@ int test_yaffs_fchmod_EBADF(void)
 int test_yaffs_fchmod_EBADF_clean(void)
 {
 	return 1;
-
 }

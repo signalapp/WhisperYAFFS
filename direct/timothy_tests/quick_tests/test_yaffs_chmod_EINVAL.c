@@ -35,5 +35,5 @@ int test_yaffs_chmod_EINVAL(void)
 
 int test_yaffs_chmod_EINVAL_clean(void)
 {
-	return 1;
+	return test_yaffs_chmod();
 }

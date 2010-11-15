@@ -20,11 +20,10 @@
 #include "test_yaffs_mount.h"
 #include "test_yaffs_mount_ENODEV.h"
 #include "test_yaffs_mount_ENAMETOOLONG.h"
-#include "test_yaffs_mount_ENOENT.h"
 #include "test_yaffs_mount_EBUSY.h"
 
 #include "test_yaffs_unmount.h"
-#include "test_yaffs_unmount_ENOENT.h"
+#include "test_yaffs_unmount_ENODEV.h"
 #include "test_yaffs_unmount_ENAMETOOLONG.h"
 #include "test_yaffs_unmount_EBUSY.h"
 
@@ -113,11 +112,10 @@ test_template test_list[]={
 	{test_yaffs_mount,test_yaffs_mount_clean,"test_yaffs_mount"},
 	{test_yaffs_mount_ENODEV,test_yaffs_mount_ENODEV_clean,"test_yaffs_mount_ENODEV"},
 	{test_yaffs_mount_ENAMETOOLONG,test_yaffs_mount_ENAMETOOLONG_clean,"test_yaffs_mount_ENAMETOOLONG"},
-	{test_yaffs_mount_ENOENT,test_yaffs_mount_ENOENT_clean,"test_yaffs_mount_ENOENT"},
 	{test_yaffs_mount_EBUSY,test_yaffs_mount_EBUSY_clean,"test_yaffs_mount_EBUSY"},
 
 	{test_yaffs_unmount,test_yaffs_unmount_clean,"test_yaffs_unmount"},
-	{test_yaffs_unmount_ENOENT,test_yaffs_unmount_ENOENT_clean,"test_yaffs_unmount_ENOENT"},
+	{test_yaffs_unmount_ENODEV,test_yaffs_unmount_ENODEV_clean,"test_yaffs_unmount_ENODEV"},
 	{test_yaffs_unmount_ENAMETOOLONG,test_yaffs_unmount_ENAMETOOLONG_clean,"test_yaffs_unmount_ENAMETOOLONG"},
 	{test_yaffs_unmount_EBUSY,test_yaffs_unmount_EBUSY_clean,"test_yaffs_unmount_EBUSY"},
 
@@ -152,7 +150,7 @@ test_template test_list[]={
 
 	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
 	{test_yaffs_write_EBADF,test_yaffs_write_EBADF_clean,"test_yaffs_write_EBADF"},
-	{test_yaffs_write_EFBIG,test_yaffs_write_EFBIG_clean,"test_yaffs_write_EFBIG"},
+//	{test_yaffs_write_EFBIG,test_yaffs_write_EFBIG_clean,"test_yaffs_write_EFBIG"},
 
 	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 	{test_yaffs_read_EBADF,test_yaffs_read_EBADF_clean,"test_yaffs_read_EBADF"},
@@ -187,7 +185,7 @@ test_template test_list[]={
 	{test_yaffs_fchmod_EBADF,test_yaffs_fchmod_EBADF_clean,"test_yaffs_fchmod_EBADF"}
 	};
 
-void init_quick_tests(void);
+void init_quick_tests(int argc, char *argv[]);
 void quit_quick_tests(int exit_code);
 void get_error(void);
 #endif

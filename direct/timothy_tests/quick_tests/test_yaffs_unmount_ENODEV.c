@@ -11,28 +11,31 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_mount_ENOENT.h"
+#include "test_yaffs_unmount_ENODEV.h"
 
-int test_yaffs_unmount_ENOENT(void)
+static int handle = 0;
+
+int test_yaffs_unmount_ENODEV(void)
 {
 	int output=0;
 	int error_code=0;
 
-	output=yaffs_unmount("/non_existaint_mount_point/");
-	if (output==-1){
-		error_code=yaffs_get_error();
-		if (abs(error_code)==EINVAL){
+	handle = yaffs_unmount("/nonexisting_mount_point/");
+	if (handle==-1){
+		error_code = yaffs_get_error();
+		if (abs(error_code) == ENODEV){
 			return 1;
 		} else {
 			print_message("different error than expected\n",2);
 			return -1;
 		}
-	} else {
-		print_message("non existant mount point unmounted.(which is a bad thing)\n",2);
+	} else if (output >=0){
+		print_message("non existant directory opened.(which is a bad thing)\n",2);
 		return -1;
 	}
 }
-int test_yaffs_unmount_ENOENT_clean(void)
+
+int test_yaffs_unmount_ENODEV_clean(void)
 {
 	return 1;
 }

@@ -25,13 +25,13 @@ static unsigned int num_of_tests_pass=0;
 static unsigned int num_of_tests_failed=0;
 static unsigned int total_number_of_tests=(sizeof(test_list)/sizeof(test_template));
 
-int main(){
+int main(int argc, char *argv[]){
 	int output=0;
 	char message[30];
 	message[0]='\0';
+	unsigned int x=0;
 
-	unsigned int x=0;	
-	init_quick_tests();
+	init_quick_tests(argc, argv);
 	print_message("\n\nrunning quick tests for yaffs\n\n", 0);
 	//printf("testing yaffs\n");
 
@@ -56,7 +56,7 @@ int main(){
 		
 			get_error();
 			print_message("\n\n",1);
-			if (EXIT_ON_ERROR){	
+			if (get_exit_on_error()){	
 				quit_quick_tests(1);
 			}
 
@@ -71,7 +71,7 @@ int main(){
 			num_of_tests_pass--;
 			get_error();
 			printf("\n\n");
-			if (EXIT_ON_ERROR){
+			if (get_exit_on_error()){
 				quit_quick_tests(1);
 			}
 			
@@ -109,9 +109,31 @@ void get_error(void)
 	print_message(message,1);
 }
 
-void init_quick_tests(void)
+void init_quick_tests(int argc, char *argv[])
 {
+	int trace=0;
+	int x=0;	
+	for (x = 0; x < argc; x++){
+		if (0==strcmp(argv[x],"-h")){
+			printf("help\n");
+			printf("-h will print the commands available\n");
+			printf("-c will continue after a test failes else the program will exit\n");
+			printf("-v will print all messages\n");
+			printf("-q quiet mode only the number of tests passed and failed will be printed\n");
+			printf("-t [number] set yaffs_trace to number\n");
+			exit(0);
+		} else if (0==strcmp(argv[x],"-c")) {
+			set_exit_on_error(0);
+		} else if (0==strcmp(argv[x],"-q")) {
+			set_print_level(-3);
+		} else if (0==strcmp(argv[x],"-t")) {
+			trace = atoi(argv[x+1]);
+		}  else if (0==strcmp(argv[x],"-v")) {
+			set_print_level(5);
+		}
+
+	}
 	yaffs_start_up();
-	yaffs_set_trace(0);
+	yaffs_set_trace(trace);
 
 }

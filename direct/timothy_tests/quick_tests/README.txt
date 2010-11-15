@@ -13,7 +13,7 @@ Tests made
 	test_yaffs_mount
 	test_yaffs_mount_ENODEV
 	test_yaffs_mount_ENAMETOOLONG
-	test_yaffs_mount_ENOENT
+	test_yaffs_mount_ENODEV
 	test_yaffs_mount_EBUSY		//caused by trying to mount a new mount point with a mount point already mounted.
 
 	test_yaffs_access
@@ -68,7 +68,7 @@ Tests made
 	test_yaffs_unlink_ENOTDIR
 
 	test_yaffs_unmount
-	test_yaffs_unmount_ENOENT
+	test_yaffs_unmount_ENODEV
 	test_yaffs_unmount_ENAMETOOLONG
 	test_yaffs_umount_EBUSY	//cause by having a file handle open and then trying to unmount yaffs.
 

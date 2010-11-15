@@ -18,6 +18,7 @@
 	
 #include "lib.h"
 #include "yaffsfs.h"
+#include "test_yaffs_chmod.h"
 
 int test_yaffs_chmod_EINVAL(void);	
 int test_yaffs_chmod_EINVAL_clean(void);

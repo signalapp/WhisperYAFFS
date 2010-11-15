@@ -19,7 +19,7 @@ int test_yaffs_fchmod_EBADF(void)
 	int error = 0;
 	int output = 0;
 
-	output = yaffs_fchmod(-1,S_IREAD||S_IWRITE);
+	output = yaffs_fchmod(-1,S_IREAD|S_IWRITE);
 
 	if (output<0){
 		error=yaffs_get_error();

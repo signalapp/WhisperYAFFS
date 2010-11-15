@@ -26,7 +26,7 @@ int test_yaffs_fchmod(void)
 		return -1;
 	}
 
-	output = yaffs_fchmod(handle,S_IREAD||S_IWRITE);
+	output = yaffs_fchmod(handle,S_IREAD|S_IWRITE);
 
 	if (output>=0){
 		/* there were no errors */

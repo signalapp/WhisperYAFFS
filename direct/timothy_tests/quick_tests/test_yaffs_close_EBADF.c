@@ -30,6 +30,7 @@ int test_yaffs_close_EBADF(void)
 			if (output < 0){
 				error_code = yaffs_get_error();
 				if (abs(error_code) == EBADF){
+					handle =-1;
 					return 1;
 				} else {
 					print_message("different error than expected\n",2);
@@ -53,7 +54,8 @@ int test_yaffs_close_EBADF(void)
 
 int test_yaffs_close_EBADF_clean(void)
 {
-	if (handle <= 0){
+	if (handle >= 0){
+		printf("handle %d\n",handle);
 		return yaffs_close(handle);
 	} else {
 		return 1;

@@ -40,12 +40,12 @@ int main(int argc, char *argv[]){
 		//printf("x %d\n",x);
 		yaffs_set_error(0);	/*reset the last error to 0 */
 		sprintf(message,"\nrunning test: %s \n",test_list[x].name_of_test);
-		print_message(message,2);
+		print_message(message,3);
 		output=test_list[x].p_function();	/*run test*/
 		if (output>=0){
 			/*test has passed*/
 			sprintf(message,"\ttest %s passed\n",test_list[x].name_of_test);
-			print_message(message,2); 
+			print_message(message,3); 
 			num_of_tests_pass++;
 		} else {
 			/*test is assumed to have failed*/
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]){
 			
 		} else {
 			sprintf(message,"\ttest clean: %s passed\n",test_list[x].name_of_test);
-			print_message(message,2);
+			print_message(message,3);
 		}
 	}
 	/*this is where the loop should break to*/

@@ -14,7 +14,7 @@
 #include "lib.h"
 
 static int EXIT_ON_ERROR = 1;
-static int  PRINT_LEVEL = 1;	//This sets the level of detail which is printed. There are 3 levels 0,1,2 and 3  
+static int  PRINT_LEVEL = 2;	//This sets the level of detail which is printed. There are 3 levels 0,1,2 and 3  
 			//0 just prints the number of tests passed and failed.
 			//1 is the basic print level. it will print the details of a failed test.
 			//2 will print if a test passes and cleans. 

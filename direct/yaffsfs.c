@@ -274,6 +274,18 @@ static int yaffsfs_PutHandle(int handle)
 	return 0;
 }
 
+static void yaffsfs_PutDeviceHandles(struct yaffs_dev *dev)
+{
+	yaffsfs_Handle *yh;
+	int i;
+	for(i = 0; i < YAFFSFS_N_HANDLES; i++){
+		yh = & yaffsfs_handle[i];
+		if(yh->useCount>0 && 
+			yaffsfs_inode[yh->inodeId].iObj->my_dev == dev)
+			yaffsfs_PutHandle(i);
+	}
+}
+
 
 
 
@@ -323,7 +335,7 @@ LIST_HEAD(yaffsfs_deviceList);
 /*
  * yaffsfs_FindDevice
  * yaffsfs_FindRoot
- * Scan the configuration list to find the root.
+ * Scan the configuration list to find the device
  * Curveballs: Should match paths that end in '/' too
  * Curveball2 Might have "/x/ and "/x/y". Need to return the longest match
  */
@@ -398,6 +410,16 @@ static struct yaffs_dev *yaffsfs_FindDevice(const YCHAR *path, YCHAR **restOfPat
 	return retval;
 }
 
+/* FindMountPoint only returns a dev entry if the path is a mount point */
+static struct yaffs_dev *yaffsfs_FindMountPoint(const YCHAR *path)
+{
+	struct yaffs_dev *dev;
+	YCHAR *restOfPath=NULL;
+	dev = yaffsfs_FindDevice(path,&restOfPath);
+	if(dev && restOfPath && *restOfPath)
+		dev = NULL;
+	return dev;
+}
 
 static struct yaffs_obj *yaffsfs_FindRoot(const YCHAR *path, YCHAR **restOfPath)
 {
@@ -1841,7 +1863,6 @@ int yaffs_mount2(const YCHAR *path,int read_only)
 	int retVal=-1;
 	int result=YAFFS_FAIL;
 	struct yaffs_dev *dev=NULL;
-	YCHAR *restOfPath;
 
 	T(YAFFS_TRACE_MOUNT,(TSTR("yaffs: Mounting %s" TENDSTR),path));
 
@@ -1849,8 +1870,8 @@ int yaffs_mount2(const YCHAR *path,int read_only)
 
 	yaffsfs_InitHandles();
 
-	dev = yaffsfs_FindDevice(path,&restOfPath);
-	if(dev && !(*restOfPath)){
+	dev = yaffsfs_FindMountPoint(path);
+	if(dev){
 		if(!dev->is_mounted){
 			dev->read_only = read_only ? 1 : 0;
 			result = yaffs_guts_initialise(dev);
@@ -1909,10 +1930,10 @@ int yaffs_remount(const YCHAR *path, int force, int read_only)
 {
         int retVal=-1;
 	struct yaffs_dev *dev=NULL;
-	YCHAR *dummy;
+	yaffsfs_Handle *yh;
 
 	yaffsfs_Lock();
-	dev = yaffsfs_FindDevice(path,&dummy);
+	dev = yaffsfs_FindMountPoint(path);
 	if(dev){
 		if(dev->is_mounted){
 			int i;
@@ -1921,7 +1942,9 @@ int yaffs_remount(const YCHAR *path, int force, int read_only)
 			yaffs_flush_whole_cache(dev);
 
 			for(i = inUse = 0; i < YAFFSFS_N_HANDLES && !inUse && !force; i++){
-				if(yaffsfs_handle[i].useCount>0 && yaffsfs_inode[yaffsfs_handle[i].inodeId].iObj->my_dev == dev)
+				yh = & yaffsfs_handle[i];
+				if(yh->useCount>0 && 
+					yaffsfs_inode[yh->inodeId].iObj->my_dev == dev)
 					inUse = 1; /* the device is in use, can't unmount */
 			}
 
@@ -1949,10 +1972,9 @@ int yaffs_unmount2(const YCHAR *path, int force)
 {
         int retVal=-1;
 	struct yaffs_dev *dev=NULL;
-	YCHAR *dummy;
 
 	yaffsfs_Lock();
-	dev = yaffsfs_FindDevice(path,&dummy);
+	dev = yaffsfs_FindMountPoint(path);
 	if(dev){
 		if(dev->is_mounted){
 			int i;
@@ -1968,6 +1990,8 @@ int yaffs_unmount2(const YCHAR *path, int force)
 			}
 
 			if(!inUse || force){
+				if(inUse)
+					yaffsfs_PutDeviceHandles(dev);
 				yaffs_deinitialise(dev);
 
 				retVal = 0;
@@ -1979,8 +2003,7 @@ int yaffs_unmount2(const YCHAR *path, int force)
 			/* todo error - not mounted. */
 			yaffsfs_SetError(-EINVAL);
 
-	}
-	else
+	} else
 		/* todo error - no device */
 		yaffsfs_SetError(-ENODEV);
 
@@ -2373,6 +2396,9 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath)
 
 int yaffs_mknod(const YCHAR *pathname, mode_t mode, dev_t dev)
 {
+	pathname=pathname;
+	mode=mode;
+	dev=dev;
 	return -1;
 }
 
@@ -2405,7 +2431,9 @@ int yaffs_set_error(int error)
 
 int yaffs_dump_dev(const YCHAR *path)
 {
-#if 0
+#if 1
+	path=path;
+#else
 	YCHAR *rest;
 
 	struct yaffs_obj *obj = yaffsfs_FindRoot(path,&rest);

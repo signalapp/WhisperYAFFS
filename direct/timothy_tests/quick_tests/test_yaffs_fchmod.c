@@ -41,7 +41,6 @@ int test_yaffs_fchmod(void)
 int test_yaffs_fchmod_clean(void)
 {
 	if (handle >= 0) {
-		printf("handle %d\n",handle);
 		return yaffs_close(handle);
 	}
 	return 1;

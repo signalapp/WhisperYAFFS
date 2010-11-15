@@ -61,7 +61,6 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o \
 		test_yaffs_close_EBADF.o\
 		test_yaffs_chmod.o test_yaffs_chmod_ENOENT.o test_yaffs_chmod_ENOTDIR.o test_yaffs_chmod_EINVAL.o \
-		test_yaffs_chmod_EINVAL2.o\
 		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o
 		  
 

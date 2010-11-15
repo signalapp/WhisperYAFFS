@@ -34,11 +34,6 @@ Current BUGS
 		returned is ENOENT, it should be ENOTDIR 
 
 
-	
-	There may be a bug with trying to chmoding a file with the mode set to 0.
-	The chmod function does not return an error which means that it is unknown what modes the file is chmoded to.
-	When yaffs_open is used on the file the error EACCES is returned. It is possible that yaffs has changed the mode 
-	to read only.
 
 	Bug with truncating to a very large size. The yaffs_truncate function truncates the file to a massive size without any errors.
 	The function should return the error EINVAL. 

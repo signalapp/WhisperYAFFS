@@ -13,7 +13,6 @@ Tests made
 	test_yaffs_mount
 	test_yaffs_mount_ENODEV
 	test_yaffs_mount_ENAMETOOLONG
-	test_yaffs_mount_ENODEV
 	test_yaffs_mount_EBUSY		//caused by trying to mount a new mount point with a mount point already mounted.
 
 	test_yaffs_access
@@ -78,23 +77,145 @@ Tests made
 	
 
 Tests to add
+	test_yaffs_fchmod_EACCES
+	test_yaffs_fchmod_EINVAL
+	test_yaffs_fchmod
+
 	test_yaffs_chmod_EACCES
 	test_yaffs_chmod_ELOOP
 	test_yaffs_chmod_ENAMETOOLONG
 
+	test_yaffs_fsync
+	test_yaffs_fsync_EBADF	
 
+	test_yaffs_datasync
+	test_yaffs_datasync_EBADF
+
+	test_yaffs_lstat
+	test_yaffs_lstat_EACCES
+	test_yaffs_lstat_ENOTDIR
+	test_yaffs_lstat_ENAMETOOLONG
+	test_yaffs_lstat_ENOENT
+	test_yaffs_lstat_ELOOP
+
+	test_yaffs_readlink
+	test_yaffs_readlink_ENOENT
+	test_yaffs_readlink_ENOTDIR
+	test_yaffs_readlink_ELOOP
+	test_yaffs_readlink_ENAMETOOLONG
+
+	test_yaffs_mkdir
+	test_yaffs_mkdir_EACCES
+	test_yaffs_mkdir_EEXISTS
+	test_yaffs_mkdir_ELOOP
+	test_yaffs_mkdir_ENAMETOOLONG
+	test_yaffs_mkdir_ENOENT
+	test_yaffs_mkdir_ENOTDIR
+	test_yaffs_mkdir_EROFS
+
+	test_yaffs_symlink
+	test_yaffs_symlink_EACCES
+	test_yaffs_symlink_EEXISTS
+	test_yaffs_symlink_ELOOP
+	test_yaffs_symlink_ENAMETOOLONG
+	test_yaffs_symlink_ENOENT
+	test_yaffs_symlink_ENOTDIR
+	test_yaffs_symlink_EROFS
+
+	test_yaffs_mknod
+	test_yaffs_mknod_EACCES
+	test_yaffs_mknod_EEXIST
+	test_yaffs_mknod_EINVAL
+	test_yaffs_mknod_ELOOP
+	test_yaffs_mknod_ENAMETOOLONG
+	test_yaffs_mknod_ENOENT
+	test_yaffs_mknod_ENOTDIR
+	test_yaffs_mknod_EROFS
+
+	test_yaffs_mount2
+	test_yaffs_mount2_EINVAL
+	test_yaffs_mount2_ENOTDIR
+	test_yaffs_mount2_ENOENT
+	test_yaffs_mount2_ENODEV
+	test_yaffs_mount2_ENAMETOOLONG
+
+	test_yaffs_unmount2
+	test_yaffs_unmount2_ENOENT
+	test_yaffs_unmount2_ENOTDIR
+	test_yaffs_unmount2_ENODEV
+	test_yaffs_unmount2_EINVAL
+
+	test_yaffs_remount2
+	test_yaffs_remount2_ENOENT
+	test_yaffs_remount2_ENOTDIR
+	test_yaffs_remount2_ENODEV
+	test_yaffs_remount2_EINVAL
+
+	test_yaffs_sync
+	test_yaffs_sync_ENOENT
+	test_yaffs_sync_ENOTDIR
+
+	test_yaffs_freespace
+	test_yaffs_freespace_ENOENT
+	test_yaffs_freespace_ENOTDIR
+
+	test_yaffs_totalspace
+	test_yaffs_totalspace_ENOTDIR
+	test_yaffs_totalspace_ENOENT
+
+	test_yaffs_inodecount
+	test_yaffs_inodecount_ENOTDIR
+	test_yaffs_inodecount_ENOENT
+
+	test_yaffs_opendir
+
+	test_yaffs_readdir
+
+	test_yaffs_rewinddir
+
+	test_yaffs_closedir
+
+	test_yaffs_link
+	test_yaffs_link_EACCES
+	test_yaffs_link_EEXISTS
+	test_yaffs_link_ELOOP
+	test_yaffs_link_EMLINK		//should not happen on yaffs
+	test_yaffs_link_ENAMETOOLONG
+	test_yaffs_link_ENOENT
+	test_yaffs_link_ENOTDIR
+	test_yaffs_link_EPERM
+	test_yaffs_link_EROFS
+
+	test_yaffs_rmdir
+	test_yaffs_rmdir_EACCES
+	test_yaffs_rmdir_EBUSY
+	test_yaffs_rmdir_ENVAL
+	test_yaffs_rmdir_ENOENT
+	test_yaffs_rmdir_ENOTDIR
+	test_yaffs_rmdir_ENOTEMPTY
+	test_yaffs_rmdir_EROFS
+
+	test_yaffs_rename
+	test_yaffs_rename_EACCES
+	test_yaffs_rename_EINVAL
+	test_yaffs_rename_ELOOP
+	test_yaffs_rename_EMLINK
+	test_yaffs_rename_ENOENT
+	test_yaffs_rename_ENOTDIR
+	test_yaffs_rename_EEXISTS or EPERM
+	test_yaffs_rename_EROFS
+
+	test_yaffs_rename
+
+	test_yaffs_dup
+	test_yaffs_dup_EBADF		
+
+	test_yaffs_flush
+	test_yaffs_flush_EBADF	
+	
 	test_yaffs_fchmod_EACCES
 	test_yaffs_fchmod_ELOOP
 
-	test_yaffs_mount_EACCES		//Cannot be generated with yaffs.
-	test_yaffs_mount_EINVAL		//Cannot be generated with yaffs.
-	test_yaffs_mount_ELOOP		//Cannot be generated with yaffs.
-	test_yaffs_mount_EMFILE		//Cannot be generated with yaffs.
-	test_yaffs_mount_ENOTDIR	//Cannot be generated with yaffs.
-
-	test_yaffs_umount_ENODEV	//Cannot be generated with yaffs.
-	test_yaffs_umount_ENOENT	//Cannot be generated with yaffs.
-			
 
 	test_yaffs_open_EACCES
 	test_yaffs_open_ENOSPC
@@ -109,13 +230,23 @@ Tests to add
 	test_yaffs_stat_ENAMETOOLONG
 	test_yaffs_stat_ENOTDIR
 	 
-	test_yaffs_read_EISDIR 		//Cannot be generated with yaffs.
+
 	test_yaffs_read_EFBIG
 	test what happens if you read off the end of the file?
+
+	test_yaffs_pread
+	test_yaffs_pread_EBADF
+	test_yaffs_pread_EINVAL
+	test_yaffs_pread_EFBIG
 
 	test_yaffs_write_EFBIG
 	test_yaffs_write_EINVAL
 	What happens when you run out of space?
+	
+	test_yaffs_write_EBADF
+	test_yaffs_write
+	test_yaffs_pwrite_EFBIG
+	test_yaffs_pwrite_EINVAL
 
 	test_yaffs_unlink_EACCES
 	test_yaffs_unlink_ELOOP
@@ -130,10 +261,7 @@ Tests to add
 	test_yaffs_access_ENOENT_generated_with_a_dangling_symbloic_link
 
 	test_yaffs_ftruncate_EACCES	
-	test_yaffs_ftruncate_EISDIR	//Cannot be generated with yaffs.
-	test_yaffs_ftruncate_ELOOP	//Cannot be generated with yaffs.
-	test_yaffs_ftruncate_ENOENT	//Cannot be generated with yaffs.
-	test_yaffs_ftruncate_ENOTDIR	//Cannot be generated with yaffs.
+
 
 	test_yaffs_truncate_EACCES
 	test_yaffs_truncate_ELOOP

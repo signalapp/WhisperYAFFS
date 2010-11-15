@@ -92,6 +92,7 @@
 
 #include "test_yaffs_fchmod.h"
 #include "test_yaffs_fchmod_EBADF.h"
+#include "test_yaffs_fchmod_EINVAL.h"
 
 #include "test_yaffs_fsync.h"
 #include "test_yaffs_fsync_EBADF.h"
@@ -198,6 +199,9 @@ test_template test_list[]={
 	{test_yaffs_fdatasync_EBADF,test_yaffs_fdatasync_EBADF_clean,"test_yaffs_fdatasync_EBADF"},
 
 	{test_yaffs_mkdir,test_yaffs_mkdir_clean,"test_yaffs_mkdir"}
+
+	{test_yaffs_fchmod_EINVAL,test_yaffs_fchmod_EINVAL_clean,"test_yaffs_fchmod_EINVAL"}
+
 	};
 
 void init_quick_tests(int argc, char *argv[]);

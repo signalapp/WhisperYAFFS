@@ -9,6 +9,7 @@ Tests made
 
 	test_yaffs_fchmod
 	test_yaffs_fchmod_EBADF
+	test_yaffs_fchmod_EINVAL
 
 	test_yaffs_mount
 	test_yaffs_mount_ENODEV
@@ -84,8 +85,6 @@ Tests made
 
 Tests to add
 	test_yaffs_fchmod_EACCES
-	test_yaffs_fchmod_EINVAL
-	test_yaffs_fchmod
 
 	test_yaffs_chmod_EACCES
 	test_yaffs_chmod_ELOOP
@@ -224,11 +223,10 @@ Tests to add
 
 	test_yaffs_close	//This function has already been called by the time this test is reached.
 	
-	test_yaffs_stat_EBADF
 	test_yaffs_stat_ELOOP
 	test_yaffs_stat_EACCES
 	test_yaffs_stat_ENAMETOOLONG
-	test_yaffs_stat_ENOTDIR
+
 	 
 
 	test_yaffs_read_EFBIG

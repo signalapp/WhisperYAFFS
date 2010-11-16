@@ -92,6 +92,15 @@
 
 #include "test_yaffs_fchmod.h"
 #include "test_yaffs_fchmod_EBADF.h"
+#include "test_yaffs_fchmod_EINVAL.h"
+
+#include "test_yaffs_fsync.h"
+#include "test_yaffs_fsync_EBADF.h"
+
+#include "test_yaffs_fdatasync.h"
+#include "test_yaffs_fdatasync_EBADF.h"
+
+#include "test_yaffs_mkdir.h"
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -181,7 +190,19 @@ test_template test_list[]={
 	{test_yaffs_chmod_EINVAL,test_yaffs_chmod_EINVAL_clean,"test_yaffs_chmod_EINVAL"},
 
 	{test_yaffs_fchmod,test_yaffs_fchmod_clean,"test_yaffs_fchmod"},
-	{test_yaffs_fchmod_EBADF,test_yaffs_fchmod_EBADF_clean,"test_yaffs_fchmod_EBADF"}
+	{test_yaffs_fchmod_EBADF,test_yaffs_fchmod_EBADF_clean,"test_yaffs_fchmod_EBADF"},
+	{test_yaffs_fchmod_EINVAL,test_yaffs_fchmod_EINVAL_clean,"test_yaffs_fchmod_EINVAL"},
+
+	{test_yaffs_fsync,test_yaffs_fsync_clean,"test_yaffs_fsync"},
+	{test_yaffs_fsync_EBADF,test_yaffs_fsync_EBADF_clean,"test_yaffs_fsync_EBADF"},
+
+	{test_yaffs_fdatasync,test_yaffs_fdatasync_clean,"test_yaffs_fdatasync"},
+	{test_yaffs_fdatasync_EBADF,test_yaffs_fdatasync_EBADF_clean,"test_yaffs_fdatasync_EBADF"},
+
+	{test_yaffs_mkdir,test_yaffs_mkdir_clean,"test_yaffs_mkdir"}
+
+
+
 	};
 
 void init_quick_tests(int argc, char *argv[]);

@@ -881,6 +881,7 @@ int yaffsfs_do_read(int fd, void *vbuf, unsigned int nbyte, int isPread, int off
 	struct yaffs_obj *obj = NULL;
 	int pos = 0;
 	int startPos = 0;
+	int endPos = 0;
 	int nRead = 0;
 	int nToRead = 0;
 	int totalRead = 0;
@@ -921,6 +922,15 @@ int yaffsfs_do_read(int fd, void *vbuf, unsigned int nbyte, int isPread, int off
 
 		yaffsfs_GetHandle(fd);
 
+		endPos = pos + nbyte;
+
+		if(pos < 0 || pos > YAFFS_MAX_FILE_SIZE ||
+			nbyte > YAFFS_MAX_FILE_SIZE ||
+			endPos < 0 || endPos > YAFFS_MAX_FILE_SIZE){
+			totalRead = -1;
+			nbyte = 0;
+		}
+
 		while(nbyte > 0) {
 			nToRead = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
 			if(nToRead > nbyte)
@@ -960,9 +970,8 @@ int yaffsfs_do_read(int fd, void *vbuf, unsigned int nbyte, int isPread, int off
 		if(!isPread) {
 			if(totalRead >= 0)
 				h->position = startPos + totalRead;
-			else {
-					/* todo error */
-			}
+			else
+				yaffsfs_SetError(-EINVAL);
 		}
 
 	}
@@ -989,6 +998,7 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 	struct yaffs_obj *obj = NULL;
 	int pos = 0;
 	int startPos = 0;
+	int endPos;
 	int nWritten = 0;
 	int totalWritten = 0;
 	int write_trhrough = 0;
@@ -1016,6 +1026,15 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 
 		yaffsfs_GetHandle(fd);
 		pos = startPos;
+		endPos = pos + nbyte;
+
+		if(pos < 0 || pos > YAFFS_MAX_FILE_SIZE ||
+			nbyte > YAFFS_MAX_FILE_SIZE ||
+			endPos < 0 || endPos > YAFFS_MAX_FILE_SIZE){
+			totalWritten = -1;
+			nbyte = 0;
+		}
+
 		while(nbyte > 0) {
 
 			nToWrite = YAFFSFS_RW_SIZE - (pos & (YAFFSFS_RW_SIZE -1));
@@ -1059,9 +1078,8 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 		if(!isPwrite){
 			if(totalWritten > 0)
 				h->position = startPos + totalWritten;
-			else {
-				/* todo error */
-			}
+			else
+				yaffsfs_SetError(-EINVAL);
 		}
 	}
 

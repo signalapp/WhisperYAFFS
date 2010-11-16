@@ -1865,25 +1865,21 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 	
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,path,&name,0);
-	if(parent && yaffs_strnlen(name,5) == 0){
+	if(!parent)
+		yaffsfs_SetError(-ENOTDIR);
+	else if(parent && yaffs_strnlen(name,5) == 0){
 		/* Trying to make the root itself */
 		yaffsfs_SetError(-EEXIST);
-	} else if(parent && parent->my_dev->read_only){
-		yaffsfs_SetError(-EINVAL);
-	} else {
-		if(parent)
-			dir = yaffs_create_dir(parent,name,mode,0,0);
+	} else if(parent && parent->my_dev->read_only)
+		yaffsfs_SetError(-EROFS);
+	else {
+		dir = yaffs_create_dir(parent,name,mode,0,0);
 		if(dir)
 			retVal = 0;
-		else {
-			if(!parent)
-				yaffsfs_SetError(-ENOENT); /* missing path */
-			else if (yaffs_find_by_name(parent,name))
-				yaffsfs_SetError(-EEXIST); /* the name already exists */
-			else
-				yaffsfs_SetError(-ENOSPC); /* just assume no space */
-			retVal = -1;
-		}
+		else if (yaffs_find_by_name(parent,name))
+			yaffsfs_SetError(-EEXIST); /* the name already exists */
+		else
+			yaffsfs_SetError(-ENOSPC); /* just assume no space */
 	}
 
 	yaffsfs_Unlock();

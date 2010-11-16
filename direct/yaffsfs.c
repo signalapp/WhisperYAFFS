@@ -2491,10 +2491,10 @@ int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath)
 		obj = yaffs_create_symlink(parent,name,mode,0,0,oldpath);
 		if(obj)
 			retVal = 0;
-		else{
-			yaffsfs_SetError(-ENOSPC); /* just assume no space for now */
-			retVal = -1;
-		}
+		else if (yaffsfs_FindObject(NULL,newpath,0,0, NULL))
+			yaffsfs_SetError(-EEXIST);
+		else
+			yaffsfs_SetError(-ENOSPC);
 	}
 
 	yaffsfs_Unlock();

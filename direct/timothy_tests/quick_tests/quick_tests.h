@@ -191,6 +191,7 @@ test_template test_list[]={
 
 	{test_yaffs_fchmod,test_yaffs_fchmod_clean,"test_yaffs_fchmod"},
 	{test_yaffs_fchmod_EBADF,test_yaffs_fchmod_EBADF_clean,"test_yaffs_fchmod_EBADF"},
+	{test_yaffs_fchmod_EINVAL,test_yaffs_fchmod_EINVAL_clean,"test_yaffs_fchmod_EINVAL"},
 
 	{test_yaffs_fsync,test_yaffs_fsync_clean,"test_yaffs_fsync"},
 	{test_yaffs_fsync_EBADF,test_yaffs_fsync_EBADF_clean,"test_yaffs_fsync_EBADF"},
@@ -200,7 +201,7 @@ test_template test_list[]={
 
 	{test_yaffs_mkdir,test_yaffs_mkdir_clean,"test_yaffs_mkdir"}
 
-	{test_yaffs_fchmod_EINVAL,test_yaffs_fchmod_EINVAL_clean,"test_yaffs_fchmod_EINVAL"}
+
 
 	};
 

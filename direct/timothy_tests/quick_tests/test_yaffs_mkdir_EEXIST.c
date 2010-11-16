@@ -49,10 +49,6 @@ int test_yaffs_mkdir_EEXIST(void)
 
 int test_yaffs_mkdir_EEXIST_clean(void)
 {
-	if (output >= 0){
-		return yaffs_rmdir(DIR_PATH);
-	} else {
-		return 1;	
-	}
+	return yaffs_rmdir(DIR_PATH);
 }
 

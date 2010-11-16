@@ -105,6 +105,8 @@
 #include "test_yaffs_mkdir_ENOTDIR.h"
 
 #include "test_yaffs_symlink.h"
+#include "test_yaffs_symlink_ENOTDIR.h"
+
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -207,7 +209,8 @@ test_template test_list[]={
 	{test_yaffs_mkdir_EEXIST,test_yaffs_mkdir_EEXIST_clean,"test_yaffs_mkdir_EEXIST"},
 	{test_yaffs_mkdir_ENOTDIR,test_yaffs_mkdir_ENOTDIR_clean,"test_yaffs_mkdir_ENOTDIR"},
 
-	{test_yaffs_symlink,test_yaffs_symlink_clean,"test_yaffs_symlink"}
+	{test_yaffs_symlink,test_yaffs_symlink_clean,"test_yaffs_symlink"},
+	{test_yaffs_symlink_ENOTDIR,test_yaffs_symlink_ENOTDIR_clean,"test_yaffs_symlink_ENOTDIR"}
 
 
 

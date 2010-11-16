@@ -4,47 +4,13 @@ Made by Timothy Manning <timothy@yaffs.net> on 08/11/2010
 
 Current BUGS 
 
-	NAME SIZE
-		Bug with opening a file with a name of 1,000,000 char long with no errors.
-		The open function should be returning ENAMETOOLONG.
-
-		Bug with unlinking a file with 1,000,000 get the error ENOENT but should
-		be geting ENAMETOOLONG. 
-
-		Bug with mounting a too long non-existant mount point is returning 
-		ENODEV. yaffs_mount should be returning ENAMETOOLONG.
-		When the name is passed into the yaffs_mount function the length of the
-		mount point decreases from around 10000000 to 200. This needs to be investigated.
-		
-		Bug with unmounting a too long non-existing mountpoint. 
-		The error returned is ENODEV. It should be ENAMETOOLONG.
-
-
-	ENOTDIR ERRORS
-		Bug when trying to access a non-existing directory the error ENOENT is 
-		returned. It should be ENOTDIR.
-
-		Bug when trying to truncate a file in a non-existing directory. The error
-		returned is ENOENT it should be ENOTDIR.
-
-		Bug when trying to stat a file in a non-existing directory. The error 
-		returned is ENOENT, it should be ENOTDIR 
-
-		Bug when trying to chmod a file in a non-existing directory. The error 
-		returned is ENOENT, it should be ENOTDIR 
-
-		Bug when trying to mkdir on top of a non-existing directory. The error 
-		returned is ENOENT, it should be ENOTDIR. yaffs_mkdir should never return ENOENT.
-
+	
 
 	Bug with truncating to a very large size. The yaffs_truncate function truncates the file to a massive size without any errors.
 	The function should return the error EINVAL. 
 
 	Bug with lseeking to a very large size (size =100000000000000000000000000000000000000) without causing an error.
 	Should cause the error EINVAL.
-
-	Bug with unmounting a non-existing mountpoint. The function returns ENODEV 
-	but should be returning EINVAL.
 
 
 	Bug when writing a file. The writing to the file causes the file size to exceed the size of yaffs file system memory.

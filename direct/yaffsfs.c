@@ -1187,11 +1187,6 @@ int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 }
 
 
-int yaffs_rmdir(const YCHAR *path)
-{
-	return yaffsfs_DoUnlink(path,1);
-}
-
 int yaffs_unlink(const YCHAR *path)
 {
 	return yaffsfs_DoUnlink(path,0);
@@ -1819,22 +1814,17 @@ int yaffs_fchmod(int fd, mode_t mode)
 }
 
 
-int yaffs_mkdir(const YCHAR *path, mode_t mode)
+static int yaffsfs_alt_dir_path(const YCHAR *path, YCHAR **ret_path)
 {
-	struct yaffs_obj *parent = NULL;
-	struct yaffs_obj *dir = NULL;
-	YCHAR *name;
-	YCHAR *use_path = NULL;
-	int path_length = 0;
-	int retVal= -1;
+	YCHAR *alt_path = NULL;
+	int path_length;
 	int i;
-
 
 	/*
 	 * We don't have a definition for max path length.
 	 * We will use 3 * max name length instead.
 	 */
-	
+	*ret_path = NULL;
 	path_length = strnlen(path,(YAFFS_MAX_NAME_LENGTH+1)*3 +1);
 
 	/* If the last character is a path divider, then we need to
@@ -1845,18 +1835,33 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 	 */
 	if(path_length > 0 && 
 		yaffsfs_IsPathDivider(path[path_length-1])){
-		use_path = YMALLOC(path_length + 1);
-		if(!use_path){
-			yaffsfs_SetError(-ENOMEM);
+		alt_path = YMALLOC(path_length + 1);
+		if(!alt_path)
 			return -1;
-		}
-		strcpy(use_path, path);
+		strcpy(alt_path, path);
 		for(i = path_length-1;
-			i >= 0 && yaffsfs_IsPathDivider(use_path[i]);
+			i >= 0 && yaffsfs_IsPathDivider(alt_path[i]);
 			i--)
-			use_path[i] = (YCHAR) 0;
-		path = use_path;
+			alt_path[i] = (YCHAR) 0;
 	}
+	*ret_path = alt_path;
+	return 0;
+}
+
+int yaffs_mkdir(const YCHAR *path, mode_t mode)
+{
+	struct yaffs_obj *parent = NULL;
+	struct yaffs_obj *dir = NULL;
+	YCHAR *name;
+	YCHAR *alt_path = NULL;
+	int retVal= -1;
+
+	if(yaffsfs_alt_dir_path(path, &alt_path) < 0){
+		yaffsfs_SetError(-ENOMEM);
+		return -1;
+	}
+	if(alt_path)
+		path = alt_path;
 	
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,path,&name,0);
@@ -1883,11 +1888,29 @@ int yaffs_mkdir(const YCHAR *path, mode_t mode)
 
 	yaffsfs_Unlock();
 
-	if(use_path)
-		YFREE(use_path);
+	if(alt_path)
+		YFREE(alt_path);
 
 	return retVal;
 }
+
+int yaffs_rmdir(const YCHAR *path)
+{
+	int result;
+	YCHAR *alt_path;
+
+	if(yaffsfs_alt_dir_path(path, &alt_path) < 0){
+		yaffsfs_SetError(-ENOMEM);
+		return -1;
+	}
+	if(alt_path)
+		path = alt_path;
+	result =  yaffsfs_DoUnlink(path,1);
+	if(alt_path)
+		YFREE(alt_path);
+	return result;
+}
+
 
 void * yaffs_getdev(const YCHAR *path)
 {
@@ -2332,8 +2355,12 @@ int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath)
 
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,newpath,&name,0);
-	if(parent && parent->my_dev->read_only)
-		yaffsfs_SetError(-EINVAL);
+	if(!parent)
+		yaffsfs_SetError(-ENOTDIR);
+	else if( strlen(name) < 1)
+		yaffsfs_SetError(-ENOENT);
+	else if(parent->my_dev->read_only)
+		yaffsfs_SetError(-EROFS);
 	else if(parent){
 		obj = yaffs_create_symlink(parent,name,mode,0,0,oldpath);
 		if(obj)
@@ -2342,9 +2369,6 @@ int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath)
 			yaffsfs_SetError(-ENOSPC); /* just assume no space for now */
 			retVal = -1;
 		}
-	} else {
-		yaffsfs_SetError(-EINVAL);
-		retVal = -1;
 	}
 
 	yaffsfs_Unlock();

@@ -50,12 +50,12 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_open.o test_yaffs_open_ENOENT.o test_yaffs_open_ENOTDIR.o test_yaffs_open_EEXIST.o test_yaffs_open_EISDIR.o test_yaffs_open_ENAMETOOLONG.o \
 		test_yaffs_open_EINVAL.o test_yaffs_open_EINVAL2.o \
 		test_yaffs_unlink.o  test_yaffs_unlink_EISDIR.o test_yaffs_unlink_ENOENT.o test_yaffs_unlink_ENAMETOOLONG.o test_yaffs_unlink_ENOTDIR.o\
-		test_yaffs_ftruncate.o test_yaffs_ftruncate_EBADF.o test_yaffs_ftruncate_EINVAL.o test_yaffs_ftruncate_EFBIG.o \
+		test_yaffs_ftruncate.o test_yaffs_ftruncate_EBADF.o test_yaffs_ftruncate_EINVAL.o test_yaffs_ftruncate_big_file.o \
 		test_yaffs_truncate.o test_yaffs_truncate_ENOTDIR.o test_yaffs_truncate_EISDIR.o test_yaffs_truncate_ENOENT.o test_yaffs_truncate_EINVAL.o \
-		test_yaffs_truncate_EFBIG.o\
-		test_yaffs_write.o test_yaffs_write_EBADF.o test_yaffs_write_EFBIG.o \
+		test_yaffs_truncate_big_file.o\
+		test_yaffs_write.o test_yaffs_write_EBADF.o test_yaffs_write_big_file.o \
 		test_yaffs_read.o test_yaffs_read_EBADF.o test_yaffs_read_EINVAL.o\
-		test_yaffs_lseek.o test_yaffs_lseek_EBADF.o test_yaffs_lseek_EINVAL.o test_yaffs_lseek_EFBIG.o \
+		test_yaffs_lseek.o test_yaffs_lseek_EBADF.o test_yaffs_lseek_EINVAL.o test_yaffs_lseek_big_file.o \
 		test_yaffs_access.o test_yaffs_access_EINVAL.o test_yaffs_access_ENOTDIR.o test_yaffs_access_ENOENT.o\
 		test_yaffs_stat.o test_yaffs_stat_ENOENT.o test_yaffs_stat_ENOTDIR.o \
 		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o \
@@ -66,7 +66,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_fdatasync.o test_yaffs_fdatasync_EBADF.o \
 		test_yaffs_mkdir.o test_yaffs_mkdir_EEXIST.o test_yaffs_mkdir_ENOTDIR.o \
 		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o test_yaffs_fchmod_EINVAL.o \
-		test_yaffs_symlink.o test_yaffs_symlink_ENOTDIR.o
+		test_yaffs_symlink.o test_yaffs_symlink_ENOTDIR.o test_yaffs_symlink_EEXIST.o
 
 		  
 

@@ -32,7 +32,7 @@ int test_yaffs_unlink_ENAMETOOLONG(void)
 	output=yaffs_unlink(file_name);
 	if (output==-1){
 		error_code=yaffs_get_error();
-		if (abs(error_code)== EISDIR){
+		if (abs(error_code)== ENAMETOOLONG){
 			return 1;
 		} else {
 			print_message("different error than expected\n",2);

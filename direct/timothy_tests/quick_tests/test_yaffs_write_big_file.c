@@ -11,11 +11,11 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_write_EFBIG.h"
+#include "test_yaffs_write_big_file.h"
 
 static int handle=0;
 static char *file_name = NULL;
-int test_yaffs_write_EFBIG(void)
+int test_yaffs_write_big_file(void)
 {
 	int output=0;
 	int error_code=0;
@@ -69,7 +69,7 @@ int test_yaffs_write_EFBIG(void)
 	
 }
 
-int test_yaffs_write_EFBIG_clean(void)
+int test_yaffs_write_big_file_clean(void)
 {
 	int output=1;
 	if(file_name){

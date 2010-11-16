@@ -11,10 +11,10 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_truncate_EFBIG.h"
+#include "test_yaffs_truncate_big_file.h"
 static int handle = -1;
 
-int test_yaffs_truncate_EFBIG(void)
+int test_yaffs_truncate_big_file(void)
 {
 	int error=0;
 	int output=0;
@@ -23,7 +23,7 @@ int test_yaffs_truncate_EFBIG(void)
 		output= yaffs_truncate("/yaffs2/foo",10000000000000000000000000000000000000000000 );
 		if (output<0){
 			error=yaffs_get_error();
-			if (abs(error)==EINVAL){	/*in yaffs EINVAL is used instead of EFBIG */
+			if (abs(error)==EINVAL){	/*in yaffs EINVAL is used instead of big_file */
 				return 1;
 			} else {
 				print_message("received a different error than expected\n",2);
@@ -40,7 +40,7 @@ int test_yaffs_truncate_EFBIG(void)
 	}
 }
 
-int test_yaffs_truncate_EFBIG_clean(void)
+int test_yaffs_truncate_big_file_clean(void)
 {
 	return 1;
 }

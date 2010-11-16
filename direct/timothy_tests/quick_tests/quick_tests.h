@@ -49,7 +49,7 @@
 #include "test_yaffs_ftruncate.h"
 #include "test_yaffs_ftruncate_EBADF.h"
 #include "test_yaffs_ftruncate_EINVAL.h"
-#include "test_yaffs_ftruncate_EFBIG.h"
+#include "test_yaffs_ftruncate_big_file.h"
 
 
 #include "test_yaffs_truncate.h"
@@ -57,11 +57,11 @@
 #include "test_yaffs_truncate_EISDIR.h"
 #include "test_yaffs_truncate_ENOENT.h"
 #include "test_yaffs_truncate_EINVAL.h"
-#include "test_yaffs_truncate_EFBIG.h"
+#include "test_yaffs_truncate_big_file.h"
 
 #include "test_yaffs_write.h"
 #include "test_yaffs_write_EBADF.h"
-#include "test_yaffs_write_EFBIG.h"
+#include "test_yaffs_write_big_file.h"
 
 #include "test_yaffs_read.h"
 #include "test_yaffs_read_EBADF.h"
@@ -70,7 +70,7 @@
 #include "test_yaffs_lseek.h"
 #include "test_yaffs_lseek_EBADF.h"
 #include "test_yaffs_lseek_EINVAL.h"
-#include "test_yaffs_lseek_EFBIG.h"
+#include "test_yaffs_lseek_big_file.h"
 
 #include "test_yaffs_access.h"
 #include "test_yaffs_access_EINVAL.h"
@@ -106,6 +106,7 @@
 
 #include "test_yaffs_symlink.h"
 #include "test_yaffs_symlink_ENOTDIR.h"
+#include "test_yaffs_symlink_EEXIST.h"
 
 
 #include "yaffsfs.h"
@@ -161,11 +162,11 @@ test_template test_list[]={
 	{test_yaffs_lseek,test_yaffs_lseek_clean,"test_yaffs_lseek"},
 	{test_yaffs_lseek_EBADF,test_yaffs_lseek_EBADF_clean,"test_yaffs_lseek_EBADF"},
 	{test_yaffs_lseek_EINVAL,test_yaffs_lseek_EINVAL_clean,"test_yaffs_lseek_EINVAL"},
-	{test_yaffs_lseek_EFBIG,test_yaffs_lseek_EFBIG_clean,"test_yaffs_lseek_EFBIG"},
+	{test_yaffs_lseek_big_file,test_yaffs_lseek_big_file_clean,"test_yaffs_lseek_big_file"},
 
 	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
 	{test_yaffs_write_EBADF,test_yaffs_write_EBADF_clean,"test_yaffs_write_EBADF"},
-//	{test_yaffs_write_EFBIG,test_yaffs_write_EFBIG_clean,"test_yaffs_write_EFBIG"},
+//	{test_yaffs_write_big_file,test_yaffs_write_big_file_clean,"test_yaffs_write_big_file"},
 
 	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 	{test_yaffs_read_EBADF,test_yaffs_read_EBADF_clean,"test_yaffs_read_EBADF"},
@@ -181,14 +182,14 @@ test_template test_list[]={
 	{test_yaffs_ftruncate,test_yaffs_ftruncate_clean,"test_yaffs_ftruncate"},
 	{test_yaffs_ftruncate_EBADF,test_yaffs_ftruncate_EBADF_clean,"test_yaffs_ftruncate_EBADF"},
 	{test_yaffs_ftruncate_EINVAL,test_yaffs_ftruncate_EINVAL_clean,"test_yaffs_ftruncate_EINVAL"},
-	{test_yaffs_ftruncate_EFBIG,test_yaffs_ftruncate_EFBIG_clean,"test_yaffs_ftruncate_EFBIG"},
+	{test_yaffs_ftruncate_big_file,test_yaffs_ftruncate_big_file_clean,"test_yaffs_ftruncate_big_file"},
 
 	{test_yaffs_truncate,test_yaffs_truncate_clean,"test_yaffs_truncate"},
 	{test_yaffs_truncate_ENOTDIR,test_yaffs_truncate_ENOTDIR_clean,"test_yaffs_truncate_ENOTDIR"},
 	{test_yaffs_truncate_EISDIR,test_yaffs_truncate_EISDIR_clean,"test_yaffs_truncate_EISDIR"},
 	{test_yaffs_truncate_EINVAL,test_yaffs_truncate_EINVAL_clean,"test_yaffs_truncate_EINVAL"},
 	{test_yaffs_truncate_ENOENT,test_yaffs_truncate_ENOENT_clean,"test_yaffs_truncate_ENOENT"},
-	{test_yaffs_truncate_EFBIG,test_yaffs_truncate_EFBIG_clean,"test_yaffs_truncate_EFBIG"},
+	{test_yaffs_truncate_big_file,test_yaffs_truncate_big_file_clean,"test_yaffs_truncate_big_file"},
 
 	{test_yaffs_chmod,test_yaffs_chmod_clean,"test_yaffs_chmod"},
 	{test_yaffs_chmod_ENOENT,test_yaffs_chmod_ENOENT_clean,"test_yaffs_chmod_ENOENT"},
@@ -210,7 +211,8 @@ test_template test_list[]={
 	{test_yaffs_mkdir_ENOTDIR,test_yaffs_mkdir_ENOTDIR_clean,"test_yaffs_mkdir_ENOTDIR"},
 
 	{test_yaffs_symlink,test_yaffs_symlink_clean,"test_yaffs_symlink"},
-	{test_yaffs_symlink_ENOTDIR,test_yaffs_symlink_ENOTDIR_clean,"test_yaffs_symlink_ENOTDIR"}
+	{test_yaffs_symlink_ENOTDIR,test_yaffs_symlink_ENOTDIR_clean,"test_yaffs_symlink_ENOTDIR"},
+	{test_yaffs_symlink_EEXIST,test_yaffs_symlink_EEXIST_clean,"test_yaffs_symlink_EEXIST"}
 
 
 

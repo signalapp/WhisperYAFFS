@@ -11,11 +11,11 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_lseek_EFBIG.h"
+#include "test_yaffs_lseek_big_file.h"
 
 static int handle = -1;
 
-int test_yaffs_lseek_EFBIG(void)
+int test_yaffs_lseek_big_file(void)
 {
 	handle = test_yaffs_open();
 	int error_code = 0;
@@ -42,7 +42,7 @@ int test_yaffs_lseek_EFBIG(void)
 	}
 }
 
-int test_yaffs_lseek_EFBIG_clean(void)
+int test_yaffs_lseek_big_file_clean(void)
 {
 	if (handle >= 0){
 		return yaffs_close(handle);

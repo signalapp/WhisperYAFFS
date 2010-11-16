@@ -32,12 +32,12 @@ Tests made
 	test_yaffs_ftruncate
 	test_yaffs_ftruncate_EBADF
 	test_yaffs_ftruncate_ENIVAL
-	test_yaffs_ftruncate_EFBIG
+	test_yaffs_ftruncate_big_file
 
 	test_yaffs_lseek
 	test_yaffs_lseek_EBADF
 	test_yaffs_lseek_EINVAL
-	test_yaffs_lseek_EFBIG
+	test_yaffs_lseek_big_file
 
 	test_yaffs_open
 	test_yaffs_open_EEXIST
@@ -61,6 +61,7 @@ Tests made
 	test_yaffs_stat_ENOTDIR
 
 	test_yaffs_symlink
+	test_yaffs_symlink_ENOTDIR
 
 	test_yaffs_fstat
 	test_yaffs_fstat_EBADF
@@ -70,7 +71,7 @@ Tests made
 	test_yaffs_truncate_EISDIR
 	test_yaffs_truncate_ENOENT
 	test_yaffs_truncate_ENIVAL
-	test_yaffs_truncate_EFBIG
+	test_yaffs_truncate_big_file
 
 	test_yaffs_unlink
 	test_yaffs_unlink_EISDIR
@@ -120,7 +121,6 @@ Tests to add
 	test_yaffs_symlink_ELOOP
 	test_yaffs_symlink_ENAMETOOLONG
 	test_yaffs_symlink_ENOENT	//if there is a slash on the end
-	test_yaffs_symlink_ENOTDIR
 	test_yaffs_symlink_EROFS
 
 	test_yaffs_mknod
@@ -231,21 +231,21 @@ Tests to add
 
 	 
 
-	test_yaffs_read_EFBIG
+	test_yaffs_read_big_file
 	test what happens if you read off the end of the file?
 
 	test_yaffs_pread
 	test_yaffs_pread_EBADF
 	test_yaffs_pread_EINVAL
-	test_yaffs_pread_EFBIG
+	test_yaffs_pread_big_file
 
-	test_yaffs_write_EFBIG
+	test_yaffs_write_big_file
 	test_yaffs_write_EINVAL
 	What happens when you run out of space?
 	
 	test_yaffs_write_EBADF
 	test_yaffs_write
-	test_yaffs_pwrite_EFBIG
+	test_yaffs_pwrite_big_file
 	test_yaffs_pwrite_EINVAL
 
 	test_yaffs_unlink_EACCES

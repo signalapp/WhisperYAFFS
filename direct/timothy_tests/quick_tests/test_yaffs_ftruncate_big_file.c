@@ -11,11 +11,11 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_ftruncate_EFBIG.h"
+#include "test_yaffs_ftruncate_big_file.h"
 
 static int handle = -1;
 
-int test_yaffs_ftruncate_EFBIG(void)
+int test_yaffs_ftruncate_big_file(void)
 {
 	int output = 0;
 	int error_code = 0;
@@ -25,7 +25,7 @@ int test_yaffs_ftruncate_EFBIG(void)
 		output = yaffs_ftruncate(handle,10000000000000000000000000000000);
 		if (output < 0){
 			error_code = yaffs_get_error();
-			if (abs(error_code) == EINVAL){	/* yaffs uses the error EINVAL instead of EFBIG */
+			if (abs(error_code) == EINVAL){	/* yaffs uses the error EINVAL instead of big_file */
 				return 1;
 			} else {
 				print_message("different error than expected\n", 2);
@@ -41,7 +41,7 @@ int test_yaffs_ftruncate_EFBIG(void)
 	}
 }
 
-int test_yaffs_ftruncate_EFBIG_clean(void){
+int test_yaffs_ftruncate_big_file_clean(void){
 	/* change file size back to orignal size */
 	int output = 0;
 	if (handle >= 0){

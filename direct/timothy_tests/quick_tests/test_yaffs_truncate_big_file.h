@@ -13,14 +13,14 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __test_yaffs_write_EFBIG_h__
-#define __test_yaffs_write_EFBIG_h__
+#ifndef __test_yaffs_truncate_big_file_h__
+#define __test_yaffs_truncate_big_file_h__
+
 #include "lib.h"
 #include "yaffsfs.h"
 #include "test_yaffs_open.h"
-#include "test_yaffs_write.h"
-#include "test_yaffs_truncate.h"
 
-int test_yaffs_write_EFBIG(void);
-int test_yaffs_write_EFBIG_clean(void);
+int test_yaffs_truncate_big_file(void);
+int test_yaffs_truncate_big_file_clean(void); 
+
 #endif

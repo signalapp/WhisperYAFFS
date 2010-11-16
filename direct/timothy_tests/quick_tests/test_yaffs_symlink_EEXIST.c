@@ -44,11 +44,7 @@ int test_yaffs_symlink_EEXIST(void)
 
 int test_yaffs_symlink_EEXIST_clean(void)
 {
-	if (output >= 0){
 		return yaffs_unlink(SYMLINK_PATH);
-	} else {
-		return 1;	/* the file failed to open so there is no need to close it */
-	}
 }
 
 

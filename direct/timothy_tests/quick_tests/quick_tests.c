@@ -33,9 +33,7 @@ int main(int argc, char *argv[]){
 
 	init_quick_tests(argc, argv);
 	print_message("\n\nrunning quick tests for yaffs\n\n", 0);
-	//printf("testing yaffs\n");
 
-	//printf("len function %d",(sizeof(test_list)/sizeof(test_template)));
 	for (x=0;x<total_number_of_tests;x++){
 		//printf("x %d\n",x);
 		yaffs_set_error(0);	/*reset the last error to 0 */

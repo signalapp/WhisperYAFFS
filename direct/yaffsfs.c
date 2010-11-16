@@ -1724,7 +1724,7 @@ int yaffs_access(const YCHAR *path, int amode)
 	struct yaffs_obj *obj=NULL;
 	struct yaffs_obj *dir=NULL;
 
-	int retval = 0;
+	int retval = -1;
 
 	if(amode & ~(R_OK | W_OK | X_OK)){
 		yaffsfs_SetError(-EINVAL);
@@ -1749,10 +1749,10 @@ int yaffs_access(const YCHAR *path, int amode)
 		if((amode & X_OK) && !(obj->yst_mode & S_IEXEC))
 			access_ok = 0;
 
-		if(!access_ok) {
+		if(!access_ok)
 			yaffsfs_SetError(-EACCES);
-			retval = -1;
-		}
+		else
+			retval = 0;
 	}
 
 	yaffsfs_Unlock();

@@ -30,6 +30,10 @@
 #define FILE_TEXT "file foo "	/* keep space at end of string */
 #define FILE_TEXT_NBYTES 10
 
+#define DIR_PATH "/yaffs2/new_directory/"
+
+#define SYMLINK_PATH "/yaffs2/sym_foo"
+
 /* warning do not define anything as FILE because there seems to be a conflict with stdio.h */ 
 #define FILE_PATH "/yaffs2/foo"
 

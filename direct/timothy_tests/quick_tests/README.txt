@@ -52,6 +52,9 @@ Tests made
 	test_yaffs_read_EBADF
 	test_yaffs_read_EINVAL
 
+	test_yaffs_mkdir
+	test_yaffs_mkdir_EEXISTS
+	test_yaffs_mkdir_ENOTDIR
 
 	test_yaffs_stat
 	test_yaffs_stat_ENOENT
@@ -103,13 +106,10 @@ Tests to add
 	test_yaffs_readlink_ELOOP
 	test_yaffs_readlink_ENAMETOOLONG
 
-	test_yaffs_mkdir
+	
 	test_yaffs_mkdir_EACCES
-	test_yaffs_mkdir_EEXISTS
 	test_yaffs_mkdir_ELOOP
 	test_yaffs_mkdir_ENAMETOOLONG
-	test_yaffs_mkdir_ENOENT
-	test_yaffs_mkdir_ENOTDIR
 	test_yaffs_mkdir_EROFS
 
 	test_yaffs_symlink

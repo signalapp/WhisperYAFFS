@@ -33,6 +33,8 @@ Current BUGS
 		Bug when trying to chmod a file in a non-existing directory. The error 
 		returned is ENOENT, it should be ENOTDIR 
 
+		Bug when trying to mkdir on top of a non-existing directory. The error 
+		returned is ENOENT, it should be ENOTDIR. yaffs_mkdir should never return ENOENT.
 
 
 	Bug with truncating to a very large size. The yaffs_truncate function truncates the file to a massive size without any errors.

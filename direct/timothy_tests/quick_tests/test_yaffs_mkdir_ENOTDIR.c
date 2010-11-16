@@ -11,37 +11,35 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_mkdir_EEXISTS.h"
+#include "test_yaffs_mkdir_ENOTDIR.h"
 
 static int output = -1;
 
-int test_yaffs_mkdir_EEXISTS(void)
+int test_yaffs_mkdir_ENOTDIR(void)
 {
-	output = yaffs_mkdir("/yaffs2/new_directory/",O_CREAT | O_RDWR);
-	if (output <0) {
-		print_message("filed to create the directory the first time\n",2);
-		return -1;
-	}
-	output = yaffs_mkdir("/yaffs2/new_directory/",O_CREAT | O_RDWR);
+	int error_code = 0;
+	
+
+	output = yaffs_mkdir("/non_existing_directory/new_directory/",O_CREAT | O_RDWR);
 	if (output < 0){
 		error_code = yaffs_get_error();
-		if (abs(error_code) == EEXISTS){
+		if (abs(error_code) == ENOTDIR){
 			return 1;
 		} else {
 			print_message("different error than expected\n", 2);
 			return -1;
 		}
 	} else {
-		print_message("lseeked to a negative position (which is a bad thing)\n", 2);
+		print_message("created a new directory on top of an non-existing directory (which is a bad thing)\n", 2);
 		return -1;
 	}
 }
 
 
-int test_yaffs_mkdir_EEXISTS_clean(void)
+int test_yaffs_mkdir_ENOTDIR_clean(void)
 {
 	if (output >= 0){
-		return yaffs_rmdir("/yaffs2/new_directory/");
+		return yaffs_rmdir(DIR_PATH);
 	} else {
 		return 1;	
 	}

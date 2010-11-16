@@ -13,13 +13,13 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __test_yaffs_mkdir_EEXISTS_h__
-#define __test_yaffs_mkdir_EEXISTS_h__
+#ifndef __test_yaffs_mkdir_ENOTDIR_h__
+#define __test_yaffs_mkdir_ENOTDIR_h__
 
 #include "lib.h"
 #include "yaffsfs.h"
 
-int test_yaffs_mkdir_EEXISTS(void);
-int test_yaffs_mkdir_EEXISTS_clean(void);
+int test_yaffs_mkdir_ENOTDIR(void);
+int test_yaffs_mkdir_ENOTDIR_clean(void);
 
 #endif

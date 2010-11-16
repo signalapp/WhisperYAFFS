@@ -11,21 +11,21 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_mkdir.h"
+#include "test_yaffs_symlink.h"
 
-static int output = -1;
+static int output = 0;
 
-int test_yaffs_mkdir(void)
+int test_yaffs_symlink(void)
 {
-	output = yaffs_mkdir("/yaffs2/new_directory/",O_CREAT | O_RDWR);
+	output = yaffs_symlink(FILE_PATH,SYMLINK_PATH);
 	return output;
 }
 
 
-int test_yaffs_mkdir_clean(void)
+int test_yaffs_symlink_clean(void)
 {
 	if (output >= 0){
-		return yaffs_rmdir("/yaffs2/new_directory/");
+		return yaffs_unlink(SYMLINK_PATH);
 	} else {
 		return 1;	/* the file failed to open so there is no need to close it */
 	}

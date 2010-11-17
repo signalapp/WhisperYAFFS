@@ -16,6 +16,8 @@ Tests made
 	test_yaffs_mount_ENAMETOOLONG
 	test_yaffs_mount_EBUSY		//caused by trying to mount a new mount point with a mount point already mounted.
 
+	test_yaffs_mount2
+
 	test_yaffs_access
 	test_yaffs_access_ENIVAL
 	test_yaffs_access_ENOTDIR
@@ -86,6 +88,8 @@ Tests made
 	test_yaffs_unmount_ENAMETOOLONG
 	test_yaffs_umount_EBUSY	//cause by having a file handle open and then trying to unmount yaffs.
 
+	test_yaffs_unmount2
+
 	test_yaffs_write
 	test_yaffs_write_EBADF
 
@@ -124,7 +128,7 @@ Tests to add
 	test_yaffs_symlink_EROFS
 
 	
-	//the yaffs_mknod function does not exist in yaffsfs, so these tests will be ignored.
+	//the yaffs_mknod function does not exist in yaffsfs, so these tests will not be added.
 	test_yaffs_mknod
 	test_yaffs_mknod_EACCES
 	test_yaffs_mknod_EEXIST
@@ -135,13 +139,16 @@ Tests to add
 	test_yaffs_mknod_ENOTDIR
 	test_yaffs_mknod_EROFS
 
-	test_yaffs_mount2
+
 	test_yaffs_mount2_EINVAL
 	test_yaffs_mount2_ENOTDIR
 	test_yaffs_mount2_ENOENT
 	test_yaffs_mount2_ENODEV
 	test_yaffs_mount2_ENAMETOOLONG
 
+
+	test_yaffs_unmount2_with handle open and forced mode on
+	test_yaffs_unmount2_with handle open and forced mode off. should give EBUSY.
 	test_yaffs_unmount2
 	test_yaffs_unmount2_ENOENT
 	test_yaffs_unmount2_ENOTDIR

@@ -111,6 +111,10 @@
 
 #include "test_yaffs_mount2.h"
 
+#include "test_yaffs_unmount2.h"
+
+#include "test_yaffs_sync.h"
+
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
 #include "lib.h"
@@ -217,9 +221,11 @@ test_template test_list[]={
 	{test_yaffs_symlink_EEXIST,test_yaffs_symlink_EEXIST_clean,"test_yaffs_symlink_EEXIST"},
 	{test_yaffs_symlink_ENOENT,test_yaffs_symlink_ENOENT_clean,"test_yaffs_symlink_ENOENT"},
 
-	{test_yaffs_mount2,test_yaffs_mount2_clean,"test_yaffs_mount2"}
+	{test_yaffs_mount2,test_yaffs_mount2_clean,"test_yaffs_mount2"},
 
+	{test_yaffs_unmount2,test_yaffs_unmount2_clean,"test_yaffs_unmount2"},
 
+	{test_yaffs_sync,test_yaffs_sync_clean,"test_yaffs_sync"}
 
 
 

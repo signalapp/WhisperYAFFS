@@ -67,7 +67,9 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_mkdir.o test_yaffs_mkdir_EEXIST.o test_yaffs_mkdir_ENOTDIR.o \
 		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o test_yaffs_fchmod_EINVAL.o \
 		test_yaffs_symlink.o test_yaffs_symlink_ENOTDIR.o test_yaffs_symlink_EEXIST.o test_yaffs_symlink_ENOENT.o \
-		test_yaffs_mount2.o
+		test_yaffs_mount2.o \
+		test_yaffs_unmount2.o \
+		test_yaffs_sync.o
 
 
 		  

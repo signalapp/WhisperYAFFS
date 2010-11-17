@@ -67,6 +67,9 @@ Tests made
 	test_yaffs_symlink_EEXISTS
 	test_yaffs_symlink_ENOENT	//if there is a slash on the end of new path
 
+	test_yaffs_sync
+	test_yaffs_sync_ENOTDIR
+
 	test_yaffs_fstat
 	test_yaffs_fstat_EBADF
 
@@ -161,9 +164,8 @@ Tests to add
 	test_yaffs_remount2_ENODEV
 	test_yaffs_remount2_EINVAL
 
-	test_yaffs_sync
+
 	test_yaffs_sync_ENOENT
-	test_yaffs_sync_ENOTDIR
 
 	test_yaffs_freespace
 	test_yaffs_freespace_ENOENT

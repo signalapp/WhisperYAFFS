@@ -11,17 +11,17 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_sync_ENOTDIR.h"
+#include "test_yaffs_sync_ENOENT.h"
 
 
-int test_yaffs_sync_ENOTDIR(void)
+int test_yaffs_sync_ENOENT(void)
 {
 	int error_code=-1;
-	int output = yaffs_sync("non-existing-dir/foo");
+	int output = yaffs_sync("yaffs2/non-existing-file");
 	
 	if (output<0){
 		error_code=yaffs_get_error();
-		if (abs(error_code)==ENOTDIR){
+		if (abs(error_code)==ENOENT){
 			return 1;
 		} else {
 			print_message("returned error does not match the the expected error\n",2);
@@ -36,7 +36,7 @@ int test_yaffs_sync_ENOTDIR(void)
 }
 
 
-int test_yaffs_sync_ENOTDIR_clean(void)
+int test_yaffs_sync_ENOENT_clean(void)
 {
 	return 1;
 }

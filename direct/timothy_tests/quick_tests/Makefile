@@ -69,7 +69,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_symlink.o test_yaffs_symlink_ENOTDIR.o test_yaffs_symlink_EEXIST.o test_yaffs_symlink_ENOENT.o \
 		test_yaffs_mount2.o \
 		test_yaffs_unmount2.o \
-		test_yaffs_sync.o
+		test_yaffs_sync.o test_yaffs_sync_ENOTDIR.o test_yaffs_sync_ENOENT.o
 
 
 		  

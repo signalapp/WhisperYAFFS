@@ -114,6 +114,9 @@
 #include "test_yaffs_unmount2.h"
 
 #include "test_yaffs_sync.h"
+#include "test_yaffs_sync_ENOTDIR.h"
+#include "test_yaffs_sync_ENOENT.h"
+
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -225,7 +228,9 @@ test_template test_list[]={
 
 	{test_yaffs_unmount2,test_yaffs_unmount2_clean,"test_yaffs_unmount2"},
 
-	{test_yaffs_sync,test_yaffs_sync_clean,"test_yaffs_sync"}
+	{test_yaffs_sync,test_yaffs_sync_clean,"test_yaffs_sync"},
+	{test_yaffs_sync_ENOTDIR,test_yaffs_sync_ENOTDIR_clean,"test_yaffs_sync_ENOTDIR"},
+	{test_yaffs_sync_ENOENT,test_yaffs_sync_ENOENT_clean,"test_yaffs_sync_ENOENT"}
 
 
 

@@ -19,7 +19,8 @@ static char *file_name = NULL;
 int test_yaffs_read_EINVAL(void)
 {
 	int error_code = 0;
-	handle=test_yaffs_open();
+	handle=yaffs_open(FILE_PATH,O_CREAT | O_RDWR, FILE_MODE);
+	printf("newly opend handle = %d handle\n",handle);
 	char text[2000000]="\0";
 	int output=0;	
 	
@@ -59,10 +60,33 @@ int test_yaffs_read_EINVAL_clean(void)
 {
 	int output=0;
 	if (handle>=0){
-		output=test_yaffs_read_EINVAL_init_clean();
+		if(file_name){
+			free(file_name);
+			file_name = NULL;
+		}
+
+		
+		output= yaffs_truncate(FILE_PATH,FILE_SIZE );	
+		if (output>=0){
+			output=test_yaffs_write();
+			if (output<0){
+				print_message("failed to write to file\n",2);
+				return -1;
+			} else {
+				output=test_yaffs_write_clean();
+				if (output<0){
+					print_message("failed to clean the write_to_file function\n",2);
+				}
+			}
+		} else {
+			print_message("failed to truncate file\n",2);
+			return -1;
+		}
+
 		if(output>=0){
 			output=yaffs_close(handle);
 			if (output>=0){
+				printf("closed the file, handle %d\n",handle);
 				return 1;
 			} else {
 				print_message("could not close the handle\n",2);
@@ -74,6 +98,7 @@ int test_yaffs_read_EINVAL_clean(void)
 		}
 	} else {
 		print_message("no open handle\n",2);
+		return -1;	
 	}
 }
 
@@ -115,28 +140,4 @@ int test_yaffs_read_EINVAL_init(void)
 	
 }
 
-int test_yaffs_read_EINVAL_init_clean(void)
-{
-	int output=1;
-	if(file_name){
-		free(file_name);
-		file_name = NULL;
-	}
-
-	
-	output= yaffs_truncate(FILE_PATH,FILE_SIZE );	
-	if (output>=0){
-		output=test_yaffs_write();
-		if (output>=0){
-			return 1;
-		} else {
-			print_message("failed to write to file\n",2);
-			return -1;
-		}
-	} else {
-		print_message("failed to truncate file\n",2);
-		return -1;
-	}
-
-}
 

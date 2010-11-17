@@ -211,8 +211,10 @@ static void yaffsfs_PutInode(int inodeId)
 	if(inodeId >= 0 && inodeId < YAFFSFS_N_HANDLES){
 		yaffsfs_Inode *in = & yaffsfs_inode[inodeId];
 		in->count--;
-		if(in->count <= 0)
+		if(in->count <= 0){
 			yaffsfs_ReleaseInode(in);
+			in->count = 0;
+		}
 	}	
 }
 
@@ -277,15 +279,19 @@ static int yaffsfs_PutHandle(int handle)
 	return 0;
 }
 
-static void yaffsfs_PutDeviceHandles(struct yaffs_dev *dev)
+static void yaffsfs_BreakDeviceHandles(struct yaffs_dev *dev)
 {
-	yaffsfs_Handle *yh;
+	yaffsfs_Handle *h;
+	struct yaffs_obj *obj;
 	int i;
 	for(i = 0; i < YAFFSFS_N_HANDLES; i++){
-		yh = & yaffsfs_handle[i];
-		if(yh->useCount>0 && 
-			yaffsfs_inode[yh->inodeId].iObj->my_dev == dev)
-			yaffsfs_PutHandle(i);
+		h = yaffsfs_GetHandlePointer(i);
+		obj = yaffsfs_GetHandleObject(i);
+		if(h && h->useCount>0 && obj && obj->my_dev == dev){
+			h->useCount = 0;
+			yaffsfs_PutInode(h->inodeId);
+			h->inodeId = -1;
+		}
 	}
 }
 
@@ -2172,7 +2178,7 @@ int yaffs_unmount2(const YCHAR *path, int force)
 
 			if(!inUse || force){
 				if(inUse)
-					yaffsfs_PutDeviceHandles(dev);
+					yaffsfs_BreakDeviceHandles(dev);
 				yaffs_deinitialise(dev);
 
 				retVal = 0;

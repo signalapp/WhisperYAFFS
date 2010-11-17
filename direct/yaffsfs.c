@@ -1192,10 +1192,12 @@ off_t yaffs_lseek(int fd, off_t offset, int whence)
 				pos = fSize + offset;
 		} 
 
-		if(pos >= 0)
+		if(pos >= 0 && pos <= YAFFS_MAX_FILE_SIZE)
 			h->position = pos;
-		else
+		else{
 			yaffsfs_SetError(-EINVAL);
+			pos = -1;
+		}
 	}
 
 	yaffsfs_Unlock();

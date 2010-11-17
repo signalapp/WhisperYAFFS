@@ -107,7 +107,9 @@
 #include "test_yaffs_symlink.h"
 #include "test_yaffs_symlink_ENOTDIR.h"
 #include "test_yaffs_symlink_EEXIST.h"
+#include "test_yaffs_symlink_ENOENT.h"
 
+#include "test_yaffs_mount2.h"
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -166,7 +168,7 @@ test_template test_list[]={
 
 	{test_yaffs_write,test_yaffs_write_clean,"test_yaffs_write"},
 	{test_yaffs_write_EBADF,test_yaffs_write_EBADF_clean,"test_yaffs_write_EBADF"},
-	{test_yaffs_write_big_file,test_yaffs_write_big_file_clean,"test_yaffs_write_big_file"},
+//	{test_yaffs_write_big_file,test_yaffs_write_big_file_clean,"test_yaffs_write_big_file"},
 
 	{test_yaffs_read,test_yaffs_read_clean,"test_yaffs_read"},
 	{test_yaffs_read_EBADF,test_yaffs_read_EBADF_clean,"test_yaffs_read_EBADF"},
@@ -212,7 +214,12 @@ test_template test_list[]={
 
 	{test_yaffs_symlink,test_yaffs_symlink_clean,"test_yaffs_symlink"},
 	{test_yaffs_symlink_ENOTDIR,test_yaffs_symlink_ENOTDIR_clean,"test_yaffs_symlink_ENOTDIR"},
-	{test_yaffs_symlink_EEXIST,test_yaffs_symlink_EEXIST_clean,"test_yaffs_symlink_EEXIST"}
+	{test_yaffs_symlink_EEXIST,test_yaffs_symlink_EEXIST_clean,"test_yaffs_symlink_EEXIST"},
+	{test_yaffs_symlink_ENOENT,test_yaffs_symlink_ENOENT_clean,"test_yaffs_symlink_ENOENT"},
+
+	{test_yaffs_mount2,test_yaffs_mount2_clean,"test_yaffs_mount2"}
+
+
 
 
 

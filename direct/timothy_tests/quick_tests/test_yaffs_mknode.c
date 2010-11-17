@@ -11,20 +11,23 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_unlink.h"
+#include "test_yaffs_mknode.h"
 
-int test_yaffs_unlink(void)
+static int output = 0;
+
+int test_yaffs_mknode(void)
 {
-	int output=yaffs_unlink(FILE_PATH);
-	if (output>=0){
-		return (-test_yaffs_access());	/*return negative access. we do not want the file to be there*/
+	output = yaffs_mknod(NODE_PATH,S_IREAD | S_IWRITE);
+	return output;
+}
+
+
+int test_yaffs_mknode_clean(void)
+{
+	if (output >= 0){
+		return yaffs_unlink(NODE_PATH);
 	} else {
-		print_message("failed to unlink file\n",2) ;
-		return -1;
+		return 1;	/* the file failed to open so there is no need to close it */
 	}
 }
 
-int test_yaffs_unlink_clean(void)
-{
-	return test_yaffs_open()||test_yaffs_open_clean();
-}

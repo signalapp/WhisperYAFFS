@@ -12,32 +12,28 @@
  */
 
 #include "test_yaffs_truncate_EINVAL.h"
-static int handle=-1;
+
 
 int test_yaffs_truncate_EINVAL(void)
 {
 	int error=0;
 	int output=0;
-	handle=test_yaffs_open();
-	if (handle>=0){
-		output= yaffs_truncate("/yaffs2/foo",-1 );
-		if (output<0){
-			error=yaffs_get_error();
-			if (abs(error)==EINVAL){
-				return 1;
-			} else {
-				print_message("received a different error than expected\n",2);
-				return -1;
-			}
-		} else{
-			print_message("truncated a file with a bad mode set.\n",2);
+
+	output= yaffs_truncate("/yaffs2/foo",-1 );
+	if (output<0){
+		error=yaffs_get_error();
+		if (abs(error)==EINVAL){
+			return 1;
+		} else {
+			print_message("received a different error than expected\n",2);
 			return -1;
 		}
-			
-	} else {
-		print_message("error opening file",2);
+	} else{
+		print_message("truncated a file with a bad mode set.\n",2);
 		return -1;
 	}
+			
+
 }
 
 int test_yaffs_truncate_EINVAL_clean(void)

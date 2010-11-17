@@ -11,20 +11,23 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_unlink.h"
+#include "test_yaffs_mount2.h"
 
-int test_yaffs_unlink(void)
+int test_yaffs_mount2(void)
 {
-	int output=yaffs_unlink(FILE_PATH);
-	if (output>=0){
-		return (-test_yaffs_access());	/*return negative access. we do not want the file to be there*/
-	} else {
-		print_message("failed to unlink file\n",2) ;
+	int output = -1;
+	printf("closing handle again %d\n",yaffs_close(0));
+	output= yaffs_unmount(YAFFS_MOUNT_POINT);
+	if (output < 0) {
+		print_message("failed to unmount current_mountpoint\n",2);
 		return -1;
 	}
+
+	output = yaffs_mount2(YAFFS_MOUNT_POINT,255);
+	return output;
 }
 
-int test_yaffs_unlink_clean(void)
+int test_yaffs_mount2_clean(void)
 {
-	return test_yaffs_open()||test_yaffs_open_clean();
+	return 1;	
 }

@@ -35,7 +35,9 @@ int main(int argc, char *argv[]){
 	print_message("\n\nrunning quick tests for yaffs\n\n", 0);
 
 	for (x=0;x<total_number_of_tests;x++){
-		//printf("x %d\n",x);
+		output=test_yaffs_open();
+		printf("yaffs_open = %d\n",output);
+		printf("yaffs_open_clean = %d\n",yaffs_close(output));
 		yaffs_set_error(0);	/*reset the last error to 0 */
 		sprintf(message,"\nrunning test: %s \n",test_list[x].name_of_test);
 		print_message(message,3);

@@ -34,6 +34,8 @@
 
 #define SYMLINK_PATH "/yaffs2/sym_foo"
 
+#define NODE_PATH "/yaffs2/node"
+
 /* warning do not define anything as FILE because there seems to be a conflict with stdio.h */ 
 #define FILE_PATH "/yaffs2/foo"
 

@@ -62,6 +62,8 @@ Tests made
 
 	test_yaffs_symlink
 	test_yaffs_symlink_ENOTDIR
+	test_yaffs_symlink_EEXISTS
+	test_yaffs_symlink_ENOENT	//if there is a slash on the end of new path
 
 	test_yaffs_fstat
 	test_yaffs_fstat_EBADF
@@ -117,12 +119,12 @@ Tests to add
 
 
 	test_yaffs_symlink_EACCES
-	test_yaffs_symlink_EEXISTS
 	test_yaffs_symlink_ELOOP
 	test_yaffs_symlink_ENAMETOOLONG
-	test_yaffs_symlink_ENOENT	//if there is a slash on the end
 	test_yaffs_symlink_EROFS
 
+	
+	//the yaffs_mknod function does not exist in yaffsfs, so these tests will be ignored.
 	test_yaffs_mknod
 	test_yaffs_mknod_EACCES
 	test_yaffs_mknod_EEXIST

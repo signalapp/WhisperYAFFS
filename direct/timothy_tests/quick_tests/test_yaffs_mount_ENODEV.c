@@ -13,15 +13,15 @@
 
 #include "test_yaffs_mount_ENODEV.h"
 
-static int handle = 0;
+
 
 int test_yaffs_mount_ENODEV(void)
 {
 	int output=0;
 	int error_code=0;
 
-	handle = yaffs_mount("/nonexisting_mount_point/");
-	if (handle==-1){
+	output = yaffs_mount("/nonexisting_mount_point/");
+	if (output<0){
 		error_code = yaffs_get_error();
 		if (abs(error_code) == ENODEV){
 			return 1;
@@ -29,7 +29,7 @@ int test_yaffs_mount_ENODEV(void)
 			print_message("different error than expected\n",2);
 			return -1;
 		}
-	} else if (output >=0){
+	} else {
 		print_message("non existant directory opened.(which is a bad thing)\n",2);
 		return -1;
 	}

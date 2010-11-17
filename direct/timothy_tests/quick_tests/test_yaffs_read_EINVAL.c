@@ -20,7 +20,6 @@ int test_yaffs_read_EINVAL(void)
 {
 	int error_code = 0;
 	handle=yaffs_open(FILE_PATH,O_CREAT | O_RDWR, FILE_MODE);
-	printf("newly opend handle = %d handle\n",handle);
 	char text[2000000]="\0";
 	int output=0;	
 	
@@ -86,7 +85,6 @@ int test_yaffs_read_EINVAL_clean(void)
 		if(output>=0){
 			output=yaffs_close(handle);
 			if (output>=0){
-				printf("closed the file, handle %d\n",handle);
 				return 1;
 			} else {
 				print_message("could not close the handle\n",2);

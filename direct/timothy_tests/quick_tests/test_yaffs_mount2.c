@@ -16,7 +16,6 @@
 int test_yaffs_mount2(void)
 {
 	int output = -1;
-	printf("closing handle again %d\n",yaffs_close(0));
 	output= yaffs_unmount(YAFFS_MOUNT_POINT);
 	if (output < 0) {
 		print_message("failed to unmount current_mountpoint\n",2);

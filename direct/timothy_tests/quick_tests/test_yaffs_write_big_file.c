@@ -13,7 +13,7 @@
 
 #include "test_yaffs_write_big_file.h"
 
-static int handle=0;
+static int handle=-1;
 static char *file_name = NULL;
 int test_yaffs_write_big_file(void)
 {
@@ -82,11 +82,11 @@ int test_yaffs_write_big_file_clean(void)
 	}
 
 	
-	output= test_yaffs_truncate_clean();	
+	output= yaffs_truncate(FILE_PATH,FILE_SIZE );	
 	if (output>=0){
 		output=test_yaffs_write();
 		if (output>=0){
-			return 1;
+			return test_yaffs_write_clean();
 		} else {
 			printf("failed to write to file\n");
 			return -1;

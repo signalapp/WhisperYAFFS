@@ -35,7 +35,10 @@ int main(int argc, char *argv[]){
 	print_message("\n\nrunning quick tests for yaffs\n\n", 0);
 
 	for (x=0;x<total_number_of_tests;x++){
-		yaffs_set_error(0);	/*reset the last error to 0 */
+	/*	output=yaffs_open(FILE_PATH,O_CREAT | O_RDWR, FILE_MODE);
+		printf("yaffs_open %d \n",output);
+		printf("yaffs_close %d \n",yaffs_close(output));
+	*/	yaffs_set_error(0);	/*reset the last error to 0 */
 		sprintf(message,"\nrunning test: %s \n",test_list[x].name_of_test);
 		print_message(message,3);
 		output=test_list[x].p_function();	/*run test*/
@@ -88,7 +91,7 @@ void quit_quick_tests(int exit_code)
 	if (num_of_tests_pass==total_number_of_tests &&  num_of_tests_failed==0){
 		printf("\t OK \n");
 	}
-	printf("out of %d tests: %d passed %d failed\n\n\n",total_number_of_tests,num_of_tests_pass,num_of_tests_failed);
+	printf("out of %d tests, %d ran: %d passed and %d failed\n\n\n", total_number_of_tests,(num_of_tests_pass+num_of_tests_failed) ,num_of_tests_pass,num_of_tests_failed);
 	yaffs_unmount(YAFFS_MOUNT_POINT);
 	exit(exit_code);
 }

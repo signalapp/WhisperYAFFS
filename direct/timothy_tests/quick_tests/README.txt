@@ -29,6 +29,9 @@ Tests made
 	test_yaffs_fdatasync
 	test_yaffs_fdatasync_EBADF
 
+	test_yaffs_freespace
+	test_yaffs_freespace_EINVAL
+
 	test_yaffs_fsync
 	test_yaffs_fsync_EBADF	
 
@@ -36,6 +39,14 @@ Tests made
 	test_yaffs_ftruncate_EBADF
 	test_yaffs_ftruncate_ENIVAL
 	test_yaffs_ftruncate_big_file
+
+	test_yaffs_inodecount
+	test_yaffs_inodecount_ENOTDIR
+
+	test_yaffs_link
+	test_yaffs_link_EEXIST
+	test_yaffs_link_ENOENT
+	test_yaffs_link_ENOTDIR
 
 	test_yaffs_lseek
 	test_yaffs_lseek_EBADF
@@ -79,6 +90,9 @@ Tests made
 	test_yaffs_remount_force_on_read_only_off
 	test_yaffs_remount_ENODEV
 	test_yaffs_remount_EINVAL
+
+	test_yaffs_totalspace
+	test_yaffs_totalspace_EINVAL
 
 	test_yaffs_truncate
 	test_yaffs_truncate_ENOTDIR
@@ -173,19 +187,9 @@ Tests to add
 	test_yaffs_remount_ENOTDIR	//cannot be generated in yaffs
 
 
-	test_yaffs_sync_ENOENT
-
-	test_yaffs_freespace
-	test_yaffs_freespace_EINVAL
 	test_yaffs_freespace_ENAMETOOLONG
-
-	test_yaffs_totalspace
-	test_yaffs_totalspace_ENOTDIR
-	test_yaffs_totalspace_ENOENT
-
-	test_yaffs_inodecount
-	test_yaffs_inodecount_ENOTDIR
-	test_yaffs_inodecount_ENOENT
+	test_yaffs_totalspace_ENAMETOOLONG
+	test_yaffs_inodecount_ENAMETOOLONG
 
 	test_yaffs_opendir
 
@@ -195,14 +199,12 @@ Tests to add
 
 	test_yaffs_closedir
 
-	test_yaffs_link
+
 	test_yaffs_link_EACCES
-	test_yaffs_link_EEXISTS
+
 	test_yaffs_link_ELOOP
 	test_yaffs_link_EMLINK		//should not happen on yaffs
 	test_yaffs_link_ENAMETOOLONG
-	test_yaffs_link_ENOENT
-	test_yaffs_link_ENOTDIR
 	test_yaffs_link_EPERM
 	test_yaffs_link_EROFS
 

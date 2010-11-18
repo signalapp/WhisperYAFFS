@@ -127,6 +127,19 @@
 #include "test_yaffs_remount_EINVAL.h"
 
 #include "test_yaffs_freespace.h"
+#include "test_yaffs_freespace_EINVAL.h"
+
+#include "test_yaffs_totalspace.h"
+#include "test_yaffs_totalspace_EINVAL.h"
+
+#include "test_yaffs_inodecount.h"
+#include "test_yaffs_inodecount_EINVAL.h"
+
+#include "test_yaffs_link.h"
+#include "test_yaffs_link_ENOENT.h"
+#include "test_yaffs_link_EEXIST.h"
+#include "test_yaffs_link_ENOTDIR.h"
+#include "test_yaffs_link_ENOTDIR2.h"
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -253,7 +266,21 @@ test_template test_list[]={
 	{test_yaffs_remount_ENODEV,test_yaffs_remount_ENODEV_clean,"test_yaffs_remount_ENODEV"},
 	{test_yaffs_remount_EINVAL,test_yaffs_remount_EINVAL_clean,"test_yaffs_remount_EINVAL"},
 
-	{test_yaffs_freespace,test_yaffs_freespace_clean,"test_yaffs_freespace"}
+	{test_yaffs_freespace,test_yaffs_freespace_clean,"test_yaffs_freespace"},
+	{test_yaffs_freespace_EINVAL,test_yaffs_freespace_EINVAL_clean,"test_yaffs_freespace_EINVAL"},
+
+	{test_yaffs_totalspace,test_yaffs_totalspace_clean,"test_yaffs_totalspace"},
+	{test_yaffs_totalspace_EINVAL,test_yaffs_totalspace_EINVAL_clean,"test_yaffs_totalspace_EINVAL"},
+
+	{test_yaffs_inodecount,test_yaffs_inodecount_clean,"test_yaffs_inodecount"},
+	{test_yaffs_inodecount_EINVAL,test_yaffs_inodecount_EINVAL_clean,"test_yaffs_inodecount_EINVAL"},
+
+	{test_yaffs_link,test_yaffs_link_clean,"test_yaffs_link"},
+	{test_yaffs_link_ENOENT,test_yaffs_link_ENOENT_clean,"test_yaffs_link_ENOENT"},
+	{test_yaffs_link_EEXIST,test_yaffs_link_EEXIST_clean,"test_yaffs_link_EEXIST"},
+	{test_yaffs_link_ENOTDIR,test_yaffs_link_ENOTDIR_clean,"test_yaffs_link_ENOTDIR"},
+	{test_yaffs_link_ENOTDIR2,test_yaffs_link_ENOTDIR2_clean,"test_yaffs_link_ENOTDIR2"}
+
 	};
 
 void init_quick_tests(int argc, char *argv[]);

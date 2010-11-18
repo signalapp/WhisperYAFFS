@@ -73,7 +73,10 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_sync.o test_yaffs_sync_ENODEV.o  \
 		test_yaffs_remount_force_off_read_only_off.o test_yaffs_remount_force_on_read_only_off.o test_yaffs_remount_ENODEV.o \
 		test_yaffs_remount_EINVAL.o \
-		test_yaffs_freespace.o
+		test_yaffs_freespace.o test_yaffs_freespace_EINVAL.o \
+		test_yaffs_totalspace.o test_yaffs_totalspace_EINVAL.o \
+		test_yaffs_inodecount.o test_yaffs_inodecount_EINVAL.o \
+		test_yaffs_link.o test_yaffs_link_ENOENT.o test_yaffs_link_EEXIST.o test_yaffs_link_ENOTDIR.o test_yaffs_link_ENOTDIR2.o
 
 
 		  

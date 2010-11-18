@@ -13,13 +13,14 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __test_yaffs_sync_ENOENT_h__
-#define __test_yaffs_sync_ENOENT_h__
+#ifndef __test_yaffs_remount_force_off_read_only_off__
+#define __test_yaffs_remount_force_off_read_only_off__
 
-#include "lib.h"
 #include "yaffsfs.h"
+#include "lib.h"
+#include "test_yaffs_unmount.h"
 
-int test_yaffs_sync_ENOENT(void);
-int test_yaffs_sync_ENOENT_clean(void);
+int test_yaffs_remount_force_off_read_only_off(void);
+int test_yaffs_remount_force_off_read_only_off_clean(void);
 
 #endif

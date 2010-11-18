@@ -89,7 +89,7 @@ void quit_quick_tests(int exit_code)
 	char message[30];
 	message[0]='\0';	
 	if (num_of_tests_pass==total_number_of_tests &&  num_of_tests_failed==0){
-		printf("\t OK \n");
+		printf("\t OK --all tests passed\n");
 	}
 	printf("out of %d tests, %d ran: %d passed and %d failed\n\n\n", total_number_of_tests,(num_of_tests_pass+num_of_tests_failed) ,num_of_tests_pass,num_of_tests_failed);
 	yaffs_unmount(YAFFS_MOUNT_POINT);

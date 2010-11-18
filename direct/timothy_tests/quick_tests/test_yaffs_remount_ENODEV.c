@@ -11,33 +11,41 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_sync_ENOTDIR.h"
+#include "test_yaffs_remount_ENODEV.h"
 
-
-int test_yaffs_sync_ENOTDIR(void)
+int test_yaffs_remount_ENODEV(void)
 {
-	int error_code=-1;
-	int output = yaffs_sync("non-existing-dir/foo");
-	
+	int output = -1;
+	int error_code =0;
+
+
+	output = yaffs_remount("non-existing-mount-point",0,0);
 	if (output<0){
-		error_code=yaffs_get_error();
-		if (abs(error_code)==ENOTDIR){
+		error_code = yaffs_get_error();
+		if (abs(error_code) == ENODEV){
 			return 1;
 		} else {
 			print_message("returned error does not match the the expected error\n",2);
 			return -1;
 		}
 	} else {
-		print_message("synced a file in a non-existing directory (which is a bad thing)\n",2);
+		print_message("remounted a non-existing-dir\n",2);
 		return -1;
-	}	
-
-
+	}
 }
 
-
-int test_yaffs_sync_ENOTDIR_clean(void)
+int test_yaffs_remount_ENODEV_clean(void)
 {
+	int output=0;
+	int error_code =0;
+	output= yaffs_mount(YAFFS_MOUNT_POINT);
+	if (output<0){
+		error_code=yaffs_get_error();
+		if (abs(error_code) == EBUSY){
+			return 1;
+		} else {
+			return -1;
+		}
+	}
 	return 1;
 }
-

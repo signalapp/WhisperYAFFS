@@ -13,12 +13,12 @@
 
 #include "yaffs_error_converter.h"
 
-typedef struct error_codes_template {
+struct error_entry {
   int code;
   char * text;  
-}error_entry;
+};
 
-const error_entry error_list[] = {
+static const struct error_entry error_list[] = {
 	{ ENOMEM , "ENOMEM" },
 	{ EBUSY , "EBUSY"},
 	{ ENODEV , "ENODEV"},
@@ -43,9 +43,11 @@ const error_entry error_list[] = {
 
 const char * yaffs_error_to_str(int err)
 {
-	error_entry *e = error_list;
+	const struct error_entry *e = error_list;
+
 	if (err < 0) 
 		err = -err;
+
 	while(e->code && e->text){
 		if(err == e->code)
 			return e->text;
@@ -53,4 +55,3 @@ const char * yaffs_error_to_str(int err)
 	}
 	return "Unknown error code";
 }
-

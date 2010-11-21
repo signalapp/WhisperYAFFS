@@ -17,6 +17,7 @@ Tests made
 	test_yaffs_mount_EBUSY		//caused by trying to mount a new mount point with a mount point already mounted.
 
 	test_yaffs_mount2
+	test_yaffs_mount2_ENODEV	//when a bad mount point is used.
 
 	test_yaffs_access
 	test_yaffs_access_ENIVAL
@@ -28,6 +29,9 @@ Tests made
 	test_yaffs_fdatasync
 	test_yaffs_fdatasync_EBADF
 
+	test_yaffs_freespace
+	test_yaffs_freespace_EINVAL
+
 	test_yaffs_fsync
 	test_yaffs_fsync_EBADF	
 
@@ -35,6 +39,14 @@ Tests made
 	test_yaffs_ftruncate_EBADF
 	test_yaffs_ftruncate_ENIVAL
 	test_yaffs_ftruncate_big_file
+
+	test_yaffs_inodecount
+	test_yaffs_inodecount_ENOTDIR
+
+	test_yaffs_link
+	test_yaffs_link_EEXIST
+	test_yaffs_link_ENOENT
+	test_yaffs_link_ENOTDIR
 
 	test_yaffs_lseek
 	test_yaffs_lseek_EBADF
@@ -58,6 +70,7 @@ Tests made
 	test_yaffs_mkdir_EEXISTS
 	test_yaffs_mkdir_ENOTDIR
 
+
 	test_yaffs_stat
 	test_yaffs_stat_ENOENT
 	test_yaffs_stat_ENOTDIR
@@ -72,6 +85,14 @@ Tests made
 
 	test_yaffs_fstat
 	test_yaffs_fstat_EBADF
+
+	test_yaffs_remount_force_off_read_only_off
+	test_yaffs_remount_force_on_read_only_off
+	test_yaffs_remount_ENODEV
+	test_yaffs_remount_EINVAL
+
+	test_yaffs_totalspace
+	test_yaffs_totalspace_EINVAL
 
 	test_yaffs_truncate
 	test_yaffs_truncate_ENOTDIR
@@ -89,9 +110,13 @@ Tests made
 	test_yaffs_unmount
 	test_yaffs_unmount_ENODEV
 	test_yaffs_unmount_ENAMETOOLONG
-	test_yaffs_umount_EBUSY	//cause by having a file handle open and then trying to unmount yaffs.
+	test_yaffs_umount_EBUSY	//caused by having a file handle open and then trying to unmount yaffs.
 
 	test_yaffs_unmount2
+	test_yaffs_unmount2_ENODEV
+	test_yaffs_unmount2_with handle open and forced mode on
+	test_yaffs_unmount2_with handle open and forced mode off. should give EBUSY.
+	test_yaffs_unmount2_EINVAL	//should be caused when the file system is alredy unmounted.
 
 	test_yaffs_write
 	test_yaffs_write_EBADF
@@ -143,41 +168,28 @@ Tests to add
 	test_yaffs_mknod_EROFS
 
 
-	test_yaffs_mount2_EINVAL
-	test_yaffs_mount2_ENOTDIR
-	test_yaffs_mount2_ENOENT
-	test_yaffs_mount2_ENODEV
+	test_yaffs_mount2_EINVAL	//cannot happen in yaffs since the mode is not checked.
+	test_yaffs_mount2_ENOTDIR	//cannot be generated in yaffs.
+	test_yaffs_mount2_ENOENT	//cannot be generated in yaffs.
 	test_yaffs_mount2_ENAMETOOLONG
+	test_yaffs_mount2_with read only set
 
 
-	test_yaffs_unmount2_with handle open and forced mode on
-	test_yaffs_unmount2_with handle open and forced mode off. should give EBUSY.
-	test_yaffs_unmount2
-	test_yaffs_unmount2_ENOENT
-	test_yaffs_unmount2_ENOTDIR
-	test_yaffs_unmount2_ENODEV
-	test_yaffs_unmount2_EINVAL
 
-	test_yaffs_remount2
-	test_yaffs_remount2_ENOENT
-	test_yaffs_remount2_ENOTDIR
-	test_yaffs_remount2_ENODEV
-	test_yaffs_remount2_EINVAL
+	test_yaffs_unmount2_ENOENT	//cannot be generated in yaffs.
+	test_yaffs_unmount2_ENOTDIR	//cannot be generated in yaffs.
+	test_yaffs_unmount2_ENAMETOOLONG
+	
+
+	test_yaffs_remount_force_off_read_only_on
+	test_yaffs_remount_force_on_read_only_on
+	test_yaffs_remount_ENOENT	//cannot be generated in yaffs
+	test_yaffs_remount_ENOTDIR	//cannot be generated in yaffs
 
 
-	test_yaffs_sync_ENOENT
-
-	test_yaffs_freespace
-	test_yaffs_freespace_ENOENT
-	test_yaffs_freespace_ENOTDIR
-
-	test_yaffs_totalspace
-	test_yaffs_totalspace_ENOTDIR
-	test_yaffs_totalspace_ENOENT
-
-	test_yaffs_inodecount
-	test_yaffs_inodecount_ENOTDIR
-	test_yaffs_inodecount_ENOENT
+	test_yaffs_freespace_ENAMETOOLONG
+	test_yaffs_totalspace_ENAMETOOLONG
+	test_yaffs_inodecount_ENAMETOOLONG
 
 	test_yaffs_opendir
 
@@ -187,14 +199,12 @@ Tests to add
 
 	test_yaffs_closedir
 
-	test_yaffs_link
+
 	test_yaffs_link_EACCES
-	test_yaffs_link_EEXISTS
+
 	test_yaffs_link_ELOOP
 	test_yaffs_link_EMLINK		//should not happen on yaffs
 	test_yaffs_link_ENAMETOOLONG
-	test_yaffs_link_ENOENT
-	test_yaffs_link_ENOTDIR
 	test_yaffs_link_EPERM
 	test_yaffs_link_EROFS
 

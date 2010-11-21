@@ -11,32 +11,31 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_sync_ENOENT.h"
+#include "test_yaffs_inodecount_EINVAL.h"
 
 
-int test_yaffs_sync_ENOENT(void)
+
+int test_yaffs_inodecount_EINVAL(void)
 {
-	int error_code=-1;
-	int output = yaffs_sync("yaffs2/non-existing-file");
-	
+	int output=0;
+	int error=0;
+	output = yaffs_inodecount("non-existing-mount-point");
 	if (output<0){
-		error_code=yaffs_get_error();
-		if (abs(error_code)==ENOENT){
+		error=yaffs_get_error();
+		if (abs(error)==EINVAL){
 			return 1;
 		} else {
-			print_message("returned error does not match the the expected error\n",2);
+			print_message("different error than expected\n",2);
 			return -1;
 		}
 	} else {
-		print_message("synced a file in a non-existing directory (which is a bad thing)\n",2);
+		print_message("got the inodecount of a non existing mountpoint (which is a bad thing)\n",2);
 		return -1;
-	}	
-
-
+	}
 }
 
 
-int test_yaffs_sync_ENOENT_clean(void)
+int test_yaffs_inodecount_EINVAL_clean(void)
 {
 	return 1;
 }

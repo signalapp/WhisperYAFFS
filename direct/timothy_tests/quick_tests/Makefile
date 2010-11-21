@@ -67,9 +67,16 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_mkdir.o test_yaffs_mkdir_EEXIST.o test_yaffs_mkdir_ENOTDIR.o \
 		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o test_yaffs_fchmod_EINVAL.o \
 		test_yaffs_symlink.o test_yaffs_symlink_ENOTDIR.o test_yaffs_symlink_EEXIST.o test_yaffs_symlink_ENOENT.o \
-		test_yaffs_mount2.o \
-		test_yaffs_unmount2.o \
-		test_yaffs_sync.o test_yaffs_sync_ENOTDIR.o test_yaffs_sync_ENOENT.o
+		test_yaffs_mount2.o test_yaffs_mount2_ENODEV.o \
+		test_yaffs_unmount2.o test_yaffs_unmount2_ENODEV.o test_yaffs_unmount2_EINVAL.o \
+		test_yaffs_unmount2_with_handle_open_and_forced_mode_on.o test_yaffs_unmount2_with_handle_open_and_forced_mode_off.o\
+		test_yaffs_sync.o test_yaffs_sync_ENODEV.o  \
+		test_yaffs_remount_force_off_read_only_off.o test_yaffs_remount_force_on_read_only_off.o test_yaffs_remount_ENODEV.o \
+		test_yaffs_remount_EINVAL.o \
+		test_yaffs_freespace.o test_yaffs_freespace_EINVAL.o \
+		test_yaffs_totalspace.o test_yaffs_totalspace_EINVAL.o \
+		test_yaffs_inodecount.o test_yaffs_inodecount_EINVAL.o \
+		test_yaffs_link.o test_yaffs_link_ENOENT.o test_yaffs_link_EEXIST.o test_yaffs_link_ENOTDIR.o test_yaffs_link_ENOTDIR2.o
 
 
 		  

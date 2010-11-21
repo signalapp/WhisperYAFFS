@@ -34,6 +34,8 @@
 
 #define SYMLINK_PATH "/yaffs2/sym_foo"
 
+#define HARD_LINK_PATH "/yaffs2/hard_link"
+
 #define NODE_PATH "/yaffs2/node"
 
 

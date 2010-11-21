@@ -11,32 +11,31 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_sync_ENOTDIR.h"
+#include "test_yaffs_freespace_EINVAL.h"
 
 
-int test_yaffs_sync_ENOTDIR(void)
+
+int test_yaffs_freespace_EINVAL(void)
 {
-	int error_code=-1;
-	int output = yaffs_sync("non-existing-dir/foo");
-	
+	int output=0;
+	int error=0;
+	output = yaffs_freespace("non-existing-mount-point");
 	if (output<0){
-		error_code=yaffs_get_error();
-		if (abs(error_code)==ENOTDIR){
+		error=yaffs_get_error();
+		if (abs(error)==EINVAL){
 			return 1;
 		} else {
-			print_message("returned error does not match the the expected error\n",2);
+			print_message("different error than expected\n",2);
 			return -1;
 		}
 	} else {
-		print_message("synced a file in a non-existing directory (which is a bad thing)\n",2);
+		print_message("got the free space of a non existing mountpoint (which is a bad thing)\n",2);
 		return -1;
-	}	
-
-
+	}
 }
 
 
-int test_yaffs_sync_ENOTDIR_clean(void)
+int test_yaffs_freespace_EINVAL_clean(void)
 {
 	return 1;
 }

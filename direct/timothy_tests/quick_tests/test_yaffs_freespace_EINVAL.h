@@ -13,13 +13,13 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __test_yaffs_sync_ENOENT_h__
-#define __test_yaffs_sync_ENOENT_h__
+#ifndef __test_yaffs_freespace_EINVAL_h__
+#define __test_yaffs_freespace_EINVAL_h__
 
 #include "lib.h"
 #include "yaffsfs.h"
 
-int test_yaffs_sync_ENOENT(void);
-int test_yaffs_sync_ENOENT_clean(void);
+int test_yaffs_freespace_EINVAL(void);
+int test_yaffs_freespace_EINVAL_clean(void);
 
 #endif

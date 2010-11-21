@@ -1242,8 +1242,6 @@ int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 
 	yaffsfs_Unlock();
 
-	/* todo error */
-
 	return (result == YAFFS_FAIL) ? -1 : 0;
 }
 
@@ -2050,16 +2048,13 @@ int yaffs_mount2(const YCHAR *path,int read_only)
 			dev->read_only = read_only ? 1 : 0;
 			result = yaffs_guts_initialise(dev);
 			if(result == YAFFS_FAIL)
-				/* todo error - mount failed */
 				yaffsfs_SetError(-ENOMEM);
 			retVal = result ? 0 : -1;
 
 		}
 		else
-			/* todo error - already mounted. */
 			yaffsfs_SetError(-EBUSY);
 	} else
-		/* todo error - no device */
 		yaffsfs_SetError(-ENODEV);
 
 	yaffsfs_Unlock();
@@ -2093,11 +2088,9 @@ int yaffs_sync(const YCHAR *path)
                         retVal = 0;
                         
                 } else
-                        /* todo error - not mounted. */
                         yaffsfs_SetError(-EINVAL);
                         
         }else
-                /* todo error - no device */
                 yaffsfs_SetError(-ENODEV);
 
         yaffsfs_Unlock();
@@ -2185,15 +2178,12 @@ int yaffs_unmount2(const YCHAR *path, int force)
 
 				retVal = 0;
 			} else
-				/* todo error can't unmount as files are open */
 				yaffsfs_SetError(-EBUSY);
 
 		} else
-			/* todo error - not mounted. */
 			yaffsfs_SetError(-EINVAL);
 
 	} else
-		/* todo error - no device */
 		yaffsfs_SetError(-ENODEV);
 
 	yaffsfs_Unlock();
@@ -2560,7 +2550,10 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *linkpath)
 	/* Creates a link called newpath to existing oldpath */
 	struct yaffs_obj *obj = NULL;
 	struct yaffs_obj *lnk = NULL;
+	struct yaffs_obj *obj_dir = NULL;
+	struct yaffs_obj *lnk_dir = NULL;
 	int retVal = -1;
+	YCHAR *newname;
 
 	if(yaffsfs_CheckPath(linkpath) < 0){
 		yaffsfs_SetError(-ENAMETOOLONG);
@@ -2569,39 +2562,31 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *linkpath)
 
 	yaffsfs_Lock();
 
-	obj = yaffsfs_FindObject(NULL,oldpath,0,1,NULL);
+	obj = yaffsfs_FindObject(NULL,oldpath,0,1,&obj_dir);
 	lnk = yaffsfs_FindObject(NULL,linkpath,0,0,NULL);
+	lnk_dir = yaffsfs_FindDirectory(NULL,linkpath,&newname,0);
 
-	if(!obj)
+	if(!obj_dir || !lnk_dir)
+		yaffsfs_SetError(-ENOTDIR);
+	else if(!obj)
 		yaffsfs_SetError(-ENOENT);
 	else if(obj->my_dev->read_only)
 		yaffsfs_SetError(-EINVAL);
 	else if(lnk)
 		yaffsfs_SetError(-EEXIST);
-	else {
-		struct yaffs_obj *newdir = NULL;
-		struct yaffs_obj *link = NULL;
-
-		YCHAR *newname;
-
-		newdir = yaffsfs_FindDirectory(NULL,linkpath,&newname,0);
-
-		if(!newdir)
-			yaffsfs_SetError(-ENOTDIR);
-		else if(newdir->my_dev != obj->my_dev)
-			yaffsfs_SetError(-EXDEV);
-		
+	else if(lnk_dir->my_dev != obj->my_dev)
+		yaffsfs_SetError(-EXDEV);
+	else {		
 		retVal = yaffsfs_CheckNameLength(newname);
 		
 		if(retVal == 0) {
-			link = yaffs_link_obj(newdir,newname,obj);
-			if(link)
+			lnk = yaffs_link_obj(lnk_dir,newname,obj);
+			if(lnk)
 				retVal = 0;
 			else{
 				yaffsfs_SetError(-ENOSPC);
 				retVal = -1;
 			}
-
 		}
 	}
 	yaffsfs_Unlock();
@@ -2620,7 +2605,10 @@ int yaffs_mknod(const YCHAR *pathname, mode_t mode, dev_t dev)
 }
 
 
-
+/*
+ * D E B U G   F U N C T I O N S
+ */
+ 
 /*
  * yaffs_n_handles()
  * Returns number of handles attached to the object
@@ -2649,7 +2637,6 @@ int yaffs_get_error(void)
 
 int yaffs_set_error(int error)
 {
-	/*yaffsfs_SetError does not return. So the program is assumed to have worked. */
 	yaffsfs_SetError(error);
 	return 0;
 }

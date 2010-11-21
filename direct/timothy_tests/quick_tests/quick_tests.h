@@ -141,6 +141,8 @@
 #include "test_yaffs_link_ENOTDIR.h"
 #include "test_yaffs_link_ENOTDIR2.h"
 
+#include "test_yaffs_rmdir.h"
+
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
 #include "lib.h"
@@ -279,8 +281,9 @@ test_template test_list[]={
 	{test_yaffs_link_ENOENT,test_yaffs_link_ENOENT_clean,"test_yaffs_link_ENOENT"},
 	{test_yaffs_link_EEXIST,test_yaffs_link_EEXIST_clean,"test_yaffs_link_EEXIST"},
 	{test_yaffs_link_ENOTDIR,test_yaffs_link_ENOTDIR_clean,"test_yaffs_link_ENOTDIR"},
-	{test_yaffs_link_ENOTDIR2,test_yaffs_link_ENOTDIR2_clean,"test_yaffs_link_ENOTDIR2"}
+	{test_yaffs_link_ENOTDIR2,test_yaffs_link_ENOTDIR2_clean,"test_yaffs_link_ENOTDIR2"},
 
+	{test_yaffs_rmdir,test_yaffs_rmdir_clean,"test_yaffs_rmdir"}
 	};
 
 void init_quick_tests(int argc, char *argv[]);

@@ -47,11 +47,14 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsf
 TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_mount.o test_yaffs_mount_ENODEV.o test_yaffs_mount_ENAMETOOLONG.o test_yaffs_mount_EBUSY.o \
 		test_yaffs_unmount.o test_yaffs_unmount_ENODEV.o test_yaffs_unmount_ENAMETOOLONG.o test_yaffs_unmount_EBUSY.o \
-		test_yaffs_open.o test_yaffs_open_ENOENT.o test_yaffs_open_ENOTDIR.o test_yaffs_open_EEXIST.o test_yaffs_open_EISDIR.o test_yaffs_open_ENAMETOOLONG.o \
+		test_yaffs_open.o test_yaffs_open_ENOENT.o test_yaffs_open_ENOTDIR.o test_yaffs_open_EEXIST.o test_yaffs_open_EISDIR.o \
+		test_yaffs_open_ENAMETOOLONG.o \
 		test_yaffs_open_EINVAL.o test_yaffs_open_EINVAL2.o \
-		test_yaffs_unlink.o  test_yaffs_unlink_EISDIR.o test_yaffs_unlink_ENOENT.o test_yaffs_unlink_ENAMETOOLONG.o test_yaffs_unlink_ENOTDIR.o\
+		test_yaffs_unlink.o  test_yaffs_unlink_EISDIR.o test_yaffs_unlink_ENOENT.o test_yaffs_unlink_ENAMETOOLONG.o \
+		test_yaffs_unlink_ENOTDIR.o \
 		test_yaffs_ftruncate.o test_yaffs_ftruncate_EBADF.o test_yaffs_ftruncate_EINVAL.o test_yaffs_ftruncate_big_file.o \
-		test_yaffs_truncate.o test_yaffs_truncate_ENOTDIR.o test_yaffs_truncate_EISDIR.o test_yaffs_truncate_ENOENT.o test_yaffs_truncate_EINVAL.o \
+		test_yaffs_truncate.o test_yaffs_truncate_ENOTDIR.o test_yaffs_truncate_EISDIR.o test_yaffs_truncate_ENOENT.o \
+		test_yaffs_truncate_EINVAL.o \
 		test_yaffs_truncate_big_file.o\
 		test_yaffs_write.o test_yaffs_write_EBADF.o test_yaffs_write_big_file.o \
 		test_yaffs_read.o test_yaffs_read_EBADF.o test_yaffs_read_EINVAL.o\
@@ -76,7 +79,9 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_freespace.o test_yaffs_freespace_EINVAL.o \
 		test_yaffs_totalspace.o test_yaffs_totalspace_EINVAL.o \
 		test_yaffs_inodecount.o test_yaffs_inodecount_EINVAL.o \
-		test_yaffs_link.o test_yaffs_link_ENOENT.o test_yaffs_link_EEXIST.o test_yaffs_link_ENOTDIR.o test_yaffs_link_ENOTDIR2.o
+		test_yaffs_link.o test_yaffs_link_ENOENT.o test_yaffs_link_EEXIST.o test_yaffs_link_ENOTDIR.o \
+		test_yaffs_link_ENOTDIR2.o \
+		test_yaffs_rmdir.o  
 
 
 		  

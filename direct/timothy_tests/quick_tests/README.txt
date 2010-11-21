@@ -45,9 +45,10 @@ Tests made
 
 	test_yaffs_link
 	test_yaffs_link_EEXIST
-	test_yaffs_link_ENOENT
+	test_yaffs_link_ENOENT	//note ENOENT2 does not exist because the second path is trying to create a file.
 	test_yaffs_link_ENOTDIR
-
+	test_yaffs_link_ENOTDIR2
+	
 	test_yaffs_lseek
 	test_yaffs_lseek_EBADF
 	test_yaffs_lseek_EINVAL

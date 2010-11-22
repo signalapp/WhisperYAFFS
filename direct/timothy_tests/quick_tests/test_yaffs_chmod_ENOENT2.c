@@ -11,32 +11,29 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_truncate_ENOTDIR.h"
+#include "test_yaffs_chmod_ENOENT2.h"
 
-
-
-int test_yaffs_truncate_ENOTDIR(void)
+int test_yaffs_chmod_ENOENT2(void)
 {
 	int error=0;
-	int output=0;
+	int output=yaffs_chmod("/non_existing_directory/foo",S_IREAD|S_IWRITE);
 
-
-	output= yaffs_truncate("/yaffs2/foo/file",FILE_SIZE_TRUNCATED );
 	if (output<0){
 		error=yaffs_get_error();
-		if (abs(error)==ENOTDIR){
+		if (abs(error)==ENOENT){
 			return 1;
 		} else {
-			print_message("received a different error than expected\n",2);
+			print_message("different error than expected\n",2);
 			return -1;
 		}
-	} else{
-		print_message("truncated a nonexisting file\n",2);
+	} else {
+		print_message("chmoded the file (which is a bad thing)\n",2);
 		return -1;
 	}
+
 }
 
-int test_yaffs_truncate_ENOTDIR_clean(void)
+int test_yaffs_chmod_ENOENT2_clean(void)
 {
 	return 1;
 }

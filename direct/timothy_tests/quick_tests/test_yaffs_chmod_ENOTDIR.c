@@ -16,7 +16,7 @@
 int test_yaffs_chmod_ENOTDIR(void)
 {
 	int error=0;
-	int output=yaffs_chmod("/non_existing_directory/foo",S_IREAD|S_IWRITE);
+	int output=yaffs_chmod("/yaffs2/foo/file",S_IREAD|S_IWRITE);
 
 	if (output<0){
 		error=yaffs_get_error();

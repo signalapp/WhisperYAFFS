@@ -11,17 +11,17 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_symlink_ENOTDIR.h"
+#include "test_yaffs_symlink_ENOENT2.h"
 
 static int output = 0;
 
-int test_yaffs_symlink_ENOTDIR(void)
+int test_yaffs_symlink_ENOENT2(void)
 {
 	int error_code = 0;
-	output = yaffs_symlink(FILE_PATH,"yaffs2/foo/sym_link");
+	output = yaffs_symlink(FILE_PATH,"non-existing-dir/sym_link");
 	if (output<0){ 
 		error_code=yaffs_get_error();
-		if (abs(error_code)==ENOTDIR){
+		if (abs(error_code)==ENOENT){
 			return 1;
 		} else {
 			print_message("returned error does not match the the expected error\n",2);
@@ -34,7 +34,7 @@ int test_yaffs_symlink_ENOTDIR(void)
 
 }
 
-int test_yaffs_symlink_ENOTDIR_clean(void)
+int test_yaffs_symlink_ENOENT2_clean(void)
 {
 	if (output >= 0){
 		return yaffs_unlink(SYMLINK_PATH);

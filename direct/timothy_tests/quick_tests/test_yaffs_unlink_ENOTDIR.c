@@ -19,7 +19,7 @@ int test_yaffs_unlink_ENOTDIR(void)
 	int output=0;
 	int error_code=0;
 
-	output=yaffs_unlink("/nonexisting_dir/foo");
+	output=yaffs_unlink("/yaffs2/foo/file");
 	if (output==-1){
 		error_code=yaffs_get_error();
 		if (abs(error_code)==ENOTDIR){

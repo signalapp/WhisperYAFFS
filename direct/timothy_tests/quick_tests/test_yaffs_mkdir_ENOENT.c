@@ -11,19 +11,19 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_mkdir_ENOTDIR.h"
+#include "test_yaffs_mkdir_ENOENT.h"
 
 static int output = -1;
 
-int test_yaffs_mkdir_ENOTDIR(void)
+int test_yaffs_mkdir_ENOENT(void)
 {
 	int error_code = 0;
 	
 
-	output = yaffs_mkdir("/yaffs2/foo/new_directory/",O_CREAT | O_RDWR);
+	output = yaffs_mkdir("/non_existing_directory/new_directory/",O_CREAT | O_RDWR);
 	if (output < 0){
 		error_code = yaffs_get_error();
-		if (abs(error_code) == ENOTDIR){
+		if (abs(error_code) == ENOENT){
 			return 1;
 		} else {
 			print_message("different error than expected\n", 2);
@@ -36,7 +36,7 @@ int test_yaffs_mkdir_ENOTDIR(void)
 }
 
 
-int test_yaffs_mkdir_ENOTDIR_clean(void)
+int test_yaffs_mkdir_ENOENT_clean(void)
 {
 	if (output >= 0){
 		return yaffs_rmdir(DIR_PATH);

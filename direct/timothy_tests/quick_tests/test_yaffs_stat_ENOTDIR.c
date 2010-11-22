@@ -20,7 +20,7 @@ int test_yaffs_stat_ENOTDIR(void)
 	int output=0;
 	char text[100];
 	text[0] ='\0';
-	output=yaffs_stat("/non-existing-dir/foo", &stat);;
+	output=yaffs_stat("/yaffs2/foo/file", &stat);;
 	if (output<0){ 
 		error_code=yaffs_get_error();
 		if (abs(error_code)==ENOTDIR){

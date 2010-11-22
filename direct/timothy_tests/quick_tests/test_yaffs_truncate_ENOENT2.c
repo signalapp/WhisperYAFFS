@@ -11,20 +11,20 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_truncate_ENOTDIR.h"
+#include "test_yaffs_truncate_ENOENT2.h"
 
 
 
-int test_yaffs_truncate_ENOTDIR(void)
+int test_yaffs_truncate_ENOENT2(void)
 {
 	int error=0;
 	int output=0;
 
 
-	output= yaffs_truncate("/yaffs2/foo/file",FILE_SIZE_TRUNCATED );
+	output= yaffs_truncate("/non_existing_dir/foo",FILE_SIZE_TRUNCATED );
 	if (output<0){
 		error=yaffs_get_error();
-		if (abs(error)==ENOTDIR){
+		if (abs(error)==ENOENT){
 			return 1;
 		} else {
 			print_message("received a different error than expected\n",2);
@@ -36,7 +36,7 @@ int test_yaffs_truncate_ENOTDIR(void)
 	}
 }
 
-int test_yaffs_truncate_ENOTDIR_clean(void)
+int test_yaffs_truncate_ENOENT2_clean(void)
 {
 	return 1;
 }

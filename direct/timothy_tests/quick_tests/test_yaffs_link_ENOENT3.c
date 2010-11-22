@@ -11,18 +11,18 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_link_ENOTDIR2.h"
+#include "test_yaffs_link_ENOENT3.h"
 
 
 
-int test_yaffs_link_ENOTDIR2(void)
+int test_yaffs_link_ENOENT3(void)
 {
 	int output=0;	
 	int error =0;
-	output = yaffs_link(FILE_PATH,"yaffs2/foo/hard_link");
+	output = yaffs_link(FILE_PATH,"non-existing-directory/hard_link");
 	if (output<0){
 		error=yaffs_get_error();
-		if (abs(error)==ENOTDIR){
+		if (abs(error)==ENOENT){
 			return 1;
 		} else {
 			print_message("different error than expected\n",2);
@@ -35,7 +35,7 @@ int test_yaffs_link_ENOTDIR2(void)
 }
 
 
-int test_yaffs_link_ENOTDIR2_clean(void)
+int test_yaffs_link_ENOENT3_clean(void)
 {
 	int output=0;	
 	int error =0;

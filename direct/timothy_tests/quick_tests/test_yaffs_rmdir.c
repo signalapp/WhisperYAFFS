@@ -21,15 +21,15 @@ int test_yaffs_rmdir(void)
 		output = yaffs_mkdir(DIR_PATH,S_IWRITE | S_IREAD);
 		if (output < 0) {
 			print_message("failed to create directory\n",2);
+			return -1;
 		}
 	}
-	
 	return yaffs_rmdir(DIR_PATH);
 }
 
 
 int test_yaffs_rmdir_clean(void)
 {
-	return -1;
+	return 1;
 }
 

@@ -1842,6 +1842,7 @@ int yaffs_access(const YCHAR *path, int amode)
 	yaffsfs_Lock();
 
 	obj = yaffsfs_FindObject(NULL,path,0,1, &dir,&notDir);
+	obj = yaffsfs_FollowLink(obj,0);
 
 	if(!dir && notDir) 
 		yaffsfs_SetError(-ENOTDIR);

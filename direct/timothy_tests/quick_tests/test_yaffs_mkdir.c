@@ -13,21 +13,29 @@
 
 #include "test_yaffs_mkdir.h"
 
-static int output = -1;
+
 
 int test_yaffs_mkdir(void)
 {
-	output = yaffs_mkdir("/yaffs2/new_directory/",O_CREAT | O_RDWR);
+	int output=-1;
+	if (0==yaffs_access(DIR_PATH,0)) {
+		output=yaffs_rmdir(DIR_PATH);
+		if (output<0) {
+			print_message("the directory already exists and cannot be removed.\n",2);
+			return -1;
+		}
+	}
+	output = yaffs_mkdir(DIR_PATH,O_CREAT | O_RDWR);
 	return output;
 }
 
 
 int test_yaffs_mkdir_clean(void)
 {
-	if (output >= 0){
-		return yaffs_rmdir("/yaffs2/new_directory/");
+	if (0==yaffs_access(DIR_PATH,0)) {
+		return yaffs_rmdir(DIR_PATH);
 	} else {
-		return 1;	/* the file failed to open so there is no need to close it */
+		return 1;	
 	}
 }
 

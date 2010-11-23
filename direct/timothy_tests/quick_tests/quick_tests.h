@@ -163,6 +163,9 @@
 #include "test_yaffs_rename_dir.h"
 #include "test_yaffs_rename_dir_ENOENT.h"
 #include "test_yaffs_rename_dir_ENOENT2.h"
+#include "test_yaffs_rename_dir_to_file.h"
+#include "test_yaffs_rename_file_to_dir.h"
+#include "test_yaffs_rename_EEXISTS.h"
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -324,7 +327,10 @@ test_template test_list[]={
 	{test_yaffs_rename_EINVAL,test_yaffs_rename_EINVAL_clean,"test_yaffs_rename_EINVAL"},
 	{test_yaffs_rename_dir,test_yaffs_rename_dir_clean,"test_yaffs_rename_dir"},
 	{test_yaffs_rename_dir_ENOENT,test_yaffs_rename_dir_ENOENT_clean,"test_yaffs_rename_dir_ENOENT"},
-	{test_yaffs_rename_dir_ENOENT2,test_yaffs_rename_dir_ENOENT2_clean,"test_yaffs_rename_dir_ENOENT2"}
+	{test_yaffs_rename_dir_ENOENT2,test_yaffs_rename_dir_ENOENT2_clean,"test_yaffs_rename_dir_ENOENT2"},
+	{test_yaffs_rename_dir_to_file,test_yaffs_rename_dir_to_file_clean,"test_yaffs_rename_dir_to_file"},
+	{test_yaffs_rename_file_to_dir,test_yaffs_rename_file_to_dir_clean,"test_yaffs_rename_file_to_dir"},
+	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"}
 	};
 
 void init_quick_tests(int argc, char *argv[]);

@@ -3,15 +3,9 @@ Made by Timothy Manning <timothy@yaffs.net> on 08/11/2010
 
 
 Current BUGS 
-
-	BUG with trying to rmdir /yaffs2/ the error returned is ENOTEMPTY. 
-	But the error that should be returned is EBUSY.
-
-	BUG with trying to rmdir /yaffs2/. the error returned is ENOENT. 
-	But the error that should be returned is EINVAL.
-
-	BUG with having slashes on the end of the second path passed into the rename function.
-	The function returns ENOENT. but should be returning other errors.
+	Bug with test_yaffs_rename_dir it does not return an error code.
+	
+	Bug with test_yaffs_rename_EEXIST should be giving the bug EEXIST but instead gives ENOENT. 
 
 Current WARNINGS
 	

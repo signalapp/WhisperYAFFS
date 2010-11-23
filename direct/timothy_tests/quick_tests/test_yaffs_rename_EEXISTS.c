@@ -11,10 +11,10 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_rename_EINVAL.h"
+#include "test_yaffs_rename_EEXISTS.h"
 
 
-int test_yaffs_rename_EINVAL(void)
+int test_yaffs_rename_EEXISTS(void)
 {
 	int output=0;
 	int error_code =0;
@@ -26,10 +26,25 @@ int test_yaffs_rename_EINVAL(void)
 			return -1;
 		}
 	}
-	output = yaffs_rename(DIR_PATH , "/yaffs2/new_directory/dir/");
+	if (0 !=  yaffs_access(RENAME_DIR_PATH,0)) {
+		output = yaffs_mkdir(RENAME_DIR_PATH,S_IWRITE | S_IREAD);
+		if (output < 0) {
+			error_code=yaffs_get_error();
+			if (abs(error_code)!=EEXIST){
+				print_message("failed to create second directory\n",2);
+				return -1;
+			}
+		}
+	}
+	output= yaffs_open("/yaffs2/dir2/file",O_CREAT | O_RDWR, FILE_MODE);
+	if (output<0){
+		print_message("failed to open file in the second directory\n",2);
+		return -1;
+	}
+	output = yaffs_rename(DIR_PATH , RENAME_DIR_PATH);
 	if (output<0){ 
 		error_code=yaffs_get_error();
-		if (abs(error_code)==EINVAL){
+		if (abs(error_code)==EEXIST){
 			return 1;
 		} else {
 			print_message("returned error does not match the the expected error\n",2);
@@ -42,7 +57,7 @@ int test_yaffs_rename_EINVAL(void)
 }
 
 
-int test_yaffs_rename_EINVAL_clean(void)
+int test_yaffs_rename_EEXISTS_clean(void)
 {
 	int output = 0;
 	if (0 ==  yaffs_access(RENAME_PATH,0) && 0 != yaffs_access(DIR_PATH,0)) {

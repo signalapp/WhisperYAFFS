@@ -30,7 +30,7 @@
 #define FILE_TEXT "file foo "	/* keep space at end of string */
 #define FILE_TEXT_NBYTES 10
 
-#define DIR_PATH "/yaffs2/new_directory/"
+#define DIR_PATH "/yaffs2/new_directory"
 
 #define SYMLINK_PATH "/yaffs2/sym_foo"
 

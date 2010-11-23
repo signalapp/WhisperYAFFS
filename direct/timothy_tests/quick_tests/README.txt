@@ -241,6 +241,8 @@ Tests to add
 	test_yaffs_rmdir_ENOTEMPTY
 	test_yaffs_rmdir_EROFS
 
+
+	what happens if a file is renamed into a dir.
 	//need to do rename for directories.
 	//what happens if the dir or file is renamed over an existing dir or file 
 	test_yaffs_rename_EACCES

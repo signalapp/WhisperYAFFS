@@ -29,7 +29,7 @@ int test_yaffs_rename_dir_ENOENT(void)
 	output = yaffs_rename( "/yaffs2/non-existing-dir/" , RENAME_DIR_PATH);
 	if (output<0){ 
 		error_code=yaffs_get_error();
-		if (abs(error_code)==EINVAL){
+		if (abs(error_code)==ENOENT){
 			return 1;
 		} else {
 			print_message("returned error does not match the the expected error\n",2);

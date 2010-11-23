@@ -3,124 +3,150 @@ Made by Timothy Manning <timothy@yaffs.net> on 04/11/2010
 
 
 Tests made
-	test_yaffs_chmod
-	test_yaffs_chmod_ENOENT
-	test_yaffs_chmod_ENOTDIR
 
-	test_yaffs_fchmod
-	test_yaffs_fchmod_EBADF
-	test_yaffs_fchmod_EINVAL
+test_yaffs_access.c
+test_yaffs_access_EINVAL.c
+test_yaffs_access_ENOENT2.c
+test_yaffs_access_ENOENT.c
+test_yaffs_access_ENOTDIR.c
 
-	test_yaffs_mount
-	test_yaffs_mount_ENODEV
-	test_yaffs_mount_ENAMETOOLONG
-	test_yaffs_mount_EBUSY		//caused by trying to mount a new mount point with a mount point already mounted.
+test_yaffs_chmod.c
+test_yaffs_chmod_EINVAL.c
+test_yaffs_chmod_ENOENT2.c
+test_yaffs_chmod_ENOENT.c
+test_yaffs_chmod_ENOTDIR.c
 
-	test_yaffs_mount2
-	test_yaffs_mount2_ENODEV	//when a bad mount point is used.
+test_yaffs_close.c
+test_yaffs_close_EBADF.c
 
-	test_yaffs_access
-	test_yaffs_access_ENIVAL
-	test_yaffs_access_ENOTDIR
-	test_yaffs_access_ENOENT
+test_yaffs_fchmod.c
+test_yaffs_fchmod_EBADF.c
+test_yaffs_fchmod_EINVAL.c
 
-	test_yaffs_close_EBADF
+test_yaffs_fdatasync.c
+test_yaffs_fdatasync_EBADF.c
 
-	test_yaffs_fdatasync
-	test_yaffs_fdatasync_EBADF
+test_yaffs_freespace.c
+test_yaffs_freespace_EINVAL.c
 
-	test_yaffs_freespace
-	test_yaffs_freespace_EINVAL
+test_yaffs_fstat.c
+test_yaffs_fstat_EBADF.c
 
-	test_yaffs_fsync
-	test_yaffs_fsync_EBADF	
+test_yaffs_fsync.c
+test_yaffs_fsync_EBADF.c
 
-	test_yaffs_ftruncate
-	test_yaffs_ftruncate_EBADF
-	test_yaffs_ftruncate_ENIVAL
-	test_yaffs_ftruncate_big_file
+test_yaffs_ftruncate_big_file.c
+test_yaffs_ftruncate.c
+test_yaffs_ftruncate_EBADF.c
+test_yaffs_ftruncate_EINVAL.c
 
-	test_yaffs_inodecount
-	test_yaffs_inodecount_ENOTDIR
+test_yaffs_inodecount.c
+test_yaffs_inodecount_EINVAL.c
 
-	test_yaffs_link
-	test_yaffs_link_EEXIST
-	test_yaffs_link_ENOENT	//note ENOENT2 does not exist because the second path is trying to create a file.
-	test_yaffs_link_ENOTDIR
-	test_yaffs_link_ENOTDIR2
-	
-	test_yaffs_lseek
-	test_yaffs_lseek_EBADF
-	test_yaffs_lseek_EINVAL
-	test_yaffs_lseek_big_file
+test_yaffs_link.c
+test_yaffs_link_EEXIST.c
+test_yaffs_link_ENOENT2.c
+test_yaffs_link_ENOENT3.c
+test_yaffs_link_ENOENT.c
+test_yaffs_link_ENOTDIR2.c
+test_yaffs_link_ENOTDIR.c
 
-	test_yaffs_open
-	test_yaffs_open_EEXIST
-	test_yaffs_open_EISDIR
-	test_yaffs_open_ENAMETOOLONG
-	test_yaffs_open_ENOENT
-	test_yaffs_open_ENOTDIR
-	test_yaffs_open_EINVAL
-	test_yaffs_open_EINVAL2 //the function open has two modes which can be set, so two tests are needed.
+test_yaffs_lseek_big_file.c
+test_yaffs_lseek.c
+test_yaffs_lseek_EBADF.c
+test_yaffs_lseek_EINVAL.c
 
-	test_yaffs_read
-	test_yaffs_read_EBADF
-	test_yaffs_read_EINVAL
+test_yaffs_mkdir.c
+test_yaffs_mkdir_EEXIST.c
+test_yaffs_mkdir_ENOENT.c
+test_yaffs_mkdir_ENOTDIR.c
 
-	test_yaffs_mkdir
-	test_yaffs_mkdir_EEXISTS
-	test_yaffs_mkdir_ENOTDIR
+test_yaffs_mknode.c
 
+test_yaffs_mount2.c
+test_yaffs_mount2_ENODEV.c
 
-	test_yaffs_stat
-	test_yaffs_stat_ENOENT
-	test_yaffs_stat_ENOTDIR
+test_yaffs_mount.c
+test_yaffs_mount_EBUSY.c
+test_yaffs_mount_ENAMETOOLONG.c
+test_yaffs_mount_ENODEV.c
 
-	test_yaffs_symlink
-	test_yaffs_symlink_ENOTDIR
-	test_yaffs_symlink_EEXISTS
-	test_yaffs_symlink_ENOENT	//if there is a slash on the end of new path
+test_yaffs_open.c
+test_yaffs_open_EEXIST.c
+test_yaffs_open_EINVAL2.c
+test_yaffs_open_EINVAL.c
+test_yaffs_open_EISDIR.c
+test_yaffs_open_ENAMETOOLONG.c
+test_yaffs_open_ENOENT.c
+test_yaffs_open_ENOTDIR.c
 
-	test_yaffs_sync
-	test_yaffs_sync_ENOTDIR
+test_yaffs_read.c
+test_yaffs_read_EBADF.c
+test_yaffs_read_EINVAL.c
 
-	test_yaffs_fstat
-	test_yaffs_fstat_EBADF
+test_yaffs_remount_EINVAL.c
+test_yaffs_remount_ENODEV.c
+test_yaffs_remount_force_off_read_only_off.c
+test_yaffs_remount_force_off_read_only_on.c
+test_yaffs_remount_force_on_read_only_off.c
+test_yaffs_remount_force_on_read_only_on.c
 
-	test_yaffs_remount_force_off_read_only_off
-	test_yaffs_remount_force_on_read_only_off
-	test_yaffs_remount_ENODEV
-	test_yaffs_remount_EINVAL
+test_yaffs_rename
+test_yaffs_rename_ENOENT
+test_yaffs_rename_ENOTDIR
 
-	test_yaffs_totalspace
-	test_yaffs_totalspace_EINVAL
+test_yaffs_rmdir.c
+test_yaffs_rmdir_EBUSY
+test_yaffs_rmdir_EINVAL
+test_yaffs_rmdir_ENOENT
+test_yaffs_rmdir_ENOTDIR
 
-	test_yaffs_truncate
-	test_yaffs_truncate_ENOTDIR
-	test_yaffs_truncate_EISDIR
-	test_yaffs_truncate_ENOENT
-	test_yaffs_truncate_ENIVAL
-	test_yaffs_truncate_big_file
+test_yaffs_stat.c
+test_yaffs_stat_ENOENT2.c
+test_yaffs_stat_ENOENT.c
+test_yaffs_stat_ENOTDIR.c
 
-	test_yaffs_unlink
-	test_yaffs_unlink_EISDIR
-	test_yaffs_unlink_ENAMETOOLONG
-	test_yaffs_unlink_ENOENT
-	test_yaffs_unlink_ENOTDIR
+test_yaffs_symlink.c
+test_yaffs_symlink_EEXIST.c
+test_yaffs_symlink_ENOENT2.c
+test_yaffs_symlink_ENOENT.c
+test_yaffs_symlink_ENOTDIR.c
 
-	test_yaffs_unmount
-	test_yaffs_unmount_ENODEV
-	test_yaffs_unmount_ENAMETOOLONG
-	test_yaffs_umount_EBUSY	//caused by having a file handle open and then trying to unmount yaffs.
+test_yaffs_sync.c
+test_yaffs_sync_ENODEV.c
 
-	test_yaffs_unmount2
-	test_yaffs_unmount2_ENODEV
-	test_yaffs_unmount2_with handle open and forced mode on
-	test_yaffs_unmount2_with handle open and forced mode off. should give EBUSY.
-	test_yaffs_unmount2_EINVAL	//should be caused when the file system is alredy unmounted.
+test_yaffs_totalspace.c
+test_yaffs_totalspace_EINVAL.c
 
-	test_yaffs_write
-	test_yaffs_write_EBADF
+test_yaffs_truncate.c
+test_yaffs_truncate_big_file.c
+test_yaffs_truncate_EINVAL.c
+test_yaffs_truncate_EISDIR.c
+test_yaffs_truncate_ENOENT2.c
+test_yaffs_truncate_ENOENT.c
+test_yaffs_truncate_ENOTDIR.c
+
+test_yaffs_unlink.c
+test_yaffs_unlink_EISDIR.c
+test_yaffs_unlink_ENAMETOOLONG.c
+test_yaffs_unlink_ENOENT2.c
+test_yaffs_unlink_ENOENT.c
+test_yaffs_unlink_ENOTDIR.c
+
+test_yaffs_unmount2.c
+test_yaffs_unmount2_EINVAL.c
+test_yaffs_unmount2_ENODEV.c
+test_yaffs_unmount2_with_handle_open_and_forced_mode_off.c
+test_yaffs_unmount2_with_handle_open_and_forced_mode_on.c
+
+test_yaffs_unmount.c
+test_yaffs_unmount_EBUSY.c
+test_yaffs_unmount_ENAMETOOLONG.c
+test_yaffs_unmount_ENODEV.c
+
+test_yaffs_write.c
+test_yaffs_write_big_file.c
+test_yaffs_write_EBADF.c
 
 	
 
@@ -209,22 +235,17 @@ Tests to add
 	test_yaffs_link_EPERM
 	test_yaffs_link_EROFS
 
-	test_yaffs_rmdir
+
 	test_yaffs_rmdir_EACCES
-	test_yaffs_rmdir_EBUSY
-	test_yaffs_rmdir_ENVAL
-	test_yaffs_rmdir_ENOENT
-	test_yaffs_rmdir_ENOTDIR
 	test_yaffs_rmdir_ENOTEMPTY
 	test_yaffs_rmdir_EROFS
 
-	test_yaffs_rename
+	//need to do rename for directories.
+	//what happens if the dir or file is renamed over an existing dir or file 
 	test_yaffs_rename_EACCES
 	test_yaffs_rename_EINVAL
 	test_yaffs_rename_ELOOP
 	test_yaffs_rename_EMLINK
-	test_yaffs_rename_ENOENT
-	test_yaffs_rename_ENOTDIR
 	test_yaffs_rename_EEXISTS or EPERM
 	test_yaffs_rename_EROFS
 

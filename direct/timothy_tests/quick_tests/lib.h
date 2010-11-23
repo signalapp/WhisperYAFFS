@@ -38,6 +38,8 @@
 
 #define NODE_PATH "/yaffs2/node"
 
+#define RENAME_PATH "/yaffs2/foo2"
+
 
 
 /* warning do not define anything as FILE because there seems to be a conflict with stdio.h */ 

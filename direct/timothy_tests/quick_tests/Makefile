@@ -83,7 +83,9 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_inodecount.o test_yaffs_inodecount_EINVAL.o \
 		test_yaffs_link.o test_yaffs_link_ENOENT.o test_yaffs_link_EEXIST.o test_yaffs_link_ENOTDIR.o \
 		test_yaffs_link_ENOTDIR2.o test_yaffs_link_ENOENT2.o test_yaffs_link_ENOENT3.o test_yaffs_link_ENOENT3.o \
-		test_yaffs_rmdir.o  
+		test_yaffs_rmdir.o test_yaffs_rmdir_EBUSY.o test_yaffs_rmdir_EINVAL.o test_yaffs_rmdir_ENOENT.o \
+		test_yaffs_rmdir_ENOTDIR.o \
+		test_yaffs_rename.o test_yaffs_rename_ENOENT.o test_yaffs_rename_ENOTDIR.o test_yaffs_rename_EINVAL.o
 
 
 		  

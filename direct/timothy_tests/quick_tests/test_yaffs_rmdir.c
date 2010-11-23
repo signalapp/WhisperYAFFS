@@ -11,7 +11,7 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_open.h"
+#include "test_yaffs_rmdir.h"
 
 
 int test_yaffs_rmdir(void)

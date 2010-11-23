@@ -151,6 +151,15 @@
 #include "test_yaffs_link_ENOENT3.h"
 
 #include "test_yaffs_rmdir.h"
+#include "test_yaffs_rmdir_EBUSY.h"
+#include "test_yaffs_rmdir_EINVAL.h"
+#include "test_yaffs_rmdir_ENOENT.h"
+#include "test_yaffs_rmdir_ENOTDIR.h"
+
+#include "test_yaffs_rename.h"
+#include "test_yaffs_rename_ENOENT.h"
+#include "test_yaffs_rename_ENOTDIR.h"
+#include "test_yaffs_rename_EINVAL.h"
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -300,7 +309,16 @@ test_template test_list[]={
 	{test_yaffs_link_ENOENT2,test_yaffs_link_ENOENT2_clean,"test_yaffs_link_ENOENT2"},
 	{test_yaffs_link_ENOENT3,test_yaffs_link_ENOENT3_clean,"test_yaffs_link_ENOENT3"},
 
-	{test_yaffs_rmdir,test_yaffs_rmdir_clean,"test_yaffs_rmdir"}
+	{test_yaffs_rmdir,test_yaffs_rmdir_clean,"test_yaffs_rmdir"},
+	{test_yaffs_rmdir_EBUSY,test_yaffs_rmdir_EBUSY_clean,"test_yaffs_rmdir_EBUSY"},
+	{test_yaffs_rmdir_EINVAL,test_yaffs_rmdir_EINVAL_clean,"test_yaffs_rmdir_EINVAL"},
+	{test_yaffs_rmdir_ENOENT,test_yaffs_rmdir_ENOENT_clean,"test_yaffs_rmdir_ENOENT"},
+	{test_yaffs_rmdir_ENOTDIR,test_yaffs_rmdir_ENOTDIR_clean,"test_yaffs_rmdir_ENOTDIR"},
+
+	{test_yaffs_rename,test_yaffs_rename_clean,"test_yaffs_rename"},
+	{test_yaffs_rename_ENOENT,test_yaffs_rename_ENOENT_clean,"test_yaffs_rename_ENOENT"},
+	{test_yaffs_rename_ENOTDIR,test_yaffs_rename_ENOTDIR_clean,"test_yaffs_rename_ENOTDIR"},
+	{test_yaffs_rename_EINVAL,test_yaffs_rename_EINVAL_clean,"test_yaffs_rename_EINVAL"}
 	};
 
 void init_quick_tests(int argc, char *argv[]);

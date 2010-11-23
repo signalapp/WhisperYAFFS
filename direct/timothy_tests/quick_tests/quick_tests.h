@@ -160,6 +160,8 @@
 #include "test_yaffs_rename_ENOENT.h"
 #include "test_yaffs_rename_ENOTDIR.h"
 #include "test_yaffs_rename_EINVAL.h"
+#include "test_yaffs_rename_dir.h"
+#include "test_yaffs_rename_dir_ENOENT.h"
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -318,7 +320,9 @@ test_template test_list[]={
 	{test_yaffs_rename,test_yaffs_rename_clean,"test_yaffs_rename"},
 	{test_yaffs_rename_ENOENT,test_yaffs_rename_ENOENT_clean,"test_yaffs_rename_ENOENT"},
 	{test_yaffs_rename_ENOTDIR,test_yaffs_rename_ENOTDIR_clean,"test_yaffs_rename_ENOTDIR"},
-	{test_yaffs_rename_EINVAL,test_yaffs_rename_EINVAL_clean,"test_yaffs_rename_EINVAL"}
+	{test_yaffs_rename_EINVAL,test_yaffs_rename_EINVAL_clean,"test_yaffs_rename_EINVAL"},
+	{test_yaffs_rename_dir,test_yaffs_rename_dir_clean,"test_yaffs_rename_dir"},
+	{test_yaffs_rename_dir_ENOENT,test_yaffs_rename_dir_ENOENT_clean,"test_yaffs_rename_dir_ENOENT"}
 	};
 
 void init_quick_tests(int argc, char *argv[]);

@@ -40,6 +40,8 @@
 
 #define RENAME_PATH "/yaffs2/foo2"
 
+#define RENAME_DIR_PATH "/yaffs2/dir2"
+
 
 
 /* warning do not define anything as FILE because there seems to be a conflict with stdio.h */ 

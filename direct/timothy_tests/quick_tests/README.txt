@@ -94,6 +94,7 @@ test_yaffs_remount_force_on_read_only_on.c
 test_yaffs_rename
 test_yaffs_rename_ENOENT
 test_yaffs_rename_ENOTDIR
+test_yaffs_rename_EINVAL
 
 test_yaffs_rmdir.c
 test_yaffs_rmdir_EBUSY
@@ -243,13 +244,11 @@ Tests to add
 	//need to do rename for directories.
 	//what happens if the dir or file is renamed over an existing dir or file 
 	test_yaffs_rename_EACCES
-	test_yaffs_rename_EINVAL
 	test_yaffs_rename_ELOOP
 	test_yaffs_rename_EMLINK
 	test_yaffs_rename_EEXISTS or EPERM
 	test_yaffs_rename_EROFS
 
-	test_yaffs_rename
 
 	test_yaffs_dup
 	test_yaffs_dup_EBADF		

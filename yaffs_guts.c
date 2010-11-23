@@ -1620,6 +1620,10 @@ static int yaffs_change_obj_name(struct yaffs_obj *obj,
 	return YAFFS_FAIL;
 }
 
+
+/* Note:
+ * If old_name is NULL then we take old_dir as the object to be renamed.
+ */
 int yaffs_rename_obj(struct yaffs_obj *old_dir, const YCHAR * old_name,
 		     struct yaffs_obj *new_dir, const YCHAR * new_name)
 {
@@ -1641,7 +1645,9 @@ int yaffs_rename_obj(struct yaffs_obj *old_dir, const YCHAR * old_name,
 	 * While look-up is case insensitive, the name isn't.
 	 * Therefore we might want to change x.txt to X.txt
 	 */
-	if (old_dir == new_dir && yaffs_strcmp(old_name, new_name) == 0)
+	if (old_dir == new_dir && 
+		old_name && new_name && 
+		yaffs_strcmp(old_name, new_name) == 0)
 		force = 1;
 #endif
 
@@ -1650,7 +1656,13 @@ int yaffs_rename_obj(struct yaffs_obj *old_dir, const YCHAR * old_name,
 		/* ENAMETOOLONG */
 		return YAFFS_FAIL;
 
-	obj = yaffs_find_by_name(old_dir, old_name);
+	if(old_name)
+		obj = yaffs_find_by_name(old_dir, old_name);
+	else{
+		obj = old_dir;
+		old_dir = obj->parent;
+	}
+
 
 	if (obj && obj->rename_allowed) {
 

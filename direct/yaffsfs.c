@@ -340,6 +340,42 @@ int yaffsfs_CheckNameLength(const char *name)
 	return retVal;	
 }
 
+
+static int yaffsfs_alt_dir_path(const YCHAR *path, YCHAR **ret_path)
+{
+	YCHAR *alt_path = NULL;
+	int path_length;
+	int i;
+
+	/*
+	 * We don't have a definition for max path length.
+	 * We will use 3 * max name length instead.
+	 */
+	*ret_path = NULL;
+	path_length = strnlen(path,(YAFFS_MAX_NAME_LENGTH+1)*3 +1);
+
+	/* If the last character is a path divider, then we need to
+	 * trim it back so that the name look-up works properly.
+	 * eg. /foo/new_dir/ -> /foo/newdir
+	 * Curveball: Need to handle multiple path dividers:
+	 * eg. /foof/sdfse///// -> /foo/sdfse
+	 */
+	if(path_length > 0 && 
+		yaffsfs_IsPathDivider(path[path_length-1])){
+		alt_path = YMALLOC(path_length + 1);
+		if(!alt_path)
+			return -1;
+		strcpy(alt_path, path);
+		for(i = path_length-1;
+			i >= 0 && yaffsfs_IsPathDivider(alt_path[i]);
+			i--)
+			alt_path[i] = (YCHAR) 0;
+	}
+	*ret_path = alt_path;
+	return 0;
+}
+
+
 LIST_HEAD(yaffsfs_deviceList);
 
 /*
@@ -1241,7 +1277,11 @@ int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 
 	if(!dir && notDir)
 		yaffsfs_SetError(-ENOTDIR);
-	else if(!dir || !obj)
+	else if(!dir)
+		yaffsfs_SetError(-ENOENT);
+	else if(yaffs_strncmp(name,_Y("."),2) == 0)
+		yaffsfs_SetError(-EINVAL);
+	else if(!obj)
 		yaffsfs_SetError(-ENOENT);
 	else if(obj->my_dev->read_only)
 		yaffsfs_SetError(-EINVAL);
@@ -1249,6 +1289,8 @@ int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 		yaffsfs_SetError(-EISDIR);
 	else if(isDirectory && obj->variant_type != YAFFS_OBJECT_TYPE_DIRECTORY)
 		yaffsfs_SetError(-ENOTDIR);
+	else if(isDirectory && obj == obj->my_dev->root_dir)
+		yaffsfs_SetError(-EBUSY); /* Can't rmdir a root */
 	else {
 		result = yaffs_unlinker(dir,name);
 
@@ -1278,22 +1320,43 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 	int rename_allowed = 1;
 	int notOldDir;
 	int notNewDir;
-
-	yaffsfs_Lock();
+	YCHAR *alt_newpath=NULL;
 
 	if(yaffsfs_CheckPath(newPath) < 0){
 		yaffsfs_SetError(-ENAMETOOLONG);
 		return -1;
 	}
 
+	if(yaffsfs_alt_dir_path(newPath, &alt_newpath) < 0){
+		yaffsfs_SetError(-ENOMEM);
+		return -1;
+	}
+	if(alt_newpath)
+		newPath = alt_newpath;
+
+	yaffsfs_Lock();
+
+
 	olddir = yaffsfs_FindDirectory(NULL,oldPath,&oldname,0,&notOldDir);
 	newdir = yaffsfs_FindDirectory(NULL,newPath,&newname,0,&notNewDir);
 	obj = yaffsfs_FindObject(NULL,oldPath,0,0,NULL,NULL);
 
+	/* If the object being renamed is a directory and the 
+	 * path ended with a "/" then the olddir == obj.
+	 * We pass through NULL for the old name to tell the lower layers
+	 * to use olddir as the object.
+	 */
+
+	if(olddir == obj)
+		oldname = NULL;
+
 	if((!olddir && notOldDir) || (!newdir && notNewDir)) {
 		yaffsfs_SetError(-ENOTDIR);
 		rename_allowed = 0;
-	} else if(!olddir || !newdir || !obj) {
+	} else if (olddir && oldname && yaffs_strncmp(oldname, _Y("."),2) == 0){
+		yaffsfs_SetError(-EINVAL);
+		rename_allowed = 0;
+	}else if(!olddir || !newdir || !obj) {
 		yaffsfs_SetError(-ENOENT);
 		rename_allowed = 0;
 	} else if(obj->my_dev->read_only){
@@ -1307,7 +1370,8 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 		/*
 		 * It is a directory, check that it is not being renamed to
 		 * being its own decendent.
-		 * Do this by tracing from the new directory back to the root, checking for obj
+		 * Do this by tracing from the new directory back to the root, 
+		 * checking for obj
 		 */
 
 		struct yaffs_obj *xx = newdir;
@@ -1325,6 +1389,9 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 		result = yaffs_rename_obj(olddir,oldname,newdir,newname);
 
 	yaffsfs_Unlock();
+
+	if(alt_newpath)
+		YFREE(alt_newpath);
 
 	return (result == YAFFS_FAIL) ? -1 : 0;
 }
@@ -1931,41 +1998,6 @@ int yaffs_fchmod(int fd, mode_t mode)
 	yaffsfs_Unlock();
 
 	return retVal;
-}
-
-
-static int yaffsfs_alt_dir_path(const YCHAR *path, YCHAR **ret_path)
-{
-	YCHAR *alt_path = NULL;
-	int path_length;
-	int i;
-
-	/*
-	 * We don't have a definition for max path length.
-	 * We will use 3 * max name length instead.
-	 */
-	*ret_path = NULL;
-	path_length = strnlen(path,(YAFFS_MAX_NAME_LENGTH+1)*3 +1);
-
-	/* If the last character is a path divider, then we need to
-	 * trim it back so that the name look-up works properly.
-	 * eg. /foo/new_dir/ -> /foo/newdir
-	 * Curveball: Need to handle multiple path dividers:
-	 * eg. /foof/sdfse///// -> /foo/sdfse
-	 */
-	if(path_length > 0 && 
-		yaffsfs_IsPathDivider(path[path_length-1])){
-		alt_path = YMALLOC(path_length + 1);
-		if(!alt_path)
-			return -1;
-		strcpy(alt_path, path);
-		for(i = path_length-1;
-			i >= 0 && yaffsfs_IsPathDivider(alt_path[i]);
-			i--)
-			alt_path[i] = (YCHAR) 0;
-	}
-	*ret_path = alt_path;
-	return 0;
 }
 
 int yaffs_mkdir(const YCHAR *path, mode_t mode)

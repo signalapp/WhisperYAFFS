@@ -183,37 +183,13 @@ Tests to add
 	test_yaffs_symlink_ENAMETOOLONG
 	test_yaffs_symlink_EROFS
 
-	
-	//the yaffs_mknod function does not exist in yaffsfs, so these tests will not be added.
-	test_yaffs_mknod
-	test_yaffs_mknod_EACCES
-	test_yaffs_mknod_EEXIST
-	test_yaffs_mknod_EINVAL
-	test_yaffs_mknod_ELOOP
-	test_yaffs_mknod_ENAMETOOLONG
-	test_yaffs_mknod_ENOENT
-	test_yaffs_mknod_ENOTDIR
-	test_yaffs_mknod_EROFS
-
-
-	test_yaffs_mount2_EINVAL	//cannot happen in yaffs since the mode is not checked.
-	test_yaffs_mount2_ENOTDIR	//cannot be generated in yaffs.
-	test_yaffs_mount2_ENOENT	//cannot be generated in yaffs.
 	test_yaffs_mount2_ENAMETOOLONG
 	test_yaffs_mount2_with read only set
 
-
-
-	test_yaffs_unmount2_ENOENT	//cannot be generated in yaffs.
-	test_yaffs_unmount2_ENOTDIR	//cannot be generated in yaffs.
 	test_yaffs_unmount2_ENAMETOOLONG
-	
 
 	test_yaffs_remount_force_off_read_only_on
 	test_yaffs_remount_force_on_read_only_on
-	test_yaffs_remount_ENOENT	//cannot be generated in yaffs
-	test_yaffs_remount_ENOTDIR	//cannot be generated in yaffs
-
 
 	test_yaffs_freespace_ENAMETOOLONG
 	test_yaffs_totalspace_ENAMETOOLONG
@@ -227,11 +203,10 @@ Tests to add
 
 	test_yaffs_closedir
 
-
 	test_yaffs_link_EACCES
 
 	test_yaffs_link_ELOOP
-	test_yaffs_link_EMLINK		//should not happen on yaffs
+
 	test_yaffs_link_ENAMETOOLONG
 	test_yaffs_link_EPERM
 	test_yaffs_link_EROFS
@@ -242,15 +217,12 @@ Tests to add
 	test_yaffs_rmdir_EROFS
 
 
-	what happens if a file is renamed into a dir.
-	//need to do rename for directories.
-	//what happens if the dir or file is renamed over an existing dir or file 
+
 	test_yaffs_rename_EACCES
 	test_yaffs_rename_ELOOP
 	test_yaffs_rename_EMLINK
 	test_yaffs_rename_EEXISTS or EPERM
 	test_yaffs_rename_EROFS
-
 
 	test_yaffs_dup
 	test_yaffs_dup_EBADF		
@@ -272,8 +244,6 @@ Tests to add
 	test_yaffs_stat_ELOOP
 	test_yaffs_stat_EACCES
 	test_yaffs_stat_ENAMETOOLONG
-
-	 
 
 	test_yaffs_read_big_file
 	test what happens if you read off the end of the file?
@@ -321,6 +291,32 @@ Tests to add
 	What happens when open a handle, unmount yaffs and then try to use the handle? 
 
 	What happens when a mount point is mounted using mount2 with read only mode set and then a file is chmoded? 
+
+
+Tests which do not exist in yaffs:
+	
+	test_yaffs_link_EMLINK		//should not happen on yaffs
+	
+	//the yaffs_mknod function does not exist in yaffsfs, so these tests will not be added.
+	test_yaffs_mknod
+	test_yaffs_mknod_EACCES
+	test_yaffs_mknod_EEXIST
+	test_yaffs_mknod_EINVAL
+	test_yaffs_mknod_ELOOP
+	test_yaffs_mknod_ENAMETOOLONG
+	test_yaffs_mknod_ENOENT
+	test_yaffs_mknod_ENOTDIR
+	test_yaffs_mknod_EROFS
+
+	test_yaffs_mount2_EINVAL	//cannot happen in yaffs since the mode is not checked.
+	test_yaffs_mount2_ENOTDIR	//cannot be generated in yaffs.
+	test_yaffs_mount2_ENOENT	//cannot be generated in yaffs.
+
+	test_yaffs_remount_ENOENT	//cannot be generated in yaffs
+	test_yaffs_remount_ENOTDIR	//cannot be generated in yaffs
+
+	test_yaffs_unmount2_ENOENT	//cannot be generated in yaffs.
+	test_yaffs_unmount2_ENOTDIR	//cannot be generated in yaffs.
 
 How to add a test
 	First create the test .c and .h file.

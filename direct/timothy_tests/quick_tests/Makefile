@@ -87,7 +87,8 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_rmdir_ENOTDIR.o \
 		test_yaffs_rename.o test_yaffs_rename_ENOENT.o test_yaffs_rename_ENOTDIR.o test_yaffs_rename_EINVAL.o \
 		test_yaffs_rename_dir.o test_yaffs_rename_dir_ENOENT.o test_yaffs_rename_dir_ENOENT2.o test_yaffs_rename_dir_to_file.o \
-		test_yaffs_rename_file_to_dir.o test_yaffs_rename_EEXISTS.o
+		test_yaffs_rename_file_to_dir.o test_yaffs_rename_EEXISTS.o \
+		test_yaffs_lstat.o
 
 
 		  

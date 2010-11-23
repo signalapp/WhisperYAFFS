@@ -17,6 +17,13 @@ static int output = 0;
 
 int test_yaffs_symlink(void)
 {
+	if (0 == yaffs_access(SYMLINK_PATH,0)){
+		output=yaffs_unlink(SYMLINK_PATH);
+		if (output<0){
+			print_message("failed to unlink symlink\n",2);
+			return -1;
+		}
+	}
 	output = yaffs_symlink(FILE_PATH,SYMLINK_PATH);
 	return output;
 }

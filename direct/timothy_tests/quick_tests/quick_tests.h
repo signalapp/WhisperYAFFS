@@ -167,6 +167,8 @@
 #include "test_yaffs_rename_file_to_dir.h"
 #include "test_yaffs_rename_EEXISTS.h"
 
+#include "test_yaffs_lstat.h"
+
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
 #include "lib.h"
@@ -330,7 +332,8 @@ test_template test_list[]={
 	{test_yaffs_rename_dir_ENOENT2,test_yaffs_rename_dir_ENOENT2_clean,"test_yaffs_rename_dir_ENOENT2"},
 	{test_yaffs_rename_dir_to_file,test_yaffs_rename_dir_to_file_clean,"test_yaffs_rename_dir_to_file"},
 	{test_yaffs_rename_file_to_dir,test_yaffs_rename_file_to_dir_clean,"test_yaffs_rename_file_to_dir"},
-	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"}
+	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"},
+	{test_yaffs_lstat,test_yaffs_lstat_clean,"test_yaffs_lstat"}
 	};
 
 void init_quick_tests(int argc, char *argv[]);

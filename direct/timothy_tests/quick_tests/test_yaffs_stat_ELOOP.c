@@ -11,33 +11,36 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_access_ELOOP.h"
+#include "test_yaffs_stat_ELOOP.h"
 
-int test_yaffs_access_ELOOP(void)
+int test_yaffs_stat_ELOOP(void)
 {
+	int error_code=0;
+	struct yaffs_stat stat;
 	int output=0;
-	int error=0;
+	char text[100];
+	text[0] ='\0';
+
 	if (set_up_ELOOP()<0){
 		print_message("failed to setup symlinks\n",2);
 		return -1;
 	}
-	output= yaffs_access(ELOOP_PATH,0);
-	if (output<0){
-		error=yaffs_get_error();
-		if ( abs(error)== ELOOP){
+	output=yaffs_stat(ELOOP_PATH, &stat);;
+	if (output<0){ 
+		error_code=yaffs_get_error();
+		if (abs(error_code)==ENOTDIR){
 			return 1;
 		} else {
-			print_message("error does not match expected error\n",2);
+			print_message("returned error does not match the the expected error\n",2);
 			return -1;
 		}
-	} else{
-		print_message("accessed an existing file with bad mode (which is a bad thing\n",2);
-
+	} else {
+		print_message("stated a ELOOP (which is a bad thing)\n",2);
 		return -1;
-	}
+	}	
 }
 
-int test_yaffs_access_ELOOP_clean(void)
+int test_yaffs_stat_ELOOP_clean(void)
 {
 	return 1;
 }

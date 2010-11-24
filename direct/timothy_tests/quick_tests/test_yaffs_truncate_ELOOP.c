@@ -11,33 +11,36 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_access_ELOOP.h"
+#include "test_yaffs_truncate_ELOOP.h"
 
-int test_yaffs_access_ELOOP(void)
+
+
+int test_yaffs_truncate_ELOOP(void)
 {
-	int output=0;
 	int error=0;
+	int output=0;
+
 	if (set_up_ELOOP()<0){
 		print_message("failed to setup symlinks\n",2);
 		return -1;
 	}
-	output= yaffs_access(ELOOP_PATH,0);
+
+	output= yaffs_truncate(ELOOP_PATH,FILE_SIZE_TRUNCATED );
 	if (output<0){
 		error=yaffs_get_error();
-		if ( abs(error)== ELOOP){
+		if (abs(error)==ELOOP){
 			return 1;
 		} else {
-			print_message("error does not match expected error\n",2);
+			print_message("received a different error than expected\n",2);
 			return -1;
 		}
 	} else{
-		print_message("accessed an existing file with bad mode (which is a bad thing\n",2);
-
+		print_message("truncated a nonexisting file\n",2);
 		return -1;
 	}
 }
 
-int test_yaffs_access_ELOOP_clean(void)
+int test_yaffs_truncate_ELOOP_clean(void)
 {
 	return 1;
 }

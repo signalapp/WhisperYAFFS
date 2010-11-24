@@ -217,6 +217,7 @@ Tests to add
 	test_yaffs_rmdir_EACCES
 	test_yaffs_rmdir_ENOTEMPTY
 	test_yaffs_rmdir_EROFS
+	test_yaffs_emdir_ELOOP
 
 
 
@@ -294,11 +295,19 @@ Tests to add
 
 	What happens when a mount point is mounted using mount2 with read only mode set and then a file is chmoded? 
 
+	Try to remove lost and found dir and replace it with a file of the same name.
+
+	Change the mode of the lost and found dir to read only.
 
 Tests which do not exist in yaffs:
 	
 	test_yaffs_link_EMLINK		//should not happen on yaffs
+	test_yaffs_link_ELOOP
 	
+	test_yaffs_lstat_ELOOP
+
+	test_yaffs_mkdir_ELOOP
+
 	//the yaffs_mknod function does not exist in yaffsfs, so these tests will not be added.
 	test_yaffs_mknod
 	test_yaffs_mknod_EACCES
@@ -310,9 +319,12 @@ Tests which do not exist in yaffs:
 	test_yaffs_mknod_ENOTDIR
 	test_yaffs_mknod_EROFS
 
+	teat_yaffs_mount_ELOOP
+
 	test_yaffs_mount2_EINVAL	//cannot happen in yaffs since the mode is not checked.
 	test_yaffs_mount2_ENOTDIR	//cannot be generated in yaffs.
 	test_yaffs_mount2_ENOENT	//cannot be generated in yaffs.
+	test_yaffs_mount2_ELOOP
 
 	test_yaffs_remount_ENOENT	//cannot be generated in yaffs
 	test_yaffs_remount_ENOTDIR	//cannot be generated in yaffs

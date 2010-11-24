@@ -44,7 +44,7 @@ int test_yaffs_rename_EEXISTS(void)
 	output = yaffs_rename(DIR_PATH , RENAME_DIR_PATH);
 	if (output<0){ 
 		error_code=yaffs_get_error();
-		if (abs(error_code)==EEXIST){
+		if (abs(error_code)==ENOTEMPTY){
 			return 1;
 		} else {
 			print_message("returned error does not match the the expected error\n",2);

@@ -37,12 +37,31 @@ int get_exit_on_error(void)
 int set_up_ELOOP(void){
 	int output1=1;
 	int output2=1;
-	if (0!=yaffs_access(ELOOP2)){
-		output1=yaffs_symlink(ELOOP,ELOOP2);
-	}	
-	if (0!=yaffs_access(ELOOP)){
-		output2=yaffs_symlink(ELOOP2,ELOOP);
+	int error =0;
+	
+	output1=yaffs_symlink(ELOOP_PATH,ELOOP2_PATH);
+	if (output1 <0){
+		error=yaffs_get_error();
+		if (abs(error)==EEXIST){
+			output1= 1;
+		} else {
+			output1=-1;
+		}
 	}
+	
+	output2=yaffs_symlink(ELOOP2_PATH,ELOOP_PATH);
+
+	if (output2 <0){
+		error=yaffs_get_error();
+		if (abs(error)==EEXIST){
+			output2= 1;
+		} else {
+			output2=-1;
+		}
+	}
+	
+
+	yaffs_set_error(0);	/*reset the last error to 0 */
 	return (output1|output2);
 }
 

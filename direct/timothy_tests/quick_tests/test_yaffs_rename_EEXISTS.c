@@ -60,6 +60,13 @@ int test_yaffs_rename_EEXISTS(void)
 int test_yaffs_rename_EEXISTS_clean(void)
 {
 	int output = 0;
+	if (0 ==  yaffs_access("/yaffs2/dir2/file",0) ) {
+		output = yaffs_unlink("/yaffs2/dir2/file");
+		if (output < 0) {
+			print_message("failed to remove the file\n",2);
+			return -1;
+		}
+	}
 	if (0 ==  yaffs_access(RENAME_PATH,0) && 0 != yaffs_access(DIR_PATH,0)) {
 		output = yaffs_rename(RENAME_PATH,FILE_PATH);
 		if (output < 0) {
@@ -67,6 +74,7 @@ int test_yaffs_rename_EEXISTS_clean(void)
 			return -1;
 		}
 	}
+	
 	return 1;
 
 }

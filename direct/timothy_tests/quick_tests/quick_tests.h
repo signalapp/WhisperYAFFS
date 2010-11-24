@@ -179,6 +179,9 @@
 #include "test_yaffs_lstat_ENOENT.h"
 #include "test_yaffs_lstat_ENOTDIR.h"
 
+#include "test_yaffs_flush.h"
+#include "test_yaffs_flush_EBADF.h"
+
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
 #include "lib.h"
@@ -352,7 +355,10 @@ test_template test_list[]={
 
 	{test_yaffs_lstat,test_yaffs_lstat_clean,"test_yaffs_lstat"},
 	{test_yaffs_lstat_ENOENT,test_yaffs_lstat_ENOENT_clean,"test_yaffs_lstat_ENOENT"},
-	{test_yaffs_lstat_ENOTDIR,test_yaffs_lstat_ENOTDIR_clean,"test_yaffs_lstat_ENOTDIR"}
+	{test_yaffs_lstat_ENOTDIR,test_yaffs_lstat_ENOTDIR_clean,"test_yaffs_lstat_ENOTDIR"},
+
+	{test_yaffs_flush,test_yaffs_flush_clean,"test_yaffs_flush"},
+	{test_yaffs_flush_EBADF,test_yaffs_flush_EBADF_clean,"test_yaffs_flush_EBADF"}
 
 	};
 

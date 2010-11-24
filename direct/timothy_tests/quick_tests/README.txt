@@ -6,12 +6,14 @@ Tests made
 
 test_yaffs_access.c
 test_yaffs_access_EINVAL.c
+test_yaffs_access_ELOOP.c
 test_yaffs_access_ENOENT2.c
 test_yaffs_access_ENOENT.c
 test_yaffs_access_ENOTDIR.c
 
 test_yaffs_chmod.c
 test_yaffs_chmod_EINVAL.c
+test_yaffs_chmod_ELOOP.c
 test_yaffs_chmod_ENOENT2.c
 test_yaffs_chmod_ENOENT.c
 test_yaffs_chmod_ENOTDIR.c
@@ -47,6 +49,7 @@ test_yaffs_link.c
 test_yaffs_link_EEXIST.c
 test_yaffs_link_ENOENT2.c
 test_yaffs_link_ENOENT3.c
+test_yaffs_link_ENOENT4.c
 test_yaffs_link_ENOENT.c
 test_yaffs_link_ENOTDIR2.c
 test_yaffs_link_ENOTDIR.c
@@ -56,9 +59,9 @@ test_yaffs_lseek.c
 test_yaffs_lseek_EBADF.c
 test_yaffs_lseek_EINVAL.c
 
-test_yaffs_lstat
-test_yaffs_lstat_ENOENT
-test_yaffs_lstat_ENOTDIR
+test_yaffs_lstat.c
+test_yaffs_lstat_ENOENT.c
+test_yaffs_lstat_ENOTDIR.c
 
 test_yaffs_mkdir.c
 test_yaffs_mkdir_EEXIST.c
@@ -80,6 +83,7 @@ test_yaffs_open_EEXIST.c
 test_yaffs_open_EINVAL2.c
 test_yaffs_open_EINVAL.c
 test_yaffs_open_EISDIR.c
+test_yaffs_open_ELOOP.c
 test_yaffs_open_ENAMETOOLONG.c
 test_yaffs_open_ENOENT.c
 test_yaffs_open_ENOTDIR.c
@@ -95,18 +99,27 @@ test_yaffs_remount_force_off_read_only_on.c
 test_yaffs_remount_force_on_read_only_off.c
 test_yaffs_remount_force_on_read_only_on.c
 
-test_yaffs_rename
-test_yaffs_rename_ENOENT
-test_yaffs_rename_ENOTDIR
-test_yaffs_rename_EINVAL
+test_yaffs_rename.c
+test_yaffs_rename_dir.c
+test_yaffs_rename_dir_ENOENT2.c
+test_yaffs_rename_dir_ENOENT.c
+test_yaffs_rename_dir_not_empty.c
+test_yaffs_rename_dir_to_file.c
+test_yaffs_rename_EEXISTS.c
+test_yaffs_rename_EINVAL.c
+test_yaffs_rename_ELOOP.c
+test_yaffs_rename_ENOENT.c
+test_yaffs_rename_ENOTDIR.c
+test_yaffs_rename_file_to_dir.c
 
 test_yaffs_rmdir.c
-test_yaffs_rmdir_EBUSY
-test_yaffs_rmdir_EINVAL
-test_yaffs_rmdir_ENOENT
-test_yaffs_rmdir_ENOTDIR
+test_yaffs_rmdir_EBUSY.c
+test_yaffs_rmdir_EINVAL.c
+test_yaffs_rmdir_ENOENT.c
+test_yaffs_rmdir_ENOTDIR.c
 
 test_yaffs_stat.c
+test_yaffs_stat_ELOOP.c
 test_yaffs_stat_ENOENT2.c
 test_yaffs_stat_ENOENT.c
 test_yaffs_stat_ENOTDIR.c
@@ -123,10 +136,11 @@ test_yaffs_sync_ENODEV.c
 test_yaffs_totalspace.c
 test_yaffs_totalspace_EINVAL.c
 
-test_yaffs_truncate.c
 test_yaffs_truncate_big_file.c
+test_yaffs_truncate.c
 test_yaffs_truncate_EINVAL.c
 test_yaffs_truncate_EISDIR.c
+test_yaffs_truncate_ELOOP.c
 test_yaffs_truncate_ENOENT2.c
 test_yaffs_truncate_ENOENT.c
 test_yaffs_truncate_ENOTDIR.c
@@ -143,29 +157,27 @@ test_yaffs_unmount2_EINVAL.c
 test_yaffs_unmount2_ENODEV.c
 test_yaffs_unmount2_with_handle_open_and_forced_mode_off.c
 test_yaffs_unmount2_with_handle_open_and_forced_mode_on.c
-
 test_yaffs_unmount.c
 test_yaffs_unmount_EBUSY.c
 test_yaffs_unmount_ENAMETOOLONG.c
 test_yaffs_unmount_ENODEV.c
 
-test_yaffs_write.c
 test_yaffs_write_big_file.c
+test_yaffs_write.c
 test_yaffs_write_EBADF.c
 
-	
 
 Tests to add
 	test_yaffs_fchmod_EACCES
 
 	test_yaffs_chmod_EACCES
-	test_yaffs_chmod_ELOOP
+
 	test_yaffs_chmod_ENAMETOOLONG
 
 	
 	test_yaffs_lstat_EACCES
 	test_yaffs_lstat_ENAMETOOLONG
-	test_yaffs_lstat_ELOOP
+
 
 	test_yaffs_readlink
 	test_yaffs_readlink_ENOENT
@@ -181,7 +193,6 @@ Tests to add
 
 
 	test_yaffs_symlink_EACCES
-	test_yaffs_symlink_ELOOP
 	test_yaffs_symlink_ENAMETOOLONG
 	test_yaffs_symlink_EROFS
 
@@ -207,8 +218,6 @@ Tests to add
 
 	test_yaffs_link_EACCES
 
-	test_yaffs_link_ELOOP
-
 	test_yaffs_link_ENAMETOOLONG
 	test_yaffs_link_EPERM
 	test_yaffs_link_EROFS
@@ -217,12 +226,11 @@ Tests to add
 	test_yaffs_rmdir_EACCES
 	test_yaffs_rmdir_ENOTEMPTY
 	test_yaffs_rmdir_EROFS
-	test_yaffs_emdir_ELOOP
+
 
 
 
 	test_yaffs_rename_EACCES
-	test_yaffs_rename_ELOOP
 	test_yaffs_rename_EMLINK
 	test_yaffs_rename_EEXISTS or EPERM
 	test_yaffs_rename_EROFS
@@ -242,9 +250,9 @@ Tests to add
 	test_yaffs_open_ELOOP   
 	test yaffs_open_running_out_of_handles error
 
-	test_yaffs_close	//This function has already been called by the time this test is reached.
 	
-	test_yaffs_stat_ELOOP
+	
+
 	test_yaffs_stat_EACCES
 	test_yaffs_stat_ENAMETOOLONG
 
@@ -266,14 +274,13 @@ Tests to add
 	test_yaffs_pwrite_EINVAL
 
 	test_yaffs_unlink_EACCES
-	test_yaffs_unlink_ELOOP
+
 	test_yaffs_unlink_ENOMEM
 
 	test_yaffs_stat_EACCES
 	test_yaffs_stat_ELOOP
 
 	test_yaffs_access_EACCESS
-	test_yaffs_access_ELOOP
 	test_yaffs_access_ENAMETOOLONG
 	test_yaffs_access_ENOENT_generated_with_a_dangling_symbloic_link
 
@@ -281,14 +288,13 @@ Tests to add
 
 
 	test_yaffs_truncate_EACCES
-	test_yaffs_truncate_ELOOP
 	test_yaffs_truncate_ENAMETOOLONG
 	Add a truncate function for truncating a file size to -1.
 
 	What happens if a handle is opened to a file and the file is then deleted?
 	Check to see if yaffs generates an error code for no reason.
 	What happens when a file is opened with no modes set?
-	Add a test where a directory is moved. /fluffy/box. move "fluffy" to "/fluffy/frog". 
+
 	What happens when yaffs is unmounted twice?
 
 	What happens when open a handle, unmount yaffs and then try to use the handle? 
@@ -300,7 +306,9 @@ Tests to add
 	Change the mode of the lost and found dir to read only.
 
 Tests which do not exist in yaffs:
-	
+	test_yaffs_close	//This function has already been called by the time this test is reached, 
+				//so there is no point in testing it.
+
 	test_yaffs_link_EMLINK		//should not happen on yaffs
 	test_yaffs_link_ELOOP
 	

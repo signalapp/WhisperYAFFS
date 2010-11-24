@@ -79,6 +79,7 @@
 #include "test_yaffs_access_ENOTDIR.h"
 #include "test_yaffs_access_ENOENT.h"
 #include "test_yaffs_access_ENOENT2.h"
+#include "test_yaffs_access_ELOOP.h"
 
 #include "test_yaffs_stat.h"
 #include "test_yaffs_stat_ENOENT.h"
@@ -168,6 +169,9 @@
 #include "test_yaffs_rename_EEXISTS.h"
 
 #include "test_yaffs_lstat.h"
+#include "test_yaffs_lstat_ENOENT.h"
+#include "test_yaffs_lstat_ENOTDIR.h"
+
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -211,6 +215,7 @@ test_template test_list[]={
 	{test_yaffs_access_ENOTDIR,test_yaffs_access_ENOTDIR_clean,"test_yaffs_access_ENOTDIR"},
 	{test_yaffs_access_ENOENT,test_yaffs_access_ENOENT_clean,"test_yaffs_access_ENOENT"},
 	{test_yaffs_access_ENOENT2,test_yaffs_access_ENOENT2_clean,"test_yaffs_access_ENOENT2"},
+	{test_yaffs_access_ELOOP,test_yaffs_access_ELOOP_clean,"test_yaffs_access_ELOOP"},
 
 	{test_yaffs_unlink, test_yaffs_unlink_clean,"test_yaffs_unlink"},
 	{test_yaffs_unlink_EISDIR,test_yaffs_unlink_EISDIR_clean,"test_yaffs_unlink_EISDIR"},
@@ -333,7 +338,10 @@ test_template test_list[]={
 	{test_yaffs_rename_dir_to_file,test_yaffs_rename_dir_to_file_clean,"test_yaffs_rename_dir_to_file"},
 	{test_yaffs_rename_file_to_dir,test_yaffs_rename_file_to_dir_clean,"test_yaffs_rename_file_to_dir"},
 	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"},
-	{test_yaffs_lstat,test_yaffs_lstat_clean,"test_yaffs_lstat"}
+
+	{test_yaffs_lstat,test_yaffs_lstat_clean,"test_yaffs_lstat"},
+	{test_yaffs_lstat_ENOENT,test_yaffs_lstat_ENOENT_clean,"test_yaffs_lstat_ENOENT"},
+	{test_yaffs_lstat_ENOTDIR,test_yaffs_lstat_ENOTDIR_clean,"test_yaffs_lstat_ENOTDIR"}
 	};
 
 void init_quick_tests(int argc, char *argv[]);

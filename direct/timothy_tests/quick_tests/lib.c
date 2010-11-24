@@ -33,6 +33,19 @@ int get_exit_on_error(void)
 	return EXIT_ON_ERROR;
 }
 
+
+int set_up_ELOOP(void){
+	int output1=1;
+	int output2=1;
+	if (0!=yaffs_access(ELOOP2)){
+		output1=yaffs_symlink(ELOOP,ELOOP2);
+	}	
+	if (0!=yaffs_access(ELOOP)){
+		output2=yaffs_symlink(ELOOP2,ELOOP);
+	}
+	return (output1|output2);
+}
+
 void join_paths(char *path1,char *path2,char *new_path )
 {
 

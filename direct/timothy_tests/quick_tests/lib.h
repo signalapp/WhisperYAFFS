@@ -42,7 +42,8 @@
 
 #define RENAME_DIR_PATH "/yaffs2/dir2"
 
-
+#define ELOOP "/yaffs2/ELOOP"
+#define ELOOP2 "/yaffs2/ELOOP2"
 
 /* warning do not define anything as FILE because there seems to be a conflict with stdio.h */ 
 #define FILE_PATH "/yaffs2/foo"
@@ -52,4 +53,5 @@ void print_message(char *message,char print_level);
 void set_print_level(int new_level);
 void set_exit_on_error(int num);
 int get_exit_on_error(void);
+int set_up_ELOOP(void);
 #endif

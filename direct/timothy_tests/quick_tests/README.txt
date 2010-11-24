@@ -56,6 +56,10 @@ test_yaffs_lseek.c
 test_yaffs_lseek_EBADF.c
 test_yaffs_lseek_EINVAL.c
 
+test_yaffs_lstat
+test_yaffs_lstat_ENOENT
+test_yaffs_lstat_ENOTDIR
+
 test_yaffs_mkdir.c
 test_yaffs_mkdir_EEXIST.c
 test_yaffs_mkdir_ENOENT.c
@@ -158,11 +162,9 @@ Tests to add
 	test_yaffs_chmod_ELOOP
 	test_yaffs_chmod_ENAMETOOLONG
 
-	test_yaffs_lstat
+	
 	test_yaffs_lstat_EACCES
-	test_yaffs_lstat_ENOTDIR
 	test_yaffs_lstat_ENAMETOOLONG
-	test_yaffs_lstat_ENOENT
 	test_yaffs_lstat_ELOOP
 
 	test_yaffs_readlink

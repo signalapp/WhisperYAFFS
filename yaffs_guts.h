@@ -911,4 +911,5 @@ struct yaffs_tnode *yaffs_find_tnode_0(struct yaffs_dev *dev,
 u32 yaffs_get_group_base(struct yaffs_dev *dev, struct yaffs_tnode *tn,
 			 unsigned pos);
 
+int yaffs_is_non_empty_dir(struct yaffs_obj *obj);
 #endif

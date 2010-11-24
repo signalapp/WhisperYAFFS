@@ -1314,6 +1314,7 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 	struct yaffs_obj *olddir = NULL;
 	struct yaffs_obj *newdir = NULL;
 	struct yaffs_obj *obj = NULL;
+	struct yaffs_obj *newobj = NULL;
 	YCHAR *oldname;
 	YCHAR *newname;
 	int result= YAFFS_FAIL;
@@ -1340,6 +1341,7 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 	olddir = yaffsfs_FindDirectory(NULL,oldPath,&oldname,0,&notOldDir);
 	newdir = yaffsfs_FindDirectory(NULL,newPath,&newname,0,&notNewDir);
 	obj = yaffsfs_FindObject(NULL,oldPath,0,0,NULL,NULL);
+	newobj = yaffsfs_FindObject(NULL,newPath,0,0,NULL,NULL);
 
 	/* If the object being renamed is a directory and the 
 	 * path ended with a "/" then the olddir == obj.
@@ -1361,6 +1363,9 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 		rename_allowed = 0;
 	} else if(obj->my_dev->read_only){
 		yaffsfs_SetError(-EROFS);
+		rename_allowed = 0;
+	} else if(yaffs_is_non_empty_dir(newobj)){
+		yaffsfs_SetError(-ENOTEMPTY);
 		rename_allowed = 0;
 	} else if(olddir->my_dev != newdir->my_dev) {
 		/* Rename must be on same device */

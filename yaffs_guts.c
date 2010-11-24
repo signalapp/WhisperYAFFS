@@ -1669,12 +1669,8 @@ int yaffs_rename_obj(struct yaffs_obj *old_dir, const YCHAR * old_name,
 		/* Now do the handling for an existing target, if there is one */
 
 		existing_target = yaffs_find_by_name(new_dir, new_name);
-		if (existing_target &&
-		    existing_target->variant_type == YAFFS_OBJECT_TYPE_DIRECTORY
-		    && !list_empty(&existing_target->variant.dir_variant.
-				   children)) {
-			/* There is a target that is a non-empty directory, so we fail */
-			return YAFFS_FAIL;	/* EEXIST or ENOTEMPTY */
+		if (yaffs_is_non_empty_dir(existing_target)){
+			return YAFFS_FAIL;	/* ENOTEMPTY */
 		} else if (existing_target && existing_target != obj) {
 			/* Nuke the target first, using shadowing,
 			 * but only if it isn't the same object.
@@ -3811,10 +3807,11 @@ int yaffs_del_file(struct yaffs_obj *in)
 	}
 }
 
-static int yaffs_is_non_empty_dir(struct yaffs_obj *obj)
+int yaffs_is_non_empty_dir(struct yaffs_obj *obj)
 {
-	return (obj->variant_type == YAFFS_OBJECT_TYPE_DIRECTORY) &&
-	    !(list_empty(&obj->variant.dir_variant.children));
+	return (obj &&
+	        obj->variant_type == YAFFS_OBJECT_TYPE_DIRECTORY) &&
+	        !(list_empty(&obj->variant.dir_variant.children));
 }
 
 static int yaffs_del_dir(struct yaffs_obj *obj)

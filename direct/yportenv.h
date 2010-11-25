@@ -199,6 +199,10 @@
 #define EISDIR 21
 #endif
 
+#ifndef ELOOP
+#define ELOOP	40
+#endif
+
 
 // Mode flags
 

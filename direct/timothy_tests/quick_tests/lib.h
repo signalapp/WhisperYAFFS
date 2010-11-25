@@ -20,10 +20,6 @@
 #include <string.h>
 #include "yaffsfs.h"
 
-
-#define ELOOP 10	//the error code ELOOP is not defined yet so I'm making a stand in.
-
-
 #define YAFFS_MOUNT_POINT "/yaffs2/"
 #define FILE_NAME "foo"
 #define FILE_SIZE 10

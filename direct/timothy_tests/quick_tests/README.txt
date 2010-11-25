@@ -28,6 +28,9 @@ test_yaffs_fchmod_EINVAL.c
 test_yaffs_fdatasync.c
 test_yaffs_fdatasync_EBADF.c
 
+test_yaffs_flush
+test_yaffs_flush_EBADF	
+
 test_yaffs_freespace.c
 test_yaffs_freespace_EINVAL.c
 
@@ -187,7 +190,6 @@ Tests to add
 
 	
 	test_yaffs_mkdir_EACCES
-	test_yaffs_mkdir_ELOOP
 	test_yaffs_mkdir_ENAMETOOLONG
 	test_yaffs_mkdir_EROFS
 
@@ -238,9 +240,6 @@ Tests to add
 	test_yaffs_dup
 	test_yaffs_dup_EBADF		
 
-	test_yaffs_flush
-	test_yaffs_flush_EBADF	
-	
 	test_yaffs_fchmod_EACCES
 	test_yaffs_fchmod_ELOOP
 

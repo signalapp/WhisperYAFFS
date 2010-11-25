@@ -58,7 +58,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_read.o test_yaffs_read_EBADF.o test_yaffs_read_EINVAL.o\
 		test_yaffs_lseek.o test_yaffs_lseek_EBADF.o test_yaffs_lseek_EINVAL.o test_yaffs_lseek_big_file.o \
 		test_yaffs_access.o test_yaffs_access_EINVAL.o test_yaffs_access_ENOTDIR.o test_yaffs_access_ENOENT.o \
-		test_yaffs_access_ENOENT2.o test_yaffs_access_ELOOP.o \
+		test_yaffs_access_ENOENT2.o test_yaffs_access_ELOOP.o test_yaffs_access_EROFS.o \
 		test_yaffs_stat.o test_yaffs_stat_ENOENT.o test_yaffs_stat_ENOTDIR.o test_yaffs_stat_ENOENT2.o test_yaffs_stat_ELOOP.o \
 		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o \
 		test_yaffs_close_EBADF.o\

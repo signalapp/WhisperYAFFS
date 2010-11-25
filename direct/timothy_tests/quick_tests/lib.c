@@ -34,6 +34,29 @@ int get_exit_on_error(void)
 }
 
 
+int EROFS_setup(void)
+{
+	int output= -1;
+	output=yaffs_remount(YAFFS_MOUNT_POINT,1,1);
+	if (output<0){
+		print_message("failed to remount yaffs\n",2);
+		return -1;
+	}
+	return 1;
+}
+
+int EROFS_clean(void)
+{
+	int output=-1;
+	output= yaffs_remount(YAFFS_MOUNT_POINT,1,0);
+	if (output<0){
+		print_message("failed to remount yaffs\n",2);
+		return -1;
+	}
+	return 1;
+}
+
+
 int set_up_ELOOP(void){
 	int output1=1;
 	int output2=1;

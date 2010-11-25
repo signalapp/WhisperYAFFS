@@ -20,6 +20,7 @@
 #include <string.h>
 #include "yaffsfs.h"
 
+
 #define YAFFS_MOUNT_POINT "/yaffs2/"
 #define FILE_NAME "foo"
 #define FILE_SIZE 10
@@ -53,4 +54,6 @@ void set_print_level(int new_level);
 void set_exit_on_error(int num);
 int get_exit_on_error(void);
 int set_up_ELOOP(void);
+int EROFS_setup(void);
+int EROFS_clean(void);
 #endif

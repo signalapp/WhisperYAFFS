@@ -82,6 +82,7 @@
 #include "test_yaffs_access_ENOENT.h"
 #include "test_yaffs_access_ENOENT2.h"
 #include "test_yaffs_access_ELOOP.h"
+#include "test_yaffs_access_EROFS.h"
 
 #include "test_yaffs_stat.h"
 #include "test_yaffs_stat_ENOENT.h"
@@ -98,6 +99,7 @@
 #include "test_yaffs_chmod_EINVAL.h"
 #include "test_yaffs_chmod_ENOENT2.h"
 #include "test_yaffs_chmod_ELOOP.h"
+#include "test_yaffs_chmod_EROFS.h"
 
 #include "test_yaffs_fchmod.h"
 #include "test_yaffs_fchmod_EBADF.h"
@@ -226,6 +228,7 @@ test_template test_list[]={
 	{test_yaffs_access_ENOENT,test_yaffs_access_ENOENT_clean,"test_yaffs_access_ENOENT"},
 	{test_yaffs_access_ENOENT2,test_yaffs_access_ENOENT2_clean,"test_yaffs_access_ENOENT2"},
 	{test_yaffs_access_ELOOP,test_yaffs_access_ELOOP_clean,"test_yaffs_access_ELOOP"},
+	{test_yaffs_access_EROFS,test_yaffs_access_EROFS_clean,"test_yaffs_access_EROFS"},
 
 	{test_yaffs_unlink, test_yaffs_unlink_clean,"test_yaffs_unlink"},
 	{test_yaffs_unlink_EISDIR,test_yaffs_unlink_EISDIR_clean,"test_yaffs_unlink_EISDIR"},
@@ -277,6 +280,8 @@ test_template test_list[]={
 	{test_yaffs_chmod_ENOTDIR,test_yaffs_chmod_ENOTDIR_clean,"test_yaffs_chmod_ENOTDIR"},
 	{test_yaffs_chmod_EINVAL,test_yaffs_chmod_EINVAL_clean,"test_yaffs_chmod_EINVAL"},
 	{test_yaffs_chmod_ELOOP,test_yaffs_chmod_ELOOP_clean,"test_yaffs_chmod_ELOOP"},
+	{test_yaffs_chmod_EROFS,test_yaffs_chmod_EROFS_clean,"test_yaffs_chmod_EROFS"},
+
 	{test_yaffs_fchmod,test_yaffs_fchmod_clean,"test_yaffs_fchmod"},
 	{test_yaffs_fchmod_EBADF,test_yaffs_fchmod_EBADF_clean,"test_yaffs_fchmod_EBADF"},
 	{test_yaffs_fchmod_EINVAL,test_yaffs_fchmod_EINVAL_clean,"test_yaffs_fchmod_EINVAL"},

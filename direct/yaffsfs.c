@@ -2009,6 +2009,7 @@ int yaffs_chmod(const YCHAR *path, mode_t mode)
 	yaffsfs_Lock();
 
 	obj = yaffsfs_FindObject(NULL,path,0,1, &dir, &notDir,&loop);
+	obj = yaffsfs_FollowLink(obj,0,&loop);
 
 	if(!dir && notDir) 
 		yaffsfs_SetError(-ENOTDIR);

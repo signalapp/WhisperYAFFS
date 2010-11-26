@@ -39,5 +39,5 @@ int test_yaffs_chmod_EROFS(void)
 
 int test_yaffs_chmod_EROFS_clean(void)
 {
-	return test_yaffs_chmod() ;//| EROFS_clean();
+	return test_yaffs_chmod() | EROFS_clean();
 }

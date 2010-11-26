@@ -11,9 +11,9 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_chmod_ELOOP.h"
+#include "test_yaffs_chmod_ELOOP2.h"
 
-int test_yaffs_chmod_ELOOP(void)
+int test_yaffs_chmod_ELOOP2(void)
 {
 	int error=0;
 	int output;
@@ -23,7 +23,7 @@ int test_yaffs_chmod_ELOOP(void)
 		return -1;
 	}
 
-	output = yaffs_chmod(ELOOP_PATH "file",S_IREAD|S_IWRITE);
+	output = yaffs_chmod(ELOOP_PATH,S_IREAD|S_IWRITE);
 
 	if (output<0){
 		error=yaffs_get_error();
@@ -40,7 +40,7 @@ int test_yaffs_chmod_ELOOP(void)
 
 }
 
-int test_yaffs_chmod_ELOOP_clean(void)
+int test_yaffs_chmod_ELOOP2_clean(void)
 {
 	return test_yaffs_chmod();
 }

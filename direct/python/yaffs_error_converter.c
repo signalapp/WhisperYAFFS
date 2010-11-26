@@ -38,6 +38,7 @@ static const struct error_entry error_list[] = {
 	{ EISDIR , "EISDIR"},
 	{ ENFILE, "ENFILE"},
 	{ EROFS, "EROFS"},
+	{ ELOOP, "ELOOP"},
 	{ 0, NULL }
 };
 

@@ -82,6 +82,7 @@
 #include "test_yaffs_access_ENOENT.h"
 #include "test_yaffs_access_ENOENT2.h"
 #include "test_yaffs_access_ELOOP.h"
+#include "test_yaffs_access_ELOOP2.h"
 #include "test_yaffs_access_EROFS.h"
 
 #include "test_yaffs_stat.h"
@@ -99,6 +100,7 @@
 #include "test_yaffs_chmod_EINVAL.h"
 #include "test_yaffs_chmod_ENOENT2.h"
 #include "test_yaffs_chmod_ELOOP.h"
+#include "test_yaffs_chmod_ELOOP2.h"
 #include "test_yaffs_chmod_EROFS.h"
 
 #include "test_yaffs_fchmod.h"
@@ -157,6 +159,7 @@
 #include "test_yaffs_link_ENOENT2.h"
 #include "test_yaffs_link_ENOENT3.h"
 #include "test_yaffs_link_ENOENT4.h"
+#include "test_yaffs_link_ELOOP.h"
 
 
 #include "test_yaffs_rmdir.h"
@@ -228,6 +231,7 @@ test_template test_list[]={
 	{test_yaffs_access_ENOENT,test_yaffs_access_ENOENT_clean,"test_yaffs_access_ENOENT"},
 	{test_yaffs_access_ENOENT2,test_yaffs_access_ENOENT2_clean,"test_yaffs_access_ENOENT2"},
 	{test_yaffs_access_ELOOP,test_yaffs_access_ELOOP_clean,"test_yaffs_access_ELOOP"},
+	{test_yaffs_access_ELOOP2,test_yaffs_access_ELOOP2_clean,"test_yaffs_access_ELOOP2"},
 	{test_yaffs_access_EROFS,test_yaffs_access_EROFS_clean,"test_yaffs_access_EROFS"},
 
 	{test_yaffs_unlink, test_yaffs_unlink_clean,"test_yaffs_unlink"},
@@ -280,6 +284,7 @@ test_template test_list[]={
 	{test_yaffs_chmod_ENOTDIR,test_yaffs_chmod_ENOTDIR_clean,"test_yaffs_chmod_ENOTDIR"},
 	{test_yaffs_chmod_EINVAL,test_yaffs_chmod_EINVAL_clean,"test_yaffs_chmod_EINVAL"},
 	{test_yaffs_chmod_ELOOP,test_yaffs_chmod_ELOOP_clean,"test_yaffs_chmod_ELOOP"},
+	{test_yaffs_chmod_ELOOP2,test_yaffs_chmod_ELOOP2_clean,"test_yaffs_chmod_ELOOP2"},
 	{test_yaffs_chmod_EROFS,test_yaffs_chmod_EROFS_clean,"test_yaffs_chmod_EROFS"},
 
 	{test_yaffs_fchmod,test_yaffs_fchmod_clean,"test_yaffs_fchmod"},
@@ -339,6 +344,7 @@ test_template test_list[]={
 	{test_yaffs_link_ENOENT2,test_yaffs_link_ENOENT2_clean,"test_yaffs_link_ENOENT2"},
 	{test_yaffs_link_ENOENT3,test_yaffs_link_ENOENT3_clean,"test_yaffs_link_ENOENT3"},
 	{test_yaffs_link_ENOENT4,test_yaffs_link_ENOENT4_clean,"test_yaffs_link_ENOENT4"},
+	{test_yaffs_link_ELOOP,test_yaffs_link_ELOOP_clean,"test_yaffs_link_ELOOP"},
 
 	{test_yaffs_rmdir,test_yaffs_rmdir_clean,"test_yaffs_rmdir"},
 	{test_yaffs_rmdir_EBUSY,test_yaffs_rmdir_EBUSY_clean,"test_yaffs_rmdir_EBUSY"},

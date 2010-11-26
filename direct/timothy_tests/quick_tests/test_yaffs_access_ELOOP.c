@@ -21,7 +21,7 @@ int test_yaffs_access_ELOOP(void)
 		print_message("failed to setup symlinks\n",2);
 		return -1;
 	}
-	output= yaffs_access(ELOOP_PATH,0);
+	output= yaffs_access(ELOOP_PATH "file",0);
 	if (output<0){
 		error=yaffs_get_error();
 		if ( abs(error)== ELOOP){

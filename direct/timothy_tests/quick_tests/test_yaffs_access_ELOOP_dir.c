@@ -11,36 +11,33 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_chmod_ELOOP.h"
+#include "test_yaffs_access_ELOOP_dir.h"
 
-int test_yaffs_chmod_ELOOP(void)
+int test_yaffs_access_ELOOP_dir(void)
 {
+	int output=0;
 	int error=0;
-	int output;
-
 	if (set_up_ELOOP()<0){
 		print_message("failed to setup symlinks\n",2);
 		return -1;
 	}
-
-	output = yaffs_chmod(ELOOP_PATH "file",S_IREAD|S_IWRITE);
-
+	output= yaffs_access(ELOOP_PATH "/file",0);
 	if (output<0){
 		error=yaffs_get_error();
-		if (abs(error)==ELOOP){
+		if ( abs(error)== ELOOP){
 			return 1;
 		} else {
-			print_message("different error than expected\n",2);
+			print_message("error does not match expected error\n",2);
 			return -1;
 		}
-	} else {
-		print_message("chmoded the ELOOP (which is a bad thing)\n",2);
+	} else{
+		print_message("accessed an existing file with bad mode (which is a bad thing\n",2);
+
 		return -1;
 	}
-
 }
 
-int test_yaffs_chmod_ELOOP_clean(void)
+int test_yaffs_access_ELOOP_dir_clean(void)
 {
-	return test_yaffs_chmod();
+	return 1;
 }

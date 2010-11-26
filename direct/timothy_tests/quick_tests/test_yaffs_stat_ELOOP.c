@@ -28,7 +28,7 @@ int test_yaffs_stat_ELOOP(void)
 	output=yaffs_stat(ELOOP_PATH, &stat);;
 	if (output<0){ 
 		error_code=yaffs_get_error();
-		if (abs(error_code)==ENOTDIR){
+		if (abs(error_code)==ELOOP){
 			return 1;
 		} else {
 			print_message("returned error does not match the the expected error\n",2);

@@ -13,13 +13,13 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __test_yaffs_rename_ELOOP_h__
-#define __test_yaffs_rename_ELOOP_h__
+#ifndef __test_yaffs_rmdir_ELOOP_dir_h__
+#define __test_yaffs_rmdir_ELOOP_dir_h__
 
 #include "lib.h"
 #include "yaffsfs.h"
 
-int test_yaffs_rename_ELOOP(void);
-int test_yaffs_rename_ELOOP_clean(void);
+int test_yaffs_rmdir_ELOOP_dir(void);
+int test_yaffs_rmdir_ELOOP_dir_clean(void);
 
 #endif

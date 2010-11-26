@@ -48,6 +48,7 @@
 #include "test_yaffs_unlink_ENOTDIR.h"
 #include "test_yaffs_unlink_ENOENT.h"
 #include "test_yaffs_unlink_ENOENT2.h"
+#include "test_yaffs_unlink_ELOOP_dir.h"
 
 #include "test_yaffs_ftruncate.h"
 #include "test_yaffs_ftruncate_EBADF.h"
@@ -63,6 +64,7 @@
 #include "test_yaffs_truncate_big_file.h"
 #include "test_yaffs_truncate_ENOENT2.h"
 #include "test_yaffs_truncate_ELOOP.h"
+#include "test_yaffs_truncate_ELOOP_dir.h"
 
 #include "test_yaffs_write.h"
 #include "test_yaffs_write_EBADF.h"
@@ -83,7 +85,7 @@
 #include "test_yaffs_access_ENOENT.h"
 #include "test_yaffs_access_ENOENT2.h"
 #include "test_yaffs_access_ELOOP_dir.h"
-#include "test_yaffs_access_ELOOP2.h"
+#include "test_yaffs_access_ELOOP.h"
 #include "test_yaffs_access_EROFS.h"
 
 #include "test_yaffs_stat.h"
@@ -91,6 +93,7 @@
 #include "test_yaffs_stat_ENOTDIR.h"
 #include "test_yaffs_stat_ENOENT2.h"
 #include "test_yaffs_stat_ELOOP.h"
+#include "test_yaffs_stat_ELOOP_dir.h"
 
 #include "test_yaffs_fstat.h"
 #include "test_yaffs_fstat_EBADF.h"
@@ -101,7 +104,7 @@
 #include "test_yaffs_chmod_EINVAL.h"
 #include "test_yaffs_chmod_ENOENT2.h"
 #include "test_yaffs_chmod_ELOOP_dir.h"
-#include "test_yaffs_chmod_ELOOP2.h"
+#include "test_yaffs_chmod_ELOOP.h"
 #include "test_yaffs_chmod_EROFS.h"
 
 #include "test_yaffs_fchmod.h"
@@ -126,6 +129,7 @@
 #include "test_yaffs_symlink_EEXIST.h"
 #include "test_yaffs_symlink_ENOENT.h"
 #include "test_yaffs_symlink_ENOENT2.h"
+#include "test_yaffs_symlink_ELOOP_dir.h"
 
 #include "test_yaffs_mount2.h"
 #include "test_yaffs_mount2_ENODEV.h"
@@ -169,6 +173,7 @@
 #include "test_yaffs_rmdir_EINVAL.h"
 #include "test_yaffs_rmdir_ENOENT.h"
 #include "test_yaffs_rmdir_ENOTDIR.h"
+#include "test_yaffs_rmdir_ELOOP_dir.h"
 
 #include "test_yaffs_rename.h"
 #include "test_yaffs_rename_ENOENT.h"
@@ -180,8 +185,7 @@
 #include "test_yaffs_rename_dir_to_file.h"
 #include "test_yaffs_rename_file_to_dir.h"
 #include "test_yaffs_rename_EEXISTS.h"
-#include "test_yaffs_rename_ELOOP.h"
-#include "test_yaffs_rename_ELOOP_dev.h"
+#include "test_yaffs_rename_ELOOP_dir.h"
 
 #include "test_yaffs_lstat.h"
 #include "test_yaffs_lstat_ENOENT.h"
@@ -235,7 +239,7 @@ test_template test_list[]={
 	{test_yaffs_access_ENOENT,test_yaffs_access_ENOENT_clean,"test_yaffs_access_ENOENT"},
 	{test_yaffs_access_ENOENT2,test_yaffs_access_ENOENT2_clean,"test_yaffs_access_ENOENT2"},
 	{test_yaffs_access_ELOOP_dir,test_yaffs_access_ELOOP_dir_clean,"test_yaffs_access_ELOOP_dir"},
-	{test_yaffs_access_ELOOP2,test_yaffs_access_ELOOP2_clean,"test_yaffs_access_ELOOP2"},
+	{test_yaffs_access_ELOOP,test_yaffs_access_ELOOP_clean,"test_yaffs_access_ELOOP"},
 	{test_yaffs_access_EROFS,test_yaffs_access_EROFS_clean,"test_yaffs_access_EROFS"},
 
 	{test_yaffs_unlink, test_yaffs_unlink_clean,"test_yaffs_unlink"},
@@ -245,6 +249,7 @@ test_template test_list[]={
 	{test_yaffs_unlink_ENOTDIR,test_yaffs_unlink_ENOTDIR_clean,"test_yaffs_unlink_ENOTDIR"},
 	{test_yaffs_unlink_ENOENT,test_yaffs_unlink_ENOENT_clean,"test_yaffs_unlink_ENOENT"},
 	{test_yaffs_unlink_ENOENT2,test_yaffs_unlink_ENOENT2_clean,"test_yaffs_unlink_ENOENT2"},
+	{test_yaffs_unlink_ELOOP_dir,test_yaffs_unlink_ELOOP_dir_clean,"test_yaffs_unlink_ELOOP_dir"},
 
 
 	{test_yaffs_lseek,test_yaffs_lseek_clean,"test_yaffs_lseek"},
@@ -265,6 +270,7 @@ test_template test_list[]={
 	{test_yaffs_stat_ENOTDIR,test_yaffs_stat_ENOTDIR_clean,"test_yaffs_stat_ENOTDIR"},
 	{test_yaffs_stat_ENOENT2,test_yaffs_stat_ENOENT2_clean,"test_yaffs_stat_ENOENT2"},
 	{test_yaffs_stat_ELOOP,test_yaffs_stat_ELOOP_clean,"test_yaffs_stat_ELOOP"},
+	{test_yaffs_truncate_ELOOP_dir,test_yaffs_truncate_ELOOP_dir_clean,"test_yaffs_truncate_ELOOP_dir"},
 
 	{test_yaffs_fstat,test_yaffs_fstat_clean,"test_yaffs_fstat"},
 	{test_yaffs_fstat_EBADF,test_yaffs_fstat_EBADF_clean,"test_yaffs_fstat_EBADF"},
@@ -288,7 +294,7 @@ test_template test_list[]={
 	{test_yaffs_chmod_ENOTDIR,test_yaffs_chmod_ENOTDIR_clean,"test_yaffs_chmod_ENOTDIR"},
 	{test_yaffs_chmod_EINVAL,test_yaffs_chmod_EINVAL_clean,"test_yaffs_chmod_EINVAL"},
 	{test_yaffs_chmod_ELOOP_dir,test_yaffs_chmod_ELOOP_dir_clean,"test_yaffs_chmod_ELOOP_dir"},
-	{test_yaffs_chmod_ELOOP2,test_yaffs_chmod_ELOOP2_clean,"test_yaffs_chmod_ELOOP2"},
+	{test_yaffs_chmod_ELOOP,test_yaffs_chmod_ELOOP_clean,"test_yaffs_chmod_ELOOP"},
 	{test_yaffs_chmod_EROFS,test_yaffs_chmod_EROFS_clean,"test_yaffs_chmod_EROFS"},
 
 	{test_yaffs_fchmod,test_yaffs_fchmod_clean,"test_yaffs_fchmod"},
@@ -312,6 +318,7 @@ test_template test_list[]={
 	{test_yaffs_symlink_EEXIST,test_yaffs_symlink_EEXIST_clean,"test_yaffs_symlink_EEXIST"},
 	{test_yaffs_symlink_ENOENT,test_yaffs_symlink_ENOENT_clean,"test_yaffs_symlink_ENOENT"},
 	{test_yaffs_symlink_ENOENT2,test_yaffs_symlink_ENOENT2_clean,"test_yaffs_symlink_ENOENT2"},
+	{test_yaffs_symlink_ELOOP_dir,test_yaffs_symlink_ELOOP_dir_clean,"test_yaffs_symlink_ELOOP_dir"},
 
 	{test_yaffs_mount2,test_yaffs_mount2_clean,"test_yaffs_mount2"},
 	{test_yaffs_mount2_ENODEV,test_yaffs_mount2_ENODEV_clean,"test_yaffs_mount2_ENODEV"},
@@ -356,6 +363,8 @@ test_template test_list[]={
 	{test_yaffs_rmdir_EINVAL,test_yaffs_rmdir_EINVAL_clean,"test_yaffs_rmdir_EINVAL"},
 	{test_yaffs_rmdir_ENOENT,test_yaffs_rmdir_ENOENT_clean,"test_yaffs_rmdir_ENOENT"},
 	{test_yaffs_rmdir_ENOTDIR,test_yaffs_rmdir_ENOTDIR_clean,"test_yaffs_rmdir_ENOTDIR"},
+	{test_yaffs_rmdir_ELOOP_dir,test_yaffs_rmdir_ELOOP_dir_clean,"test_yaffs_rmdir_ELOOP_dir"},
+	{test_yaffs_stat_ELOOP_dir,test_yaffs_stat_ELOOP_dir_clean,"test_yaffs_stat_ELOOP_dir"},
 
 	{test_yaffs_rename,test_yaffs_rename_clean,"test_yaffs_rename"},
 	{test_yaffs_rename_ENOENT,test_yaffs_rename_ENOENT_clean,"test_yaffs_rename_ENOENT"},
@@ -364,11 +373,10 @@ test_template test_list[]={
 	{test_yaffs_rename_dir,test_yaffs_rename_dir_clean,"test_yaffs_rename_dir"},
 	{test_yaffs_rename_dir_ENOENT,test_yaffs_rename_dir_ENOENT_clean,"test_yaffs_rename_dir_ENOENT"},
 	{test_yaffs_rename_dir_ENOENT2,test_yaffs_rename_dir_ENOENT2_clean,"test_yaffs_rename_dir_ENOENT2"},
-	{test_yaffs_rename_dir_to_file,test_yaffs_rename_dir_to_file_clean,"test_yaffs_rename_dir_to_file"},
 	{test_yaffs_rename_file_to_dir,test_yaffs_rename_file_to_dir_clean,"test_yaffs_rename_file_to_dir"},
+	{test_yaffs_rename_dir_to_file,test_yaffs_rename_dir_to_file_clean,"test_yaffs_rename_dir_to_file"},
 	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"},
-	{test_yaffs_rename_ELOOP,test_yaffs_rename_ELOOP_clean,"test_yaffs_rename_ELOOP"},
-	{test_yaffs_rename_ELOOP_dev,test_yaffs_rename_ELOOP_dev_clean,"test_yaffs_rename_ELOOP_dev"},
+	{test_yaffs_rename_ELOOP_dir,test_yaffs_rename_ELOOP_dir_clean,"test_yaffs_rename_ELOOP_dir"},
 
 	{test_yaffs_lstat,test_yaffs_lstat_clean,"test_yaffs_lstat"},
 	{test_yaffs_lstat_ENOENT,test_yaffs_lstat_ENOENT_clean,"test_yaffs_lstat_ENOENT"},

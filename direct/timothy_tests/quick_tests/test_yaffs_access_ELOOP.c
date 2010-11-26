@@ -11,9 +11,9 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_access_ELOOP2.h"
+#include "test_yaffs_access_ELOOP.h"
 
-int test_yaffs_access_ELOOP2(void)
+int test_yaffs_access_ELOOP(void)
 {
 	int output=0;
 	int error=0;
@@ -37,7 +37,7 @@ int test_yaffs_access_ELOOP2(void)
 	}
 }
 
-int test_yaffs_access_ELOOP2_clean(void)
+int test_yaffs_access_ELOOP_clean(void)
 {
 	return 1;
 }

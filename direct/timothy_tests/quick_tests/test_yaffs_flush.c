@@ -17,15 +17,23 @@ static int handle =-1;
 
 int test_yaffs_flush(void)
 {
-	int output=0;
+	int output=-1;
 	handle = test_yaffs_open();
-	output =yaffs_flush(handle);
-	
+	if (handle >= 0){
+		output =yaffs_flush(handle);
+	} else {
+		print_message("failed to open file\n",2);
+	}
+	return output;
 }
 
 
 int test_yaffs_flush_clean(void)
 {
-	return yaffs_close(handle);
+	if (handle>=0){
+		return yaffs_close(handle);
+	} else {
+		return -1;
+	}
 }
 

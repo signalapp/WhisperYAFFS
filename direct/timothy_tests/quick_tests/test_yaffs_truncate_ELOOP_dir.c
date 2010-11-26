@@ -11,36 +11,36 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_chmod_ELOOP2.h"
+#include "test_yaffs_truncate_ELOOP_dir.h"
 
-int test_yaffs_chmod_ELOOP2(void)
+
+
+int test_yaffs_truncate_ELOOP_dir(void)
 {
 	int error=0;
-	int output;
+	int output=0;
 
 	if (set_up_ELOOP()<0){
 		print_message("failed to setup symlinks\n",2);
 		return -1;
 	}
 
-	output = yaffs_chmod(ELOOP_PATH,S_IREAD|S_IWRITE);
-
+	output= yaffs_truncate(ELOOP_PATH "/file",FILE_SIZE_TRUNCATED );
 	if (output<0){
 		error=yaffs_get_error();
 		if (abs(error)==ELOOP){
 			return 1;
 		} else {
-			print_message("different error than expected\n",2);
+			print_message("received a different error than expected\n",2);
 			return -1;
 		}
-	} else {
-		print_message("chmoded the ELOOP (which is a bad thing)\n",2);
+	} else{
+		print_message("truncated a nonexisting file\n",2);
 		return -1;
 	}
-
 }
 
-int test_yaffs_chmod_ELOOP2_clean(void)
+int test_yaffs_truncate_ELOOP_dir_clean(void)
 {
-	return test_yaffs_chmod();
+	return 1;
 }

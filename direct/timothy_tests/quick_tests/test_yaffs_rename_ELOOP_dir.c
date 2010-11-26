@@ -11,10 +11,10 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_rename_ELOOP_dev.h"
+#include "test_yaffs_rename_ELOOP_dir.h"
 
 
-int test_yaffs_rename_ELOOP_dev(void)
+int test_yaffs_rename_ELOOP_dir(void)
 {
 	int output=0;
 	int error_code =0;
@@ -42,7 +42,7 @@ int test_yaffs_rename_ELOOP_dev(void)
 }
 
 
-int test_yaffs_rename_ELOOP_dev_clean(void)
+int test_yaffs_rename_ELOOP_dir_clean(void)
 {
 	int output = 0;
 	if (0 ==  yaffs_access(RENAME_PATH,0)) {

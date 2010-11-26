@@ -11,22 +11,28 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_rename_ELOOP.h"
+#include "test_yaffs_rmdir_ELOOP_dir.h"
 
 
-int test_yaffs_rename_ELOOP(void)
+int test_yaffs_rmdir_ELOOP_dir(void)
 {
 	int output=0;
 	int error_code =0;
 
-	
 	if (set_up_ELOOP()<0){
 		print_message("failed to setup symlinks\n",2);
 		return -1;
 	}
 
 
-	output = yaffs_rename(ELOOP_PATH , RENAME_PATH);
+	if (0 !=  yaffs_access(DIR_PATH,0)) {
+		output = yaffs_mkdir(DIR_PATH,S_IWRITE | S_IREAD);
+		if (output < 0) {
+			print_message("failed to create directory\n",2);
+			return -1;
+		}
+	}
+	output = yaffs_rmdir(ELOOP_PATH "/file");
 	if (output<0){ 
 		error_code=yaffs_get_error();
 		if (abs(error_code)==ELOOP){
@@ -36,17 +42,17 @@ int test_yaffs_rename_ELOOP(void)
 			return -1;
 		}
 	} else{
-		print_message("renamed a ELOOP (which is a bad thing)\n",2);
+		print_message("removed /yaffs2/ directory (which is a bad thing)\n",2);
 		return -1;
 	}	
 }
 
 
-int test_yaffs_rename_ELOOP_clean(void)
+int test_yaffs_rmdir_ELOOP_dir_clean(void)
 {
 	int output = 0;
-	if (0 ==  yaffs_access(RENAME_PATH,0)) {
-		output = yaffs_rename(RENAME_PATH,FILE_PATH);
+	if (0 ==  yaffs_access(DIR_PATH,0)) {
+		output = yaffs_rmdir(DIR_PATH);
 		if (output < 0) {
 			print_message("failed to remove the directory\n",2);
 			return -1;

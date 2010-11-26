@@ -11,20 +11,21 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_chmod_ELOOP.h"
+#include "test_yaffs_link_ELOOP.h"
 
-int test_yaffs_chmod_ELOOP(void)
+
+
+int test_yaffs_link_ELOOP(void)
 {
-	int error=0;
-	int output;
+	int output=0;	
+	int error =0;
 
 	if (set_up_ELOOP()<0){
 		print_message("failed to setup symlinks\n",2);
 		return -1;
 	}
 
-	output = yaffs_chmod(ELOOP_PATH "file",S_IREAD|S_IWRITE);
-
+	output = yaffs_link(ELOOP_PATH "file",HARD_LINK_PATH);
 	if (output<0){
 		error=yaffs_get_error();
 		if (abs(error)==ELOOP){
@@ -34,13 +35,28 @@ int test_yaffs_chmod_ELOOP(void)
 			return -1;
 		}
 	} else {
-		print_message("chmoded the ELOOP (which is a bad thing)\n",2);
-		return -1;
+		print_message("created a hard link to a non-existing-dir (which is a bad thing)\n",2);
+		return -1;	
 	}
-
 }
 
-int test_yaffs_chmod_ELOOP_clean(void)
+
+int test_yaffs_link_ELOOP_clean(void)
 {
-	return test_yaffs_chmod();
+	int output=0;	
+	int error =0;
+	output= yaffs_unlink(HARD_LINK_PATH);
+	if (output<0){
+		error=yaffs_get_error();
+		if (abs(error)==ENOENT){
+			//if the file does not exist then the error should be ENOENT.
+			return 1;
+		} else {
+			print_message("different error than expected\n",2);
+			return -1;
+		}
+	} else {
+		return 1;	/* the file failed to open so there is no need to close it */
+	}
 }
+

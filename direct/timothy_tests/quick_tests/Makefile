@@ -49,6 +49,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_unmount.o test_yaffs_unmount_ENODEV.o test_yaffs_unmount_ENAMETOOLONG.o test_yaffs_unmount_EBUSY.o \
 		test_yaffs_open.o test_yaffs_open_ENOENT.o test_yaffs_open_ENOTDIR.o test_yaffs_open_EEXIST.o test_yaffs_open_EISDIR.o \
 		test_yaffs_open_ENAMETOOLONG.o test_yaffs_open_EINVAL.o test_yaffs_open_EINVAL2.o test_yaffs_open_ELOOP.o \
+		test_yaffs_open_ELOOP_dir.o \
 		test_yaffs_unlink.o  test_yaffs_unlink_EISDIR.o test_yaffs_unlink_ENOENT.o test_yaffs_unlink_ENAMETOOLONG.o \
 		test_yaffs_unlink_ENOTDIR.o test_yaffs_unlink_ENOENT2.o \
 		test_yaffs_ftruncate.o test_yaffs_ftruncate_EBADF.o test_yaffs_ftruncate_EINVAL.o test_yaffs_ftruncate_big_file.o \
@@ -88,7 +89,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_rmdir_ENOTDIR.o \
 		test_yaffs_rename.o test_yaffs_rename_ENOENT.o test_yaffs_rename_ENOTDIR.o test_yaffs_rename_EINVAL.o \
 		test_yaffs_rename_dir.o test_yaffs_rename_dir_ENOENT.o test_yaffs_rename_dir_ENOENT2.o test_yaffs_rename_dir_to_file.o \
-		test_yaffs_rename_file_to_dir.o test_yaffs_rename_EEXISTS.o test_yaffs_rename_ELOOP.o\
+		test_yaffs_rename_file_to_dir.o test_yaffs_rename_EEXISTS.o test_yaffs_rename_ELOOP.o test_yaffs_rename_ELOOP_dev.o \
 		test_yaffs_lstat.o test_yaffs_lstat_ENOENT.o test_yaffs_lstat_ENOTDIR.o \
 		test_yaffs_flush.o test_yaffs_flush_EBADF.o
 

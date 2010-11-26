@@ -15,7 +15,7 @@
 
 int test_yaffs_stat(void)
 {
-	char message[20];
+	char message[100];
 	int mode=0;
 	int size=0;
 	message[0]='\0';

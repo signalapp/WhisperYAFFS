@@ -20,7 +20,7 @@ int test_yaffs_read_EINVAL(void)
 {
 	int error_code = 0;
 	handle=yaffs_open(FILE_PATH,O_CREAT | O_RDWR, FILE_MODE);
-	char text[2000000]="\0";
+	char text[2000000];
 	int output=0;	
 	
 	if (handle<0){

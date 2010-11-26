@@ -373,8 +373,8 @@ test_template test_list[]={
 	{test_yaffs_rename_dir,test_yaffs_rename_dir_clean,"test_yaffs_rename_dir"},
 	{test_yaffs_rename_dir_ENOENT,test_yaffs_rename_dir_ENOENT_clean,"test_yaffs_rename_dir_ENOENT"},
 	{test_yaffs_rename_dir_ENOENT2,test_yaffs_rename_dir_ENOENT2_clean,"test_yaffs_rename_dir_ENOENT2"},
-	{test_yaffs_rename_file_to_dir,test_yaffs_rename_file_to_dir_clean,"test_yaffs_rename_file_to_dir"},
 	{test_yaffs_rename_dir_to_file,test_yaffs_rename_dir_to_file_clean,"test_yaffs_rename_dir_to_file"},
+	{test_yaffs_rename_file_to_dir,test_yaffs_rename_file_to_dir_clean,"test_yaffs_rename_file_to_dir"},
 	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"},
 	{test_yaffs_rename_ELOOP_dir,test_yaffs_rename_ELOOP_dir_clean,"test_yaffs_rename_ELOOP_dir"},
 

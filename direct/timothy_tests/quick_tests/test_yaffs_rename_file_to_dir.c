@@ -45,6 +45,7 @@ int test_yaffs_rename_file_to_dir(void)
 int test_yaffs_rename_file_to_dir_clean(void)
 {
 	int output = 0;
+	test_yaffs_open();
 	if (0 ==  yaffs_access(RENAME_DIR_PATH,0)) {
 		output = yaffs_unlink(RENAME_DIR_PATH);
 		if (output < 0) {

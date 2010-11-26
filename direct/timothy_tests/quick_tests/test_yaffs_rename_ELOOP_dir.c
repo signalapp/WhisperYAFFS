@@ -44,14 +44,6 @@ int test_yaffs_rename_ELOOP_dir(void)
 
 int test_yaffs_rename_ELOOP_dir_clean(void)
 {
-	int output = 0;
-	if (0 ==  yaffs_access(RENAME_PATH,0)) {
-		output = yaffs_rename(RENAME_PATH,FILE_PATH);
-		if (output < 0) {
-			print_message("failed to remove the directory\n",2);
-			return -1;
-		}
-	}
 	return 1;
 
 }

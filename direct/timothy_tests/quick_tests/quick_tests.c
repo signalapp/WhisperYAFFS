@@ -39,6 +39,7 @@ int main(int argc, char *argv[]){
 		printf("yaffs_open %d \n",output);
 		printf("yaffs_close %d \n",yaffs_close(output));
 	*/	yaffs_set_error(0);	/*reset the last error to 0 */
+		//printf("foo exists %d\n",test_yaffs_open());
 		sprintf(message,"\nrunning test: %s \n",test_list[x].name_of_test);
 		print_message(message,3);
 		output=test_list[x].p_function();	/*run test*/

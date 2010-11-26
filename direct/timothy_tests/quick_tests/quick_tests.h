@@ -110,6 +110,7 @@
 #include "test_yaffs_fchmod.h"
 #include "test_yaffs_fchmod_EBADF.h"
 #include "test_yaffs_fchmod_EINVAL.h"
+#include "test_yaffs_fchmod_EROFS.h"
 
 #include "test_yaffs_fsync.h"
 #include "test_yaffs_fsync_EBADF.h"
@@ -300,6 +301,7 @@ test_template test_list[]={
 	{test_yaffs_fchmod,test_yaffs_fchmod_clean,"test_yaffs_fchmod"},
 	{test_yaffs_fchmod_EBADF,test_yaffs_fchmod_EBADF_clean,"test_yaffs_fchmod_EBADF"},
 	{test_yaffs_fchmod_EINVAL,test_yaffs_fchmod_EINVAL_clean,"test_yaffs_fchmod_EINVAL"},
+	{test_yaffs_fchmod_EROFS,test_yaffs_fchmod_EROFS_clean,"test_yaffs_fchmod_EROFS"},
 
 	{test_yaffs_fsync,test_yaffs_fsync_clean,"test_yaffs_fsync"},
 	{test_yaffs_fsync_EBADF,test_yaffs_fsync_EBADF_clean,"test_yaffs_fsync_EBADF"},

@@ -11,18 +11,22 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_open_ENOTDIR.h"
+#include "test_yaffs_open_ELOOP_dir.h"
 
 static int handle = -1;
 
-int test_yaffs_open_ENOTDIR(void)
+int test_yaffs_open_ELOOP_dir(void)
 {
 	int error_code=0;
 
-	handle=yaffs_open("/yaffs2/foo/file", O_TRUNC| O_RDWR,FILE_MODE );
+	if (set_up_ELOOP()<0){
+		print_message("failed to setup symlinks\n",2);
+		return -1;
+	}
+	handle=yaffs_open(ELOOP_PATH "/file", O_TRUNC| O_RDWR,FILE_MODE );
 	if (handle <0){
 		error_code=yaffs_get_error();
-		if (abs(error_code)==ENOTDIR){
+		if (abs(error_code)==ELOOP){
 			return 1;
 		}
 		else {
@@ -31,12 +35,12 @@ int test_yaffs_open_ENOTDIR(void)
 		}
 	}
 	else {
-		print_message("non existing directory opened.(which is a bad thing)\n",2);
+		print_message("opened a ELOOP.(which is a bad thing)\n",2);
 		return -1;
 	}
 }
 
-int test_yaffs_open_ENOTDIR_clean(void)
+int test_yaffs_open_ELOOP_dir_clean(void)
 {
 	if (handle >=0){
 		return yaffs_close(handle);

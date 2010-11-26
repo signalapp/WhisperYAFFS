@@ -36,6 +36,7 @@
 #include "test_yaffs_open_EINVAL.h"
 #include "test_yaffs_open_EINVAL2.h"
 #include "test_yaffs_open_ELOOP.h"
+#include "test_yaffs_open_ELOOP_dir.h"
 
 #include "test_yaffs_close_EBADF.h"
 
@@ -180,6 +181,7 @@
 #include "test_yaffs_rename_file_to_dir.h"
 #include "test_yaffs_rename_EEXISTS.h"
 #include "test_yaffs_rename_ELOOP.h"
+#include "test_yaffs_rename_ELOOP_dev.h"
 
 #include "test_yaffs_lstat.h"
 #include "test_yaffs_lstat_ENOENT.h"
@@ -223,6 +225,7 @@ test_template test_list[]={
 	{test_yaffs_open_EINVAL,test_yaffs_open_EINVAL_clean,"test_yaffs_open_EINVAL"},
 	{test_yaffs_open_EINVAL2,test_yaffs_open_EINVAL2_clean,"test_yaffs_open_EINVAL2"},
 	{test_yaffs_open_ELOOP,test_yaffs_open_ELOOP_clean,"test_yaffs_open_ELOOP"},
+	{test_yaffs_open_ELOOP_dir,test_yaffs_open_ELOOP_dir_clean,"test_yaffs_open_ELOOP_dir"},
 	
 	{test_yaffs_close_EBADF,test_yaffs_close_EBADF_clean,"test_yaffs_close_EBADF"},
 
@@ -365,6 +368,7 @@ test_template test_list[]={
 	{test_yaffs_rename_file_to_dir,test_yaffs_rename_file_to_dir_clean,"test_yaffs_rename_file_to_dir"},
 	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"},
 	{test_yaffs_rename_ELOOP,test_yaffs_rename_ELOOP_clean,"test_yaffs_rename_ELOOP"},
+	{test_yaffs_rename_ELOOP_dev,test_yaffs_rename_ELOOP_dev_clean,"test_yaffs_rename_ELOOP_dev"},
 
 	{test_yaffs_lstat,test_yaffs_lstat_clean,"test_yaffs_lstat"},
 	{test_yaffs_lstat_ENOENT,test_yaffs_lstat_ENOENT_clean,"test_yaffs_lstat_ENOENT"},

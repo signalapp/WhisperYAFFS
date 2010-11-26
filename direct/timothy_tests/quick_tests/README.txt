@@ -316,7 +316,6 @@ Tests which do not exist in yaffs:
 	test_yaffs_mkdir_ELOOP
 
 	//the yaffs_mknod function does not exist in yaffsfs, so these tests will not be added.
-	test_yaffs_mknod
 	test_yaffs_mknod_EACCES
 	test_yaffs_mknod_EEXIST
 	test_yaffs_mknod_EINVAL

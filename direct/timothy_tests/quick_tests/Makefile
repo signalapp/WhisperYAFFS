@@ -53,6 +53,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_unlink.o  test_yaffs_unlink_EISDIR.o test_yaffs_unlink_ENOENT.o test_yaffs_unlink_ENAMETOOLONG.o \
 		test_yaffs_unlink_ENOTDIR.o test_yaffs_unlink_ENOENT2.o test_yaffs_unlink_ELOOP_dir.o \
 		test_yaffs_ftruncate.o test_yaffs_ftruncate_EBADF.o test_yaffs_ftruncate_EINVAL.o test_yaffs_ftruncate_big_file.o \
+		test_yaffs_ftruncate_EROFS.o \
 		test_yaffs_truncate.o test_yaffs_truncate_ENOTDIR.o test_yaffs_truncate_EISDIR.o test_yaffs_truncate_ENOENT.o \
 		test_yaffs_truncate_EINVAL.o test_yaffs_truncate_big_file.o test_yaffs_truncate_ENOENT2.o test_yaffs_truncate_ELOOP.o \
 		test_yaffs_truncate_ELOOP_dir.o \
@@ -63,13 +64,13 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_access_ENOENT2.o test_yaffs_access_ELOOP_dir.o test_yaffs_access_ELOOP.o test_yaffs_access_EROFS.o \
 		test_yaffs_stat.o test_yaffs_stat_ENOENT.o test_yaffs_stat_ENOTDIR.o test_yaffs_stat_ENOENT2.o test_yaffs_stat_ELOOP.o \
 		test_yaffs_stat_ELOOP_dir.o\
-		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o \
+		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o test_yaffs_fstat_EROFS.o \
 		test_yaffs_close_EBADF.o\
 		test_yaffs_chmod.o test_yaffs_chmod_ENOENT.o test_yaffs_chmod_ENOTDIR.o test_yaffs_chmod_EINVAL.o \
 		test_yaffs_chmod_ENOENT2.o test_yaffs_chmod_ELOOP_dir.o test_yaffs_chmod_ELOOP.o test_yaffs_chmod_EROFS.o \
 		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o test_yaffs_fchmod_EROFS.o test_yaffs_fchmod_EINVAL.o\
 		test_yaffs_fsync.o test_yaffs_fsync_EBADF.o \
-		test_yaffs_fdatasync.o test_yaffs_fdatasync_EBADF.o \
+		test_yaffs_fdatasync.o test_yaffs_fdatasync_EBADF.o test_yaffs_fdatasync_EROFS.o\
 		test_yaffs_mkdir.o test_yaffs_mkdir_EEXIST.o test_yaffs_mkdir_ENOTDIR.o test_yaffs_mkdir_ENOENT.o \
 		test_yaffs_mkdir_ELOOP_dir.o \
 		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o test_yaffs_fchmod_EINVAL.o \
@@ -93,7 +94,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_rename_dir.o test_yaffs_rename_dir_ENOENT.o test_yaffs_rename_dir_ENOENT2.o test_yaffs_rename_dir_to_file.o \
 		test_yaffs_rename_file_to_dir.o test_yaffs_rename_EEXISTS.o  test_yaffs_rename_ELOOP_dir.o \
 		test_yaffs_lstat.o test_yaffs_lstat_ENOENT.o test_yaffs_lstat_ENOTDIR.o \
-		test_yaffs_flush.o test_yaffs_flush_EBADF.o
+		test_yaffs_flush.o test_yaffs_flush_EBADF.o test_yaffs_flush_EROFS.o
 
 
 		  

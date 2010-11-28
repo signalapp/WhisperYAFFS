@@ -65,15 +65,15 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_access_ENOENT2.o test_yaffs_access_ELOOP_dir.o test_yaffs_access_ELOOP.o test_yaffs_access_EROFS.o \
 		test_yaffs_stat.o test_yaffs_stat_ENOENT.o test_yaffs_stat_ENOTDIR.o test_yaffs_stat_ENOENT2.o test_yaffs_stat_ELOOP.o \
 		test_yaffs_stat_ELOOP_dir.o\
-		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o test_yaffs_fstat_EROFS.o \
+		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o  \
 		test_yaffs_close_EBADF.o\
 		test_yaffs_chmod.o test_yaffs_chmod_ENOENT.o test_yaffs_chmod_ENOTDIR.o test_yaffs_chmod_EINVAL.o \
 		test_yaffs_chmod_ENOENT2.o test_yaffs_chmod_ELOOP_dir.o test_yaffs_chmod_ELOOP.o test_yaffs_chmod_EROFS.o \
 		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o test_yaffs_fchmod_EROFS.o test_yaffs_fchmod_EINVAL.o\
-		test_yaffs_fsync.o test_yaffs_fsync_EBADF.o \
+		test_yaffs_fsync.o test_yaffs_fsync_EBADF.o test_yaffs_fsync_EROFS.o \
 		test_yaffs_fdatasync.o test_yaffs_fdatasync_EBADF.o test_yaffs_fdatasync_EROFS.o\
 		test_yaffs_mkdir.o test_yaffs_mkdir_EEXIST.o test_yaffs_mkdir_ENOTDIR.o test_yaffs_mkdir_ENOENT.o \
-		test_yaffs_mkdir_ELOOP_dir.o \
+		test_yaffs_mkdir_ELOOP_dir.o test_yaffs_mkdir_EROFS.o \
 		test_yaffs_fchmod.o test_yaffs_fchmod_EBADF.o test_yaffs_fchmod_EINVAL.o \
 		test_yaffs_symlink.o test_yaffs_symlink_ENOTDIR.o test_yaffs_symlink_EEXIST.o test_yaffs_symlink_ENOENT.o \
 		test_yaffs_symlink_ENOENT2.o test_yaffs_symlink_ELOOP_dir.o \
@@ -88,7 +88,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_inodecount.o test_yaffs_inodecount_EINVAL.o \
 		test_yaffs_link.o test_yaffs_link_ENOENT.o test_yaffs_link_EEXIST.o test_yaffs_link_ENOTDIR.o \
 		test_yaffs_link_ENOTDIR2.o test_yaffs_link_ENOENT2.o test_yaffs_link_ENOENT3.o test_yaffs_link_ENOENT3.o \
-		test_yaffs_link_ENOENT4.o test_yaffs_link_ELOOP_dir.o \
+		test_yaffs_link_ENOENT4.o test_yaffs_link_ELOOP_dir.o test_yaffs_link_EROFS.o \
 		test_yaffs_rmdir.o test_yaffs_rmdir_EBUSY.o test_yaffs_rmdir_EINVAL.o test_yaffs_rmdir_ENOENT.o \
 		test_yaffs_rmdir_ENOTDIR.o test_yaffs_rmdir_ELOOP_dir.o \
 		test_yaffs_rename.o test_yaffs_rename_ENOENT.o test_yaffs_rename_ENOTDIR.o test_yaffs_rename_EINVAL.o \

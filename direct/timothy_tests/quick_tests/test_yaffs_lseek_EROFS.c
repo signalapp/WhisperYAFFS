@@ -11,18 +11,25 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_fstat_EROFS.h"
+#include "test_yaffs_lseek_EROFS.h"
 
-static int handle = -1;
+int handle=-1;
 
-int test_yaffs_fstat_EROFS(void)
+int test_yaffs_lseek_EROFS(void)
 {
-	int output = 0;
-	struct yaffs_stat stat;
+
 	int error_code = 0;
+	int output = 0;
 	EROFS_setup();
+
 	handle = test_yaffs_open();
-	output = yaffs_fstat(handle , &stat);
+	if (handle < 0){
+		print_message("failed to open file\n", 2);
+		return -1;
+	}
+
+	output = yaffs_lseek(handle, 0, 20);
+
 	if (output < 0){
 		error_code = yaffs_get_error();
 		if (abs(error_code) == EROFS){
@@ -32,16 +39,17 @@ int test_yaffs_fstat_EROFS(void)
 			return -1;
 		}
 	} else {
-		print_message("file statted with EROFS set.(which is a bad thing)\n", 2 );
+		print_message("lseeked with EROFS set (which is a bad thing)\n", 2);
 		return -1;
 	}
 }
 
-int test_yaffs_fstat_EROFS_clean(void)
+int test_yaffs_lseek_EROFS_clean(void)
 {
-	int output=1;
-	if (handle >= 0) {
-		output= yaffs_close(handle);
-	}
-	return (EROFS_clean() && output);
+	if (handle >= 0){
+		return yaffs_close(handle);
+	} else {
+		return 1; /* no handle was opened so there is no need to close a handle */
+	}	
 }
+

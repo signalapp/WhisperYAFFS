@@ -13,14 +13,14 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __test_yaffs_fstat_EROFS_h__
-#define __test_yaffs_fstat_EROFS_h__
+#ifndef __test_yaffs_fsync_EROFS_h__
+#define __test_yaffs_fsync_EROFS_h__
 
 #include "lib.h"
 #include "yaffsfs.h"
 #include "test_yaffs_open.h"
 
-int test_yaffs_fstat_EROFS(void);
-int test_yaffs_fstat_EROFS_clean(void); 
+int test_yaffs_fsync_EROFS(void);
+int test_yaffs_fsync_EROFS_clean(void);
 
 #endif

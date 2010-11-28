@@ -881,19 +881,23 @@ int yaffs_open(const YCHAR *path, int oflag, int mode)
 int yaffs_Dofsync(int fd,int datasync)
 {
 	yaffsfs_Handle *h = NULL;
-	int retVal = 0;
+	int retVal = -1;
 
 	yaffsfs_Lock();
 
 	h = yaffsfs_GetHandlePointer(fd);
 
-	if(h && h->useCount > 0)
-		/* flush the file */
-		yaffs_flush_file(yaffsfs_inode[h->inodeId].iObj,1,datasync);
-	else {
-		/* bad handle */
+	if(!h || h->useCount < 1)
 		yaffsfs_SetError(-EBADF);
-		retVal = -1;
+	else {
+		struct yaffs_obj * obj;
+		obj = yaffsfs_inode[h->inodeId].iObj;
+		if(obj->my_dev->read_only)
+			yaffsfs_SetError(-EROFS);
+		else {		
+			yaffs_flush_file(yaffsfs_inode[h->inodeId].iObj,1,datasync);
+			retVal = 0;
+		}
 	}
 
 	yaffsfs_Unlock();
@@ -1191,6 +1195,8 @@ int yaffs_truncate(const YCHAR *path,off_t new_size)
 		yaffsfs_SetError(-ELOOP);
 	else if(!dir || !obj)
 		yaffsfs_SetError(-ENOENT);
+	else if(obj->my_dev->read_only)
+		yaffsfs_SetError(-EROFS);
 	else if(obj->variant_type != YAFFS_OBJECT_TYPE_FILE)
 		yaffsfs_SetError(-EISDIR);
 	else if(obj->my_dev->read_only)
@@ -1219,7 +1225,7 @@ int yaffs_ftruncate(int fd, off_t new_size)
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 	else if(obj->my_dev->read_only)
-		yaffsfs_SetError(-EACCES);
+		yaffsfs_SetError(-EROFS);
 	else if( new_size < 0 || new_size > YAFFS_MAX_FILE_SIZE)
 		yaffsfs_SetError(-EINVAL);
 	else
@@ -2194,15 +2200,17 @@ int yaffs_sync(const YCHAR *path)
         yaffsfs_Lock();
         dev = yaffsfs_FindDevice(path,&dummy);
         if(dev){
-                if(dev->is_mounted){
+                if(!dev->is_mounted)
+			yaffsfs_SetError(-EINVAL);
+		else if(dev->read_only)
+			yaffsfs_SetError(-EROFS);
+		else {
                         
                         yaffs_flush_whole_cache(dev);
                         yaffs_checkpoint_save(dev);
                         retVal = 0;
                         
-                } else
-                        yaffsfs_SetError(-EINVAL);
-                        
+                }      
         }else
                 yaffsfs_SetError(-ENODEV);
 

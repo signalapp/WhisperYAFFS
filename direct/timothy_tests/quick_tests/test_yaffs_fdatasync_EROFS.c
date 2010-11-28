@@ -11,32 +11,38 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_fdatasync_EBADF.h"
+#include "test_yaffs_fdatasync_EROFS.h"
 
+static int handle =-1;
 
-
-int test_yaffs_fdatasync_EBADF(void)
+int test_yaffs_fdatasync_EROFS(void)
 {
 	int output = 0;
 	int error_code = 0;
-	output = yaffs_fdatasync(-1);
+	EROFS_setup();
+	handle = test_yaffs_open();
+	output = yaffs_fdatasync(handle);
 	if (output==-1){
 		error_code=yaffs_get_error();
-		if (abs(error_code)==EBADF){
+		if (abs(error_code)==EROFS){
 			return 1;
 		} else {
 			print_message("different error than expected\n",2);
 			return -1;
 		}
 	} else {
-		print_message("non existant file synced.(which is a bad thing)\n",2);
+		print_message("file synced on a read only system.(which is a bad thing)\n",2);
 		return -1;
 	}
 }
 
 
-int test_yaffs_fdatasync_EBADF_clean(void)
+int test_yaffs_fdatasync_EROFS_clean(void)
 {
-	return 1;
+	int output=1;
+	if (handle >= 0) {
+		output= yaffs_close(handle);
+	}
+	return (EROFS_clean() && output);
 }
 

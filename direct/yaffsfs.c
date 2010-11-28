@@ -756,6 +756,13 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 			if( writeRequested && !(obj->yst_mode & S_IWRITE))
 				openDenied = 1;
 
+			if( !errorReported && writeRequested && 
+				obj->my_dev->read_only){
+				openDenied = 1;
+				yaffsfs_SetError(-EROFS);
+				errorReported = 1;
+			}
+
 			if(openDenied && !errorReported ) {
 				/* Error if the file exists but permissions are refused. */
 				yaffsfs_SetError(-EACCES);
@@ -820,7 +827,7 @@ int yaffs_open_sharing(const YCHAR *path, int oflag, int mode, int sharing)
 		if(!obj && dir && !errorReported && (oflag & O_CREAT)) {
 			/* Let's see if we can create this file if it does not exist. */
 			if(dir->my_dev->read_only){
-				yaffsfs_SetError(-EINVAL);
+				yaffsfs_SetError(-EROFS);
 				errorReported = 1;
 			} else
 				obj = yaffs_create_file(dir,name,mode,0,0);
@@ -2716,7 +2723,7 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *linkpath)
 	else if(!obj_dir || !lnk_dir || !obj)
 		yaffsfs_SetError(-ENOENT);
 	else if(obj->my_dev->read_only)
-		yaffsfs_SetError(-EINVAL);
+		yaffsfs_SetError(-EROFS);
 	else if(lnk)
 		yaffsfs_SetError(-EEXIST);
 	else if(lnk_dir->my_dev != obj->my_dev)

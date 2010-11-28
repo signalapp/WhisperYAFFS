@@ -37,6 +37,7 @@
 #include "test_yaffs_open_EINVAL2.h"
 #include "test_yaffs_open_ELOOP.h"
 #include "test_yaffs_open_ELOOP_dir.h"
+#include "test_yaffs_open_EROFS.h"
 
 #include "test_yaffs_close_EBADF.h"
 
@@ -237,6 +238,7 @@ test_template test_list[]={
 	{test_yaffs_open_EINVAL2,test_yaffs_open_EINVAL2_clean,"test_yaffs_open_EINVAL2"},
 	{test_yaffs_open_ELOOP,test_yaffs_open_ELOOP_clean,"test_yaffs_open_ELOOP"},
 	{test_yaffs_open_ELOOP_dir,test_yaffs_open_ELOOP_dir_clean,"test_yaffs_open_ELOOP_dir"},
+	{test_yaffs_open_EROFS,test_yaffs_open_EROFS_clean,"test_yaffs_open_EROFS"},
 	
 	{test_yaffs_close_EBADF,test_yaffs_close_EBADF_clean,"test_yaffs_close_EBADF"},
 

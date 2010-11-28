@@ -30,7 +30,8 @@ CFLAGS+=   -Werror=strict-prototypes -Werror=missing-parameter-type
 CFLAGS+=   -Werror=redundant-decls -Werror=nested-externs -Winline
 CFLAGS+=   -Werror=undef
 
-COMMONTESTOBJS = yaffscfg2k.o yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
+COMMONTESTOBJS = yaffscfg2k.o yaffs_osglue.o \
+		 yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
 		 yaffs_checkptrw.o  yaffs_qsort.o\
@@ -58,7 +59,7 @@ YAFFSSYMLINKS = yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffs_tagscomp
           yaffs_verify.c yaffs_verify.h
 
 YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
-		       yaffsfs.h yaffs_malloc.h ydirectenv.h \
+		       yaffsfs.h yaffs_osglue.h ydirectenv.h \
 		       yaffs_flashif.c yaffscfg.h yaffs_list.h \
 		       yaffs_qsort.c yportenv.h yaffs_attribs.c \
 		       yaffs_nandif.c yaffs_nandif.h yaffs_nandemul2k.h

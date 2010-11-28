@@ -25,7 +25,7 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
-#include "yaffs_malloc.h"
+#include "yaffs_osglue.h"
 
 #include "assert.h"
 #define YBUG() assert(0)

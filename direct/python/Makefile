@@ -29,7 +29,8 @@ CFLAGS +=    -O0 -fPIC
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
 
 
-COMMONTESTOBJS = yaffscfg2k.o yramsim.o yaffs_fileem2k.o\
+COMMONTESTOBJS = yaffscfg2k.o yaffs_osglue.o \
+		 yramsim.o yaffs_fileem2k.o\
 		 yaffs_nandif.o yaffs_attribs.o \
 		 yaffsfs.o  yaffs_ecc.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
@@ -60,7 +61,7 @@ YAFFSSYMLINKS = yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffs_tagscomp
           yaffs_verify.c yaffs_verify.h
           
 
-YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffsfs.h yaffscfg.h yaffs_malloc.h ydirectenv.h \
+YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffsfs.h yaffscfg.h yaffs_osglue.h  ydirectenv.h \
 		       yaffs_flashif.c yaffs_flashif.h yaffs_flashif2.h yaffs_list.h \
 		       yaffs_nandif.c yaffs_nandif.h yaffs_qsort.c yaffs_nandemul2k.h \
 		       yportenv.h yaffs_attribs.c
@@ -69,7 +70,7 @@ DIRECTEXTRASYMLINKS =   yaffscfg2k.c yaffs_fileem2k.c yaffs_fileem2k.h\
                         yaffs_fileem.c yaffs_norif1.c yaffs_norif1.h \
                         yaffs_ramdisk.c yaffs_ramdisk.h yaffs_ramem2k.c \
                         yaffsnewcfg.c yramsim.c yramsim.h \
-                        ynorsim.h ynorsim.c
+                        ynorsim.h ynorsim.c yaffs_osglue.c
                                                                         
 SYMLINKS = $(YAFFSSYMLINKS) $(YAFFSDIRECTSYMLINKS) $(DIRECTEXTRASYMLINKS)
 

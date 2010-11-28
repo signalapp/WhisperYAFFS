@@ -25,6 +25,7 @@
 #include "yaffs_nandemul2k.h"
 #include "yaffs_norif1.h"
 #include "yaffs_trace.h"
+#include "yaffs_osglue.h"
 
 
 #include <errno.h>
@@ -43,61 +44,6 @@ unsigned yaffs_trace_mask =
 	0;
         
 
-static int yaffsfs_lastError;
-
-void yaffsfs_SetError(int err)
-{
-	//Do whatever to set error
-	yaffsfs_lastError = err;
-}
-
-
-int yaffsfs_GetLastError(void)
-{
-	return yaffsfs_lastError;
-}
-
-void yaffsfs_Lock(void)
-{
-}
-
-void yaffsfs_Unlock(void)
-{
-}
-
-u32 yaffsfs_CurrentTime(void)
-{
-	return 0;
-}
-
-
-static int yaffs_kill_alloc = 0;
-static size_t total_malloced = 0;
-static size_t malloc_limit = 0 & 6000000;
-
-void *yaffs_malloc(size_t size)
-{
-	void * this;
-	if(yaffs_kill_alloc)
-		return NULL;
-	if(malloc_limit && malloc_limit <(total_malloced + size) )
-		return NULL;
-
-	this = malloc(size);
-	if(this)
-		total_malloced += size;
-	return this;
-}
-
-void yaffs_free(void *ptr)
-{
-	free(ptr);
-}
-
-void yaffsfs_LocalInitialisation(void)
-{
-	// Define locking semaphore.
-}
 
 // Configuration
 
@@ -114,7 +60,7 @@ int yaffs_start_up(void)
 {
 	// Stuff to configure YAFFS
 	// Stuff to initialise anything special (eg lock semaphore).
-	yaffsfs_LocalInitialisation();
+	yaffsfs_OSInitialisation();
 	
 	// Set up devices
 	// /ram1   ram, yaffs1

@@ -12,14 +12,31 @@
  *
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
- 
-#ifndef __YAFFS_MALLOC_H__
-#define __YAFFS_MALLOC_H__
 
-#include <stdlib.h>
- 
+/*
+ * Header file for using yaffs in an application via
+ * a direct interface.
+ */
+
+
+#ifndef __YAFFS_OSGLUE_H__
+#define __YAFFS_OSGLUE_H__
+
+
+#include "yportenv.h"
+
+void yaffsfs_Lock(void);
+void yaffsfs_Unlock(void);
+
+u32 yaffsfs_CurrentTime(void);
+
+void yaffsfs_SetError(int err);
+
 void *yaffs_malloc(size_t size); 
 void yaffs_free(void *ptr);
+
+void yaffsfs_OSInitialisation(void);
  
+
 #endif
 

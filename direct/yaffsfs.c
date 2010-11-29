@@ -1092,8 +1092,11 @@ int yaffsfs_do_write(int fd, const void *vbuf, unsigned int nbyte, int isPwrite,
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
 		totalWritten = -1;
-	} else if( h && obj && (!h->writing || obj->my_dev->read_only)){
+	} else if(!h->writing){
 		yaffsfs_SetError(-EINVAL);
+		totalWritten=-1;
+	} else if(obj->my_dev->read_only){
+		yaffsfs_SetError(-EROFS);
 		totalWritten=-1;
 	} else {
 		if(h->append)
@@ -1316,7 +1319,7 @@ int yaffsfs_DoUnlink(const YCHAR *path,int isDirectory)
 	else if(!obj)
 		yaffsfs_SetError(-ENOENT);
 	else if(obj->my_dev->read_only)
-		yaffsfs_SetError(-EINVAL);
+		yaffsfs_SetError(-EROFS);
 	else if(!isDirectory && obj->variant_type == YAFFS_OBJECT_TYPE_DIRECTORY)
 		yaffsfs_SetError(-EISDIR);
 	else if(isDirectory && obj->variant_type != YAFFS_OBJECT_TYPE_DIRECTORY)

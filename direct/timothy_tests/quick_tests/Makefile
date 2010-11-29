@@ -50,7 +50,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_unmount.o test_yaffs_unmount_ENODEV.o test_yaffs_unmount_ENAMETOOLONG.o test_yaffs_unmount_EBUSY.o \
 		test_yaffs_open.o test_yaffs_open_ENOENT.o test_yaffs_open_ENOTDIR.o test_yaffs_open_EEXIST.o test_yaffs_open_EISDIR.o \
 		test_yaffs_open_ENAMETOOLONG.o test_yaffs_open_EINVAL.o test_yaffs_open_EINVAL2.o test_yaffs_open_ELOOP.o \
-		test_yaffs_open_ELOOP_dir.o test_yaffs_open_EROFS.o \
+		test_yaffs_open_ELOOP_dir.o test_yaffs_open_EROFS.o test_yaffs_open_EACCES.o \
 		test_yaffs_unlink.o  test_yaffs_unlink_EISDIR.o test_yaffs_unlink_ENOENT.o test_yaffs_unlink_ENAMETOOLONG.o \
 		test_yaffs_unlink_ENOTDIR.o test_yaffs_unlink_ENOENT2.o test_yaffs_unlink_ELOOP_dir.o test_yaffs_unlink_EROFS.o \
 		test_yaffs_ftruncate.o test_yaffs_ftruncate_EBADF.o test_yaffs_ftruncate_EINVAL.o test_yaffs_ftruncate_big_file.o \
@@ -63,6 +63,7 @@ TESTFILES = 	quick_tests.o lib.o \
 		test_yaffs_lseek.o test_yaffs_lseek_EBADF.o test_yaffs_lseek_EINVAL.o test_yaffs_lseek_big_file.o \
 		test_yaffs_access.o test_yaffs_access_EINVAL.o test_yaffs_access_ENOTDIR.o test_yaffs_access_ENOENT.o \
 		test_yaffs_access_ENOENT2.o test_yaffs_access_ELOOP_dir.o test_yaffs_access_ELOOP.o test_yaffs_access_EROFS.o \
+		test_yaffs_access_EACCES.o \
 		test_yaffs_stat.o test_yaffs_stat_ENOENT.o test_yaffs_stat_ENOTDIR.o test_yaffs_stat_ENOENT2.o test_yaffs_stat_ELOOP.o \
 		test_yaffs_stat_ELOOP_dir.o\
 		test_yaffs_fstat.o test_yaffs_fstat_EBADF.o  \

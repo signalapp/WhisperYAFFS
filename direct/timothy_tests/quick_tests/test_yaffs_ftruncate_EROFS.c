@@ -20,8 +20,11 @@ int test_yaffs_ftruncate_EROFS(void)
 	int output = 0;
 	int error_code = 0;
 	EROFS_setup();
-	handle = test_yaffs_open();
-
+	handle = yaffs_open(FILE_PATH,O_CREAT  ,S_IREAD  );
+	if (handle<0){
+		print_message("failed to open file\n",2);
+		return -1;
+	}
 	output = yaffs_ftruncate(handle,FILE_SIZE_TRUNCATED );
 	if (output < 0){
 		error_code=yaffs_get_error();

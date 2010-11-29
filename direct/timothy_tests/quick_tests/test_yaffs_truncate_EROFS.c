@@ -11,43 +11,33 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_flush_EROFS.h"
+#include "test_yaffs_truncate_EROFS.h"
 
-static int handle =-1;
 
-int test_yaffs_flush_EROFS(void)
+
+int test_yaffs_truncate_EROFS(void)
 {
+	int error=0;
 	int output=0;
-	int error =0;
+
+
 	EROFS_setup();
-	handle = yaffs_open(FILE_PATH,O_CREAT  ,S_IREAD  );
-	if (handle<0){
-		print_message("failed to open file\n",2);
-		return -1;
-	}
-	output = yaffs_flush(handle);
+	output= yaffs_truncate(FILE_PATH,FILE_SIZE_TRUNCATED );
 	if (output<0){
 		error=yaffs_get_error();
 		if (abs(error)==EROFS){
 			return 1;
 		} else {
-			print_message("different error than expected\n",2);
+			print_message("received a different error than expected\n",2);
 			return -1;
 		}
-	} else {
-		print_message("flushed a file with EROFS (which is a bad thing)\n",2);
+	} else{
+		print_message("truncated a file with EROFS\n",2);
 		return -1;
 	}
-
 }
 
-
-int test_yaffs_flush_EROFS_clean(void)
+int test_yaffs_truncate_EROFS_clean(void)
 {
-	int output=1;
-	if (handle >= 0) {
-		output= yaffs_close(handle);
-	}
-	return (EROFS_clean() && output);
+	return 	EROFS_clean();
 }
-

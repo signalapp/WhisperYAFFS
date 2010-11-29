@@ -21,12 +21,13 @@ int test_yaffs_fchmod_EROFS(void)
 	if (EROFS_setup() < 0 ){
 		return -1;
 	}
-	handle = test_yaffs_open();
-
-	if (handle < 0){
+	handle = yaffs_open(FILE_PATH,O_CREAT  ,S_IREAD  );
+	if (handle<0){
 		print_message("failed to open file\n",2);
 		return -1;
 	}
+
+
 
 	output = yaffs_fchmod(handle,S_IREAD|S_IWRITE);
 

@@ -13,36 +13,32 @@
 
 #include "test_yaffs_open_EROFS.h"
 
-static int handle = -1;
 
-int test_yaffs_open_EROFS(void)
+int test_yaffs_unlink_EROFS(void)
 {
-	int error_code = 0;
-	yaffs_unlink(FILE_PATH);
+	int output=0;
+	int error_code=0;
+
 	EROFS_setup();
 
-	handle = yaffs_open(FILE_PATH, O_CREAT  ,S_IREAD);
-	if (handle == -1){
-		error_code = yaffs_get_error();
-		if (abs(error_code) == EROFS){
+	output=yaffs_unlink(FILE_PATH);
+	if (output==-1){
+		error_code=yaffs_get_error();
+		if (abs(error_code)==EROFS){
 			return 1;
 		} else {
 			print_message("different error than expected\n",2);
 			return -1;
 		}
 	} else {
-		print_message("non existant file opened.(which is a bad thing)\n",2);
+		print_message("unlinked a directory with EROFS set.(which is a bad thing)\n",2);
 		return -1;
 	}
-}
 
-int test_yaffs_open_EROFS_clean(void)
+
+}
+int test_yaffs_unlink_EROFS_clean(void)
 {
-	int output =1;
-	if (handle >=0){
-		handle= yaffs_close(handle);
-	} 
-	return (EROFS_clean() && output);
-	
+	return EROFS_clean();
 }
 

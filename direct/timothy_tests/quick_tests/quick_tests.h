@@ -41,7 +41,7 @@
 #include "test_yaffs_open_EACCES.h"
 
 #include "test_yaffs_close_EBADF.h"
-
+#include "test_yaffs_close_NULL.h"
 
 #include "test_yaffs_unlink.h"
 #include "test_yaffs_unlink_EISDIR.h"
@@ -70,6 +70,7 @@
 #include "test_yaffs_truncate_ELOOP.h"
 #include "test_yaffs_truncate_ELOOP_dir.h"
 #include "test_yaffs_truncate_EROFS.h"
+#include "test_yaffs_truncate_ENAMETOOLONG.h"
 
 #include "test_yaffs_write.h"
 #include "test_yaffs_write_EBADF.h"
@@ -94,6 +95,8 @@
 #include "test_yaffs_access_ELOOP.h"
 #include "test_yaffs_access_EROFS.h"
 #include "test_yaffs_access_EACCES.h"
+#include "test_yaffs_access_ENAMETOOLONG.h"
+#include "test_yaffs_access_NULL.h"
 
 #include "test_yaffs_stat.h"
 #include "test_yaffs_stat_ENOENT.h"
@@ -101,6 +104,7 @@
 #include "test_yaffs_stat_ENOENT2.h"
 #include "test_yaffs_stat_ELOOP.h"
 #include "test_yaffs_stat_ELOOP_dir.h"
+#include "test_yaffs_stat_ENAMETOOLONG.h"
 
 #include "test_yaffs_fstat.h"
 #include "test_yaffs_fstat_EBADF.h"
@@ -114,11 +118,14 @@
 #include "test_yaffs_chmod_ELOOP_dir.h"
 #include "test_yaffs_chmod_ELOOP.h"
 #include "test_yaffs_chmod_EROFS.h"
+#include "test_yaffs_chmod_ENAMETOOLONG.h"
+#include "test_yaffs_chmod_NULL.h"
 
 #include "test_yaffs_fchmod.h"
 #include "test_yaffs_fchmod_EBADF.h"
 #include "test_yaffs_fchmod_EINVAL.h"
 #include "test_yaffs_fchmod_EROFS.h"
+#include "test_yaffs_fchmod_NULL.h"
 
 #include "test_yaffs_fsync.h"
 #include "test_yaffs_fsync_EBADF.h"
@@ -127,6 +134,7 @@
 #include "test_yaffs_fdatasync.h"
 #include "test_yaffs_fdatasync_EBADF.h"
 #include "test_yaffs_fdatasync_EROFS.h"
+#include "test_yaffs_fdatasync_NULL.h"
 
 #include "test_yaffs_mkdir.h"
 #include "test_yaffs_mkdir_EEXIST.h"
@@ -134,7 +142,7 @@
 #include "test_yaffs_mkdir_ENOENT.h"
 #include "test_yaffs_mkdir_ELOOP_dir.h"
 #include "test_yaffs_mkdir_EROFS.h"
-
+#include "test_yaffs_mkdir_ENAMETOOLONG.h"
 
 #include "test_yaffs_symlink.h"
 #include "test_yaffs_symlink_ENOTDIR.h"
@@ -143,6 +151,7 @@
 #include "test_yaffs_symlink_ENOENT2.h"
 #include "test_yaffs_symlink_ELOOP_dir.h"
 #include "test_yaffs_symlink_EROFS.h"
+#include "test_yaffs_symlink_ENAMETOOLONG.h"
 
 #include "test_yaffs_mount2.h"
 #include "test_yaffs_mount2_ENODEV.h"
@@ -156,20 +165,26 @@
 #include "test_yaffs_sync.h"
 #include "test_yaffs_sync_ENODEV.h"
 #include "test_yaffs_sync_EROFS.h"
+#include "test_yaffs_sync_ENAMETOOLONG.h"
 
 #include "test_yaffs_remount_force_off_read_only_off.h"
 #include "test_yaffs_remount_force_on_read_only_off.h"
 #include "test_yaffs_remount_ENODEV.h"
 #include "test_yaffs_remount_EINVAL.h"
+#include "test_yaffs_remount_ENAMETOOLONG.h"
+
 
 #include "test_yaffs_freespace.h"
 #include "test_yaffs_freespace_EINVAL.h"
+#include "test_yaffs_freespace_ENAMETOOLONG.h"
 
 #include "test_yaffs_totalspace.h"
 #include "test_yaffs_totalspace_EINVAL.h"
+#include "test_yaffs_totalspace_ENAMETOOLONG.h"
 
 #include "test_yaffs_inodecount.h"
 #include "test_yaffs_inodecount_EINVAL.h"
+#include "test_yaffs_inodecount_ENAMETOOLONG.h"
 
 #include "test_yaffs_link.h"
 #include "test_yaffs_link_ENOENT.h"
@@ -181,6 +196,8 @@
 #include "test_yaffs_link_ENOENT4.h"
 #include "test_yaffs_link_ELOOP_dir.h"
 #include "test_yaffs_link_EROFS.h"
+#include "test_yaffs_link_ENAMETOOLONG.h"
+#include "test_yaffs_link_ENAMETOOLONG2.h"
 
 #include "test_yaffs_rmdir.h"
 #include "test_yaffs_rmdir_EBUSY.h"
@@ -189,6 +206,7 @@
 #include "test_yaffs_rmdir_ENOTDIR.h"
 #include "test_yaffs_rmdir_ELOOP_dir.h"
 #include "test_yaffs_rmdir_EROFS.h"
+#include "test_yaffs_rmdir_ENAMETOOLONG.h"
 
 #include "test_yaffs_rename.h"
 #include "test_yaffs_rename_ENOENT.h"
@@ -202,14 +220,18 @@
 #include "test_yaffs_rename_EEXISTS.h"
 #include "test_yaffs_rename_ELOOP_dir.h"
 #include "test_yaffs_rename_EROFS.h"
+#include "test_yaffs_rename_ENAMETOOLONG.h"
+#include "test_yaffs_rename_ENAMETOOLONG2.h"
 
 #include "test_yaffs_lstat.h"
 #include "test_yaffs_lstat_ENOENT.h"
 #include "test_yaffs_lstat_ENOTDIR.h"
+#include "test_yaffs_lstat_ENAMETOOLONG.h"
 
 #include "test_yaffs_flush.h"
 #include "test_yaffs_flush_EBADF.h"
 #include "test_yaffs_flush_EROFS.h"
+#include "test_yaffs_flush_NULL.h"
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -251,6 +273,7 @@ test_template test_list[]={
 	{test_yaffs_open_EACCES,test_yaffs_open_EACCES_clean,"test_yaffs_open_EACCES"},
 	
 	{test_yaffs_close_EBADF,test_yaffs_close_EBADF_clean,"test_yaffs_close_EBADF"},
+	{test_yaffs_close_NULL,test_yaffs_close_NULL_clean,"test_yaffs_close_NULL"},
 
 	{test_yaffs_access,test_yaffs_access_clean,"test_yaffs_access"},
 	{test_yaffs_access_EINVAL,test_yaffs_access_EINVAL_clean,"test_yaffs_access_EINVAL"},
@@ -261,6 +284,8 @@ test_template test_list[]={
 	{test_yaffs_access_ELOOP,test_yaffs_access_ELOOP_clean,"test_yaffs_access_ELOOP"},
 	{test_yaffs_access_EROFS,test_yaffs_access_EROFS_clean,"test_yaffs_access_EROFS"},
 	{test_yaffs_access_EACCES,test_yaffs_access_EACCES_clean,"test_yaffs_access_EACCES"},
+	{test_yaffs_access_ENAMETOOLONG,test_yaffs_access_ENAMETOOLONG_clean,"test_yaffs_access_ENAMETOOLONG"},
+	{test_yaffs_access_NULL,test_yaffs_access_NULL_clean,"test_yaffs_access_NULL"},
 
 	{test_yaffs_unlink, test_yaffs_unlink_clean,"test_yaffs_unlink"},
 	{test_yaffs_unlink_EISDIR,test_yaffs_unlink_EISDIR_clean,"test_yaffs_unlink_EISDIR"},
@@ -293,6 +318,7 @@ test_template test_list[]={
 	{test_yaffs_stat_ENOENT2,test_yaffs_stat_ENOENT2_clean,"test_yaffs_stat_ENOENT2"},
 	{test_yaffs_stat_ELOOP,test_yaffs_stat_ELOOP_clean,"test_yaffs_stat_ELOOP"},
 	{test_yaffs_truncate_ELOOP_dir,test_yaffs_truncate_ELOOP_dir_clean,"test_yaffs_truncate_ELOOP_dir"},
+	{test_yaffs_stat_ENAMETOOLONG,test_yaffs_stat_ENAMETOOLONG_clean,"test_yaffs_stat_ENAMETOOLONG"},
 
 	{test_yaffs_fstat,test_yaffs_fstat_clean,"test_yaffs_fstat"},
 	{test_yaffs_fstat_EBADF,test_yaffs_fstat_EBADF_clean,"test_yaffs_fstat_EBADF"},
@@ -311,6 +337,7 @@ test_template test_list[]={
 	{test_yaffs_truncate_ENOENT2,test_yaffs_truncate_ENOENT2_clean,"test_yaffs_truncate_ENOENT2"},
 	{test_yaffs_truncate_ELOOP,test_yaffs_truncate_ELOOP_clean,"test_yaffs_truncate_ELOOP"},
 	{test_yaffs_truncate_EROFS,test_yaffs_truncate_EROFS_clean,"test_yaffs_truncate_EROFS"},
+	{test_yaffs_truncate_ENAMETOOLONG,test_yaffs_truncate_ENAMETOOLONG_clean,"test_yaffs_truncate_ENAMETOOLONG"},
 //	{test_yaffs_truncate_big_file,test_yaffs_truncate_big_file_clean,"test_yaffs_truncate_big_file"}, //this test does not work because the large number becomes 0 when the file is compiled.
 
 	{test_yaffs_chmod,test_yaffs_chmod_clean,"test_yaffs_chmod"},
@@ -320,11 +347,14 @@ test_template test_list[]={
 	{test_yaffs_chmod_ELOOP_dir,test_yaffs_chmod_ELOOP_dir_clean,"test_yaffs_chmod_ELOOP_dir"},
 	{test_yaffs_chmod_ELOOP,test_yaffs_chmod_ELOOP_clean,"test_yaffs_chmod_ELOOP"},
 	{test_yaffs_chmod_EROFS,test_yaffs_chmod_EROFS_clean,"test_yaffs_chmod_EROFS"},
+	{test_yaffs_chmod_ENAMETOOLONG,test_yaffs_chmod_ENAMETOOLONG_clean,"test_yaffs_chmod_ENAMETOOLONG"},
+	{test_yaffs_chmod_NULL,test_yaffs_chmod_NULL_clean,"test_yaffs_chmod_NULL"},
 
 	{test_yaffs_fchmod,test_yaffs_fchmod_clean,"test_yaffs_fchmod"},
 	{test_yaffs_fchmod_EBADF,test_yaffs_fchmod_EBADF_clean,"test_yaffs_fchmod_EBADF"},
 	{test_yaffs_fchmod_EINVAL,test_yaffs_fchmod_EINVAL_clean,"test_yaffs_fchmod_EINVAL"},
 	{test_yaffs_fchmod_EROFS,test_yaffs_fchmod_EROFS_clean,"test_yaffs_fchmod_EROFS"},
+	{test_yaffs_fchmod_NULL,test_yaffs_fchmod_NULL_clean,"test_yaffs_fchmod_NULL"},
 
 	{test_yaffs_fsync,test_yaffs_fsync_clean,"test_yaffs_fsync"},
 	{test_yaffs_fsync_EBADF,test_yaffs_fsync_EBADF_clean,"test_yaffs_fsync_EBADF"},
@@ -333,6 +363,7 @@ test_template test_list[]={
 	{test_yaffs_fdatasync,test_yaffs_fdatasync_clean,"test_yaffs_fdatasync"},
 	{test_yaffs_fdatasync_EBADF,test_yaffs_fdatasync_EBADF_clean,"test_yaffs_fdatasync_EBADF"},
 	{test_yaffs_fdatasync_EROFS,test_yaffs_fdatasync_EROFS_clean,"test_yaffs_fdatasync_EROFS"},
+	{test_yaffs_fdatasync_NULL,test_yaffs_fdatasync_NULL_clean,"test_yaffs_fdatasync_NULL"},
 
 	{test_yaffs_mkdir,test_yaffs_mkdir_clean,"test_yaffs_mkdir"},
 	{test_yaffs_mkdir_EEXIST,test_yaffs_mkdir_EEXIST_clean,"test_yaffs_mkdir_EEXIST"},
@@ -340,6 +371,7 @@ test_template test_list[]={
 	{test_yaffs_mkdir_ENOENT,test_yaffs_mkdir_ENOENT_clean,"test_yaffs_mkdir_ENOENT"},
 	{test_yaffs_mkdir_ELOOP_dir,test_yaffs_mkdir_ELOOP_dir_clean,"test_yaffs_mkdir_ELOOP_dir"},
 	{test_yaffs_mkdir_EROFS,test_yaffs_mkdir_EROFS_clean,"test_yaffs_mkdir_EROFS"},
+	{test_yaffs_mkdir_ENAMETOOLONG,test_yaffs_mkdir_ENAMETOOLONG_clean,"test_yaffs_mkdir_ENAMETOOLONG"},
 
 
 	{test_yaffs_symlink,test_yaffs_symlink_clean,"test_yaffs_symlink"},
@@ -349,6 +381,7 @@ test_template test_list[]={
 	{test_yaffs_symlink_ENOENT2,test_yaffs_symlink_ENOENT2_clean,"test_yaffs_symlink_ENOENT2"},
 	{test_yaffs_symlink_ELOOP_dir,test_yaffs_symlink_ELOOP_dir_clean,"test_yaffs_symlink_ELOOP_dir"},
 	{test_yaffs_symlink_EROFS,test_yaffs_symlink_EROFS_clean,"test_yaffs_symlink_EROFS"},
+	{test_yaffs_symlink_ENAMETOOLONG,test_yaffs_symlink_ENAMETOOLONG_clean,"test_yaffs_symlink_ENAMETOOLONG"},
 
 	{test_yaffs_mount2,test_yaffs_mount2_clean,"test_yaffs_mount2"},
 	{test_yaffs_mount2_ENODEV,test_yaffs_mount2_ENODEV_clean,"test_yaffs_mount2_ENODEV"},
@@ -363,21 +396,26 @@ test_template test_list[]={
 	{test_yaffs_sync,test_yaffs_sync_clean,"test_yaffs_sync"},
 	{test_yaffs_sync_ENODEV,test_yaffs_sync_ENODEV_clean,"test_yaffs_sync_ENODEV"},
 	{test_yaffs_sync_EROFS,test_yaffs_sync_EROFS_clean,"test_yaffs_sync_EROFS"},
+	{test_yaffs_sync_ENAMETOOLONG,test_yaffs_sync_ENAMETOOLONG_clean,"test_yaffs_sync_ENAMETOOLONG"},
 
 
 	{test_yaffs_remount_force_off_read_only_off,test_yaffs_remount_force_off_read_only_off_clean,"test_yaffs_remount_force_off_read_only_off"},
 {test_yaffs_remount_force_on_read_only_off,test_yaffs_remount_force_on_read_only_off_clean,"test_yaffs_remount_force_on_read_only_off"},
 	{test_yaffs_remount_ENODEV,test_yaffs_remount_ENODEV_clean,"test_yaffs_remount_ENODEV"},
 	{test_yaffs_remount_EINVAL,test_yaffs_remount_EINVAL_clean,"test_yaffs_remount_EINVAL"},
+	{test_yaffs_remount_ENAMETOOLONG,test_yaffs_remount_ENAMETOOLONG_clean,"test_yaffs_remount_ENAMETOOLONG"},
 
 	{test_yaffs_freespace,test_yaffs_freespace_clean,"test_yaffs_freespace"},
 	{test_yaffs_freespace_EINVAL,test_yaffs_freespace_EINVAL_clean,"test_yaffs_freespace_EINVAL"},
+	{test_yaffs_freespace_ENAMETOOLONG,test_yaffs_freespace_ENAMETOOLONG_clean,"test_yaffs_freespace_ENAMETOOLONG"},
 
 	{test_yaffs_totalspace,test_yaffs_totalspace_clean,"test_yaffs_totalspace"},
 	{test_yaffs_totalspace_EINVAL,test_yaffs_totalspace_EINVAL_clean,"test_yaffs_totalspace_EINVAL"},
+	{test_yaffs_totalspace_ENAMETOOLONG,test_yaffs_totalspace_ENAMETOOLONG_clean,"test_yaffs_totalspace_ENAMETOOLONG"},
 
 	{test_yaffs_inodecount,test_yaffs_inodecount_clean,"test_yaffs_inodecount"},
 	{test_yaffs_inodecount_EINVAL,test_yaffs_inodecount_EINVAL_clean,"test_yaffs_inodecount_EINVAL"},
+	{test_yaffs_inodecount_ENAMETOOLONG,test_yaffs_inodecount_ENAMETOOLONG_clean,"test_yaffs_inodecount_ENAMETOOLONG"},
 
 	{test_yaffs_link,test_yaffs_link_clean,"test_yaffs_link"},
 	{test_yaffs_link_ENOENT,test_yaffs_link_ENOENT_clean,"test_yaffs_link_ENOENT"},
@@ -389,6 +427,8 @@ test_template test_list[]={
 	{test_yaffs_link_ENOENT4,test_yaffs_link_ENOENT4_clean,"test_yaffs_link_ENOENT4"},
 	{test_yaffs_link_ELOOP_dir,test_yaffs_link_ELOOP_dir_clean,"test_yaffs_link_ELOOP_dir"},
 	{test_yaffs_link_EROFS,test_yaffs_link_EROFS_clean,"test_yaffs_link_EROFS"},
+	{test_yaffs_link_ENAMETOOLONG,test_yaffs_link_ENAMETOOLONG_clean,"test_yaffs_link_ENAMETOOLONG"},
+	{test_yaffs_link_ENAMETOOLONG2,test_yaffs_link_ENAMETOOLONG2_clean,"test_yaffs_link_ENAMETOOLONG2"},
 
 	{test_yaffs_rmdir,test_yaffs_rmdir_clean,"test_yaffs_rmdir"},
 	{test_yaffs_rmdir_EBUSY,test_yaffs_rmdir_EBUSY_clean,"test_yaffs_rmdir_EBUSY"},
@@ -397,6 +437,7 @@ test_template test_list[]={
 	{test_yaffs_rmdir_ENOTDIR,test_yaffs_rmdir_ENOTDIR_clean,"test_yaffs_rmdir_ENOTDIR"},
 	{test_yaffs_rmdir_ELOOP_dir,test_yaffs_rmdir_ELOOP_dir_clean,"test_yaffs_rmdir_ELOOP_dir"},
 	{test_yaffs_rmdir_EROFS,test_yaffs_rmdir_EROFS_clean,"test_yaffs_rmdir_EROFS"},
+	{test_yaffs_rmdir_ENAMETOOLONG,test_yaffs_rmdir_ENAMETOOLONG_clean,"test_yaffs_rmdir_ENAMETOOLONG"},
 
 	{test_yaffs_stat_ELOOP_dir,test_yaffs_stat_ELOOP_dir_clean,"test_yaffs_stat_ELOOP_dir"},
 
@@ -412,14 +453,19 @@ test_template test_list[]={
 	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"},
 	{test_yaffs_rename_ELOOP_dir,test_yaffs_rename_ELOOP_dir_clean,"test_yaffs_rename_ELOOP_dir"},
 	{test_yaffs_rename_EROFS,test_yaffs_rename_EROFS_clean,"test_yaffs_rename_EROFS"},
+	{test_yaffs_rename_ENAMETOOLONG,test_yaffs_rename_ENAMETOOLONG_clean,"test_yaffs_rename_ENAMETOOLONG"},
+	{test_yaffs_rename_ENAMETOOLONG2,test_yaffs_rename_ENAMETOOLONG2_clean,"test_yaffs_rename_ENAMETOOLONG2"},
 
 	{test_yaffs_lstat,test_yaffs_lstat_clean,"test_yaffs_lstat"},
 	{test_yaffs_lstat_ENOENT,test_yaffs_lstat_ENOENT_clean,"test_yaffs_lstat_ENOENT"},
 	{test_yaffs_lstat_ENOTDIR,test_yaffs_lstat_ENOTDIR_clean,"test_yaffs_lstat_ENOTDIR"},
+	{test_yaffs_lstat_ENAMETOOLONG,test_yaffs_lstat_ENAMETOOLONG_clean,"test_yaffs_lstat_ENAMETOOLONG"},
 
 	{test_yaffs_flush,test_yaffs_flush_clean,"test_yaffs_flush"},
 	{test_yaffs_flush_EBADF,test_yaffs_flush_EBADF_clean,"test_yaffs_flush_EBADF"},
-	{test_yaffs_flush_EROFS,test_yaffs_flush_EROFS_clean,"test_yaffs_flush_EROFS"}
+	{test_yaffs_flush_EROFS,test_yaffs_flush_EROFS_clean,"test_yaffs_flush_EROFS"},
+	{test_yaffs_flush_NULL,test_yaffs_flush_NULL_clean,"test_yaffs_flush_NULL"}
+
 
 	};
 

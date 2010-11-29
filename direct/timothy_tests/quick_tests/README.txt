@@ -202,22 +202,15 @@ Tests to add
 
 	test_yaffs_lstat_ENAMETOOLONG
 
-
 	test_yaffs_readlink
 	test_yaffs_readlink_ENOENT
 	test_yaffs_readlink_ENOTDIR
 	test_yaffs_readlink_ELOOP
 	test_yaffs_readlink_ENAMETOOLONG
 
-	
-
 	test_yaffs_mkdir_ENAMETOOLONG
 
-
-
-
 	test_yaffs_symlink_ENAMETOOLONG
-
 
 	test_yaffs_mount2_ENAMETOOLONG
 	test_yaffs_mount2_with read only set
@@ -239,40 +232,20 @@ Tests to add
 
 	test_yaffs_closedir
 
-
-
 	test_yaffs_link_ENAMETOOLONG
 	test_yaffs_link_EPERM
 
-
-
-
 	test_yaffs_rmdir_ENOTEMPTY
-
-
-
-
-
 
 	test_yaffs_rename_EMLINK
 	test_yaffs_rename_EEXISTS or EPERM
 
-
 	test_yaffs_dup
 	test_yaffs_dup_EBADF		
 
-
-	test_yaffs_fchmod_ELOOP
-
-
-
 	test_yaffs_open_ENOSPC
-	test_yaffs_open_ELOOP   
+
 	test yaffs_open_running_out_of_handles error
-
-	
-	
-
 
 	test_yaffs_stat_ENAMETOOLONG
 
@@ -293,20 +266,10 @@ Tests to add
 	test_yaffs_pwrite_big_file
 	test_yaffs_pwrite_EINVAL
 
-
-
 	test_yaffs_unlink_ENOMEM
-
-
-	test_yaffs_stat_ELOOP
-
 
 	test_yaffs_access_ENAMETOOLONG
 	test_yaffs_access_ENOENT_generated_with_a_dangling_symbloic_link
-
-
-
-
 
 	test_yaffs_truncate_ENAMETOOLONG
 	Add a truncate function for truncating a file size to -1.

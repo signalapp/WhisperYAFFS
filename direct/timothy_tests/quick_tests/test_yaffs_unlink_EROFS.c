@@ -12,11 +12,11 @@
  */
 
 #include "test_yaffs_open_EROFS.h"
-
+static int output =0;
 
 int test_yaffs_unlink_EROFS(void)
 {
-	int output=0;
+
 	int error_code=0;
 
 	EROFS_setup();
@@ -38,7 +38,7 @@ int test_yaffs_unlink_EROFS(void)
 
 }
 int test_yaffs_unlink_EROFS_clean(void)
-{
-	return EROFS_clean();
+{	
+	return EROFS_clean()&& yaffs_close(test_yaffs_open()) ;
 }
 

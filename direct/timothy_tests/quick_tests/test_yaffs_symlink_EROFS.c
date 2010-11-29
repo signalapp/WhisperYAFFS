@@ -18,13 +18,7 @@ static int output = 0;
 int test_yaffs_symlink_EROFS(void)
 {
 	int error_code = 0;
-	if (-1==yaffs_access(SYMLINK_PATH,0)){
-		output=yaffs_symlink(FILE_PATH,SYMLINK_PATH);
-		if (output>0){
-			print_message("failed to create the first symlink\n",2);
-			return -1;
-		}
-	}
+
 	EROFS_setup();
 	output = yaffs_symlink(FILE_PATH,SYMLINK_PATH);
 	if (output<0){ 
@@ -44,7 +38,7 @@ int test_yaffs_symlink_EROFS(void)
 
 int test_yaffs_symlink_EROFS_clean(void)
 {
-	return EROFS_clean() && yaffs_unlink(SYMLINK_PATH);
+	return (EROFS_clean() && yaffs_unlink(SYMLINK_PATH));
 }
 
 

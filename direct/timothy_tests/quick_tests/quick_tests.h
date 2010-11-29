@@ -336,7 +336,7 @@ test_template test_list[]={
 	{test_yaffs_mkdir_ENOENT,test_yaffs_mkdir_ENOENT_clean,"test_yaffs_mkdir_ENOENT"},
 	{test_yaffs_mkdir_ELOOP_dir,test_yaffs_mkdir_ELOOP_dir_clean,"test_yaffs_mkdir_ELOOP_dir"},
 	{test_yaffs_mkdir_EROFS,test_yaffs_mkdir_EROFS_clean,"test_yaffs_mkdir_EROFS"},
-	{test_yaffs_rename_EROFS,test_yaffs_rename_EROFS_clean,"test_yaffs_rename_EROFS"},
+
 
 	{test_yaffs_symlink,test_yaffs_symlink_clean,"test_yaffs_symlink"},
 	{test_yaffs_symlink_ENOTDIR,test_yaffs_symlink_ENOTDIR_clean,"test_yaffs_symlink_ENOTDIR"},
@@ -407,6 +407,7 @@ test_template test_list[]={
 	{test_yaffs_rename_file_to_dir,test_yaffs_rename_file_to_dir_clean,"test_yaffs_rename_file_to_dir"},
 	{test_yaffs_rename_EEXISTS,test_yaffs_rename_EEXISTS_clean,"test_yaffs_rename_EEXISTS"},
 	{test_yaffs_rename_ELOOP_dir,test_yaffs_rename_ELOOP_dir_clean,"test_yaffs_rename_ELOOP_dir"},
+	{test_yaffs_rename_EROFS,test_yaffs_rename_EROFS_clean,"test_yaffs_rename_EROFS"},
 
 	{test_yaffs_lstat,test_yaffs_lstat_clean,"test_yaffs_lstat"},
 	{test_yaffs_lstat_ENOENT,test_yaffs_lstat_ENOENT_clean,"test_yaffs_lstat_ENOENT"},

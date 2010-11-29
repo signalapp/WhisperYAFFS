@@ -19,8 +19,8 @@ int test_yaffs_write_EROFS(void)
 {
 	int output=0;
 	int error_code=0;
+	handle=test_yaffs_open();
 	EROFS_setup();
-	handle=yaffs_open(FILE_PATH, O_CREAT  ,S_IREAD);
 	if (handle>=0){
 		output= yaffs_write(handle, FILE_TEXT, FILE_TEXT_NBYTES);
 		if (output<0){

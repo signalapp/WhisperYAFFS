@@ -53,7 +53,7 @@ int test_yaffs_rename_EROFS_clean(void)
 		}
 	}
 	
-	return 	EROFS_clean();
+	return 	(EROFS_clean() && yaffs_close(test_yaffs_open()));
 
 }
 

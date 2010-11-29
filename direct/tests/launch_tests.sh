@@ -10,8 +10,12 @@ iterations=100000
 LAUNCHDIR=`pwd`
 RUNDIR=`pwd`/tmp
 mkdir $RUNDIR
+
+if [ -z "$(mount | grep $RUNDIR)" ]; then
 sudo mount -t tmpfs -osize=2G none $RUNDIR
 sudo chmod a+wr $RUNDIR
+fi
+
 
 
 

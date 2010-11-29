@@ -30,6 +30,9 @@ CFLAGS+=   -Werror=strict-prototypes -Werror=missing-parameter-type
 CFLAGS+=   -Werror=redundant-decls -Werror=nested-externs -Winline
 CFLAGS+=   -Werror=undef
 
+CFLAGS+=   -DCONFIG_YAFFS_USE_PTHREADS -lpthread
+
+
 COMMONTESTOBJS = yaffscfg2k.o yaffs_osglue.o \
 		 yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \

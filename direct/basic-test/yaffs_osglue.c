@@ -39,7 +39,7 @@ int yaffsfs_GetLastError(void)
 
 
 #ifdef CONFIG_YAFFS_USE_PTHREADS
-#include <pthreads.h>
+#include <pthread.h>
 static pthread_mutex_t mutex1;
 
 
@@ -55,7 +55,7 @@ void yaffsfs_Unlock(void)
 
 void yaffsfs_LockInit(void)
 {
-	pthread_mutex_init( &mutex, NULL);
+	pthread_mutex_init( &mutex1, NULL);
 }
 
 #else

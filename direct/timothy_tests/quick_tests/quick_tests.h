@@ -38,6 +38,7 @@
 #include "test_yaffs_open_ELOOP.h"
 #include "test_yaffs_open_ELOOP_dir.h"
 #include "test_yaffs_open_EROFS.h"
+#include "test_yaffs_open_EACCES.h"
 
 #include "test_yaffs_close_EBADF.h"
 
@@ -92,6 +93,7 @@
 #include "test_yaffs_access_ELOOP_dir.h"
 #include "test_yaffs_access_ELOOP.h"
 #include "test_yaffs_access_EROFS.h"
+#include "test_yaffs_access_EACCES.h"
 
 #include "test_yaffs_stat.h"
 #include "test_yaffs_stat_ENOENT.h"
@@ -246,6 +248,7 @@ test_template test_list[]={
 	{test_yaffs_open_ELOOP,test_yaffs_open_ELOOP_clean,"test_yaffs_open_ELOOP"},
 	{test_yaffs_open_ELOOP_dir,test_yaffs_open_ELOOP_dir_clean,"test_yaffs_open_ELOOP_dir"},
 	{test_yaffs_open_EROFS,test_yaffs_open_EROFS_clean,"test_yaffs_open_EROFS"},
+	{test_yaffs_open_EACCES,test_yaffs_open_EACCES_clean,"test_yaffs_open_EACCES"},
 	
 	{test_yaffs_close_EBADF,test_yaffs_close_EBADF_clean,"test_yaffs_close_EBADF"},
 
@@ -257,6 +260,7 @@ test_template test_list[]={
 	{test_yaffs_access_ELOOP_dir,test_yaffs_access_ELOOP_dir_clean,"test_yaffs_access_ELOOP_dir"},
 	{test_yaffs_access_ELOOP,test_yaffs_access_ELOOP_clean,"test_yaffs_access_ELOOP"},
 	{test_yaffs_access_EROFS,test_yaffs_access_EROFS_clean,"test_yaffs_access_EROFS"},
+	{test_yaffs_access_EACCES,test_yaffs_access_EACCES_clean,"test_yaffs_access_EACCES"},
 
 	{test_yaffs_unlink, test_yaffs_unlink_clean,"test_yaffs_unlink"},
 	{test_yaffs_unlink_EISDIR,test_yaffs_unlink_EISDIR_clean,"test_yaffs_unlink_EISDIR"},

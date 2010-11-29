@@ -1210,7 +1210,7 @@ int yaffs_truncate(const YCHAR *path,off_t new_size)
 	else if(obj->variant_type != YAFFS_OBJECT_TYPE_FILE)
 		yaffsfs_SetError(-EISDIR);
 	else if(obj->my_dev->read_only)
-		yaffsfs_SetError(-EACCES);
+		yaffsfs_SetError(-EROFS);
 	else if(new_size < 0 || new_size > YAFFS_MAX_FILE_SIZE)
 		yaffsfs_SetError(-EINVAL);
 	else
@@ -1234,6 +1234,8 @@ int yaffs_ftruncate(int fd, off_t new_size)
 	if(!h || !obj)
 		/* bad handle */
 		yaffsfs_SetError(-EBADF);
+	else if(!h->writing)
+		yaffsfs_SetError(-EINVAL);
 	else if(obj->my_dev->read_only)
 		yaffsfs_SetError(-EROFS);
 	else if( new_size < 0 || new_size > YAFFS_MAX_FILE_SIZE)

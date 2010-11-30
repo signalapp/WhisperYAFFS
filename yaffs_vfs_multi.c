@@ -307,12 +307,12 @@ static int yaffs_writepage(struct page *page);
 #endif
 
 #ifdef CONFIG_YAFFS_XATTR
-int yaffs_setxattr(struct dentry *dentry, const char *name,
+static int yaffs_setxattr(struct dentry *dentry, const char *name,
 		   const void *value, size_t size, int flags);
-ssize_t yaffs_getxattr(struct dentry *dentry, const char *name, void *buff,
+static ssize_t yaffs_getxattr(struct dentry *dentry, const char *name, void *buff,
 		       size_t size);
-int yaffs_removexattr(struct dentry *dentry, const char *name);
-ssize_t yaffs_listxattr(struct dentry *dentry, char *buff, size_t size);
+static int yaffs_removexattr(struct dentry *dentry, const char *name);
+static ssize_t yaffs_listxattr(struct dentry *dentry, char *buff, size_t size);
 #endif
 
 #if (YAFFS_USE_WRITE_BEGIN_END != 0)
@@ -1985,7 +1985,7 @@ static int yaffs_setattr(struct dentry *dentry, struct iattr *attr)
 }
 
 #ifdef CONFIG_YAFFS_XATTR
-int yaffs_setxattr(struct dentry *dentry, const char *name,
+static int yaffs_setxattr(struct dentry *dentry, const char *name,
 		   const void *value, size_t size, int flags)
 {
 	struct inode *inode = dentry->d_inode;
@@ -2012,7 +2012,7 @@ int yaffs_setxattr(struct dentry *dentry, const char *name,
 	return error;
 }
 
-ssize_t yaffs_getxattr(struct dentry * dentry, const char *name, void *buff,
+static ssize_t yaffs_getxattr(struct dentry * dentry, const char *name, void *buff,
 		       size_t size)
 {
 	struct inode *inode = dentry->d_inode;
@@ -2035,7 +2035,7 @@ ssize_t yaffs_getxattr(struct dentry * dentry, const char *name, void *buff,
 	return error;
 }
 
-int yaffs_removexattr(struct dentry *dentry, const char *name)
+static int yaffs_removexattr(struct dentry *dentry, const char *name)
 {
 	struct inode *inode = dentry->d_inode;
 	int error = 0;
@@ -2063,7 +2063,7 @@ int yaffs_removexattr(struct dentry *dentry, const char *name)
 	return error;
 }
 
-ssize_t yaffs_listxattr(struct dentry * dentry, char *buff, size_t size)
+static ssize_t yaffs_listxattr(struct dentry * dentry, char *buff, size_t size)
 {
 	struct inode *inode = dentry->d_inode;
 	int error = 0;
@@ -3111,7 +3111,6 @@ static DECLARE_FSTYPE(yaffs2_fs_type, "yaffs2", yaffs2_read_super,
 #endif /* CONFIG_YAFFS_YAFFS2 */
 
 static struct proc_dir_entry *my_proc_entry;
-static struct proc_dir_entry *debug_proc_entry;
 
 static char *yaffs_dump_dev_part0(char *buf, struct yaffs_dev *dev)
 {
@@ -3251,37 +3250,6 @@ static int yaffs_proc_read(char *page,
 		}
 		mutex_unlock(&yaffs_context_lock);
 	}
-
-	return buf - page < count ? buf - page : count;
-}
-
-static int yaffs_stats_proc_read(char *page,
-				 char **start,
-				 off_t offset, int count, int *eof, void *data)
-{
-	struct list_head *item;
-	char *buf = page;
-	int n = 0;
-
-	mutex_lock(&yaffs_context_lock);
-
-	/* Locate and print the Nth entry.  Order N-squared but N is small. */
-	list_for_each(item, &yaffs_context_list) {
-		struct yaffs_linux_context *dc =
-		    list_entry(item, struct yaffs_linux_context, context_list);
-		struct yaffs_dev *dev = dc->dev;
-
-		int erased_chunks;
-
-		erased_chunks =
-		    dev->n_erased_blocks * dev->param.chunks_per_block;
-
-		buf += sprintf(buf, "%d, %d, %d, %u, %u, %u, %u\n",
-			       n, dev->n_free_chunks, erased_chunks,
-			       dev->bg_gcs, dev->oldest_dirty_gc_count,
-			       dev->n_obj, dev->n_tnodes);
-	}
-	mutex_unlock(&yaffs_context_lock);
 
 	return buf - page < count ? buf - page : count;
 }
@@ -3470,17 +3438,6 @@ static int __init init_yaffs_fs(void)
 		return -ENOMEM;
         }
 
-	debug_proc_entry = create_proc_entry("yaffs_stats",
-					     S_IRUGO | S_IFREG, YPROC_ROOT);
-
-	if (debug_proc_entry) {
-		debug_proc_entry->write_proc = NULL;
-		debug_proc_entry->read_proc = yaffs_stats_proc_read;
-		debug_proc_entry->data = NULL;
-	} else {
-		return -ENOMEM;
-        }
-
 	/* Now add the file system entries */
 
 	fsinst = fs_to_install;
@@ -3517,7 +3474,6 @@ static void __exit exit_yaffs_fs(void)
 	  (TSTR("yaffs built " __DATE__ " " __TIME__ " removing. \n")));
 
 	remove_proc_entry("yaffs", YPROC_ROOT);
-	remove_proc_entry("yaffs_stats", YPROC_ROOT);
 
 	fsinst = fs_to_install;
 

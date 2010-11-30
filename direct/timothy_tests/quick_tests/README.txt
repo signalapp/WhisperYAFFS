@@ -5,34 +5,42 @@ Made by Timothy Manning <timothy@yaffs.net> on 04/11/2010
 Tests made
 
 test_yaffs_access.c
+test_yaffs_access_EACCES.c
 test_yaffs_access_EINVAL.c
 test_yaffs_access_ELOOP.c
 test_yaffs_access_ELOOP_dir.c
+test_yaffs_access_ENAMETOOLONG.c
 test_yaffs_access_ENOENT2.c
 test_yaffs_access_ENOENT.c
 test_yaffs_access_ENOTDIR.c
 test_yaffs_access_EROFS.c
+test_yaffs_access_NULL.c
 
 test_yaffs_chmod.c
 test_yaffs_chmod_EINVAL.c
 test_yaffs_chmod_ELOOP.c
 test_yaffs_chmod_ELOOP_dir.c
+test_yaffs_chmod_ENAMETOOLONG.c
 test_yaffs_chmod_ENOENT2.c
 test_yaffs_chmod_ENOENT.c
 test_yaffs_chmod_ENOTDIR.c
 test_yaffs_chmod_EROFS.c
+test_yaffs_chmod_NULL.c
 
 test_yaffs_close.c
 test_yaffs_close_EBADF.c
+test_yaffs_close_NULL.c
 
 test_yaffs_fchmod.c
 test_yaffs_fchmod_EBADF.c
 test_yaffs_fchmod_EINVAL.c
 test_yaffs_fchmod_EROFS.c
+test_yaffs_fchmod_NULL.c
 
 test_yaffs_fdatasync.c
 test_yaffs_fdatasync_EBADF.c
 test_yaffs_fdatasync_EROFS.c
+test_yaffs_fdatasync_NULL.c
 
 test_yaffs_flush.c
 test_yaffs_flush_EBADF.c
@@ -40,6 +48,8 @@ test_yaffs_flush_EROFS.c
 
 test_yaffs_freespace.c
 test_yaffs_freespace_EINVAL.c
+test_yaffs_freespace_ENAMETOOLONG.c
+test_yaffs_freespace_NULL.c
 
 test_yaffs_fstat.c
 test_yaffs_fstat_EBADF.c
@@ -56,10 +66,14 @@ test_yaffs_ftruncate_EROFS.c
 
 test_yaffs_inodecount.c
 test_yaffs_inodecount_EINVAL.c
+test_yaffs_inodecount_ENAMETOOLONG.c
+test_yaffs_inodecount_NULL.c
 
 test_yaffs_link.c
 test_yaffs_link_EEXIST.c
 test_yaffs_link_ELOOP_dir.c
+test_yaffs_link_ENAMETOOLONG2.c
+test_yaffs_link_ENAMETOOLONG.c
 test_yaffs_link_ENOENT2.c
 test_yaffs_link_ENOENT3.c
 test_yaffs_link_ENOENT4.c
@@ -67,6 +81,8 @@ test_yaffs_link_ENOENT.c
 test_yaffs_link_ENOTDIR2.c
 test_yaffs_link_ENOTDIR.c
 test_yaffs_link_EROFS.c
+test_yaffs_link_NULL2.c
+test_yaffs_link_NULL.c
 
 test_yaffs_lseek_big_file.c
 test_yaffs_lseek.c
@@ -75,24 +91,31 @@ test_yaffs_lseek_EINVAL.c
 test_yaffs_lseek_EROFS.c
 
 test_yaffs_lstat.c
+test_yaffs_lstat_ENAMETOOLONG.c
 test_yaffs_lstat_ENOENT.c
 test_yaffs_lstat_ENOTDIR.c
+test_yaffs_lstat_NULL.c
 
 test_yaffs_mkdir.c
 test_yaffs_mkdir_EEXIST.c
 test_yaffs_mkdir_ELOOP_dir.c
+test_yaffs_mkdir_ENAMETOOLONG.c
 test_yaffs_mkdir_ENOENT.c
 test_yaffs_mkdir_ENOTDIR.c
 test_yaffs_mkdir_EROFS.c
+test_yaffs_mkdir_NULL.c
 
 test_yaffs_mount2.c
 test_yaffs_mount2_ENODEV.c
+
 test_yaffs_mount.c
 test_yaffs_mount_EBUSY.c
 test_yaffs_mount_ENAMETOOLONG.c
 test_yaffs_mount_ENODEV.c
+test_yaffs_mount_NULL.c
 
 test_yaffs_open.c
+test_yaffs_open_EACCES.c
 test_yaffs_open_EEXIST.c
 test_yaffs_open_EINVAL2.c
 test_yaffs_open_EINVAL.c
@@ -103,17 +126,20 @@ test_yaffs_open_ENAMETOOLONG.c
 test_yaffs_open_ENOENT.c
 test_yaffs_open_ENOTDIR.c
 test_yaffs_open_EROFS.c
+test_yaffs_open_NULL.c
 
 test_yaffs_read.c
 test_yaffs_read_EBADF.c
 test_yaffs_read_EINVAL.c
 
 test_yaffs_remount_EINVAL.c
+test_yaffs_remount_ENAMETOOLONG.c
 test_yaffs_remount_ENODEV.c
 test_yaffs_remount_force_off_read_only_off.c
 test_yaffs_remount_force_off_read_only_on.c
 test_yaffs_remount_force_on_read_only_off.c
 test_yaffs_remount_force_on_read_only_on.c
+test_yaffs_remount_NULL.c
 
 test_yaffs_rename.c
 test_yaffs_rename_dir.c
@@ -124,40 +150,55 @@ test_yaffs_rename_dir_to_file.c
 test_yaffs_rename_EEXISTS.c
 test_yaffs_rename_EINVAL.c
 test_yaffs_rename_ELOOP_dir.c
+test_yaffs_rename_ENAMETOOLONG2.c
+test_yaffs_rename_ENAMETOOLONG.c
 test_yaffs_rename_ENOENT.c
 test_yaffs_rename_ENOTDIR.c
 test_yaffs_rename_EROFS.c
 test_yaffs_rename_file_to_dir.c
+test_yaffs_rename_NULL2.c
+test_yaffs_rename_NULL.c
 
 test_yaffs_rmdir.c
 test_yaffs_rmdir_EBUSY.c
 test_yaffs_rmdir_EINVAL.c
 test_yaffs_rmdir_ELOOP_dir.c
+test_yaffs_rmdir_ENAMETOOLONG.c
 test_yaffs_rmdir_ENOENT.c
 test_yaffs_rmdir_ENOTDIR.c
 test_yaffs_rmdir_EROFS.c
+test_yaffs_rmdir_NULL.c
 
 test_yaffs_stat.c
 test_yaffs_stat_ELOOP.c
 test_yaffs_stat_ELOOP_dir.c
+test_yaffs_stat_ENAMETOOLONG.c
 test_yaffs_stat_ENOENT2.c
 test_yaffs_stat_ENOENT.c
 test_yaffs_stat_ENOTDIR.c
+test_yaffs_stat_NULL.c
 
 test_yaffs_symlink.c
 test_yaffs_symlink_EEXIST.c
 test_yaffs_symlink_ELOOP_dir.c
+test_yaffs_symlink_ENAMETOOLONG.c
 test_yaffs_symlink_ENOENT2.c
 test_yaffs_symlink_ENOENT.c
 test_yaffs_symlink_ENOTDIR.c
 test_yaffs_symlink_EROFS.c
+test_yaffs_symlink_NULL2.c
+test_yaffs_symlink_NULL.c
 
 test_yaffs_sync.c
+test_yaffs_sync_ENAMETOOLONG.c
 test_yaffs_sync_ENODEV.c
 test_yaffs_sync_EROFS.c
+test_yaffs_sync_NULL.c
 
 test_yaffs_totalspace.c
 test_yaffs_totalspace_EINVAL.c
+test_yaffs_totalspace_ENAMETOOLONG.c
+test_yaffs_totalspace_NULL.c
 
 test_yaffs_truncate_big_file.c
 test_yaffs_truncate.c
@@ -165,10 +206,12 @@ test_yaffs_truncate_EINVAL.c
 test_yaffs_truncate_EISDIR.c
 test_yaffs_truncate_ELOOP.c
 test_yaffs_truncate_ELOOP_dir.c
+test_yaffs_truncate_ENAMETOOLONG.c
 test_yaffs_truncate_ENOENT2.c
 test_yaffs_truncate_ENOENT.c
 test_yaffs_truncate_ENOTDIR.c
 test_yaffs_truncate_EROFS.c
+test_yaffs_truncate_NULL.c
 
 test_yaffs_unlink.c
 test_yaffs_unlink_EISDIR.c
@@ -178,6 +221,7 @@ test_yaffs_unlink_ENOENT2.c
 test_yaffs_unlink_ENOENT.c
 test_yaffs_unlink_ENOTDIR.c
 test_yaffs_unlink_EROFS.c
+test_yaffs_unlink_NULL.c
 
 test_yaffs_unmount2.c
 test_yaffs_unmount2_EINVAL.c
@@ -188,6 +232,7 @@ test_yaffs_unmount.c
 test_yaffs_unmount_EBUSY.c
 test_yaffs_unmount_ENAMETOOLONG.c
 test_yaffs_unmount_ENODEV.c
+test_yaffs_unmount_NULL.c
 
 test_yaffs_write_big_file.c
 test_yaffs_write.c
@@ -198,31 +243,20 @@ test_yaffs_write_EROFS.c
 
 Tests to add
 
-	test_yaffs_chmod_ENAMETOOLONG
 
-	test_yaffs_lstat_ENAMETOOLONG
 
 	test_yaffs_readlink
 	test_yaffs_readlink_ENOENT
 	test_yaffs_readlink_ENOTDIR
 	test_yaffs_readlink_ELOOP
-	test_yaffs_readlink_ENAMETOOLONG
 
-	test_yaffs_mkdir_ENAMETOOLONG
 
-	test_yaffs_symlink_ENAMETOOLONG
-
-	test_yaffs_mount2_ENAMETOOLONG
 	test_yaffs_mount2_with read only set
 
-	test_yaffs_unmount2_ENAMETOOLONG
+
 
 	test_yaffs_remount_force_off_read_only_on
 	test_yaffs_remount_force_on_read_only_on
-
-	test_yaffs_freespace_ENAMETOOLONG
-	test_yaffs_totalspace_ENAMETOOLONG
-	test_yaffs_inodecount_ENAMETOOLONG
 
 	test_yaffs_opendir
 
@@ -232,7 +266,7 @@ Tests to add
 
 	test_yaffs_closedir
 
-	test_yaffs_link_ENAMETOOLONG
+
 	test_yaffs_link_EPERM
 
 	test_yaffs_rmdir_ENOTEMPTY
@@ -247,7 +281,7 @@ Tests to add
 
 	test yaffs_open_running_out_of_handles error
 
-	test_yaffs_stat_ENAMETOOLONG
+
 
 	test_yaffs_read_big_file
 	test what happens if you read off the end of the file?
@@ -268,10 +302,10 @@ Tests to add
 
 	test_yaffs_unlink_ENOMEM
 
-	test_yaffs_access_ENAMETOOLONG
+
 	test_yaffs_access_ENOENT_generated_with_a_dangling_symbloic_link
 
-	test_yaffs_truncate_ENAMETOOLONG
+
 	Add a truncate function for truncating a file size to -1.
 
 	What happens if a handle is opened to a file and the file is then deleted?

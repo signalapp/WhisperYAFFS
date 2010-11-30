@@ -11,32 +11,31 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_flush_NULL.h"
+#include "test_yaffs_totalspace_NULL.h"
 
 
 
-int test_yaffs_flush_NULL(void)
+int test_yaffs_totalspace_NULL(void)
 {
 	int output=0;
-	int error =0;
-	output = yaffs_flush(NULL);
+	int error=0;
+	output = yaffs_totalspace(NULL);
 	if (output<0){
 		error=yaffs_get_error();
-		if (abs(error)==EBADF){
+		if (abs(error)==EFAULT){
 			return 1;
 		} else {
 			print_message("different error than expected\n",2);
 			return -1;
 		}
 	} else {
-		print_message("flushed a bad handle (which is a bad thing)\n",2);
+		print_message("got the totalspace of a NULL mountpoint (which is a bad thing)\n",2);
 		return -1;
 	}
-
 }
 
 
-int test_yaffs_flush_NULL_clean(void)
+int test_yaffs_totalspace_NULL_clean(void)
 {
 	return 1;
 }

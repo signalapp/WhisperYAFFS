@@ -26,6 +26,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "yaffs_osglue.h"
+#include "yaffs_hweight.h"
 
 #include "assert.h"
 #define YBUG() assert(0)
@@ -42,6 +43,9 @@
 #define yaffs_strnlen(s,m)	     strnlen(s,m)
 #define yaffs_sprintf	     sprintf
 #define yaffs_toupper(a)     toupper(a)
+
+#define hweight8(x)	yaffs_hweight8(x)
+#define hweight32(x)	yaffs_hweight32(x)
 
 void yaffs_qsort(void *aa, size_t n, size_t es,
         int (*cmp)(const void *, const void *));
@@ -93,7 +97,6 @@ void yaffs_qsort(void *aa, size_t n, size_t es,
 #define yaffs_strcmp(a,b) strcmp(a,b)
 
 #include "yaffs_list.h"
-
 
 #include "yaffsfs.h"
 

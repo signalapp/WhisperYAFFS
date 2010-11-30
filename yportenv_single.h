@@ -29,6 +29,7 @@
 #include <linux/fs.h>
 #include <linux/stat.h>
 #include <linux/sort.h>
+#include <linux/bitops.h>
 
 #define YCHAR char
 #define YUCHAR unsigned char

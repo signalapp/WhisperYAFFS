@@ -19,31 +19,6 @@
 
 static void yaffs_handle_rd_data_error(struct yaffs_dev *dev, int nand_chunk);
 
-static const char yaffs_count_bits_table[256] = {
-	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
-	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-	4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
-};
-
-int yaffs_count_bits(u8 x)
-{
-	int ret_val;
-	ret_val = yaffs_count_bits_table[x];
-	return ret_val;
-}
 
 /********** Tags ECC calculations  *********/
 
@@ -370,7 +345,7 @@ int yaffs_tags_compat_rd(struct yaffs_dev *dev,
 		if (ext_tags) {
 
 			int deleted =
-			    (yaffs_count_bits(spare.page_status) < 7) ? 1 : 0;
+			    (hweight8(spare.page_status) < 7) ? 1 : 0;
 
 			ext_tags->is_deleted = deleted;
 			ext_tags->ecc_result = ecc_result;
@@ -443,7 +418,7 @@ int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
 	yaffs_rd_chunk_nand(dev, block_no * dev->param.chunks_per_block + 1,
 			    NULL, &spare1, &dummy, 1);
 
-	if (yaffs_count_bits(spare0.block_status & spare1.block_status) < 7)
+	if (hweight8(spare0.block_status & spare1.block_status) < 7)
 		*state = YAFFS_BLOCK_STATE_DEAD;
 	else if (memcmp(&spare_ff, &spare0, sizeof(spare_ff)) == 0)
 		*state = YAFFS_BLOCK_STATE_EMPTY;

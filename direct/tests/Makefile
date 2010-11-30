@@ -30,7 +30,7 @@ CFLAGS +=    -Wextra -Wpointer-arith
 #CFLAGS+=   -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Winline
 
 
-COMMONTESTOBJS = yaffscfg2k.o yaffs_osglue.o \
+COMMONTESTOBJS = yaffscfg2k.o yaffs_osglue.o yaffs_hweight.o\
 		 yaffs_ecc.o yaffs_fileem.o yaffs_fileem2k.o yaffsfs.o yaffs_guts.o \
 		 yaffs_packedtags1.o yaffs_ramdisk.o yaffs_ramem2k.o \
 		 yaffs_tagscompat.o yaffs_packedtags2.o yaffs_tagsvalidity.o yaffs_nand.o \
@@ -67,7 +67,8 @@ YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffs_flashif.c yaffscfg.h yaffs_qsort.c \
 		       yaffs_nandemul2k.h yaffs_list.h \
 		       yaffs_attribs.c \
-		       yaffs_nandif.c yaffs_nandif.h yportenv.h
+		       yaffs_nandif.c yaffs_nandif.h yportenv.h \
+		       yaffs_hweight.c yaffs_hweight.h
 
 
 DIRECTEXTRASYMLINKS = 	yaffscfg2k.c yaffs_fileem2k.c yaffs_fileem2k.h\

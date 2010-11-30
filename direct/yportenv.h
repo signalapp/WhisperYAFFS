@@ -187,6 +187,10 @@
 #define ENOMEM 12
 #endif
 
+#ifndef EFAULT
+#define EFAULT 14
+#endif
+
 #ifndef EEXIST
 #define EEXIST 17
 #endif

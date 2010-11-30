@@ -1397,7 +1397,8 @@ int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath)
 		return -1;
 	}
 
-	if(yaffsfs_CheckPath(newPath) < 0){
+	if(yaffsfs_CheckPath(oldPath) < 0 ||
+		yaffsfs_CheckPath(newPath) < 0){
 		yaffsfs_SetError(-ENAMETOOLONG);
 		return -1;
 	}
@@ -2489,6 +2490,11 @@ loff_t yaffs_totalspace(const YCHAR *path)
 	struct yaffs_dev *dev=NULL;
 	YCHAR *dummy;
 
+	if(!path){
+		yaffsfs_SetError(-EFAULT);
+		return -1;
+	}
+
 	if(yaffsfs_CheckPath(path) < 0){
 		yaffsfs_SetError(-ENAMETOOLONG);
 		return -1;
@@ -2786,10 +2792,12 @@ int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath)
 		return -1;
 	}
 
-	if(yaffsfs_CheckPath(newpath) < 0){
+	if(yaffsfs_CheckPath(newpath) < 0 ||
+		yaffsfs_CheckPath(oldpath) < 0){
 		yaffsfs_SetError(-ENAMETOOLONG);
 		return -1;
 	}
+
 	yaffsfs_Lock();
 	parent = yaffsfs_FindDirectory(NULL,newpath,&name,0,&notDir,&loop);
 	if(!parent && notDir)
@@ -2870,7 +2878,8 @@ int yaffs_link(const YCHAR *oldpath, const YCHAR *linkpath)
 		return -1;
 	}
 
-	if(yaffsfs_CheckPath(linkpath) < 0){
+	if(yaffsfs_CheckPath(linkpath) < 0 ||
+		yaffsfs_CheckPath(oldpath) < 0){
 		yaffsfs_SetError(-ENAMETOOLONG);
 		return -1;
 	}

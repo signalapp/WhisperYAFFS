@@ -24,7 +24,7 @@ int test_yaffs_access_NULL(void)
 	output= yaffs_access(NULL,0);
 	if (output<0){
 		error=yaffs_get_error();
-		if ( abs(error)== ELOOP){
+		if ( abs(error)== EFAULT){
 			return 1;
 		} else {
 			print_message("error does not match expected error\n",2);

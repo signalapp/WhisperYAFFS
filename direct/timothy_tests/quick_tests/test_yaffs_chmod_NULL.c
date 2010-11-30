@@ -22,7 +22,7 @@ int test_yaffs_chmod_NULL(void)
 
 	if (output<0){
 		error=yaffs_get_error();
-		if (abs(error)==EINVAL){
+		if (abs(error)==EFAULT){
 			return 1;
 		} else {
 			print_message("different error than expected\n",2);

@@ -185,8 +185,6 @@ static void *yaffs_follow_link(struct dentry *dentry, struct nameidata *nd);
 
 static void yaffs_touch_super(struct yaffs_dev *dev);
 
-static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin);
-
 static int yaffs_vfs_setattr(struct inode *, struct iattr *);
 
 static struct address_space_operations yaffs_file_address_operations = {
@@ -255,7 +253,7 @@ static const struct file_operations yaffs_dir_operations = {
 	.read = generic_read_dir,
 	.readdir = yaffs_readdir,
 	.fsync = yaffs_sync_object,
-	.llseek = yaffs_dir_llseek,
+	.llseek = generic_file_llseek,
 };
 
 static const struct super_operations yaffs_super_ops = {
@@ -1124,31 +1122,6 @@ static void yaffs_release_space(struct file *f)
 	yaffs_gross_lock(dev);
 
 	yaffs_gross_unlock(dev);
-}
-
-static loff_t yaffs_dir_llseek(struct file *file, loff_t offset, int origin)
-{
-	long long retval;
-
-	lock_kernel();
-
-	switch (origin) {
-	case 2:
-		offset += i_size_read(file->f_path.dentry->d_inode);
-		break;
-	case 1:
-		offset += file->f_pos;
-	}
-	retval = -EINVAL;
-
-	if (offset >= 0) {
-		if (offset != file->f_pos)
-			file->f_pos = offset;
-
-		retval = offset;
-	}
-	unlock_kernel();
-	return retval;
 }
 
 static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir)

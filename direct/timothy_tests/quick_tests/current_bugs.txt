@@ -3,9 +3,7 @@ Made by Timothy Manning <timothy@yaffs.net> on 08/11/2010
 
 
 Current BUGS 
-	Bug with test_yaffs_rename_dir it does not return an error code.
-	
-	Bug with test_yaffs_rename_EEXIST should be giving the bug EEXIST but instead gives ENOENT. 
+
 
 Current WARNINGS
 	

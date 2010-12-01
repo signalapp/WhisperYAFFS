@@ -31,6 +31,9 @@ test_yaffs_close.c
 test_yaffs_close_EBADF.c
 test_yaffs_close_NULL.c
 
+test_yaffs_dup.c
+test_yaffs_dup_EBADF.c	
+
 test_yaffs_fchmod.c
 test_yaffs_fchmod_EBADF.c
 test_yaffs_fchmod_EINVAL.c
@@ -250,10 +253,7 @@ Tests to add
 	test_yaffs_readlink_ENOTDIR
 	test_yaffs_readlink_ELOOP
 
-
 	test_yaffs_mount2_with read only set
-
-
 
 	test_yaffs_remount_force_off_read_only_on
 	test_yaffs_remount_force_on_read_only_on
@@ -266,22 +266,16 @@ Tests to add
 
 	test_yaffs_closedir
 
-
 	test_yaffs_link_EPERM
 
 	test_yaffs_rmdir_ENOTEMPTY
 
 	test_yaffs_rename_EMLINK
-	test_yaffs_rename_EEXISTS or EPERM
-
-	test_yaffs_dup
-	test_yaffs_dup_EBADF		
+	test_yaffs_rename_EEXISTS or EPERM	
 
 	test_yaffs_open_ENOSPC
 
 	test yaffs_open_running_out_of_handles error
-
-
 
 	test_yaffs_read_big_file
 	test what happens if you read off the end of the file?
@@ -295,16 +289,13 @@ Tests to add
 	test_yaffs_write_EINVAL
 	What happens when you run out of space?
 	
-	test_yaffs_write_EBADF
-	test_yaffs_write
+
 	test_yaffs_pwrite_big_file
 	test_yaffs_pwrite_EINVAL
 
 	test_yaffs_unlink_ENOMEM
 
-
 	test_yaffs_access_ENOENT_generated_with_a_dangling_symbloic_link
-
 
 	Add a truncate function for truncating a file size to -1.
 

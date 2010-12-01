@@ -222,6 +222,7 @@
 #include "test_yaffs_rmdir_ELOOP_dir.h"
 #include "test_yaffs_rmdir_EROFS.h"
 #include "test_yaffs_rmdir_ENAMETOOLONG.h"
+#include "test_yaffs_rmdir_ENOTEMPTY.h"
 
 #include "test_yaffs_rename.h"
 #include "test_yaffs_rename_ENOENT.h"
@@ -250,6 +251,8 @@
 #include "test_yaffs_flush_EBADF.h"
 #include "test_yaffs_flush_EROFS.h"
 
+#include "test_yaffs_dup.h"
+#include "test_yaffs_dup_EBADF.h"
 
 #include "yaffsfs.h"
 #include "yaffs_error_converter.h"
@@ -472,6 +475,7 @@ test_template test_list[]={
 	{test_yaffs_rmdir_ELOOP_dir,test_yaffs_rmdir_ELOOP_dir_clean,"test_yaffs_rmdir_ELOOP_dir"},
 	{test_yaffs_rmdir_EROFS,test_yaffs_rmdir_EROFS_clean,"test_yaffs_rmdir_EROFS"},
 	{test_yaffs_rmdir_ENAMETOOLONG,test_yaffs_rmdir_ENAMETOOLONG_clean,"test_yaffs_rmdir_ENAMETOOLONG"},
+	{test_yaffs_rmdir_ENOTEMPTY,test_yaffs_rmdir_ENOTEMPTY_clean,"test_yaffs_rmdir_ENOTEMPTY"},
 
 	{test_yaffs_stat_ELOOP_dir,test_yaffs_stat_ELOOP_dir_clean,"test_yaffs_stat_ELOOP_dir"},
 
@@ -502,7 +506,8 @@ test_template test_list[]={
 	{test_yaffs_flush_EBADF,test_yaffs_flush_EBADF_clean,"test_yaffs_flush_EBADF"},
 	{test_yaffs_flush_EROFS,test_yaffs_flush_EROFS_clean,"test_yaffs_flush_EROFS"},
 
-
+	{test_yaffs_dup,test_yaffs_dup_clean,"test_yaffs_dup"},
+	{test_yaffs_dup_EBADF,test_yaffs_dup_EBADF_clean,"test_yaffs_dup_EBADF"},
 
 	};
 

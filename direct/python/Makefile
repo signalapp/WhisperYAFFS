@@ -41,10 +41,11 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_osglue.o yaffs_hweight.o\
 		 yaffs_norif1.o  ynorsim.o \
 		 yaffs_bitmap.o \
 		 yaffs_verify.o \
-		 yaffs_yaffs1.o yaffs_yaffs2.o 
+		 yaffs_yaffs1.o yaffs_yaffs2.o \
+		 yaffs_error.o
 
 
-YAFFSLIBOBJS  = $(COMMONTESTOBJS) yaffs_python_helper.o yaffs_error_converter.o
+YAFFSLIBOBJS  = $(COMMONTESTOBJS) yaffs_python_helper.o
 
 
 
@@ -65,7 +66,8 @@ YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffsfs.h yaffscfg.h yaffs_osglue.h  ydirectenv
 		       yaffs_flashif.c yaffs_flashif.h yaffs_flashif2.h yaffs_list.h \
 		       yaffs_nandif.c yaffs_nandif.h yaffs_qsort.c yaffs_nandemul2k.h \
 		       yportenv.h yaffs_attribs.c \
-		       yaffs_hweight.c yaffs_hweight.h
+		       yaffs_hweight.c yaffs_hweight.h \
+		       yaffs_error.c
 
 DIRECTEXTRASYMLINKS =   yaffscfg2k.c yaffs_fileem2k.c yaffs_fileem2k.h\
                         yaffs_fileem.c yaffs_norif1.c yaffs_norif1.h \

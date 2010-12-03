@@ -11,7 +11,7 @@
  * published by the Free Software Foundation.
  */
 
-#include "yaffs_error_converter.h"
+#include "yaffsfs.h"
 
 struct error_entry {
   int code;

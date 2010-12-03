@@ -41,7 +41,8 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_osglue.o yaffs_hweight.o \
 		 yaffs_bitmap.o \
 		 yaffs_yaffs1.o \
 		 yaffs_yaffs2.o \
-		 yaffs_verify.o
+		 yaffs_verify.o \
+		 yaffs_error.o
 
 #		 yaffs_checkptrwtest.o\
 
@@ -114,10 +115,7 @@ TESTFILES = 	quick_tests.o lib.o \
 
 YAFFSTESTOBJS  = $(COMMONTESTOBJS) $(TESTFILES)
 
-PYTONOSYMLINKS = yaffs_error_converter.c yaffs_error_converter.h
-PYTHONOBJS = yaffs_error_converter.o
-
-ALLOBJS = $(sort $(YAFFSTESTOBJS)) $(PYTHONOBJS)
+ALLOBJS = $(sort $(YAFFSTESTOBJS))
 
 YAFFSSYMLINKS = yaffs_ecc.c yaffs_ecc.h yaffs_guts.c yaffs_guts.h yaffs_tagscompat.c yaffs_tagscompat.h \
           yaffs_packedtags1.c yaffs_packedtags1.h yaffs_packedtags2.c yaffs_packedtags2.h \
@@ -137,7 +135,8 @@ YAFFSDIRECTSYMLINKS =  yaffsfs.c yaffs_flashif.h yaffs_flashif2.h\
 		       yaffs_nandemul2k.h yaffs_list.h \
 		       yaffs_attribs.c yaffs_osglue.h \
 		       yaffs_nandif.c yaffs_nandif.h yportenv.h \
-		       yaffs_hweight.h yaffs_hweight.c
+		       yaffs_hweight.h yaffs_hweight.c \
+		       yaffs_error.c
 
 
 DIRECTEXTRASYMLINKS = 	yaffscfg2k.c yaffs_fileem2k.c yaffs_fileem2k.h\

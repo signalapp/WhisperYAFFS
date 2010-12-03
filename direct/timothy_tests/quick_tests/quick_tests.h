@@ -255,7 +255,6 @@
 #include "test_yaffs_dup_EBADF.h"
 
 #include "yaffsfs.h"
-#include "yaffs_error_converter.h"
 #include "lib.h"
 
 

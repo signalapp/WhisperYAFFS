@@ -64,7 +64,7 @@ loff_t yaffs_get_file_size(struct yaffs_obj *obj)
 		alias = obj->variant.symlink_variant.alias;
 		if (!alias)
 			return 0;
-		return yaffs_strnlen(alias, YAFFS_MAX_ALIAS_LENGTH);
+		return strnlen(alias, YAFFS_MAX_ALIAS_LENGTH);
 	default:
 		return 0;
 	}

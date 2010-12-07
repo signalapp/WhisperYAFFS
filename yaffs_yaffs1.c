@@ -86,7 +86,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 	for (blk = dev->internal_start_block;
 	     !alloc_failed && blk <= dev->internal_end_block; blk++) {
 
-		YYIELD();
+		cond_resched();
 
 		bi = yaffs_get_block_info(dev, blk);
 		state = bi->block_state;
@@ -217,9 +217,9 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 					struct yaffs_shadow_fixer *fixer;
 					fixer =
-					    YMALLOC(sizeof
-						    (struct
-						     yaffs_shadow_fixer));
+						kmalloc(sizeof
+						(struct yaffs_shadow_fixer),
+						GFP_NOFS);
 					if (fixer) {
 						fixer->next = shadow_fixers;
 						shadow_fixers = fixer;
@@ -422,7 +422,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 			if (obj)
 				yaffs_update_oh(obj, NULL, 1, 0, 0, NULL);
 
-			YFREE(fixer);
+			kfree(fixer);
 		}
 	}
 

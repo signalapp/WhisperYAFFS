@@ -154,7 +154,7 @@ int yaffs2_checkpt_open(struct yaffs_dev *dev, int writing)
 
 	if (!dev->checkpt_buffer)
 		dev->checkpt_buffer =
-		    YMALLOC_DMA(dev->param.total_bytes_per_chunk);
+		    kmalloc(dev->param.total_bytes_per_chunk, GFP_NOFS);
 	if (!dev->checkpt_buffer)
 		return 0;
 
@@ -182,7 +182,7 @@ int yaffs2_checkpt_open(struct yaffs_dev *dev, int writing)
 		    (dev->internal_end_block - dev->internal_start_block) / 16 +
 		    2;
 		dev->checkpt_block_list =
-		    YMALLOC(sizeof(int) * dev->checkpt_max_blocks);
+		    kmalloc(sizeof(int) * dev->checkpt_max_blocks, GFP_NOFS);
 		if (!dev->checkpt_block_list)
 			return 0;
 
@@ -387,7 +387,7 @@ int yaffs_checkpt_close(struct yaffs_dev *dev)
 				/* Todo this looks odd... */
 			}
 		}
-		YFREE(dev->checkpt_block_list);
+		kfree(dev->checkpt_block_list);
 		dev->checkpt_block_list = NULL;
 	}
 
@@ -400,7 +400,7 @@ int yaffs_checkpt_close(struct yaffs_dev *dev)
 
 	if (dev->checkpt_buffer) {
 		/* free the buffer */
-		YFREE(dev->checkpt_buffer);
+		kfree(dev->checkpt_buffer);
 		dev->checkpt_buffer = NULL;
 		return 1;
 	} else {

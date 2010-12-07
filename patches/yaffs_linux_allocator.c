@@ -67,7 +67,7 @@ void yaffs_deinit_raw_tnodes_and_objs(struct yaffs_dev *dev)
 			YBUG();
 		}
 
-		YFREE(allocator);
+		kfree(allocator);
 
 	} else {
 		T(YAFFS_TRACE_ALWAYS,
@@ -114,7 +114,7 @@ void yaffs_init_raw_tnodes_and_objs(struct yaffs_dev *dev)
 	else if(mount_id >= 10){
 		T(YAFFS_TRACE_ALWAYS,(TSTR("Bad mount_id %u\n"),mount_id));
 	} else {
-		 allocator = YMALLOC(sizeof(yaffs_Allocator));
+		 allocator = kmalloc(sizeof(yaffs_Allocator));
 		 memset(allocator,0,sizeof(yaffs_Allocator));
 		 dev->allocator = allocator;
 

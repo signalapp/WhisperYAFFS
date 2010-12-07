@@ -79,7 +79,7 @@ static int  CheckInit(struct yaffs_dev *dev)
 	
 	ramdisk.nBlocks = (SIZE_IN_MB * 1024 * 1024)/(16 * 1024);
 	
-	ramdisk.block = YMALLOC(sizeof(yramdisk_block *) * ramdisk.nBlocks);
+	ramdisk.block = malloc(sizeof(yramdisk_block *) * ramdisk.nBlocks);
 	
 	if(!ramdisk.block) return 0;
 	
@@ -90,7 +90,7 @@ static int  CheckInit(struct yaffs_dev *dev)
 	
 	for(i=0; i <ramdisk.nBlocks && !fail; i++)
 	{
-		if((ramdisk.block[i] = YMALLOC(sizeof(yramdisk_block))) == 0)
+		if((ramdisk.block[i] = malloc(sizeof(yramdisk_block))) == 0)
 		{
 			fail = 1;
 		}
@@ -105,9 +105,9 @@ static int  CheckInit(struct yaffs_dev *dev)
 	{
 		for(i = 0; i < nAllocated; i++)
 		{
-			YFREE(ramdisk.block[i]);
+			kfree(ramdisk.block[i]);
 		}
-		YFREE(ramdisk.block);
+		kfree(ramdisk.block);
 		
 		T(YAFFS_TRACE_ALWAYS,("Allocation failed, could only allocate %dMB of %dMB requested.\n",
 		   nAllocated/64,ramdisk.nBlocks * 528));

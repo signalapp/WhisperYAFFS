@@ -34,29 +34,12 @@
 #define YCHAR char
 #define YUCHAR unsigned char
 #define _Y(x)     x
-#define yaffs_strcat(a, b)     strcat(a, b)
-#define yaffs_strcpy(a, b)     strcpy(a, b)
-#define yaffs_strncpy(a, b, c) strncpy(a, b, c)
-#define yaffs_strncmp(a, b, c) strncmp(a, b, c)
-#define yaffs_strnlen(s,m)	strnlen(s,m)
-#define yaffs_sprintf	       sprintf
-#define yaffs_toupper(a)       toupper(a)
-
-#define yaffs_sort(base, n, sz, cmp_fn)	sort(base, n, sz, cmp_fn, NULL)
 
 #define Y_INLINE __inline__
 
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
 
-#define YMALLOC(x) kmalloc(x, GFP_NOFS)
-#define YFREE(x)   kfree(x)
-#define YMALLOC_ALT(x) vmalloc(x)
-#define YFREE_ALT(x)   vfree(x)
-#define YMALLOC_DMA(x) YMALLOC(x)
-
-#define YYIELD() schedule()
-#define Y_DUMP_STACK() dump_stack()
 
 #define YAFFS_ROOT_MODE			0755
 #define YAFFS_LOSTNFOUND_MODE		0700
@@ -64,8 +47,6 @@
 #define Y_CURRENT_TIME CURRENT_TIME.tv_sec
 #define Y_TIME_CONVERT(x) (x).tv_sec
 
-#define yaffs_sum_cmp(x, y) ((x) == (y))
-#define yaffs_strcmp(a, b) strcmp(a, b)
 
 #define TENDSTR "\n"
 #define TSTR(x) KERN_DEBUG x

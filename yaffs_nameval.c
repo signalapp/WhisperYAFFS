@@ -37,7 +37,7 @@ static int nval_find(const char *xb, int xb_size, const YCHAR * name,
 
 	memcpy(&size, xb, sizeof(int));
 	while (size > 0 && (size < xb_size) && (pos + size < xb_size)) {
-		if (yaffs_strncmp
+		if (strncmp
 		    ((YCHAR *) (xb + pos + sizeof(int)), name, size) == 0) {
 			if (exist_size)
 				*exist_size = size;
@@ -90,7 +90,7 @@ int nval_set(char *xb, int xb_size, const YCHAR * name, const char *buf,
 	     int bsize, int flags)
 {
 	int pos;
-	int namelen = yaffs_strnlen(name, xb_size);
+	int namelen = strnlen(name, xb_size);
 	int reclen;
 	int size_exist = 0;
 	int space;
@@ -120,7 +120,7 @@ int nval_set(char *xb, int xb_size, const YCHAR * name, const char *buf,
 
 	memcpy(xb + pos, &reclen, sizeof(int));
 	pos += sizeof(int);
-	yaffs_strncpy((YCHAR *) (xb + pos), name, reclen);
+	strncpy((YCHAR *) (xb + pos), name, reclen);
 	pos += (namelen + 1);
 	memcpy(xb + pos, buf, bsize);
 	return 0;
@@ -172,7 +172,7 @@ int nval_list(const char *xb, int xb_size, char *buf, int bsize)
 	       && !filled) {
 		pos += sizeof(int);
 		size -= sizeof(int);
-		name_len = yaffs_strnlen((YCHAR *) (xb + pos), size);
+		name_len = strnlen((YCHAR *) (xb + pos), size);
 		if (ncopied + name_len + 1 < bsize) {
 			memcpy(buf, xb + pos, name_len * sizeof(YCHAR));
 			buf += name_len;

@@ -260,11 +260,11 @@ struct yaffs_dev *yramsim_CreateRamSim(const YCHAR *name,
 
 	sim = yramsim_alloc_sim_data(devId, nBlocks);
 
-	g = YMALLOC(sizeof(ynandif_Geometry));
+	g = malloc(sizeof(ynandif_Geometry));
 
 	if(!sim || !g){
 		if(g)
-			YFREE(g);
+			free(g);
 		return NULL;
 	}
 

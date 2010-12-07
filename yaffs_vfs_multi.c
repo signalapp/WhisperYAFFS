@@ -623,7 +623,7 @@ static struct yaffs_search_context *yaffs_new_search(struct yaffs_obj *dir)
 {
 	struct yaffs_dev *dev = dir->my_dev;
 	struct yaffs_search_context *sc =
-	    YMALLOC(sizeof(struct yaffs_search_context));
+	    kmalloc(sizeof(struct yaffs_search_context), GFP_NOFS);
 	if (sc) {
 		sc->dir_obj = dir;
 		sc->dev = dev;
@@ -646,7 +646,7 @@ static void yaffs_search_end(struct yaffs_search_context *sc)
 {
 	if (sc) {
 		list_del(&sc->others);
-		YFREE(sc);
+		kfree(sc);
 	}
 }
 
@@ -2516,7 +2516,7 @@ static void yaffs_put_super(struct super_block *sb)
 	mutex_unlock(&yaffs_context_lock);
 
 	if (yaffs_dev_to_lc(dev)->spare_buffer) {
-		YFREE(yaffs_dev_to_lc(dev)->spare_buffer);
+		kfree(yaffs_dev_to_lc(dev)->spare_buffer);
 		yaffs_dev_to_lc(dev)->spare_buffer = NULL;
 	}
 
@@ -2897,7 +2897,8 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 		param->read_chunk_tags_fn = nandmtd2_read_chunk_tags;
 		param->bad_block_fn = nandmtd2_mark_block_bad;
 		param->query_block_fn = nandmtd2_query_block;
-		yaffs_dev_to_lc(dev)->spare_buffer = YMALLOC(mtd->oobsize);
+		yaffs_dev_to_lc(dev)->spare_buffer = 
+				kmalloc(mtd->oobsize, GFP_NOFS);
 		param->is_yaffs2 = 1;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
 		param->total_bytes_per_chunk = mtd->writesize;

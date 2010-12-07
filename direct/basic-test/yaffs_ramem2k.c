@@ -135,7 +135,7 @@ static int  CheckInit(void)
 	ned.nBlocks = nBlocks = nandemul2k_CalcNBlocks();
 
 	
-	ned.block = YMALLOC(sizeof(nandemul_Block*) * nBlocks );
+	ned.block = malloc(sizeof(nandemul_Block*) * nBlocks );
 	
 	if(!ned.block) return YAFFS_FAIL;
 	
@@ -148,7 +148,7 @@ static int  CheckInit(void)
 		
 		nandemul_Block *blk;
 		
-		if(!(blk = ned.block[i] = YMALLOC(sizeof(nandemul_Block))))
+		if(!(blk = ned.block[i] = malloc(sizeof(nandemul_Block))))
 		{
 		 fail = 1;
 		}  
@@ -156,7 +156,7 @@ static int  CheckInit(void)
 		{
 			for(j = 0; j < PAGES_PER_BLOCK; j++)
 			{
-				if((blk->page[j] = YMALLOC(sizeof(nandemul_Page))) == 0)
+				if((blk->page[j] = malloc(sizeof(nandemul_Page))) == 0)
 				{
 					fail = 1;
 				}
@@ -173,9 +173,9 @@ static int  CheckInit(void)
 		
 		for(i = 0; i < nAllocated; i++)
 		{
-			YFREE(ned.block[i]);
+			kfree(ned.block[i]);
 		}
-		YFREE(ned.block);
+		kfree(ned.block);
 		
 		T(YAFFS_TRACE_ALWAYS,("Allocation failed, could only allocate %dMB of %dMB requested.\n",
 		   nAllocated/64,sizeInMB));

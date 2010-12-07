@@ -36,13 +36,6 @@
 #define YCHAR char
 #define YUCHAR unsigned char
 #define _Y(x) x
-#define yaffs_strcat(a,b)    strcat(a,b)
-#define yaffs_strcpy(a,b)    strcpy(a,b)
-#define yaffs_strncpy(a,b,c) strncpy(a,b,c)
-#define yaffs_strncmp(a,b,c) strncmp(a,b,c)
-#define yaffs_strnlen(s,m)	     strnlen(s,m)
-#define yaffs_sprintf	     sprintf
-#define yaffs_toupper(a)     toupper(a)
 
 #define hweight8(x)	yaffs_hweight8(x)
 #define hweight32(x)	yaffs_hweight32(x)
@@ -50,7 +43,7 @@
 void yaffs_qsort(void *aa, size_t n, size_t es,
         int (*cmp)(const void *, const void *));
 
-#define yaffs_sort(base, n, sz, cmp_fn) yaffs_qsort(base, n, sz, cmp_fn)
+#define sort(base, n, sz, cmp_fn, swp) yaffs_qsort(base, n, sz, cmp_fn)
         
 #define YAFFS_PATH_DIVIDERS  "/"
 
@@ -60,14 +53,12 @@ void yaffs_qsort(void *aa, size_t n, size_t es,
 #define Y_INLINE __inline__
 #endif
 
-#define YMALLOC(x) yaffs_malloc(x)
-#define YFREE(x)   free(x)
-#define YMALLOC_ALT(x) yaffs_malloc(x)
-#define YFREE_ALT(x)   free(x)
+#define kmalloc(x,flags) yaffs_malloc(x)
+#define kfree(x)   yaffs_free(x)
+#define vmalloc(x) yaffs_malloc(x)
+#define vfree(x) yaffs_free(x)
 
-#define YMALLOC_DMA(x) yaffs_malloc(x)
-
-#define YYIELD()  do {} while(0)
+#define cond_resched()  do {} while(0)
 
 
 
@@ -92,9 +83,6 @@ void yaffs_qsort(void *aa, size_t n, size_t es,
 
 #define YAFFS_ROOT_MODE				0666
 #define YAFFS_LOSTNFOUND_MODE		0666
-
-#define yaffs_sum_cmp(x,y) ((x) == (y))
-#define yaffs_strcmp(a,b) strcmp(a,b)
 
 #include "yaffs_list.h"
 

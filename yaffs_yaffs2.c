@@ -1001,11 +1001,12 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 
 	dev->seq_number = YAFFS_LOWEST_SEQUENCE_NUMBER;
 
-	block_index = YMALLOC(n_blocks * sizeof(struct yaffs_block_index));
+	block_index = kmalloc(n_blocks * sizeof(struct yaffs_block_index),
+			GFP_NOFS);
 
 	if (!block_index) {
 		block_index =
-		    YMALLOC_ALT(n_blocks * sizeof(struct yaffs_block_index));
+		    vmalloc(n_blocks * sizeof(struct yaffs_block_index));
 		alt_block_index = 1;
 	}
 
@@ -1082,13 +1083,13 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	T(YAFFS_TRACE_SCAN,
 	  (TSTR("%d blocks to be sorted..." TENDSTR), n_to_scan));
 
-	YYIELD();
+	cond_resched();
 
 	/* Sort the blocks by sequence number */
-	yaffs_sort(block_index, n_to_scan, sizeof(struct yaffs_block_index),
-		   yaffs2_ybicmp);
+	sort(block_index, n_to_scan, sizeof(struct yaffs_block_index),
+		   yaffs2_ybicmp, NULL);
 
-	YYIELD();
+	cond_resched();
 
 	T(YAFFS_TRACE_SCAN, (TSTR("...done" TENDSTR)));
 
@@ -1103,7 +1104,7 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	     block_iter--) {
 		/* Cooperative multitasking! This loop can run for so
 		   long that watchdog timers expire. */
-		YYIELD();
+		cond_resched();
 
 		/* get the block to scan in the correct order */
 		blk = block_index[block_iter].block;
@@ -1598,9 +1599,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	yaffs_skip_rest_of_block(dev);
 
 	if (alt_block_index)
-		YFREE_ALT(block_index);
+		vfree(block_index);
 	else
-		YFREE(block_index);
+		kfree(block_index);
 
 	/* Ok, we've done all the scanning.
 	 * Fix up the hard link chains.

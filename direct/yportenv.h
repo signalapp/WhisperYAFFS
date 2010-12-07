@@ -43,20 +43,14 @@
 #include "string.h"
 
 
-#define YMALLOC(x) malloc(x)
-#define YFREE(x)   free(x)
-#define YMALLOC_ALT(x) malloc(x)
-#define YFREE_ALT(x) free(x)
+#define kmalloc(x) malloc(x)
+#define kfree(x)   free(x)
+#define vmalloc(x) malloc(x)
+#define vfree(x) free(x)
 
 #define YCHAR char
 #define YUCHAR unsigned char
 #define _Y(x)     x
-#define yaffs_strcat(a, b)     strcat(a, b)
-#define yaffs_strcpy(a, b)     strcpy(a, b)
-#define yaffs_strncpy(a, b, c) strncpy(a, b, c)
-#define yaffs_strnlen(s,m)	       strnlen(s,m)
-#define yaffs_sprintf	       sprintf
-#define yaffs_toupper(a)       toupper(a)
 
 #define Y_INLINE inline
 
@@ -75,7 +69,7 @@
 #define YAFFS_LOSTNFOUND_MODE		0700
 
 #define yaffs_sum_cmp(x, y) ((x) == (y))
-#define yaffs_strcmp(a, b) strcmp(a, b)
+#define strcmp(a, b) strcmp(a, b)
 
 #else
 /* Should have specified a configuration type */

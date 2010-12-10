@@ -60,21 +60,14 @@ void yaffs_qsort(void *aa, size_t n, size_t es,
 
 #define cond_resched()  do {} while(0)
 
-
-
-//#define YINFO(s) YPRINTF(( __FILE__ " %d %s\n",__LINE__,s))
-//#define YALERT(s) YINFO(s)
-
-
-#define TENDSTR "\n"
-#define TSTR(x) x
-#define TCONT(x) x
-#define TOUT(p) printf p
+#define yaffs_trace(msk, fmt, ...) do { \
+	if(yaffs_trace_mask & ((msk) | YAFFS_TRACE_ALWAYS)) \
+		printf("yaffs: " fmt "\n", ##__VA_ARGS__); \
+} while(0)
 
 
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
-//#define YPRINTF(x) printf x
 
 #include "yaffscfg.h"
 

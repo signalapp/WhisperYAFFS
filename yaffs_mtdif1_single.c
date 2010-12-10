@@ -111,9 +111,9 @@ int nandmtd1_write_chunk_tags(struct yaffs_dev *dev,
 
 	retval = mtd->write_oob(mtd, addr, &ops);
 	if (retval) {
-		T(YAFFS_TRACE_MTD,
-		  (TSTR("write_oob failed, chunk %d, mtd error %d" TENDSTR),
-		   nand_chunk, retval));
+		yaffs_trace(YAFFS_TRACE_MTD,
+			"write_oob failed, chunk %d, mtd error %d",
+			nand_chunk, retval);
 	}
 	return retval ? YAFFS_FAIL : YAFFS_OK;
 }
@@ -167,9 +167,9 @@ int nandmtd1_read_chunk_tags(struct yaffs_dev *dev,
 	 */
 	retval = mtd->read_oob(mtd, addr, &ops);
 	if (retval) {
-		T(YAFFS_TRACE_MTD,
-		  (TSTR("read_oob failed, chunk %d, mtd error %d" TENDSTR),
-		   nand_chunk, retval));
+		yaffs_trace(YAFFS_TRACE_MTD,
+			"read_oob failed, chunk %d, mtd error %d",
+			nand_chunk, retval);
 	}
 
 	switch (retval) {
@@ -254,8 +254,8 @@ int nandmtd1_mark_block_bad(struct yaffs_dev *dev, int block_no)
 	int blocksize = dev->param.chunks_per_block * dev->data_bytes_per_chunk;
 	int retval;
 
-	T(YAFFS_TRACE_BAD_BLOCKS,
-	  (TSTR("marking block %d bad" TENDSTR), block_no));
+	yaffs_trace(YAFFS_TRACE_BAD_BLOCKS,
+		"marking block %d bad", block_no);
 
 	retval = mtd->block_markbad(mtd, (loff_t) blocksize * block_no);
 	return (retval) ? YAFFS_FAIL : YAFFS_OK;
@@ -272,10 +272,9 @@ static int nandmtd1_test_prerequists(struct mtd_info *mtd)
 	int oobavail = mtd->ecclayout->oobavail;
 
 	if (oobavail < YTAG1_SIZE) {
-		T(YAFFS_TRACE_ERROR,
-		  (TSTR
-		   ("mtd device has only %d bytes for tags, need %d" TENDSTR),
-		   oobavail, YTAG1_SIZE));
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"mtd device has only %d bytes for tags, need %d",
+			oobavail, YTAG1_SIZE);
 		return YAFFS_FAIL;
 	}
 	return YAFFS_OK;
@@ -310,8 +309,8 @@ int nandmtd1_query_block(struct yaffs_dev *dev, int block_no,
 	retval = nandmtd1_read_chunk_tags(dev, chunk_num, NULL, &etags);
 	etags.block_bad = (mtd->block_isbad) (mtd, addr);
 	if (etags.block_bad) {
-		T(YAFFS_TRACE_BAD_BLOCKS,
-		  (TSTR("block %d is marked bad" TENDSTR), block_no));
+		yaffs_trace(YAFFS_TRACE_BAD_BLOCKS,
+			"block %d is marked bad", block_no);
 		state = YAFFS_BLOCK_STATE_DEAD;
 	} else if (etags.ecc_result != YAFFS_ECC_RESULT_NO_ERROR) {
 		/* bad tags, need to look more closely */

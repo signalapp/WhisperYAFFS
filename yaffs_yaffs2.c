@@ -186,10 +186,9 @@ u32 yaffs2_find_refresh_block(struct yaffs_dev * dev)
 	}
 
 	if (oldest > 0) {
-		T(YAFFS_TRACE_GC,
-		  (TSTR
-		   ("GC refresh count %d selected block %d with seq_number %d"
-		    TENDSTR), dev->refresh_count, oldest, oldest_seq));
+		yaffs_trace(YAFFS_TRACE_GC,
+			"GC refresh count %d selected block %d with seq_number %d",
+			dev->refresh_count, oldest, oldest_seq);
 	}
 
 	return oldest;
@@ -402,12 +401,10 @@ static int taffs2_checkpt_obj_to_obj(struct yaffs_obj *obj,
 	struct yaffs_obj *parent;
 
 	if (obj->variant_type != cp->variant_type) {
-		T(YAFFS_TRACE_ERROR, (TSTR("Checkpoint read object %d type %d "
-					   TCONT
-					   ("chunk %d does not match existing object type %d")
-					   TENDSTR), cp->obj_id,
-				      cp->variant_type, cp->hdr_chunk,
-				      obj->variant_type));
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"Checkpoint read object %d type %d chunk %d does not match existing object type %d",
+			cp->obj_id, cp->variant_type, cp->hdr_chunk,
+			obj->variant_type);
 		return 0;
 	}
 
@@ -422,13 +419,11 @@ static int taffs2_checkpt_obj_to_obj(struct yaffs_obj *obj,
 
 	if (parent) {
 		if (parent->variant_type != YAFFS_OBJECT_TYPE_DIRECTORY) {
-			T(YAFFS_TRACE_ALWAYS,
-			  (TSTR
-			   ("Checkpoint read object %d parent %d type %d"
-			    TCONT(" chunk %d Parent type, %d, not directory")
-			    TENDSTR), cp->obj_id, cp->parent_id,
-			   cp->variant_type, cp->hdr_chunk,
-			   parent->variant_type));
+			yaffs_trace(YAFFS_TRACE_ALWAYS,
+				"Checkpoint read object %d parent %d type %d chunk %d Parent type, %d, not directory",
+				cp->obj_id, cp->parent_id,
+				cp->variant_type, cp->hdr_chunk,
+				parent->variant_type);
 			return 0;
 		}
 		yaffs_add_obj_to_dir(parent, obj);
@@ -552,9 +547,9 @@ static int yaffs2_rd_checkpt_tnodes(struct yaffs_obj *obj)
 
 	}
 
-	T(YAFFS_TRACE_CHECKPOINT,
-	  (TSTR("Checkpoint read tnodes %d records, last %d. ok %d" TENDSTR),
-	   nread, base_chunk, ok));
+	yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+		"Checkpoint read tnodes %d records, last %d. ok %d",
+		nread, base_chunk, ok);
 
 	return ok ? 1 : 0;
 }
@@ -580,11 +575,10 @@ static int yaffs2_wr_checkpt_objs(struct yaffs_dev *dev)
 					yaffs2_obj_checkpt_obj(&cp, obj);
 					cp.struct_type = sizeof(cp);
 
-					T(YAFFS_TRACE_CHECKPOINT,
-					  (TSTR
-					   ("Checkpoint write object %d parent %d type %d chunk %d obj addr %p"
-					    TENDSTR), cp.obj_id, cp.parent_id,
-					   cp.variant_type, cp.hdr_chunk, obj));
+					yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+						"Checkpoint write object %d parent %d type %d chunk %d obj addr %p",
+						cp.obj_id, cp.parent_id,
+						cp.variant_type, cp.hdr_chunk, obj);
 
 					ok = (yaffs2_checkpt_wr
 					      (dev, &cp,
@@ -621,17 +615,16 @@ static int yaffs2_rd_checkpt_objs(struct yaffs_dev *dev)
 	while (ok && !done) {
 		ok = (yaffs2_checkpt_rd(dev, &cp, sizeof(cp)) == sizeof(cp));
 		if (cp.struct_type != sizeof(cp)) {
-			T(YAFFS_TRACE_CHECKPOINT,
-			  (TSTR("struct size %d instead of %d ok %d" TENDSTR),
-			   cp.struct_type, (int)sizeof(cp), ok));
+			yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+				"struct size %d instead of %d ok %d",
+				cp.struct_type, (int)sizeof(cp), ok);
 			ok = 0;
 		}
 
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR
-		   ("Checkpoint read object %d parent %d type %d chunk %d "
-		    TENDSTR), cp.obj_id, cp.parent_id, cp.variant_type,
-		   cp.hdr_chunk));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"Checkpoint read object %d parent %d type %d chunk %d ",
+			cp.obj_id, cp.parent_id, cp.variant_type,
+			cp.hdr_chunk);
 
 		if (ok && cp.obj_id == ~0) {
 			done = 1;
@@ -704,8 +697,8 @@ static int yaffs2_wr_checkpt_data(struct yaffs_dev *dev)
 	int ok = 1;
 
 	if (!yaffs2_checkpt_required(dev)) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("skipping checkpoint write" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"skipping checkpoint write");
 		ok = 0;
 	}
 
@@ -713,23 +706,23 @@ static int yaffs2_wr_checkpt_data(struct yaffs_dev *dev)
 		ok = yaffs2_checkpt_open(dev, 1);
 
 	if (ok) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("write checkpoint validity" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"write checkpoint validity");
 		ok = yaffs2_wr_checkpt_validity_marker(dev, 1);
 	}
 	if (ok) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("write checkpoint device" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"write checkpoint device");
 		ok = yaffs2_wr_checkpt_dev(dev);
 	}
 	if (ok) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("write checkpoint objects" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"write checkpoint objects");
 		ok = yaffs2_wr_checkpt_objs(dev);
 	}
 	if (ok) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("write checkpoint validity" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"write checkpoint validity");
 		ok = yaffs2_wr_checkpt_validity_marker(dev, 0);
 	}
 
@@ -755,39 +748,39 @@ static int yaffs2_rd_checkpt_data(struct yaffs_dev *dev)
 		ok = 0;
 
 	if (ok && dev->param.skip_checkpt_rd) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("skipping checkpoint read" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"skipping checkpoint read");
 		ok = 0;
 	}
 
 	if (ok)
-		ok = yaffs2_checkpt_open(dev, 0);	/* open for read */
+		ok = yaffs2_checkpt_open(dev, 0); /* open for read */
 
 	if (ok) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("read checkpoint validity" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"read checkpoint validity");
 		ok = yaffs2_rd_checkpt_validity_marker(dev, 1);
 	}
 	if (ok) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("read checkpoint device" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"read checkpoint device");
 		ok = yaffs2_rd_checkpt_dev(dev);
 	}
 	if (ok) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("read checkpoint objects" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"read checkpoint objects");
 		ok = yaffs2_rd_checkpt_objs(dev);
 	}
 	if (ok) {
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("read checkpoint validity" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"read checkpoint validity");
 		ok = yaffs2_rd_checkpt_validity_marker(dev, 0);
 	}
 
 	if (ok) {
 		ok = yaffs2_rd_checkpt_sum(dev);
-		T(YAFFS_TRACE_CHECKPOINT,
-		  (TSTR("read checkpoint checksum %d" TENDSTR), ok));
+		yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+			"read checkpoint checksum %d", ok);
 	}
 
 	if (!yaffs_checkpt_close(dev))
@@ -815,9 +808,9 @@ void yaffs2_checkpt_invalidate(struct yaffs_dev *dev)
 int yaffs_checkpoint_save(struct yaffs_dev *dev)
 {
 
-	T(YAFFS_TRACE_CHECKPOINT,
-	  (TSTR("save entry: is_checkpointed %d" TENDSTR),
-	   dev->is_checkpointed));
+	yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+		"save entry: is_checkpointed %d",
+		dev->is_checkpointed);
 
 	yaffs_verify_objects(dev);
 	yaffs_verify_blocks(dev);
@@ -828,9 +821,9 @@ int yaffs_checkpoint_save(struct yaffs_dev *dev)
 		yaffs2_wr_checkpt_data(dev);
 	}
 
-	T(YAFFS_TRACE_CHECKPOINT | YAFFS_TRACE_MOUNT,
-	  (TSTR("save exit: is_checkpointed %d" TENDSTR),
-	   dev->is_checkpointed));
+	yaffs_trace(YAFFS_TRACE_CHECKPOINT | YAFFS_TRACE_MOUNT,
+		"save exit: is_checkpointed %d",
+		dev->is_checkpointed);
 
 	return dev->is_checkpointed;
 }
@@ -838,9 +831,9 @@ int yaffs_checkpoint_save(struct yaffs_dev *dev)
 int yaffs2_checkpt_restore(struct yaffs_dev *dev)
 {
 	int retval;
-	T(YAFFS_TRACE_CHECKPOINT,
-	  (TSTR("restore entry: is_checkpointed %d" TENDSTR),
-	   dev->is_checkpointed));
+	yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+		"restore entry: is_checkpointed %d",
+		dev->is_checkpointed);
 
 	retval = yaffs2_rd_checkpt_data(dev);
 
@@ -850,9 +843,9 @@ int yaffs2_checkpt_restore(struct yaffs_dev *dev)
 		yaffs_verify_free_chunks(dev);
 	}
 
-	T(YAFFS_TRACE_CHECKPOINT,
-	  (TSTR("restore exit: is_checkpointed %d" TENDSTR),
-	   dev->is_checkpointed));
+	yaffs_trace(YAFFS_TRACE_CHECKPOINT,
+		"restore exit: is_checkpointed %d",
+		dev->is_checkpointed);
 
 	return retval;
 }
@@ -994,10 +987,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	struct yaffs_block_index *block_index = NULL;
 	int alt_block_index = 0;
 
-	T(YAFFS_TRACE_SCAN,
-	  (TSTR
-	   ("yaffs2_scan_backwards starts  intstartblk %d intendblk %d..."
-	    TENDSTR), dev->internal_start_block, dev->internal_end_block));
+	yaffs_trace(YAFFS_TRACE_SCAN,
+		"yaffs2_scan_backwards starts  intstartblk %d intendblk %d...",
+		dev->internal_start_block, dev->internal_end_block);
 
 	dev->seq_number = YAFFS_LOWEST_SEQUENCE_NUMBER;
 
@@ -1011,10 +1003,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	}
 
 	if (!block_index) {
-		T(YAFFS_TRACE_SCAN,
-		  (TSTR
-		   ("yaffs2_scan_backwards() could not allocate block index!"
-		    TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_SCAN,
+			"yaffs2_scan_backwards() could not allocate block index!"
+			);
 		return YAFFS_FAIL;
 	}
 
@@ -1040,19 +1031,18 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 		if (bi->seq_number == YAFFS_SEQUENCE_BAD_BLOCK)
 			bi->block_state = state = YAFFS_BLOCK_STATE_DEAD;
 
-		T(YAFFS_TRACE_SCAN_DEBUG,
-		  (TSTR("Block scanning block %d state %d seq %d" TENDSTR), blk,
-		   state, seq_number));
+		yaffs_trace(YAFFS_TRACE_SCAN_DEBUG,
+			"Block scanning block %d state %d seq %d",
+			blk, state, seq_number);
 
 		if (state == YAFFS_BLOCK_STATE_CHECKPOINT) {
 			dev->blocks_in_checkpt++;
 
 		} else if (state == YAFFS_BLOCK_STATE_DEAD) {
-			T(YAFFS_TRACE_BAD_BLOCKS,
-			  (TSTR("block %d is bad" TENDSTR), blk));
+			yaffs_trace(YAFFS_TRACE_BAD_BLOCKS,
+				"block %d is bad", blk);
 		} else if (state == YAFFS_BLOCK_STATE_EMPTY) {
-			T(YAFFS_TRACE_SCAN_DEBUG,
-			  (TSTR("Block empty " TENDSTR)));
+			yaffs_trace(YAFFS_TRACE_SCAN_DEBUG, "Block empty ");
 			dev->n_erased_blocks++;
 			dev->n_free_chunks += dev->param.chunks_per_block;
 		} else if (state == YAFFS_BLOCK_STATE_NEEDS_SCANNING) {
@@ -1070,18 +1060,16 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 					dev->seq_number = seq_number;
 			} else {
 				/* TODO: Nasty sequence number! */
-				T(YAFFS_TRACE_SCAN,
-				  (TSTR
-				   ("Block scanning block %d has bad sequence number %d"
-				    TENDSTR), blk, seq_number));
+				yaffs_trace(YAFFS_TRACE_SCAN,
+					"Block scanning block %d has bad sequence number %d",
+					blk, seq_number);
 
 			}
 		}
 		bi++;
 	}
 
-	T(YAFFS_TRACE_SCAN,
-	  (TSTR("%d blocks to be sorted..." TENDSTR), n_to_scan));
+	yaffs_trace(YAFFS_TRACE_SCAN, "%d blocks to be sorted...", n_to_scan);
 
 	cond_resched();
 
@@ -1091,13 +1079,12 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 
 	cond_resched();
 
-	T(YAFFS_TRACE_SCAN, (TSTR("...done" TENDSTR)));
+	yaffs_trace(YAFFS_TRACE_SCAN, "...done");
 
 	/* Now scan the blocks looking at the data. */
 	start_iter = 0;
 	end_iter = n_to_scan - 1;
-	T(YAFFS_TRACE_SCAN_DEBUG,
-	  (TSTR("%d blocks to be scanned" TENDSTR), n_to_scan));
+	yaffs_trace(YAFFS_TRACE_SCAN_DEBUG, "%d blocks to scan", n_to_scan);
 
 	/* For each block.... backwards */
 	for (block_iter = end_iter; !alloc_failed && block_iter >= start_iter;
@@ -1157,10 +1144,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 						    bi->seq_number) {
 							/* this is the block being allocated from */
 
-							T(YAFFS_TRACE_SCAN,
-							  (TSTR
-							   (" Allocating from %d %d"
-							    TENDSTR), blk, c));
+							yaffs_trace(YAFFS_TRACE_SCAN,
+								" Allocating from %d %d",
+								blk, c);
 
 							state =
 							    YAFFS_BLOCK_STATE_ALLOCATING;
@@ -1174,10 +1160,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 							 * the current allocation block.
 							 */
 
-							T(YAFFS_TRACE_SCAN,
-							  (TSTR
-							   ("Partially written block %d detected"
-							    TENDSTR), blk));
+							yaffs_trace(YAFFS_TRACE_SCAN,
+								"Partially written block %d detected",
+								blk);
 						}
 					}
 				}
@@ -1185,10 +1170,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 				dev->n_free_chunks++;
 
 			} else if (tags.ecc_result == YAFFS_ECC_RESULT_UNFIXED) {
-				T(YAFFS_TRACE_SCAN,
-				  (TSTR
-				   (" Unfixed ECC in chunk(%d:%d), chunk ignored"
-				    TENDSTR), blk, c));
+				yaffs_trace(YAFFS_TRACE_SCAN,
+					" Unfixed ECC in chunk(%d:%d), chunk ignored",
+					blk, c);
 
 				dev->n_free_chunks++;
 
@@ -1197,11 +1181,10 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 				   (tags.chunk_id > 0
 				    && tags.n_bytes > dev->data_bytes_per_chunk)
 				   || tags.seq_number != bi->seq_number) {
-				T(YAFFS_TRACE_SCAN,
-				  (TSTR
-				   ("Chunk (%d:%d) with bad tags:obj = %d, chunk_id = %d, n_bytes = %d, ignored"
-				    TENDSTR), blk, c, tags.obj_id,
-				   tags.chunk_id, tags.n_bytes));
+				yaffs_trace(YAFFS_TRACE_SCAN,
+					"Chunk (%d:%d) with bad tags:obj = %d, chunk_id = %d, n_bytes = %d, ignored",
+					blk, c, tags.obj_id,
+					tags.chunk_id, tags.n_bytes);
 
 				dev->n_free_chunks++;
 
@@ -1318,10 +1301,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 
 				if (!in) {
 					/* TODO Hoosterman we have a problem! */
-					T(YAFFS_TRACE_ERROR,
-					  (TSTR
-					   ("yaffs tragedy: Could not make object for object  %d at chunk %d during scan"
-					    TENDSTR), tags.obj_id, chunk));
+					yaffs_trace(YAFFS_TRACE_ERROR,
+						"yaffs tragedy: Could not make object for object  %d at chunk %d during scan",
+						tags.obj_id, chunk);
 					continue;
 				}
 
@@ -1391,16 +1373,12 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 
 				if (!in->valid && in->variant_type !=
 				    (oh ? oh->type : tags.extra_obj_type))
-					T(YAFFS_TRACE_ERROR,
-					  (TSTR
-					   ("yaffs tragedy: Bad object type, "
-					    TCONT
-					    ("%d != %d, for object %d at chunk ")
-					    TCONT("%d during scan")
-					    TENDSTR), oh ?
-					   oh->type : tags.extra_obj_type,
-					   in->variant_type, tags.obj_id,
-					   chunk));
+					yaffs_trace(YAFFS_TRACE_ERROR,
+						"yaffs tragedy: Bad object type, %d != %d, for object %d at chunk %d during scan",
+						oh ?
+						oh->type : tags.extra_obj_type,
+						in->variant_type, tags.obj_id,
+						chunk);
 
 				if (!in->valid &&
 				    (tags.obj_id == YAFFS_OBJECTID_ROOT ||
@@ -1485,10 +1463,9 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 						 * We're trying to use a non-directory as a directory
 						 */
 
-						T(YAFFS_TRACE_ERROR,
-						  (TSTR
-						   ("yaffs tragedy: attempting to use non-directory as a directory in scan. Put in lost+found."
-						    TENDSTR)));
+						yaffs_trace(YAFFS_TRACE_ERROR,
+							"yaffs tragedy: attempting to use non-directory as a directory in scan. Put in lost+found."
+							);
 						parent = dev->lost_n_found;
 					}
 
@@ -1615,7 +1592,7 @@ int yaffs2_scan_backwards(struct yaffs_dev *dev)
 	if (alloc_failed)
 		return YAFFS_FAIL;
 
-	T(YAFFS_TRACE_SCAN, (TSTR("yaffs2_scan_backwards ends" TENDSTR)));
+	yaffs_trace(YAFFS_TRACE_SCAN, "yaffs2_scan_backwards ends");
 
 	return YAFFS_OK;
 }

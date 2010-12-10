@@ -47,10 +47,9 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	void *packed_tags_ptr =
 	    dev->param.no_tags_ecc ? (void *)&pt.t : (void *)&pt;
 
-	T(YAFFS_TRACE_MTD,
-	  (TSTR
-	   ("nandmtd2_write_chunk_tags chunk %d data %p tags %p"
-	    TENDSTR), nand_chunk, data, tags));
+	yaffs_trace(YAFFS_TRACE_MTD,
+		"nandmtd2_write_chunk_tags chunk %d data %p tags %p",
+		nand_chunk, data, tags);
 
 	addr = ((loff_t) nand_chunk) * dev->param.total_bytes_per_chunk;
 
@@ -104,10 +103,9 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	void *packed_tags_ptr =
 	    dev->param.no_tags_ecc ? (void *)&pt.t : (void *)&pt;
 
-	T(YAFFS_TRACE_MTD,
-	  (TSTR
-	   ("nandmtd2_read_chunk_tags chunk %d data %p tags %p"
-	    TENDSTR), nand_chunk, data, tags));
+	yaffs_trace(YAFFS_TRACE_MTD,
+		"nandmtd2_read_chunk_tags chunk %d data %p tags %p",
+		nand_chunk, data, tags);
 
 	if (dev->param.inband_tags) {
 
@@ -171,8 +169,8 @@ int nandmtd2_mark_block_bad(struct yaffs_dev *dev, int block_no)
 {
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int retval;
-	T(YAFFS_TRACE_MTD,
-	  (TSTR("nandmtd2_mark_block_bad %d" TENDSTR), block_no));
+	yaffs_trace(YAFFS_TRACE_MTD,
+		"nandmtd2_mark_block_bad %d", block_no);
 
 	retval =
 	    mtd->block_markbad(mtd,
@@ -192,14 +190,14 @@ int nandmtd2_query_block(struct yaffs_dev *dev, int block_no,
 	struct mtd_info *mtd = yaffs_dev_to_mtd(dev);
 	int retval;
 
-	T(YAFFS_TRACE_MTD, (TSTR("nandmtd2_query_block %d" TENDSTR), block_no));
+	yaffs_trace(YAFFS_TRACE_MTD, "nandmtd2_query_block %d", block_no);
 	retval =
 	    mtd->block_isbad(mtd,
 			     block_no * dev->param.chunks_per_block *
 			     dev->param.total_bytes_per_chunk);
 
 	if (retval) {
-		T(YAFFS_TRACE_MTD, (TSTR("block is bad" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_MTD, "block is bad");
 
 		*state = YAFFS_BLOCK_STATE_DEAD;
 		*seq_number = 0;
@@ -216,11 +214,12 @@ int nandmtd2_query_block(struct yaffs_dev *dev, int block_no,
 			*state = YAFFS_BLOCK_STATE_EMPTY;
 		}
 	}
-	T(YAFFS_TRACE_MTD,
-	  (TSTR("block is bad seq %d state %d" TENDSTR), *seq_number, *state));
+	yaffs_trace(YAFFS_TRACE_MTD,
+		"block is bad seq %d state %d", *seq_number, *state);
 
 	if (retval == 0)
 		return YAFFS_OK;
 	else
 		return YAFFS_FAIL;
 }
+

@@ -179,7 +179,7 @@ int yflash2_WriteChunkWithTagsToNAND(struct yaffs_dev *dev,int nand_chunk,const 
 	int nRead;
 	int error;
 	
-	T(YAFFS_TRACE_MTD,(TSTR("write chunk %d data %p tags %p" TENDSTR),nand_chunk, data, tags));
+	yaffs_trace(YAFFS_TRACE_MTD, "write chunk %d data %p tags %p",nand_chunk, data, tags);
 
 	CheckInit();
 	
@@ -396,7 +396,7 @@ int yflash2_ReadChunkWithTagsFromNAND(struct yaffs_dev *dev,int nand_chunk, u8 *
 	int retval = YAFFS_OK;
 	int nRead;
 	
-	T(YAFFS_TRACE_MTD,(TSTR("read chunk %d data %p tags %p" TENDSTR),nand_chunk, data, tags));
+	yaffs_trace(YAFFS_TRACE_MTD,"read chunk %d data %p tags %p",nand_chunk, data, tags);
 	
 	CheckInit();
 	
@@ -543,7 +543,7 @@ int yflash2_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 	
 	if(blockNumber < 0 || blockNumber >= filedisk.nBlocks)
 	{
-		T(YAFFS_TRACE_ALWAYS,("Attempt to erase non-existant block %d\n",blockNumber));
+		yaffs_trace(YAFFS_TRACE_ALWAYS,"Attempt to erase non-existant block %d",blockNumber);
 		return YAFFS_FAIL;
 	}
 	else

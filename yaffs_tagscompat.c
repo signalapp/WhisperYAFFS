@@ -132,9 +132,9 @@ static int yaffs_wr_nand(struct yaffs_dev *dev,
 			 struct yaffs_spare *spare)
 {
 	if (nand_chunk < dev->param.start_block * dev->param.chunks_per_block) {
-		T(YAFFS_TRACE_ERROR,
-		  (TSTR("**>> yaffs chunk %d is not valid" TENDSTR),
-		   nand_chunk));
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"**>> yaffs chunk %d is not valid",
+			nand_chunk);
 		return YAFFS_FAIL;
 	}
 
@@ -175,30 +175,26 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 					      calc_ecc);
 
 			if (ecc_result1 > 0) {
-				T(YAFFS_TRACE_ERROR,
-				  (TSTR
-				   ("**>>yaffs ecc error fix performed on chunk %d:0"
-				    TENDSTR), nand_chunk));
+				yaffs_trace(YAFFS_TRACE_ERROR,
+					"**>>yaffs ecc error fix performed on chunk %d:0",
+					nand_chunk);
 				dev->n_ecc_fixed++;
 			} else if (ecc_result1 < 0) {
-				T(YAFFS_TRACE_ERROR,
-				  (TSTR
-				   ("**>>yaffs ecc error unfixed on chunk %d:0"
-				    TENDSTR), nand_chunk));
+				yaffs_trace(YAFFS_TRACE_ERROR,
+					"**>>yaffs ecc error unfixed on chunk %d:0",
+					nand_chunk);
 				dev->n_ecc_unfixed++;
 			}
 
 			if (ecc_result2 > 0) {
-				T(YAFFS_TRACE_ERROR,
-				  (TSTR
-				   ("**>>yaffs ecc error fix performed on chunk %d:1"
-				    TENDSTR), nand_chunk));
+				yaffs_trace(YAFFS_TRACE_ERROR,
+					"**>>yaffs ecc error fix performed on chunk %d:1",
+					nand_chunk);
 				dev->n_ecc_fixed++;
 			} else if (ecc_result2 < 0) {
-				T(YAFFS_TRACE_ERROR,
-				  (TSTR
-				   ("**>>yaffs ecc error unfixed on chunk %d:1"
-				    TENDSTR), nand_chunk));
+				yaffs_trace(YAFFS_TRACE_ERROR,
+					"**>>yaffs ecc error unfixed on chunk %d:1",
+					nand_chunk);
 				dev->n_ecc_unfixed++;
 			}
 
@@ -227,27 +223,23 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 		memcpy(spare, &nspare, sizeof(struct yaffs_spare));
 		if (data && correct_errors) {
 			if (nspare.eccres1 > 0) {
-				T(YAFFS_TRACE_ERROR,
-				  (TSTR
-				   ("**>>mtd ecc error fix performed on chunk %d:0"
-				    TENDSTR), nand_chunk));
+				yaffs_trace(YAFFS_TRACE_ERROR,
+					"**>>mtd ecc error fix performed on chunk %d:0",
+					nand_chunk);
 			} else if (nspare.eccres1 < 0) {
-				T(YAFFS_TRACE_ERROR,
-				  (TSTR
-				   ("**>>mtd ecc error unfixed on chunk %d:0"
-				    TENDSTR), nand_chunk));
+				yaffs_trace(YAFFS_TRACE_ERROR,
+					"**>>mtd ecc error unfixed on chunk %d:0",
+					nand_chunk);
 			}
 
 			if (nspare.eccres2 > 0) {
-				T(YAFFS_TRACE_ERROR,
-				  (TSTR
-				   ("**>>mtd ecc error fix performed on chunk %d:1"
-				    TENDSTR), nand_chunk));
+				yaffs_trace(YAFFS_TRACE_ERROR,
+					"**>>mtd ecc error fix performed on chunk %d:1",
+					nand_chunk);
 			} else if (nspare.eccres2 < 0) {
-				T(YAFFS_TRACE_ERROR,
-				  (TSTR
-				   ("**>>mtd ecc error unfixed on chunk %d:1"
-				    TENDSTR), nand_chunk));
+				yaffs_trace(YAFFS_TRACE_ERROR,
+					"**>>mtd ecc error unfixed on chunk %d:1",
+					nand_chunk);
 			}
 
 			if (nspare.eccres1 || nspare.eccres2) {
@@ -279,8 +271,9 @@ static void yaffs_handle_rd_data_error(struct yaffs_dev *dev, int nand_chunk)
 	yaffs_get_block_info(dev,
 			     flash_block + dev->block_offset)->needs_retiring =
 	    1;
-	T(YAFFS_TRACE_ERROR | YAFFS_TRACE_BAD_BLOCKS,
-	  (TSTR("**>>Block %d marked for retirement" TENDSTR), flash_block));
+	yaffs_trace(YAFFS_TRACE_ERROR | YAFFS_TRACE_BAD_BLOCKS,
+		"**>>Block %d marked for retirement",
+		flash_block);
 
 	/* TODO:
 	 * Just do a garbage collection on the affected block

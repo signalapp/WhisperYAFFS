@@ -177,8 +177,9 @@ static int  CheckInit(void)
 		}
 		kfree(ned.block);
 		
-		T(YAFFS_TRACE_ALWAYS,("Allocation failed, could only allocate %dMB of %dMB requested.\n",
-		   nAllocated/64,sizeInMB));
+		yaffs_trace(YAFFS_TRACE_ALWAYS,
+			"Allocation failed, could only allocate %dMB of %dMB requested.\n",
+			nAllocated/64,sizeInMB);
 		return 0;
 	}
 	
@@ -292,11 +293,15 @@ int nandemul2k_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 	
 	if(blockNumber < 0 || blockNumber >= ned.nBlocks)
 	{
-		T(YAFFS_TRACE_ALWAYS,("Attempt to erase non-existant block %d\n",blockNumber));
+		yaffs_trace(YAFFS_TRACE_ALWAYS,
+			"Attempt to erase non-existant block %d\n",
+			blockNumber);
 	}
 	else if(ned.block[blockNumber]->damaged)
 	{
-		T(YAFFS_TRACE_ALWAYS,("Attempt to erase damaged block %d\n",blockNumber));
+		yaffs_trace(YAFFS_TRACE_ALWAYS,
+			"Attempt to erase damaged block %d\n",
+			blockNumber);
 	}
 	else
 	{

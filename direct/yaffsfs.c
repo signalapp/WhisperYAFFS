@@ -2349,7 +2349,7 @@ int yaffs_mount2(const YCHAR *path,int read_only)
 		return -1;
 	}
 
-	T(YAFFS_TRACE_MOUNT,(TSTR("yaffs: Mounting %s" TENDSTR),path));
+	yaffs_trace(YAFFS_TRACE_MOUNT,"yaffs: Mounting %s",path);
 
 	if(yaffsfs_CheckPath(path) < 0){
 		yaffsfs_SetError(-ENAMETOOLONG);

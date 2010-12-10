@@ -41,9 +41,9 @@
 static void yaffs_dump_packed_tags2_tags_only(const struct
 					      yaffs_packed_tags2_tags_only *ptt)
 {
-	T(YAFFS_TRACE_MTD,
-	  (TSTR("packed tags obj %d chunk %d byte %d seq %d" TENDSTR),
-	   ptt->obj_id, ptt->chunk_id, ptt->n_bytes, ptt->seq_number));
+	yaffs_trace(YAFFS_TRACE_MTD,
+		"packed tags obj %d chunk %d byte %d seq %d",
+		ptt->obj_id, ptt->chunk_id, ptt->n_bytes, ptt->seq_number);
 }
 
 static void yaffs_dump_packed_tags2(const struct yaffs_packed_tags2 *pt)
@@ -53,12 +53,11 @@ static void yaffs_dump_packed_tags2(const struct yaffs_packed_tags2 *pt)
 
 static void yaffs_dump_tags2(const struct yaffs_ext_tags *t)
 {
-	T(YAFFS_TRACE_MTD,
-	  (TSTR
-	   ("ext.tags eccres %d blkbad %d chused %d obj %d chunk%d byte %d del %d ser %d seq %d"
-	    TENDSTR), t->ecc_result, t->block_bad, t->chunk_used, t->obj_id,
-	   t->chunk_id, t->n_bytes, t->is_deleted, t->serial_number,
-	   t->seq_number));
+	yaffs_trace(YAFFS_TRACE_MTD,
+		"ext.tags eccres %d blkbad %d chused %d obj %d chunk%d byte %d del %d ser %d seq %d",
+		t->ecc_result, t->block_bad, t->chunk_used, t->obj_id,
+		t->chunk_id, t->n_bytes, t->is_deleted, t->serial_number,
+		t->seq_number);
 
 }
 

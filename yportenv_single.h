@@ -47,26 +47,27 @@
 #define Y_CURRENT_TIME CURRENT_TIME.tv_sec
 #define Y_TIME_CONVERT(x) (x).tv_sec
 
-
-#define TENDSTR "\n"
-#define TSTR(x) KERN_DEBUG x
-#define TCONT(x) x
-#define TOUT(p) printk p
-
 #define compile_time_assertion(assertion) \
 	({ int x = __builtin_choose_expr(assertion, 0, (void)0); (void) x; })
 
+
 #ifndef Y_DUMP_STACK
-#define Y_DUMP_STACK() do { } while (0)
+#define Y_DUMP_STACK() dump_stack()
+
 #endif
+#define yaffs_trace(msk, fmt, ...) do { \
+	if(yaffs_trace_mask & ((msk) | YAFFS_TRACE_ALWAYS)) \
+		printk(KERN_DEBUG "yaffs: " fmt "\n", ##__VA_ARGS__); \
+} while(0)
 
 #ifndef YBUG
 #define YBUG() do {\
-	T(YAFFS_TRACE_BUG,\
-		(TSTR("==>> yaffs bug: " __FILE__ " %d" TENDSTR),\
-		__LINE__));\
+	yaffs_trace(YAFFS_TRACE_BUG,\
+		"bug " __FILE__ " %d",\
+		__LINE__);\
 	Y_DUMP_STACK();\
 } while (0)
 #endif
+
 
 #endif

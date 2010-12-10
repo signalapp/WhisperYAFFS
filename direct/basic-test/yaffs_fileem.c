@@ -185,7 +185,9 @@ int yflash_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 	
 	if(blockNumber < 0 || blockNumber >= filedisk.nBlocks)
 	{
-		T(YAFFS_TRACE_ALWAYS,("Attempt to erase non-existant block %d\n",blockNumber));
+		yaffs_trace(YAFFS_TRACE_ALWAYS,
+			"Attempt to erase non-existant block %d\n",
+			blockNumber);
 		return YAFFS_FAIL;
 	}
 	else

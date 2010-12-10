@@ -153,8 +153,8 @@ static int yaffs_create_tnodes(struct yaffs_dev *dev, int n_tnodes)
 	mem = (u8 *) new_tnodes;
 
 	if (!new_tnodes) {
-		T(YAFFS_TRACE_ERROR,
-		  (TSTR("yaffs: Could not allocate Tnodes" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"yaffs: Could not allocate Tnodes");
 		return YAFFS_FAIL;
 	}
 
@@ -179,9 +179,8 @@ static int yaffs_create_tnodes(struct yaffs_dev *dev, int n_tnodes)
 
 	tnl = kmalloc(sizeof(struct yaffs_tnode_list), GFP_NOFS);
 	if (!tnl) {
-		T(YAFFS_TRACE_ERROR,
-		  (TSTR
-		   ("yaffs: Could not add tnodes to management list" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"Could not add tnodes to management list");
 		return YAFFS_FAIL;
 	} else {
 		tnl->tnodes = new_tnodes;
@@ -189,7 +188,7 @@ static int yaffs_create_tnodes(struct yaffs_dev *dev, int n_tnodes)
 		allocator->alloc_tnode_list = tnl;
 	}
 
-	T(YAFFS_TRACE_ALLOCATE, (TSTR("yaffs: Tnodes added" TENDSTR)));
+	yaffs_trace(YAFFS_TRACE_ALLOCATE,"Tnodes added");
 
 	return YAFFS_OK;
 }
@@ -301,8 +300,8 @@ static int yaffs_create_free_objs(struct yaffs_dev *dev, int n_obj)
 			kfree(list);
 			list = NULL;
 		}
-		T(YAFFS_TRACE_ALLOCATE,
-		  (TSTR("yaffs: Could not allocate more objects" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_ALLOCATE,
+			"Could not allocate more objects");
 		return YAFFS_FAIL;
 	}
 

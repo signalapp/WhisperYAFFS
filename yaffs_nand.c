@@ -63,15 +63,14 @@ int yaffs_wr_chunk_tags_nand(struct yaffs_dev *dev,
 		tags->seq_number = dev->seq_number;
 		tags->chunk_used = 1;
 		if (!yaffs_validate_tags(tags)) {
-			T(YAFFS_TRACE_ERROR,
-			  (TSTR("Writing uninitialised tags" TENDSTR)));
+			yaffs_trace(YAFFS_TRACE_ERROR, "Writing uninitialised tags");
 			YBUG();
 		}
-		T(YAFFS_TRACE_WRITE,
-		  (TSTR("Writing chunk %d tags %d %d" TENDSTR), nand_chunk,
-		   tags->obj_id, tags->chunk_id));
+		yaffs_trace(YAFFS_TRACE_WRITE,
+			"Writing chunk %d tags %d %d",
+			nand_chunk, tags->obj_id, tags->chunk_id);
 	} else {
-		T(YAFFS_TRACE_ERROR, (TSTR("Writing with no tags" TENDSTR)));
+		yaffs_trace(YAFFS_TRACE_ERROR, "Writing with no tags");
 		YBUG();
 	}
 

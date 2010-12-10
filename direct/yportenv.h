@@ -54,13 +54,6 @@
 
 #define Y_INLINE inline
 
-/* #define YINFO(s) YPRINTF(( __FILE__ " %d %s\n",__LINE__,s)) */
-/* #define YALERT(s) YINFO(s) */
-
-#define TENDSTR "\n"
-#define TSTR(x) x
-#define TOUT(p) printf p
-
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
 /* #define YPRINTF(x) printf x */
@@ -68,8 +61,6 @@
 #define YAFFS_ROOT_MODE			0755
 #define YAFFS_LOSTNFOUND_MODE		0700
 
-#define yaffs_sum_cmp(x, y) ((x) == (y))
-#define strcmp(a, b) strcmp(a, b)
 
 #else
 /* Should have specified a configuration type */

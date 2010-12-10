@@ -42,9 +42,9 @@ int yaffs1_scan(struct yaffs_dev *dev)
 
 	u8 *chunk_data;
 
-	T(YAFFS_TRACE_SCAN,
-	  (TSTR("yaffs1_scan starts  intstartblk %d intendblk %d..." TENDSTR),
-	   dev->internal_start_block, dev->internal_end_block));
+	yaffs_trace(YAFFS_TRACE_SCAN,
+		"yaffs1_scan starts  intstartblk %d intendblk %d...",
+		dev->internal_start_block, dev->internal_end_block);
 
 	chunk_data = yaffs_get_temp_buffer(dev, __LINE__);
 
@@ -66,16 +66,15 @@ int yaffs1_scan(struct yaffs_dev *dev)
 		if (bi->seq_number == YAFFS_SEQUENCE_BAD_BLOCK)
 			bi->block_state = state = YAFFS_BLOCK_STATE_DEAD;
 
-		T(YAFFS_TRACE_SCAN_DEBUG,
-		  (TSTR("Block scanning block %d state %d seq %d" TENDSTR), blk,
-		   state, seq_number));
+		yaffs_trace(YAFFS_TRACE_SCAN_DEBUG,
+			"Block scanning block %d state %d seq %d",
+			blk, state, seq_number);
 
 		if (state == YAFFS_BLOCK_STATE_DEAD) {
-			T(YAFFS_TRACE_BAD_BLOCKS,
-			  (TSTR("block %d is bad" TENDSTR), blk));
+			yaffs_trace(YAFFS_TRACE_BAD_BLOCKS,
+				"block %d is bad", blk);
 		} else if (state == YAFFS_BLOCK_STATE_EMPTY) {
-			T(YAFFS_TRACE_SCAN_DEBUG,
-			  (TSTR("Block empty " TENDSTR)));
+			yaffs_trace(YAFFS_TRACE_SCAN_DEBUG, "Block empty ");
 			dev->n_erased_blocks++;
 			dev->n_free_chunks += dev->param.chunks_per_block;
 		}
@@ -124,10 +123,9 @@ int yaffs1_scan(struct yaffs_dev *dev)
 					dev->n_erased_blocks++;
 				} else {
 					/* this is the block being allocated from */
-					T(YAFFS_TRACE_SCAN,
-					  (TSTR
-					   (" Allocating from %d %d" TENDSTR),
-					   blk, c));
+					yaffs_trace(YAFFS_TRACE_SCAN,
+						" Allocating from %d %d",
+						blk, c);
 					state = YAFFS_BLOCK_STATE_ALLOCATING;
 					dev->alloc_block = blk;
 					dev->alloc_page = c;
@@ -226,11 +224,10 @@ int yaffs1_scan(struct yaffs_dev *dev)
 						fixer->obj_id = tags.obj_id;
 						fixer->shadowed_id =
 						    oh->shadows_obj;
-						T(YAFFS_TRACE_SCAN,
-						  (TSTR
-						   (" Shadow fixer: %d shadows %d"
-						    TENDSTR), fixer->obj_id,
-						   fixer->shadowed_id));
+						yaffs_trace(YAFFS_TRACE_SCAN,
+							" Shadow fixer: %d shadows %d",
+							fixer->obj_id,
+							fixer->shadowed_id);
 
 					}
 
@@ -308,10 +305,9 @@ int yaffs1_scan(struct yaffs_dev *dev)
 						 * We're trying to use a non-directory as a directory
 						 */
 
-						T(YAFFS_TRACE_ERROR,
-						  (TSTR
-						   ("yaffs tragedy: attempting to use non-directory as a directory in scan. Put in lost+found."
-						    TENDSTR)));
+						yaffs_trace(YAFFS_TRACE_ERROR,
+							"yaffs tragedy: attempting to use non-directory as a directory in scan. Put in lost+found."
+							);
 						parent = dev->lost_n_found;
 					}
 
@@ -431,7 +427,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 	if (alloc_failed)
 		return YAFFS_FAIL;
 
-	T(YAFFS_TRACE_SCAN, (TSTR("yaffs1_scan ends" TENDSTR)));
+	yaffs_trace(YAFFS_TRACE_SCAN, "yaffs1_scan ends");
 
 	return YAFFS_OK;
 }

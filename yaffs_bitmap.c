@@ -20,9 +20,9 @@
 static Y_INLINE u8 *yaffs_block_bits(struct yaffs_dev *dev, int blk)
 {
 	if (blk < dev->internal_start_block || blk > dev->internal_end_block) {
-		T(YAFFS_TRACE_ERROR,
-		  (TSTR("**>> yaffs: BlockBits block %d is not valid" TENDSTR),
-		   blk));
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"BlockBits block %d is not valid",
+			blk);
 		YBUG();
 	}
 	return dev->chunk_bits +
@@ -33,9 +33,9 @@ void yaffs_verify_chunk_bit_id(struct yaffs_dev *dev, int blk, int chunk)
 {
 	if (blk < dev->internal_start_block || blk > dev->internal_end_block ||
 	    chunk < 0 || chunk >= dev->param.chunks_per_block) {
-		T(YAFFS_TRACE_ERROR,
-		  (TSTR("**>> yaffs: Chunk Id (%d:%d) invalid" TENDSTR),
-		   blk, chunk));
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"Chunk Id (%d:%d) invalid",
+			blk, chunk);
 		YBUG();
 	}
 }

@@ -109,8 +109,9 @@ static int  CheckInit(struct yaffs_dev *dev)
 		}
 		kfree(ramdisk.block);
 		
-		T(YAFFS_TRACE_ALWAYS,("Allocation failed, could only allocate %dMB of %dMB requested.\n",
-		   nAllocated/64,ramdisk.nBlocks * 528));
+		yaffs_trace(YAFFS_TRACE_ALWAYS,
+			"Allocation failed, could only allocate %dMB of %dMB requested.\n",
+			nAllocated/64,ramdisk.nBlocks * 528);
 		return 0;
 	}
 	
@@ -212,7 +213,9 @@ int yramdisk_erase(struct yaffs_dev *dev, int blockNumber)
 	
 	if(blockNumber < 0 || blockNumber >= ramdisk.nBlocks)
 	{
-		T(YAFFS_TRACE_ALWAYS,("Attempt to erase non-existant block %d\n",blockNumber));
+		yaffs_trace(YAFFS_TRACE_ALWAYS,
+			"Attempt to erase non-existant block %d\n",
+			blockNumber);
 		return YAFFS_FAIL;
 	}
 	else
@@ -230,5 +233,4 @@ int yramdisk_initialise(struct yaffs_dev *dev)
 	
 	return YAFFS_OK;
 }
-
 

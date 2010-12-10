@@ -268,7 +268,6 @@ void yaffs_verify_file(struct yaffs_obj *obj)
 		if (tn) {
 			u32 the_chunk = yaffs_get_group_base(dev, tn, i);
 			if (the_chunk > 0) {
-				/* T(~0,(TSTR("verifying (%d:%d) %d"TENDSTR),obj_id,i,the_chunk)); */
 				yaffs_rd_chunk_tags_nand(dev, the_chunk, NULL,
 							 &tags);
 				if (tags.obj_id != obj_id || tags.chunk_id != i)

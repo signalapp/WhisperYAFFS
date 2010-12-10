@@ -52,7 +52,7 @@ do { \
 
 
 /* Add an element to a list */
-static Y_INLINE void list_add(struct list_head *new_entry,
+static inline void list_add(struct list_head *new_entry,
 				struct list_head *list)
 {
 	struct list_head *list_next = list->next;
@@ -64,7 +64,7 @@ static Y_INLINE void list_add(struct list_head *new_entry,
 
 }
 
-static Y_INLINE void list_add_tail(struct list_head *new_entry,
+static inline void list_add_tail(struct list_head *new_entry,
 				 struct list_head *list)
 {
 	struct list_head *list_prev = list->prev;
@@ -79,7 +79,7 @@ static Y_INLINE void list_add_tail(struct list_head *new_entry,
 
 /* Take an element out of its current list, with or without
  * reinitialising the links.of the entry*/
-static Y_INLINE void list_del(struct list_head *entry)
+static inline void list_del(struct list_head *entry)
 {
 	struct list_head *list_next = entry->next;
 	struct list_head *list_prev = entry->prev;
@@ -89,7 +89,7 @@ static Y_INLINE void list_del(struct list_head *entry)
 
 }
 
-static Y_INLINE void list_del_init(struct list_head *entry)
+static inline void list_del_init(struct list_head *entry)
 {
 	list_del(entry);
 	entry->next = entry->prev = entry;
@@ -97,7 +97,7 @@ static Y_INLINE void list_del_init(struct list_head *entry)
 
 
 /* Test if the list is empty */
-static Y_INLINE int list_empty(struct list_head *entry)
+static inline int list_empty(struct list_head *entry)
 {
 	return (entry->next == entry);
 }

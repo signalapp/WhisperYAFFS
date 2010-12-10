@@ -296,7 +296,7 @@ static void yaffs_handle_chunk_wr_error(struct yaffs_dev *dev, int nand_chunk,
  *  Simple hash function. Needs to have a reasonable spread
  */
 
-static Y_INLINE int yaffs_hash_fn(int n)
+static inline int yaffs_hash_fn(int n)
 {
 	n = abs(n);
 	return n % YAFFS_NOBJECT_BUCKETS;

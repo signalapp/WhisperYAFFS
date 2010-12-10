@@ -47,10 +47,10 @@ void yaffs_qsort(void *aa, size_t n, size_t es,
         
 #define YAFFS_PATH_DIVIDERS  "/"
 
-#ifdef NO_Y_INLINE
-#define Y_INLINE
+#ifdef NO_inline
+#define inline
 #else
-#define Y_INLINE __inline__
+#define inline __inline__
 #endif
 
 #define kmalloc(x,flags) yaffs_malloc(x)

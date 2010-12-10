@@ -51,13 +51,6 @@
 #define YUCHAR unsigned char
 #define _Y(x)     x
 
-#define Y_INLINE __inline__
-
-#define yaffs_trace(msk, fmt, ...) do { \
-	if(yaffs_trace_mask & ((msk) | YAFFS_TRACE_ALWAYS)) \
-		printk(KERN_DEBUG "yaffs: " fmt "\n", ##__VA_ARGS__); \
-} while(0)
-
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
 
@@ -80,6 +73,11 @@
 #ifndef Y_DUMP_STACK
 #define Y_DUMP_STACK() dump_stack()
 #endif
+
+#define yaffs_trace(msk, fmt, ...) do { \
+	if(yaffs_trace_mask & ((msk) | YAFFS_TRACE_ALWAYS)) \
+		printk(KERN_DEBUG "yaffs: " fmt "\n", ##__VA_ARGS__); \
+} while(0)
 
 #ifndef YBUG
 #define YBUG() do {\

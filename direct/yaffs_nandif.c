@@ -39,10 +39,9 @@ int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev * dev, int nand_chunk,
 	unsigned spareSize = 0;
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
 
-	T(YAFFS_TRACE_MTD,
-	  (TSTR
-	   ("nandmtd2_WriteChunkWithTagsToNAND chunk %d data %p tags %p"
-	    TENDSTR), nand_chunk, data, tags));
+	yaffs_trace(YAFFS_TRACE_MTD,
+		"nandmtd2_WriteChunkWithTagsToNAND chunk %d data %p tags %p",
+		nand_chunk, data, tags);
 	    
 
 	/* For yaffs2 writing there must be both data and tags.
@@ -52,7 +51,8 @@ int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev * dev, int nand_chunk,
 
 	if(dev->param.inband_tags){
 		struct yaffs_packed_tags2_tags_only *pt2tp;
-		pt2tp = (struct yaffs_packed_tags2_tags_only *)(data + dev->data_bytes_per_chunk);
+		pt2tp = (struct yaffs_packed_tags2_tags_only *)
+			(data + dev->data_bytes_per_chunk);
 		yaffs_pack_tags2_tags_only(pt2tp,tags);
 		spare = NULL;
 		spareSize = 0;
@@ -64,7 +64,8 @@ int ynandif_WriteChunkWithTagsToNAND(struct yaffs_dev * dev, int nand_chunk,
 	}
 	
 	retval = geometry->writeChunk(dev,nand_chunk,
-					  data, dev->param.total_bytes_per_chunk, spare, spareSize);
+				data, dev->param.total_bytes_per_chunk,
+				spare, spareSize);
 
 	return retval;
 }
@@ -80,10 +81,9 @@ int ynandif_ReadChunkWithTagsFromNAND(struct yaffs_dev * dev, int nand_chunk,
 	int eccStatus; //0 = ok, 1 = fixed, -1 = unfixed
 	ynandif_Geometry *geometry = (ynandif_Geometry *)(dev->driver_context);
 
-	T(YAFFS_TRACE_MTD,
-	  (TSTR
-	   ("nandmtd2_ReadChunkWithTagsFromNAND chunk %d data %p tags %p"
-	    TENDSTR), nand_chunk, data, tags));
+	yaffs_trace(YAFFS_TRACE_MTD,
+		"nandmtd2_ReadChunkWithTagsFromNAND chunk %d data %p tags %p",
+		nand_chunk, data, tags);
 	    
 	if(!tags){
 		spare = NULL;
@@ -161,7 +161,8 @@ static int ynandif_IsBlockOk(struct yaffs_dev *dev, int blockId)
 	return geometry->checkBlockOk(dev,blockId);
 }
 
-int ynandif_QueryNANDBlock(struct yaffs_dev *dev, int blockId, enum yaffs_block_state *state, u32 *seq_number)
+int ynandif_QueryNANDBlock(struct yaffs_dev *dev, int blockId, 
+		enum yaffs_block_state *state, u32 *seq_number)
 {
 	unsigned chunkNo;
 	struct yaffs_ext_tags tags;
@@ -223,23 +224,23 @@ struct yaffs_dev *
 		strcpy(clonedName,name);
 
 		dev->param.name = clonedName;
-		dev->param.write_chunk_tags_fn  = ynandif_WriteChunkWithTagsToNAND;
+		dev->param.write_chunk_tags_fn = ynandif_WriteChunkWithTagsToNAND;
 		dev->param.read_chunk_tags_fn = ynandif_ReadChunkWithTagsFromNAND;
-		dev->param.erase_fn          = ynandif_EraseBlockInNAND;
-		dev->param.initialise_flash_fn            = ynandif_InitialiseNAND;
-		dev->param.query_block_fn            = ynandif_QueryNANDBlock;
-		dev->param.bad_block_fn          = ynandif_MarkNANDBlockBad;
-		dev->param.n_caches			   = 20;
-		dev->param.start_block                = geometry->start_block;
-		dev->param.end_block                  = geometry->end_block;
-		dev->param.total_bytes_per_chunk		   = geometry->dataSize;
-		dev->param.spare_bytes_per_chunk		   = geometry->spareSize;
-		dev->param.inband_tags				   = geometry->inband_tags;
-		dev->param.chunks_per_block		   = geometry->pagesPerBlock;
-		dev->param.use_nand_ecc				   = geometry->hasECC;
-		dev->param.is_yaffs2				   = geometry->useYaffs2;
-		dev->param.n_reserved_blocks		   = 5;
-		dev->driver_context			   = (void *)geometry;
+		dev->param.erase_fn = ynandif_EraseBlockInNAND;
+		dev->param.initialise_flash_fn = ynandif_InitialiseNAND;
+		dev->param.query_block_fn = ynandif_QueryNANDBlock;
+		dev->param.bad_block_fn = ynandif_MarkNANDBlockBad;
+		dev->param.n_caches = 20;
+		dev->param.start_block = geometry->start_block;
+		dev->param.end_block   = geometry->end_block;
+		dev->param.total_bytes_per_chunk  = geometry->dataSize;
+		dev->param.spare_bytes_per_chunk  = geometry->spareSize;
+		dev->param.inband_tags		  = geometry->inband_tags;
+		dev->param.chunks_per_block	  = geometry->pagesPerBlock;
+		dev->param.use_nand_ecc		  = geometry->hasECC;
+		dev->param.is_yaffs2		  = geometry->useYaffs2;
+		dev->param.n_reserved_blocks	  = 5;
+		dev->driver_context		  = (void *)geometry;
 
 		yaffs_add_device(dev);
 
@@ -253,3 +254,4 @@ struct yaffs_dev *
 
 	return NULL;
 }
+

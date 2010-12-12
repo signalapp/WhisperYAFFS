@@ -38,7 +38,7 @@ int test_yaffs_write_big_file(void)
 		return -1;
 	}
 	
-	strcat(file_name,YAFFS_MOUNT_POINT);
+	strcpy(file_name,YAFFS_MOUNT_POINT);
 	for (x=strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
 		file_name[x]='a';
 	}

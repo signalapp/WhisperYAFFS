@@ -510,7 +510,10 @@ test_template test_list[]={
 
 	};
 
+void logical_run_of_tests(void);
 void init_quick_tests(int argc, char *argv[]);
 void quit_quick_tests(int exit_code);
 void get_error(void);
+void run_random_test_loop(void);
+void run_test(int x);
 #endif

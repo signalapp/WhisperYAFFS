@@ -21,7 +21,14 @@ int test_yaffs_rename_dir_to_file(void)
 	if (0 !=  yaffs_access(DIR_PATH,0)) {
 		output= yaffs_mkdir(DIR_PATH,(S_IREAD | S_IWRITE));
 		if (output<0) {
-			print_message("failed to create directory\n",2);
+			print_message("failed to remove directory\n",2);
+			return -1;
+		}
+	}
+	if (0 !=  yaffs_access(RENAME_PATH,0)) {
+		output= yaffs_mkdir(RENAME_PATH,(S_IREAD | S_IWRITE));
+		if (output<0) {
+			print_message("failed to remove file\n",2);
 			return -1;
 		}
 	}

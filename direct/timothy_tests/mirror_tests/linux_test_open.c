@@ -11,25 +11,15 @@
  * published by the Free Software Foundation.
  */
 
-#include "test_yaffs_rmdir.h"
+#include "linux_test_open.h"
 
-
-int test_yaffs_rmdir(void)
+int linux_test_open(arg_temp *args_struct)
 {
-	int output=0;
-	if (0 !=  yaffs_access(RMDIR_PATH,0)) {
-		output = yaffs_mkdir(RMDIR_PATH,S_IWRITE | S_IREAD);
-		if (output < 0) {
-			print_message("failed to create directory\n",2);
-			return -1;
-		}
-	}
-	return yaffs_rmdir(RMDIR_PATH);
+	char path[200];
+	char message[100];
+	join_paths(linux_struct.root_path,args_struct->string1, path );
+	sprintf(message,"file path: %s\n",path);	
+	print_message(3,message);
+
+	return open(path,args_struct->char1,args_struct->char2);
 }
-
-
-int test_yaffs_rmdir_clean(void)
-{
-	return 1;
-}
-

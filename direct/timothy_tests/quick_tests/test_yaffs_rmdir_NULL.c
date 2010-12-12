@@ -19,13 +19,6 @@ int test_yaffs_rmdir_NULL(void)
 	int output=0;
 	int error_code =0;
 
-	if (0 !=  yaffs_access(DIR_PATH,0)) {
-		output = yaffs_mkdir(DIR_PATH,S_IWRITE | S_IREAD);
-		if (output < 0) {
-			print_message("failed to create directory\n",2);
-			return -1;
-		}
-	}
 	output = yaffs_rmdir(NULL);
 	if (output<0){ 
 		error_code=yaffs_get_error();

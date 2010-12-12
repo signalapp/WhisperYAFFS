@@ -246,7 +246,7 @@ test_yaffs_write_EROFS.c
 
 Tests to add
 
-
+	test_yaffs_rename a file over its self.
 
 	test_yaffs_readlink
 	test_yaffs_readlink_ENOENT

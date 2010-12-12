@@ -45,6 +45,8 @@
 #define ELOOP_PATH "/yaffs2/ELOOP"
 #define ELOOP2_PATH "/yaffs2/ELOOP2"
 
+#define RMDIR_PATH "/yaffs2/RM_DIR"
+
 /* warning do not define anything as FILE because there seems to be a conflict with stdio.h */ 
 #define FILE_PATH "/yaffs2/foo"
 

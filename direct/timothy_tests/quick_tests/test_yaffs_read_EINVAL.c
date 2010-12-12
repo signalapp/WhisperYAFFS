@@ -113,7 +113,7 @@ int test_yaffs_read_EINVAL_init(void)
 		return -1;
 	}
 	
-	strcat(file_name,YAFFS_MOUNT_POINT);
+	strcpy(file_name,YAFFS_MOUNT_POINT);
 	for (x=strlen(YAFFS_MOUNT_POINT); x<file_name_length -1; x++){
 		file_name[x]='a';
 	}

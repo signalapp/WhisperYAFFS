@@ -34,10 +34,10 @@ int test_yaffs_rename(void)
 int test_yaffs_rename_clean(void)
 {
 	int output = 0;
-	if (0 ==  yaffs_access(RENAME_PATH,0)) {
-		output = yaffs_rename(RENAME_PATH,FILE_PATH);
+	if (0 ==  yaffs_access(FILE_PATH,0)) {
+		output = test_yaffs_open();
 		if (output < 0) {
-			print_message("failed to rename the file\n",2);
+			print_message("failed to open a new file\n",2);
 			return -1;
 		}
 	}

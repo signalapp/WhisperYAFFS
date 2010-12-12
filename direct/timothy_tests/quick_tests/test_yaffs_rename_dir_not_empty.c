@@ -36,6 +36,14 @@ int test_yaffs_rename_dir(void)
 int test_yaffs_rename_dir_clean(void)
 {
 	int output = 0;
+	if (0 ==  yaffs_access("/yaffs2/new_directory/file",0)) {
+		output = yaffs_unlink("/yaffs2/new_directory/file");
+		if (output < 0) {
+			print_message("failed to remove file\n",2);
+			return -1;
+		}
+	}
+
 	if (0 ==  yaffs_access(RENAME_DIR_PATH,0)) {
 		output = yaffs_rename(RENAME_DIR_PATH,DIR_PATH);
 		if (output < 0) {

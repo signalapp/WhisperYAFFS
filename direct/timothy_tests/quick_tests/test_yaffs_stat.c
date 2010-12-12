@@ -19,40 +19,9 @@ int test_yaffs_stat(void)
 	int mode=0;
 	int size=0;
 	message[0]='\0';
+	struct yaffs_stat stat;
 
-	mode =yaffs_test_stat_mode();	
-	if (mode>=0){
-		if (FILE_MODE == (FILE_MODE & mode)){
-			mode=1;
-		} else {
-			print_message("mode did not match expected file mode\n",2);
-			return -1;
-		}
-	} else {
-		mode =-1;
-	}
-
-	size=yaffs_test_stat_size();
-	if (size >=0){
-		if (size==FILE_SIZE){
-			size=1;
-		} else {
-			sprintf(message,"file size %d, expected file size %d\n",size,FILE_SIZE);
-			print_message(message,2);
-			print_message("mode did not match expected file mode\n",2);
-			return -1;
-		}
-	} else {
-		size =-1;
-	}	
-
-
-	if ((mode>0) && (size>0)){
-		return 1;
-	} else {
-		/* one of the tests failed*/
-		return -1;
-	}
+	return yaffs_stat(FILE_PATH, &stat);
 }
 
 int test_yaffs_stat_clean(void)

@@ -17,10 +17,10 @@
 int test_yaffs_rename_dir(void)
 {
 	int output=0;
-	int error_code =0;
 
-	if (0 !=  yaffs_access(FILE_PATH,0)) {
-		output = test_yaffs_open();
+
+	if (0 !=  yaffs_access(DIR_PATH,0)) {
+		output = yaffs_mkdir(DIR_PATH,S_IREAD|S_IWRITE);
 		if (output < 0) {
 			print_message("failed to create file\n",2);
 			return -1;

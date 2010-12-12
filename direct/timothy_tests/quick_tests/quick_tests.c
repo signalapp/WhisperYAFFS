@@ -20,69 +20,93 @@ int simulate_power_failure = 0;
 
 
 
-
+static int number_of_random_tests=0;
 static unsigned int num_of_tests_pass=0;
 static unsigned int num_of_tests_failed=0;
 static unsigned int total_number_of_tests=(sizeof(test_list)/sizeof(test_template));
 
-int main(int argc, char *argv[]){
-	int output=0;
-	char message[30];
-	message[0]='\0';
-	unsigned int x=0;
+int main(int argc, char *argv[])
+{
+	int x=0;
 
 	init_quick_tests(argc, argv);
+	logical_run_of_tests();
+	for (x=0;x<number_of_random_tests;x ++){
+		run_random_test_loop();
+	}	
+	/*this is where the loop should break to*/
+	quit_quick_tests(0);
+}
+
+
+void run_random_test_loop(void)
+{
+	int id=0;
+	int x=0;
+	int run_list[total_number_of_tests];
+	for (x=0;x<total_number_of_tests;x++){ 
+		id = (rand() % (total_number_of_tests-1));
+		run_test(id); 	
+	}
+}
+
+void logical_run_of_tests(void)
+{
+	unsigned int x=0;
 	print_message("\n\nrunning quick tests for yaffs\n\n", 0);
 
 	for (x=0;x<total_number_of_tests;x++){
-	/*	output=yaffs_open(FILE_PATH,O_CREAT | O_RDWR, FILE_MODE);
-		printf("yaffs_open %d \n",output);
-		printf("yaffs_close %d \n",yaffs_close(output));
-	*/	yaffs_set_error(0);	/*reset the last error to 0 */
-		//printf("foo exists %d\n",test_yaffs_open());
-		sprintf(message,"\nrunning test: %s \n",test_list[x].name_of_test);
-		print_message(message,3);
-		output=test_list[x].p_function();	/*run test*/
-		if (output>=0){
-			/*test has passed*/
-			sprintf(message,"\ttest %s passed\n",test_list[x].name_of_test);
-			print_message(message,3); 
-			num_of_tests_pass++;
-		} else {
-			/*test is assumed to have failed*/
-			//printf("test failed\n");
-			sprintf(message,"test: %s failed\n",test_list[x].name_of_test);
-			print_message(message,1);		
-			num_of_tests_failed ++;	
-		
-			get_error();
-			print_message("\n\n",1);
-			if (get_exit_on_error()){	
-				quit_quick_tests(1);
-			}
+		run_test(x);
+	}
+}
 
-		}
-		output=0;
-		output=test_list[x].p_function_clean();	/*clean the test*/
-		if (output <0){
-			/* if the test failed to clean it's self then */
-			sprintf(message,"test: %s failed to clean\n",test_list[x].name_of_test);
-			print_message(message,1);		
-			num_of_tests_failed ++;	
-			num_of_tests_pass--;
-			get_error();
-			printf("\n\n");
-			if (get_exit_on_error()){
-				quit_quick_tests(1);
-			}
-			
-		} else {
-			sprintf(message,"\ttest clean: %s passed\n",test_list[x].name_of_test);
-			print_message(message,3);
+void run_test(int x)
+{
+	int output=0;
+	char message[200];
+	message[0]='\0';
+
+	yaffs_set_error(0);	/*reset the last error to 0 */
+	//printf("foo exists %d\n",test_yaffs_open());
+	sprintf(message,"\nrunning test: %s \n",test_list[x].name_of_test);
+	print_message(message,3);
+	output=test_list[x].p_function();	/*run test*/
+	if (output>=0){
+		/*test has passed*/
+		sprintf(message,"\ttest %s passed\n",test_list[x].name_of_test);
+		print_message(message,3); 
+		num_of_tests_pass++;
+	} else {
+		/*test is assumed to have failed*/
+		//printf("test failed\n");
+		sprintf(message,"test: %s failed\n",test_list[x].name_of_test);
+		print_message(message,1);		
+		num_of_tests_failed ++;	
+	
+		get_error();
+		print_message("\n\n",1);
+		if (get_exit_on_error()){	
+			quit_quick_tests(1);
 		}
 	}
-	/*this is where the loop should break to*/
-	quit_quick_tests(0);
+	output=0;
+	output=test_list[x].p_function_clean();	/*clean the test*/
+	if (output <0){
+		/* if the test failed to clean it's self then */
+		sprintf(message,"test: %s failed to clean\n",test_list[x].name_of_test);
+		print_message(message,1);		
+		num_of_tests_failed ++;	
+		num_of_tests_pass--;
+		get_error();
+		printf("\n\n");
+		if (get_exit_on_error()){
+			quit_quick_tests(1);
+		}
+		
+	} else {
+		sprintf(message,"\ttest clean: %s passed\n",test_list[x].name_of_test);
+		print_message(message,3);
+	}
 }
 
 void quit_quick_tests(int exit_code)
@@ -122,6 +146,7 @@ void init_quick_tests(int argc, char *argv[])
 			printf("-v will print all messages\n");
 			printf("-q quiet mode only the number of tests passed and failed will be printed\n");
 			printf("-t [number] set yaffs_trace to number\n");
+			printf("-r [number] sets the number of random loops to run after the the test has run\n");
 			exit(0);
 		} else if (0==strcmp(argv[x],"-c")) {
 			set_exit_on_error(0);
@@ -131,6 +156,8 @@ void init_quick_tests(int argc, char *argv[])
 			trace = atoi(argv[x+1]);
 		}  else if (0==strcmp(argv[x],"-v")) {
 			set_print_level(5);
+		} else if (0==strcmp(argv[x],"-r")) {
+			number_of_random_tests=atoi(argv[x+1]);
 		}
 
 	}

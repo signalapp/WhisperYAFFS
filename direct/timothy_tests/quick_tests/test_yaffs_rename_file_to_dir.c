@@ -52,6 +52,11 @@ int test_yaffs_rename_file_to_dir_clean(void)
 			print_message("failed to unlink the file\n",2);
 			return -1;
 		}
+		output = test_yaffs_open();
+		if (output < 0) {
+			print_message("failed to open a new\n",2);
+			return -1;
+		}
 	}
 	return 1;
 

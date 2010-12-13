@@ -37,6 +37,28 @@ void display_error(void)
 {
 	
 }
+
+void  generate_random_string(char *ptr,int length_of_str){
+	unsigned int x;
+	unsigned int length=((rand() %length_of_str)+1);	/*creates a int with the number of charecters been between 1 and 51*/ 		
+	char letter='\0';
+	strcpy(ptr,"");
+	//printf("generating string\n");
+	//printf("string length is %d\n",length);
+	for (x=0; x <= (length-2) &&length>2 ; x++)
+	{
+		//printf("x=%d\n",x);	
+		/* keep generating a charecter until the charecter is legal*/
+		while((letter=='\0' )||(letter=='/')||(letter=='\\')){
+			letter=(rand() % 125-59)+58;	/*generate a number between 32 and 126 and uses it as a charecter (letter) */
+		}	
+		ptr[x]=letter;
+		//printf("charecter generated is %c\n",ptr[x]);
+	}
+	ptr[x+1]='\0';	/*adds NULL charecter to turn it into a string*/
+	
+}
+
 void join_paths(char *path1,char *path2,char *new_path )
 {
 	char message[100];

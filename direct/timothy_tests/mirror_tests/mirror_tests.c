@@ -16,7 +16,7 @@
 int random_seed;
 int simulate_power_failure = 0;
 
-
+int num_of_random_tests=1;
 
 
 
@@ -46,7 +46,7 @@ test_temp linux_tests={
 int main(int argc, char *argv[])
 {
 	char message[100];
-
+	int x;
 	yaffs_tests.num_of_tests=(sizeof(yaffs_tests)/sizeof(test_temp));
 	linux_tests.num_of_tests=(sizeof(linux_tests)/sizeof(test_temp));
 
@@ -60,8 +60,9 @@ int main(int argc, char *argv[])
 	print_message(3,message);
 	sprintf(message,"yaffs_num_of_tests: %d\n",yaffs_tests.num_of_tests);
 	print_message(3,message);
-
+	for (x=0;x<num_of_random_tests;x++){
 		run_random_test();
+	}
 	return 0;
 }
 
@@ -71,6 +72,8 @@ void init(int argc, char *argv[])
 	dir[0]='\0';
 	int x=-1;
 	char message[100];
+	
+	srand(time(NULL));
 	linux_struct.type_of_test =LINUX;
 	yaffs_struct.type_of_test =YAFFS;
 
@@ -78,7 +81,7 @@ void init(int argc, char *argv[])
 	print_message(3,message);
 	strcpy(dir,getcwd(dir,200));
 
-	strcat(dir,"/test");
+	strcat(dir,"/test/");
 	printf("dir: %s\n",dir);
 	strcpy(linux_struct.root_path,dir);
 	strcpy(yaffs_struct.root_path,"yaffs2/test/");	
@@ -93,6 +96,8 @@ void init(int argc, char *argv[])
 			printf("\t-p [NUMBER] //sets the print level for mirror_tests.\n");
 			printf("\t-v //verbose mode everything is printed\n");
 			printf("\t-q //quiet mode nothing is printed.\n");
+			printf("\t-n [number] //sets the number of random tests to run.\n");
+			printf("\t-s [number] //seeds rand with the number\n");
 			exit(0);
 		} else if (strcmp(argv[x],"-yaffs_path")==0){
 			strcpy(yaffs_struct.root_path, argv[x+1]);
@@ -104,7 +109,11 @@ void init(int argc, char *argv[])
 			set_print_level(5);
 		} else if (strcmp(argv[x],"-q")==0){
 			set_print_level(-1);
-		} 
+		} else if (strcmp(argv[x],"-n")==0){
+			num_of_random_tests=atoi(argv[x+1]);
+		} else if (strcmp(argv[x],"-n")==0){
+			srand(atoi(argv[x+1]));
+		}
 	}
 
 	yaffs_start_up();
@@ -146,12 +155,24 @@ int run_random_test(void)
 	char message[15];
 	arg_temp args_struct;
 	for (x=0;x<num_of_tests;x++) {
+		errno=0;
+		yaffs_set_error(0);
 		test_id = select_test_id(yaffs_tests.num_of_tests);
 		sprintf(message,"test_id %d\n",test_id);
-		print_message(2,message);
+		print_message(3,message);
 		generate_random_numbers(&args_struct);
 		run_yaffs_test(id, &args_struct);
 		run_linux_test(id, &args_struct);
+		if 	((abs(yaffs_get_error())!=abs(errno)) &&
+			(abs(yaffs_get_error())!=EISDIR && abs(errno) != 0)
+			){
+			print_message(2,"\ndiffrence in returned errors######################################\n");
+			get_error_yaffs();
+			get_error_linux();
+			if (get_exit_on_error()){ 
+				exit(0);
+			}
+		}
 	}
 	compare_linux_and_yaffs(); 
 }
@@ -178,26 +199,28 @@ int compare_linux_and_yaffs(void)
 
 void generate_random_numbers(arg_temp *args_struct)
 {
+	char string[51];
 	args_struct->char1= (rand() % 255);
 	args_struct->char2= (rand() % 255);
 	args_struct->int1= (rand() % 100000);
 	args_struct->int2= (rand() % 100000);
-	strcpy(args_struct->string1, "apple");
-	strcpy(args_struct->string2, "apple");
+	generate_random_string(string,50);
+	strcpy(args_struct->string1, string);
+	generate_random_string(string,50);
+	strcpy(args_struct->string2, string);
 }
 
 void run_yaffs_test(int id,arg_temp *args_struct)
 {
 	char message[30];
 	int output =0;
-	print_message(2,"\n");
+	print_message(3,"\n");
 	sprintf(message,"running_test %s\n",yaffs_tests.test_list[id].test_name);
 	print_message(3,message);
 	output=yaffs_tests.test_list[id].test_pointer(args_struct);
 	if (output<0) {
 		sprintf(message,"test_failed %s\n",yaffs_tests.test_list[id].test_name);
-		print_message(1,message);
-		get_error_yaffs();
+		print_message(3,message);
 	} else {
 		print_message(3,"test_passed\n");
 	}
@@ -207,14 +230,13 @@ void run_linux_test(int id,arg_temp *args_struct)
 {
 	char message[30];
 	int output =0;
-	print_message(2,"\n");
+	print_message(3,"\n");
 	sprintf(message,"running_test %s\n",linux_tests.test_list[id].test_name);
 	print_message(3,message);
 	output=linux_tests.test_list[id].test_pointer(args_struct);
 	if (output<0) {
 		sprintf(message,"test_failed %s\n",linux_tests.test_list[id].test_name);
-		print_message(1,message);
-		get_error_linux();
+		print_message(3,message);
 	} else {
 		print_message(3,"test_passed\n");
 	}

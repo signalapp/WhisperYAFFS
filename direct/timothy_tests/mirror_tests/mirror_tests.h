@@ -22,6 +22,7 @@
 #include <errno.h>
 #include "yaffsfs.h"
 #include "lib.h"
+#include <time.h>
 
 #include "linux_test_open.h"
 #include "yaffs_test_open.h"
@@ -38,6 +39,7 @@ void init(int argc, char *argv[]);
 int run_random_test(void);
 int compare_linux_and_yaffs(void);
 void get_error_yaffs(void);
+void get_error_linux(void);
 int select_test_id(int test_len);
 void generate_random_numbers(arg_temp *args_struct);
 void run_yaffs_test(int id,arg_temp *args_struct);

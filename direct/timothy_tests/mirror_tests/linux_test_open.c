@@ -15,11 +15,24 @@
 
 int linux_test_open(arg_temp *args_struct)
 {
-	char path[200];
-	char message[100];
+	char path[250];
+	char message[150];
+	int output;
 	join_paths(linux_struct.root_path,args_struct->string1, path );
 	sprintf(message,"file path: %s\n",path);	
 	print_message(3,message);
 
-	return open(path,args_struct->char1,args_struct->char2);
+	output= open(path,args_struct->char1 & (O_TRUNC|O_EXCL|O_CREAT|O_APPEND) ,args_struct->char2& (S_IREAD|S_IWRITE));
+	if (output>=0){
+		output=close(output);
+		if (output<0) {
+			print_message(3,"failed to close handle\n");
+			return -1;
+		} else {
+			return 1;
+		}
+	} else {
+		print_message(3,"failed to open file\n");
+		return -1;
+	}
 }

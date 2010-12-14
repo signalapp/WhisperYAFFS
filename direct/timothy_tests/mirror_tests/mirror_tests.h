@@ -26,6 +26,8 @@
 
 #include "linux_test_open.h"
 #include "yaffs_test_open.h"
+#include "linux_test_truncate.h"
+#include "yaffs_test_truncate.h"
 
 
 #define LINUX 1

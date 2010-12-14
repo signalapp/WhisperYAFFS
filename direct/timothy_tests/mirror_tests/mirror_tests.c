@@ -31,14 +31,16 @@ typedef struct test_temp2 {
 }test_temp;
 
 test_temp yaffs_tests={
-	0,
-	{{"yaffs_test_open",yaffs_test_open}
+	2,
+	{{"yaffs_test_open",yaffs_test_open},
+	{"yaffs_test_truncate",yaffs_test_truncate}
 	}
 };
 
 test_temp linux_tests={
-	0,
-	{{"linux_test_open",linux_test_open}
+	2,
+	{{"linux_test_open",linux_test_open},
+	{"linux_test_truncate",linux_test_truncate}
 	}
 };
 
@@ -47,8 +49,8 @@ int main(int argc, char *argv[])
 {
 	char message[100];
 	int x;
-	yaffs_tests.num_of_tests=(sizeof(yaffs_tests)/sizeof(test_temp));
-	linux_tests.num_of_tests=(sizeof(linux_tests)/sizeof(test_temp));
+//	yaffs_tests.num_of_tests=(sizeof(yaffs_tests)/sizeof(test_temp));
+//	linux_tests.num_of_tests=(sizeof(linux_tests)/sizeof(test_temp));
 
 	init(argc,argv);
 	print_message(1,"running mirror_tests\n");
@@ -63,6 +65,7 @@ int main(int argc, char *argv[])
 	for (x=0;x<num_of_random_tests;x++){
 		run_random_test();
 	}
+	yaffs_unmount("yaffs2");
 	return 0;
 }
 
@@ -73,7 +76,7 @@ void init(int argc, char *argv[])
 	int x=-1;
 	char message[100];
 	
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
 	linux_struct.type_of_test =LINUX;
 	yaffs_struct.type_of_test =YAFFS;
 
@@ -112,7 +115,7 @@ void init(int argc, char *argv[])
 		} else if (strcmp(argv[x],"-n")==0){
 			num_of_random_tests=atoi(argv[x+1]);
 		} else if (strcmp(argv[x],"-n")==0){
-			srand(atoi(argv[x+1]));
+			//srand(atoi(argv[x+1]));
 		}
 	}
 
@@ -152,19 +155,20 @@ int run_random_test(void)
 	int id=0;
 	int test_id=-1;
 	int num_of_tests=1;
-	char message[15];
+	char message[100];
 	arg_temp args_struct;
 	for (x=0;x<num_of_tests;x++) {
 		errno=0;
 		yaffs_set_error(0);
 		test_id = select_test_id(yaffs_tests.num_of_tests);
-		sprintf(message,"test_id %d\n",test_id);
+		sprintf(message,"running test_id %d\n",test_id);
 		print_message(3,message);
 		generate_random_numbers(&args_struct);
-		run_yaffs_test(id, &args_struct);
-		run_linux_test(id, &args_struct);
+		run_yaffs_test(test_id, &args_struct);
+		run_linux_test(test_id, &args_struct);
 		if 	((abs(yaffs_get_error())!=abs(errno)) &&
-			(abs(yaffs_get_error())!=EISDIR && abs(errno) != 0)
+			(abs(yaffs_get_error())!=EISDIR && abs(errno) != 0) &&
+			(abs(yaffs_get_error())!=ENOENT && abs(errno) != EACCES)
 			){
 			print_message(2,"\ndiffrence in returned errors######################################\n");
 			get_error_yaffs();
@@ -180,7 +184,9 @@ int run_random_test(void)
 int select_test_id(int test_len)
 {
 	int id=0;
+	//printf("test_len = %d\n",test_len);
 	id=(rand() % test_len );
+	//printf("id %d\n",id);
 	return id;
 
 }
@@ -212,9 +218,10 @@ void generate_random_numbers(arg_temp *args_struct)
 
 void run_yaffs_test(int id,arg_temp *args_struct)
 {
-	char message[30];
+	char message[200];
 	int output =0;
 	print_message(3,"\n");
+	//printf("id = %d\n",id);
 	sprintf(message,"running_test %s\n",yaffs_tests.test_list[id].test_name);
 	print_message(3,message);
 	output=yaffs_tests.test_list[id].test_pointer(args_struct);
@@ -228,9 +235,10 @@ void run_yaffs_test(int id,arg_temp *args_struct)
 
 void run_linux_test(int id,arg_temp *args_struct)
 {
-	char message[30];
+	char message[200];
 	int output =0;
 	print_message(3,"\n");
+	//printf("id = %d\n",id);
 	sprintf(message,"running_test %s\n",linux_tests.test_list[id].test_name);
 	print_message(3,message);
 	output=linux_tests.test_list[id].test_pointer(args_struct);

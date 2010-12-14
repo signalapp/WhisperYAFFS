@@ -40,7 +40,7 @@ void display_error(void)
 
 void  generate_random_string(char *ptr,int length_of_str){
 	unsigned int x;
-	unsigned int length=((rand() %length_of_str)+1);	/*creates a int with the number of charecters been between 1 and 51*/ 		
+	unsigned int length=((rand() %(length_of_str-3))+3);	/*creates a int with the number of charecters been between 1 and 51*/ 		
 	char letter='\0';
 	strcpy(ptr,"");
 	//printf("generating string\n");

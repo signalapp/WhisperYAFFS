@@ -47,7 +47,8 @@ COMMONTESTOBJS = yaffscfg2k.o yaffs_osglue.o yaffs_hweight.o \
 #		 yaffs_checkptrwtest.o\
 
 TESTFILES = 	mirror_tests.o lib.o\
-		linux_test_open.o yaffs_test_open.o
+		linux_test_open.o yaffs_test_open.o\
+		linux_test_truncate.o yaffs_test_truncate.o
 
 
 		  

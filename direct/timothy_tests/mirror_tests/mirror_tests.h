@@ -41,7 +41,7 @@
 
 
 void init(int argc, char *argv[]);
-int run_random_test(void);
+int run_random_test(int num_of_random_tests);
 int compare_linux_and_yaffs(void);
 void get_error_yaffs(void);
 void get_error_linux(void);

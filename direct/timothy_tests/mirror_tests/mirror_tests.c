@@ -64,9 +64,8 @@ int main(int argc, char *argv[])
 	print_message(3,message);
 	sprintf(message,"yaffs_num_of_tests: %d\n",yaffs_tests.num_of_tests);
 	print_message(3,message);
-	for (x=0;x<num_of_random_tests;x++){
-		run_random_test();
-	}
+
+	run_random_test(num_of_random_tests);
 	compare_linux_and_yaffs();
 	yaffs_unmount("yaffs2");
 	return 0;
@@ -106,7 +105,7 @@ void init(int argc, char *argv[])
 			printf("\t-n [number] //sets the number of random tests to run.\n");
 			printf("\t-s [number] //seeds rand with the number\n");
 			printf("\t-t [number] //sets yaffs_trace to the number\n");
-			printf("\t-c //removes emfile and test dir\n");
+			printf("\t-clean //removes emfile and test dir\n");
 			exit(0);
 		} else if (strcmp(argv[x],"-yaffs_path")==0){
 			strcpy(yaffs_struct.root_path, argv[x+1]);
@@ -124,7 +123,7 @@ void init(int argc, char *argv[])
 			srand(atoi(argv[x+1]));
 		} else if (strcmp(argv[x],"-t")==0){
 			yaffs_set_trace(atoi(argv[x+1]));
-		} else if (strcmp(argv[x],"-c")==0){
+		} else if (strcmp(argv[x],"-clean")==0){
 			clean_dir();
 			exit(0);
 		}
@@ -160,36 +159,39 @@ void init(int argc, char *argv[])
 	}
 }
 
-int run_random_test(void)
+int run_random_test(int num_of_random_tests)
 {
+	int y=0;
 	int x=-1;
 	int id=0;
 	int test_id=-1;
-	int num_of_tests=1;
+	int num_of_tests_before_check=10;
 	char message[100];
 	arg_temp args_struct;
-	for (x=0;x<num_of_tests;x++) {
-		errno=0;
-		yaffs_set_error(0);
-		test_id = select_test_id(yaffs_tests.num_of_tests);
-		sprintf(message,"running test_id %d\n",test_id);
-		print_message(3,message);
-		generate_random_numbers(&args_struct);
-		run_yaffs_test(test_id, &args_struct);
-		run_linux_test(test_id, &args_struct);
-		if 	((abs(yaffs_get_error())!=abs(errno)) &&
-			(abs(yaffs_get_error())!=EISDIR && abs(errno) != 0) &&
-			(abs(yaffs_get_error())!=ENOENT && abs(errno) != EACCES)
-			){
-			print_message(2,"\ndifference in returned errors######################################\n");
-			get_error_yaffs();
-			get_error_linux();
-			if (get_exit_on_error()){ 
-				exit(0);
+	for (y=0;(y*num_of_tests_before_check)<num_of_random_tests;y++){
+		for (x=0;x<num_of_tests_before_check;x++) {
+			errno=0;
+			yaffs_set_error(0);
+			test_id = select_test_id(yaffs_tests.num_of_tests);
+			sprintf(message,"running test_id %d\n",test_id);
+			print_message(3,message);
+			generate_random_numbers(&args_struct);
+			run_yaffs_test(test_id, &args_struct);
+			run_linux_test(test_id, &args_struct);
+			if 	((abs(yaffs_get_error())!=abs(errno)) &&
+				(abs(yaffs_get_error())!=EISDIR && abs(errno) != 0) &&
+				(abs(yaffs_get_error())!=ENOENT && abs(errno) != EACCES)
+				){
+				print_message(2,"\ndifference in returned errors######################################\n");
+				get_error_yaffs();
+				get_error_linux();
+				if (get_exit_on_error()){ 
+					exit(0);
+				}
 			}
-		}
-	}
-	compare_linux_and_yaffs(); 
+		}	
+		compare_linux_and_yaffs();
+	} 
 }
 
 int select_test_id(int test_len)
@@ -212,25 +214,42 @@ int compare_linux_and_yaffs(void)
 	struct dirent *linux_current_file;
 
 	yaffs_open_dir = yaffs_opendir(yaffs_struct.root_path);
+	if (yaffs_open_dir) {
+		for (x=0;NULL!=yaffs_readdir(yaffs_open_dir);x++){}
+		printf("number of files in yaffs dir= %d\n",x);
+		
+		char yaffs_file_list[x][100];
+		yaffs_rewinddir(yaffs_open_dir);
 	
-	for (x=0;NULL!=yaffs_readdir(yaffs_open_dir);x++){};
-	printf("number of files in yaffs dir= %d\n",x);
-	
-	char yaffs_file_list[x][100];
-	yaffs_rewinddir(yaffs_open_dir);
-
-	for (x=0 ;NULL!=yaffs_current_file;x++)
-	{
-		yaffs_current_file =yaffs_readdir(yaffs_open_dir);
-		if (NULL!=yaffs_current_file){
-			strcpy(yaffs_file_list[x],yaffs_current_file->d_name);
+		for (x=0 ;NULL!=yaffs_current_file;x++)
+		{
+			yaffs_current_file =yaffs_readdir(yaffs_open_dir);
+			if (NULL!=yaffs_current_file){
+				strcpy(yaffs_file_list[x],yaffs_current_file->d_name);
+			}
 		}
 	}
 
 	linux_open_dir = opendir(linux_struct.root_path);
+	if (linux_open_dir){
+		for (x=0;NULL!=readdir(linux_open_dir);x++){}
+		printf("number of files in linux dir= %d\n",(x-2));	
+		//the -2 is because linux shows 2 extra files which are automaticly created. 
+	
+		char linux_file_list[x][100];
+	
+		for (x=0 ;NULL!=linux_current_file;x++)
+		{
+			linux_current_file =readdir(linux_open_dir);
+			if (NULL!=linux_current_file){
+				strcpy(linux_file_list[x],linux_current_file->d_name);
+			}
+		}
+	}
 
-	for (x=0;NULL!=readdir(linux_open_dir);x++){};
-	printf("number of files in linux dir= %d\n",(x-2));	//the -2 is because linux shows 2 extra files which are automaticly created. 
+
+
+
 	
 	//printf("file_name %s\n", yaffs_current_file->d_name);
 //	generate_array_of_objects_in_yaffs(); 

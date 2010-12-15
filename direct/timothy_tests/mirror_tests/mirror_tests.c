@@ -166,10 +166,10 @@ int run_random_test(int num_of_random_tests)
 	int id=0;
 	int test_id=-1;
 	int num_of_tests_before_check=10;
-	char message[100];
+	char message[200];
 	arg_temp args_struct;
 	for (y=0;(y*num_of_tests_before_check)<num_of_random_tests;y++){
-		for (x=0;x<num_of_tests_before_check;x++) {
+		for (x=0;x<num_of_tests_before_check && (x+(y*num_of_tests_before_check)<num_of_random_tests);x++) {
 			errno=0;
 			yaffs_set_error(0);
 			test_id = select_test_id(yaffs_tests.num_of_tests);
@@ -206,20 +206,35 @@ int select_test_id(int test_len)
 
 int compare_linux_and_yaffs(void)
 {
-	int x=0;
+	int x=0,y=0;
+	int exit_bool=0;
+	int number_of_files_in_yaffs=0;
+	int number_of_files_in_linux=0;
+	char message[200];
+
 	yaffs_DIR *yaffs_open_dir;
 	yaffs_dirent *yaffs_current_file;
 	
 	DIR *linux_open_dir;
 	struct dirent *linux_current_file;
+	
+	print_message(2,"\n\n comparing folders\n");
+
 
 	yaffs_open_dir = yaffs_opendir(yaffs_struct.root_path);
 	if (yaffs_open_dir) {
 		for (x=0;NULL!=yaffs_readdir(yaffs_open_dir);x++){}
-		printf("number of files in yaffs dir= %d\n",x);
-		
-		char yaffs_file_list[x][100];
+		number_of_files_in_yaffs=x;
+		sprintf(message,"number of files in yaffs dir= %d\n",number_of_files_in_yaffs);
+		print_message(2,message);
 		yaffs_rewinddir(yaffs_open_dir);
+	} else {
+		print_message(3,"failed to open yaffs test dir\n");
+	}
+	char yaffs_file_list[x][200];
+
+
+	if (yaffs_open_dir){
 	
 		for (x=0 ;NULL!=yaffs_current_file;x++)
 		{
@@ -229,30 +244,90 @@ int compare_linux_and_yaffs(void)
 			}
 		}
 		yaffs_closedir(yaffs_open_dir);
+	} else {
+		print_message(3,"failed to populate yaffs test list\n");
 	}
 
 	linux_open_dir = opendir(linux_struct.root_path);
 	if (linux_open_dir){
 		for (x=0;NULL!=readdir(linux_open_dir);x++){}
-		printf("number of files in linux dir= %d\n",(x-2));	
+		number_of_files_in_linux=x-2;
+		sprintf(message,"number of files in linux dir= %d\n",(number_of_files_in_linux));
+		print_message(2,message);
 		//the -2 is because linux shows 2 extra files which are automaticly created. 
 	
-		char linux_file_list[x][100];
-	
-		for (x=0 ;NULL!=linux_current_file;x++)
+		rewinddir(linux_open_dir);
+	} else {
+		print_message(3,"failed to open linux test dir\n");
+	}
+	char linux_file_list[x-2][200];
+	if (linux_open_dir){
+		for (x=0, y=0 ;NULL!=linux_current_file;x++)
 		{
 			linux_current_file =readdir(linux_open_dir);
 			if (NULL!=linux_current_file){
-				strcpy(linux_file_list[x],linux_current_file->d_name);
+				strcpy(message,linux_current_file->d_name);
+				print_message(3,"opened file: ");
+				print_message(3,message);
+				print_message(3,"\n");
+			}
+			if (NULL!=linux_current_file && 
+				0!=strcmp(message,".")&&
+				0!=strcmp(message,"..")){
+			//	strcpy(message,linux_current_file->d_name);
+				//sprintf("file opened: %s\n",linux_current_file->d_name);
+				//print_message(3,message);
+				print_message(3,"added file to list\n");
+				strcpy(linux_file_list[y],message);
+				y++;
+				sprintf(message,"file added to list: %s\n",linux_file_list[x]);
+				print_message(3,message);
 			}
 		}
 		closedir(linux_open_dir);
+	} else {
+		print_message(3,"failed to populate linux test dir\n");
+	}
+	
+
+
+	for (x=0;x<number_of_files_in_yaffs;x++){
+		sprintf(message,"searching for yaffs file: %s\n",yaffs_file_list[x]);
+		print_message(3,message);
+		for (y=0;y<number_of_files_in_linux;y++){
+			sprintf(message,"comparing to linux file: %s\n",linux_file_list[x]);
+			print_message(3,message);
+
+			if (0==strcmp(yaffs_file_list[x],linux_file_list[y])){
+				sprintf(message,"file matched: %s\n",linux_file_list[y]);
+				print_message(3,message);
+				linux_file_list[y][0]=NULL;
+				yaffs_file_list[x][0]=NULL;
+				break;
+			}
+		}
 	}
 
+	//print remaining files
+	for (x=0;x<number_of_files_in_linux;x++){
+		if (linux_file_list[x][0]!=NULL){
+			sprintf(message,"unmatched file in linux: %s\n",linux_file_list[x]);
+			print_message(2,message);
+			exit_bool=1;
+		}
+	}
+	for (x=0;x<number_of_files_in_yaffs;x++){
+		if (yaffs_file_list[x][0]!=NULL){
+			sprintf(message,"unmatched file in yaffs: %s\n",yaffs_file_list[x]);
+			print_message(2,message);
+			exit_bool=1;
+		}
+	}
+	if (exit_bool==1){
+		print_message(2,"exiting program\n");
+		exit(0);
+	}
 
-
-
-	
 	//printf("file_name %s\n", yaffs_current_file->d_name);
 //	generate_array_of_objects_in_yaffs(); 
 //	generate_array_of_objects_in_linux();

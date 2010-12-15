@@ -228,6 +228,7 @@ int compare_linux_and_yaffs(void)
 				strcpy(yaffs_file_list[x],yaffs_current_file->d_name);
 			}
 		}
+		yaffs_closedir(yaffs_open_dir);
 	}
 
 	linux_open_dir = opendir(linux_struct.root_path);
@@ -245,6 +246,7 @@ int compare_linux_and_yaffs(void)
 				strcpy(linux_file_list[x],linux_current_file->d_name);
 			}
 		}
+		closedir(linux_open_dir);
 	}
 
 
@@ -367,7 +369,8 @@ void clean_dir(void)
 				unlink(file);
 			}
 		}
-		unlink(linux_struct.root_path);
+		closedir(linux_open_dir);
+		rmdir(linux_struct.root_path);
 	}
 	
 }

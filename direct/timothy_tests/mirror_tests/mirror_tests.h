@@ -17,6 +17,7 @@
 #define __mirror_tests_h__
 
 #include <stdio.h>
+#include <dirent.h>
 #include <unistd.h>	//used for getting the current directory. 
 #include <string.h>
 #include <errno.h>
@@ -24,11 +25,13 @@
 #include "lib.h"
 #include <time.h>
 
+
 #include "linux_test_open.h"
 #include "yaffs_test_open.h"
 #include "linux_test_truncate.h"
 #include "yaffs_test_truncate.h"
-
+#include "linux_test_unlink.h"
+#include "yaffs_test_unlink.h"
 
 #define LINUX 1
 #define YAFFS 2
@@ -46,6 +49,7 @@ int select_test_id(int test_len);
 void generate_random_numbers(arg_temp *args_struct);
 void run_yaffs_test(int id,arg_temp *args_struct);
 void run_linux_test(int id,arg_temp *args_struct);
+void clean_dir(void);
 //void generate_array_of_objects_in_yaffs(void); 
 //void generate_array_of_objects_in_linux(void);
 

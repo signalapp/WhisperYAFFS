@@ -31,16 +31,18 @@ typedef struct test_temp2 {
 }test_temp;
 
 test_temp yaffs_tests={
-	2,
+	3,
 	{{"yaffs_test_open",yaffs_test_open},
-	{"yaffs_test_truncate",yaffs_test_truncate}
+	{"yaffs_test_truncate",yaffs_test_truncate},
+	{"yaffs_test_unlink",yaffs_test_unlink}
 	}
 };
 
 test_temp linux_tests={
-	2,
+	3,
 	{{"linux_test_open",linux_test_open},
-	{"linux_test_truncate",linux_test_truncate}
+	{"linux_test_truncate",linux_test_truncate},
+	{"linux_test_unlink",linux_test_unlink}
 	}
 };
 
@@ -65,6 +67,7 @@ int main(int argc, char *argv[])
 	for (x=0;x<num_of_random_tests;x++){
 		run_random_test();
 	}
+	compare_linux_and_yaffs();
 	yaffs_unmount("yaffs2");
 	return 0;
 }
@@ -75,8 +78,9 @@ void init(int argc, char *argv[])
 	dir[0]='\0';
 	int x=-1;
 	char message[100];
-	
+
 	srand((unsigned)time(NULL));
+	yaffs_set_trace(0);
 	linux_struct.type_of_test =LINUX;
 	yaffs_struct.type_of_test =YAFFS;
 
@@ -101,6 +105,8 @@ void init(int argc, char *argv[])
 			printf("\t-q //quiet mode nothing is printed.\n");
 			printf("\t-n [number] //sets the number of random tests to run.\n");
 			printf("\t-s [number] //seeds rand with the number\n");
+			printf("\t-t [number] //sets yaffs_trace to the number\n");
+			printf("\t-c //removes emfile and test dir\n");
 			exit(0);
 		} else if (strcmp(argv[x],"-yaffs_path")==0){
 			strcpy(yaffs_struct.root_path, argv[x+1]);
@@ -114,13 +120,18 @@ void init(int argc, char *argv[])
 			set_print_level(-1);
 		} else if (strcmp(argv[x],"-n")==0){
 			num_of_random_tests=atoi(argv[x+1]);
-		} else if (strcmp(argv[x],"-n")==0){
-			//srand(atoi(argv[x+1]));
+		} else if (strcmp(argv[x],"-s")==0){
+			srand(atoi(argv[x+1]));
+		} else if (strcmp(argv[x],"-t")==0){
+			yaffs_set_trace(atoi(argv[x+1]));
+		} else if (strcmp(argv[x],"-c")==0){
+			clean_dir();
+			exit(0);
 		}
 	}
-
+	clean_dir();
 	yaffs_start_up();
-	print_message(message,"\nmounting yaffs\n");
+	print_message(2,"\nmounting yaffs\n");
 	x=yaffs_mount("yaffs2");
 	if (x<0) {
 		print_message(3,"failed to mount yaffs\n");
@@ -170,7 +181,7 @@ int run_random_test(void)
 			(abs(yaffs_get_error())!=EISDIR && abs(errno) != 0) &&
 			(abs(yaffs_get_error())!=ENOENT && abs(errno) != EACCES)
 			){
-			print_message(2,"\ndiffrence in returned errors######################################\n");
+			print_message(2,"\ndifference in returned errors######################################\n");
 			get_error_yaffs();
 			get_error_linux();
 			if (get_exit_on_error()){ 
@@ -193,6 +204,35 @@ int select_test_id(int test_len)
 
 int compare_linux_and_yaffs(void)
 {
+	int x=0;
+	yaffs_DIR *yaffs_open_dir;
+	yaffs_dirent *yaffs_current_file;
+	
+	DIR *linux_open_dir;
+	struct dirent *linux_current_file;
+
+	yaffs_open_dir = yaffs_opendir(yaffs_struct.root_path);
+	
+	for (x=0;NULL!=yaffs_readdir(yaffs_open_dir);x++){};
+	printf("number of files in yaffs dir= %d\n",x);
+	
+	char yaffs_file_list[x][100];
+	yaffs_rewinddir(yaffs_open_dir);
+
+	for (x=0 ;NULL!=yaffs_current_file;x++)
+	{
+		yaffs_current_file =yaffs_readdir(yaffs_open_dir);
+		if (NULL!=yaffs_current_file){
+			strcpy(yaffs_file_list[x],yaffs_current_file->d_name);
+		}
+	}
+
+	linux_open_dir = opendir(linux_struct.root_path);
+
+	for (x=0;NULL!=readdir(linux_open_dir);x++){};
+	printf("number of files in linux dir= %d\n",(x-2));	//the -2 is because linux shows 2 extra files which are automaticly created. 
+	
+	//printf("file_name %s\n", yaffs_current_file->d_name);
 //	generate_array_of_objects_in_yaffs(); 
 //	generate_array_of_objects_in_linux();
 	//first do a check to see if both sides have the same objects on both sides. 
@@ -278,3 +318,37 @@ void get_error_linux(void)
 	print_message(1,message);
 }
 
+void clean_dir(void)
+{
+	char string[200]; 
+	char file[200];
+	char message[200];
+	DIR *linux_open_dir;
+	struct dirent *linux_current_file;
+	int x=0;
+	
+	getcwd(string,200);
+	strcat(string,"/emfile-2k-0");
+	sprintf(message,"\n\nunlinking emfile at this path: %s\n",string);
+	print_message(3,message);
+	unlink(string);
+	
+
+	linux_open_dir = opendir(linux_struct.root_path);
+	if (linux_open_dir){
+		for (x=0 ;NULL!=linux_current_file   ;x++)
+		{
+			linux_current_file =readdir(linux_open_dir);
+			if (NULL!=linux_current_file){
+				
+				strcpy(file,linux_struct.root_path);
+				strcat(file,linux_current_file->d_name);
+				sprintf(message,"unlinking file %d\n",linux_current_file->d_name);
+				print_message(3,message);
+				unlink(file);
+			}
+		}
+		unlink(linux_struct.root_path);
+	}
+	
+}

@@ -31,18 +31,20 @@ typedef struct test_temp2 {
 }test_temp;
 
 test_temp yaffs_tests={
-	3,
+	4,
 	{{"yaffs_test_open",yaffs_test_open},
 	{"yaffs_test_truncate",yaffs_test_truncate},
-	{"yaffs_test_unlink",yaffs_test_unlink}
+	{"yaffs_test_unlink",yaffs_test_unlink},
+	{"yaffs_test_write",yaffs_test_write}
 	}
 };
 
 test_temp linux_tests={
-	3,
+	4,
 	{{"linux_test_open",linux_test_open},
 	{"linux_test_truncate",linux_test_truncate},
-	{"linux_test_unlink",linux_test_unlink}
+	{"linux_test_unlink",linux_test_unlink},
+	{"linux_test_write",linux_test_write}
 	}
 };
 
@@ -165,7 +167,7 @@ int run_random_test(int num_of_random_tests)
 	int x=-1;
 	int id=0;
 	int test_id=-1;
-	int num_of_tests_before_check=10;
+	int num_of_tests_before_check=1;
 	char message[200];
 	arg_temp args_struct;
 	for (y=0;(y*num_of_tests_before_check)<num_of_random_tests;y++){
@@ -178,9 +180,14 @@ int run_random_test(int num_of_random_tests)
 			generate_random_numbers(&args_struct);
 			run_yaffs_test(test_id, &args_struct);
 			run_linux_test(test_id, &args_struct);
+			if (get_print_level()>=4){
+				get_error_yaffs();
+				get_error_linux();
+			}
 			if 	((abs(yaffs_get_error())!=abs(errno)) &&
 				(abs(yaffs_get_error())!=EISDIR && abs(errno) != 0) &&
-				(abs(yaffs_get_error())!=ENOENT && abs(errno) != EACCES)
+				(abs(yaffs_get_error())!=ENOENT && abs(errno) != EACCES)&&
+				(abs(yaffs_get_error())!=EINVAL && abs(errno) != EBADF)
 				){
 				print_message(2,"\ndifference in returned errors######################################\n");
 				get_error_yaffs();
@@ -295,7 +302,7 @@ int compare_linux_and_yaffs(void)
 		sprintf(message,"searching for yaffs file: %s\n",yaffs_file_list[x]);
 		print_message(3,message);
 		for (y=0;y<number_of_files_in_linux;y++){
-			sprintf(message,"comparing to linux file: %s\n",linux_file_list[x]);
+			sprintf(message,"comparing to linux file: %s\n",linux_file_list[y]);
 			print_message(3,message);
 
 			if (0==strcmp(yaffs_file_list[x],linux_file_list[y])){

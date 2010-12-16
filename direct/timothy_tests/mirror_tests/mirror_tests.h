@@ -32,6 +32,8 @@
 #include "yaffs_test_truncate.h"
 #include "linux_test_unlink.h"
 #include "yaffs_test_unlink.h"
+#include "linux_test_write.h"
+#include "yaffs_test_write.h"
 
 #define LINUX 1
 #define YAFFS 2

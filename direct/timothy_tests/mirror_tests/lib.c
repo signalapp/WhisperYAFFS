@@ -22,6 +22,10 @@ void set_print_level(int new_level)
 {
 	PRINT_LEVEL=new_level;
 }
+int get_print_level(void)
+{
+	return PRINT_LEVEL;
+}
 
 void set_exit_on_error(int num)
 {

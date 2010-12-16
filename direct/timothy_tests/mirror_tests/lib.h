@@ -44,6 +44,7 @@ void generate_random_string(char *ptr,int length_of_str);
 void join_paths(char *path1,char *path2,char *new_path );
 void print_message(char print_level, char *message);
 void set_print_level(int new_level);
+int get_print_level(void);
 void set_exit_on_error(int num);
 int get_exit_on_error(void);
 void display_error(void);

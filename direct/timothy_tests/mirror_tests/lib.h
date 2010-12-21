@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "yaffsfs.h"
-
+#include <errno.h>
 
 typedef struct arg_temp2{
 	char char1;
@@ -48,5 +48,6 @@ int get_print_level(void);
 void set_exit_on_error(int num);
 int get_exit_on_error(void);
 void display_error(void);
-
+void get_error_yaffs(void);
+void get_error_linux(void);
 #endif

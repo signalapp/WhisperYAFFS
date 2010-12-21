@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	print_message(3,message);
 
 	run_random_test(num_of_random_tests);
-	compare_linux_and_yaffs();
+	//compare_linux_and_yaffs();
 	yaffs_unmount("yaffs2");
 	return 0;
 }
@@ -80,7 +80,10 @@ void init(int argc, char *argv[])
 	int x=-1;
 	char message[100];
 
-	srand((unsigned)time(NULL));
+	x=(unsigned)time(NULL);
+	sprintf(message,"seeding srand with: %d\n",x);
+	print_message(2,message);
+	srand(x);
 	yaffs_set_trace(0);
 	linux_struct.type_of_test =LINUX;
 	yaffs_struct.type_of_test =YAFFS;
@@ -179,11 +182,16 @@ int run_random_test(int num_of_random_tests)
 			print_message(3,message);
 			generate_random_numbers(&args_struct);
 			run_yaffs_test(test_id, &args_struct);
+
+				check_mode(&args_struct);
+			
 			run_linux_test(test_id, &args_struct);
+			check_mode(&args_struct);
 			if (get_print_level()>=4){
 				get_error_yaffs();
 				get_error_linux();
 			}
+			
 			if 	((abs(yaffs_get_error())!=abs(errno)) &&
 				(abs(yaffs_get_error())!=EISDIR && abs(errno) != 0) &&
 				(abs(yaffs_get_error())!=ENOENT && abs(errno) != EACCES)&&
@@ -196,9 +204,13 @@ int run_random_test(int num_of_random_tests)
 					exit(0);
 				}
 			}
-		}	
-		compare_linux_and_yaffs();
+		}
+		check_mode(&args_struct);	
+		compare_linux_and_yaffs(&args_struct);
+		check_mode(&args_struct);
+
 	} 
+	compare_linux_and_yaffs(&args_struct);
 }
 
 int select_test_id(int test_len)
@@ -211,7 +223,33 @@ int select_test_id(int test_len)
 
 }
 
-int compare_linux_and_yaffs(void)
+int check_mode(arg_temp *args_struct)
+{
+	char path[200];
+	char message[200];
+	int output=0;
+
+	struct yaffs_stat yaffs_stat_struct;
+	join_paths(yaffs_struct.root_path,args_struct->string1, path );
+	sprintf(message,"\ntrying to stat to: %s\n",path);
+	print_message(3,message);
+	output=yaffs_stat(path,&yaffs_stat_struct);
+	if (output < 0){
+		sprintf(message,"failed to stat the file\n");
+		print_message(3,message);
+		get_error_yaffs();
+	} else {
+		sprintf(message,"stated the file\n");
+		print_message(3,message);
+		sprintf(message," yaffs file mode is %d\n",(yaffs_stat_struct.st_mode & (S_IREAD| S_IWRITE)));
+		print_message(3,message);
+		sprintf(message,"mode S_IREAD %d S_IWRITE %d\n",(yaffs_stat_struct.st_mode & S_IREAD),(yaffs_stat_struct.st_mode & S_IWRITE));
+		print_message(3,message);	
+	}
+	return 1;
+}
+
+int compare_linux_and_yaffs(arg_temp *args_struct)
 {
 	int x=0,y=0;
 	int exit_bool=0;
@@ -219,6 +257,8 @@ int compare_linux_and_yaffs(void)
 	int number_of_files_in_linux=0;
 	char message[200];
 
+	struct yaffs_stat yaffs_stat_struct;
+	struct stat linux_stat_struct;
 	yaffs_DIR *yaffs_open_dir;
 	yaffs_dirent *yaffs_current_file;
 	
@@ -226,7 +266,7 @@ int compare_linux_and_yaffs(void)
 	struct dirent *linux_current_file;
 	
 	print_message(2,"\n\n comparing folders\n");
-
+	check_mode(&args_struct);
 
 	yaffs_open_dir = yaffs_opendir(yaffs_struct.root_path);
 	if (yaffs_open_dir) {
@@ -239,7 +279,7 @@ int compare_linux_and_yaffs(void)
 		print_message(3,"failed to open yaffs test dir\n");
 	}
 	char yaffs_file_list[x][200];
-
+	check_mode(&args_struct);
 
 	if (yaffs_open_dir){
 	
@@ -254,7 +294,7 @@ int compare_linux_and_yaffs(void)
 	} else {
 		print_message(3,"failed to populate yaffs test list\n");
 	}
-
+	check_mode(&args_struct);
 	linux_open_dir = opendir(linux_struct.root_path);
 	if (linux_open_dir){
 		for (x=0;NULL!=readdir(linux_open_dir);x++){}
@@ -274,9 +314,9 @@ int compare_linux_and_yaffs(void)
 			linux_current_file =readdir(linux_open_dir);
 			if (NULL!=linux_current_file){
 				strcpy(message,linux_current_file->d_name);
-				print_message(3,"opened file: ");
-				print_message(3,message);
-				print_message(3,"\n");
+				print_message(7,"opened file: ");
+				print_message(7,message);
+				print_message(7,"\n");
 			}
 			if (NULL!=linux_current_file && 
 				0!=strcmp(message,".")&&
@@ -284,11 +324,11 @@ int compare_linux_and_yaffs(void)
 			//	strcpy(message,linux_current_file->d_name);
 				//sprintf("file opened: %s\n",linux_current_file->d_name);
 				//print_message(3,message);
-				print_message(3,"added file to list\n");
+				print_message(7,"added file to list\n");
 				strcpy(linux_file_list[y],message);
 				y++;
 				sprintf(message,"file added to list: %s\n",linux_file_list[x]);
-				print_message(3,message);
+				print_message(7,message);
 			}
 		}
 		closedir(linux_open_dir);
@@ -303,11 +343,35 @@ int compare_linux_and_yaffs(void)
 		print_message(3,message);
 		for (y=0;y<number_of_files_in_linux;y++){
 			sprintf(message,"comparing to linux file: %s\n",linux_file_list[y]);
-			print_message(3,message);
+			print_message(7,message);
 
 			if (0==strcmp(yaffs_file_list[x],linux_file_list[y])){
 				sprintf(message,"file matched: %s\n",linux_file_list[y]);
 				print_message(3,message);
+				//check modes of the files
+				if (yaffs_stat(yaffs_file_list[x],&yaffs_stat_struct)&&
+				stat(linux_file_list[y],&linux_stat_struct)){
+					sprintf(message," yaffs file mode is %d\n",(yaffs_stat_struct.st_mode & (S_IREAD| S_IWRITE)));
+					print_message(3,message);
+					sprintf(message,"mode S_IREAD %d S_IWRITE %d\n",(yaffs_stat_struct.st_mode & S_IREAD),(yaffs_stat_struct.st_mode & S_IWRITE));
+					print_message(3,message);				
+					sprintf(message," linux file mode is %d\n",(linux_stat_struct.st_mode & (S_IREAD|S_IWRITE)));
+					print_message(3,message);
+					sprintf(message,"mode S_IREAD %d S_IWRITE %d\n",(linux_stat_struct.st_mode & S_IREAD),(linux_stat_struct.st_mode & S_IWRITE));
+					print_message(3,message);
+					if ((yaffs_stat_struct.st_mode & (S_IREAD| S_IWRITE))==
+					( linux_stat_struct.st_mode & (S_IREAD|S_IWRITE))){
+						print_message(2,"file modes match\n");
+					} else {
+						print_message(2,"file modes do not match\n");
+						exit_bool=1;
+					}
+				} else {
+					print_message(2,"failed to stat one of the files\n");
+				}
+				
+				//read file contents
+				
 				linux_file_list[y][0]=NULL;
 				yaffs_file_list[x][0]=NULL;
 				break;
@@ -330,7 +394,7 @@ int compare_linux_and_yaffs(void)
 			exit_bool=1;
 		}
 	}
-	if (exit_bool==1){
+	if (exit_bool==1&& get_exit_on_error()==1){
 		print_message(2,"exiting program\n");
 		exit(0);
 	}
@@ -393,33 +457,6 @@ void run_linux_test(int id,arg_temp *args_struct)
 	}
 }
 
-void get_error_yaffs(void)
-{
-	int error_code=0;
-	char message[30];
-	message[0]='\0';
-
-	error_code=yaffs_get_error();
-	sprintf(message,"yaffs_error code %d\n",error_code);
-	print_message(1,message);
-	sprintf(message,"error is : %s\n",yaffs_error_to_str(error_code));
-	print_message(1,message);
-}
-
-void get_error_linux(void)
-{
-	int error_code=0;
-	char message[30];
-	message[0]='\0';
-
-	error_code=errno;
-	sprintf(message,"linux_error code %d\n",error_code);
-	print_message(1,message);
-	strcpy(message,"error code");
-	sprintf(message,"error is : %s\n",yaffs_error_to_str(error_code));
-	//perror(message);	
-	print_message(1,message);
-}
 
 void clean_dir(void)
 {

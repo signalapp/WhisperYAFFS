@@ -24,7 +24,7 @@
 #include "yaffsfs.h"
 #include "lib.h"
 #include <time.h>
-
+#include <sys/stat.h>
 
 #include "linux_test_open.h"
 #include "yaffs_test_open.h"
@@ -44,14 +44,15 @@
 
 void init(int argc, char *argv[]);
 int run_random_test(int num_of_random_tests);
-int compare_linux_and_yaffs(void);
-void get_error_yaffs(void);
-void get_error_linux(void);
+int compare_linux_and_yaffs(arg_temp *args_struct);
+
 int select_test_id(int test_len);
 void generate_random_numbers(arg_temp *args_struct);
 void run_yaffs_test(int id,arg_temp *args_struct);
 void run_linux_test(int id,arg_temp *args_struct);
 void clean_dir(void);
+int select_test_id(int test_len);
+int check_mode(arg_temp *args_struct);
 //void generate_array_of_objects_in_yaffs(void); 
 //void generate_array_of_objects_in_linux(void);
 

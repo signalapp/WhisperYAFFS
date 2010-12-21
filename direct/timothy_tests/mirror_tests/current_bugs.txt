@@ -1,3 +1,6 @@
 
 BUGS
 	In yaffs having a pathname "yaffs2/tests//.." appears to create a file called ".." unstead of going back a directory.
+
+
+

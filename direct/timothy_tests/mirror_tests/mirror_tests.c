@@ -183,10 +183,10 @@ int run_random_test(int num_of_random_tests)
 			generate_random_numbers(&args_struct);
 			run_yaffs_test(test_id, &args_struct);
 
-				check_mode(&args_struct);
+				//check_mode(&args_struct);
 			
 			run_linux_test(test_id, &args_struct);
-			check_mode(&args_struct);
+
 			if (get_print_level()>=4){
 				get_error_yaffs();
 				get_error_linux();
@@ -205,9 +205,9 @@ int run_random_test(int num_of_random_tests)
 				}
 			}
 		}
-		check_mode(&args_struct);	
+		//check_mode(&args_struct);	
 		compare_linux_and_yaffs(&args_struct);
-		check_mode(&args_struct);
+		//check_mode(&args_struct);
 
 	} 
 	compare_linux_and_yaffs(&args_struct);
@@ -249,9 +249,36 @@ int check_mode(arg_temp *args_struct)
 	return 1;
 }
 
+int check_mode_file(char *path)
+{
+	char message[200];
+	int output=0;
+
+	struct yaffs_stat yaffs_stat_struct;
+
+	sprintf(message,"\ntrying to stat to: %s\n",path);
+	print_message(3,message);
+	output=yaffs_stat(path,&yaffs_stat_struct);
+	if (output < 0){
+		sprintf(message,"failed to stat the file\n");
+		print_message(3,message);
+		get_error_yaffs();
+	} else {
+		sprintf(message,"stated the file\n");
+		print_message(3,message);
+		sprintf(message," yaffs file mode is %d\n",(yaffs_stat_struct.st_mode & (S_IREAD| S_IWRITE)));
+		print_message(3,message);
+		sprintf(message,"mode S_IREAD %d S_IWRITE %d\n\n",(yaffs_stat_struct.st_mode & S_IREAD),(yaffs_stat_struct.st_mode & S_IWRITE));
+		print_message(3,message);	
+	}
+	return 1;
+}
+
 int compare_linux_and_yaffs(arg_temp *args_struct)
 {
 	int x=0,y=0;
+	char l_path[200];
+	char y_path[200];
 	int exit_bool=0;
 	int number_of_files_in_yaffs=0;
 	int number_of_files_in_linux=0;
@@ -265,9 +292,9 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	DIR *linux_open_dir;
 	struct dirent *linux_current_file;
 	
-	print_message(2,"\n\n comparing folders\n");
-	check_mode(&args_struct);
-
+	print_message(2,"\n\n\n comparing folders\n");
+//	check_mode_file("yaffs2/test/YY");
+	//find out the number of files in the directory
 	yaffs_open_dir = yaffs_opendir(yaffs_struct.root_path);
 	if (yaffs_open_dir) {
 		for (x=0;NULL!=yaffs_readdir(yaffs_open_dir);x++){}
@@ -278,9 +305,10 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	} else {
 		print_message(3,"failed to open yaffs test dir\n");
 	}
+	//create array
 	char yaffs_file_list[x][200];
-	check_mode(&args_struct);
-
+	//check_mode_file("yaffs2/test/YY");
+	//copy file names into array
 	if (yaffs_open_dir){
 	
 		for (x=0 ;NULL!=yaffs_current_file;x++)
@@ -294,7 +322,9 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	} else {
 		print_message(3,"failed to populate yaffs test list\n");
 	}
-	check_mode(&args_struct);
+
+
+	//find out the number of files in the directory
 	linux_open_dir = opendir(linux_struct.root_path);
 	if (linux_open_dir){
 		for (x=0;NULL!=readdir(linux_open_dir);x++){}
@@ -307,7 +337,11 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	} else {
 		print_message(3,"failed to open linux test dir\n");
 	}
+
+	//create array
 	char linux_file_list[x-2][200];
+	//check_mode_file("yaffs2/test/YY");
+	//copy file names into array
 	if (linux_open_dir){
 		for (x=0, y=0 ;NULL!=linux_current_file;x++)
 		{
@@ -337,9 +371,9 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	}
 	
 
-
+	//match the files in both folders
 	for (x=0;x<number_of_files_in_yaffs;x++){
-		sprintf(message,"searching for yaffs file: %s\n",yaffs_file_list[x]);
+		sprintf(message,"\nsearching for yaffs file: %s\n",yaffs_file_list[x]);
 		print_message(3,message);
 		for (y=0;y<number_of_files_in_linux;y++){
 			sprintf(message,"comparing to linux file: %s\n",linux_file_list[y]);
@@ -348,9 +382,11 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 			if (0==strcmp(yaffs_file_list[x],linux_file_list[y])){
 				sprintf(message,"file matched: %s\n",linux_file_list[y]);
 				print_message(3,message);
-				//check modes of the files
-				if (yaffs_stat(yaffs_file_list[x],&yaffs_stat_struct)&&
-				stat(linux_file_list[y],&linux_stat_struct)){
+				//check that the modes of both files are the same
+				join_paths(yaffs_struct.root_path,yaffs_file_list[x],y_path);
+				join_paths(linux_struct.root_path,linux_file_list[y],l_path);
+				if (yaffs_stat(y_path,&yaffs_stat_struct)>=0&&
+				stat(l_path,&linux_stat_struct)>=0){
 					sprintf(message," yaffs file mode is %d\n",(yaffs_stat_struct.st_mode & (S_IREAD| S_IWRITE)));
 					print_message(3,message);
 					sprintf(message,"mode S_IREAD %d S_IWRITE %d\n",(yaffs_stat_struct.st_mode & S_IREAD),(yaffs_stat_struct.st_mode & S_IWRITE));
@@ -368,6 +404,8 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 					}
 				} else {
 					print_message(2,"failed to stat one of the files\n");
+					get_error_yaffs();
+					get_error_linux();
 				}
 				
 				//read file contents
@@ -398,7 +436,6 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 		print_message(2,"exiting program\n");
 		exit(0);
 	}
-
 	//printf("file_name %s\n", yaffs_current_file->d_name);
 //	generate_array_of_objects_in_yaffs(); 
 //	generate_array_of_objects_in_linux();

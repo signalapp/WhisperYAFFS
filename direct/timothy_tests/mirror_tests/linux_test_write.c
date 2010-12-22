@@ -23,7 +23,7 @@ int linux_test_write(arg_temp *args_struct)
 	sprintf(message,"trying to write to: %s\nwith mode set to %o \n",path,args_struct->char1 );
 	print_message(3,message);
 	printf("mode S_IREAD %d S_IWRITE %d\n",(args_struct->char2 & S_IREAD),(args_struct->char2 & S_IWRITE));
-	handle=open(path,(args_struct->char1 &(O_TRUNC|O_EXCL|O_CREAT|O_APPEND)),(args_struct->char2&(S_IREAD|S_IWRITE)));
+	handle=open(path,((args_struct->char1 &(O_TRUNC|O_EXCL|O_CREAT|O_APPEND))|O_RDWR),(args_struct->char2&(S_IREAD|S_IWRITE)));
 	printf("handle %d\n",handle);
 	if (handle<0){
 		print_message(3,"failed to open a handle\n");

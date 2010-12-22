@@ -24,13 +24,14 @@ int yaffs_test_write(arg_temp *args_struct)
 	sprintf(message,"trying to write to: %s\nwith mode set to %o \n",path,args_struct->char1);
 	print_message(3,message);
 	printf("mode S_IREAD %d S_IWRITE %d\n",(args_struct->char2 & S_IREAD),(args_struct->char2 & S_IWRITE));
-	handle=yaffs_open(path,(args_struct->char1 &(O_TRUNC|O_EXCL|O_CREAT|O_APPEND)),(args_struct->char2&(S_IREAD|S_IWRITE)));
+	handle=yaffs_open(path,((args_struct->char1 &(O_TRUNC|O_EXCL|O_CREAT|O_APPEND))|O_RDWR),(args_struct->char2&(S_IREAD|S_IWRITE)));
 	printf("handle %d\n",handle);
 	if (handle<0){
 		print_message(3,"failed to open a handle\n");
 		return -1; //handle failed to open
 	}
-	output=yaffs_fstat(handle,&yaffs_stat_struct);
+
+/*	output=yaffs_fstat(handle,&yaffs_stat_struct);
 	if (output < 0){
 		sprintf(message,"failed to stat the file\n");
 		print_message(3,message);
@@ -46,9 +47,10 @@ int yaffs_test_write(arg_temp *args_struct)
 
 	sprintf(message,"trying to write: %d bytes into the file\n",strlen(args_struct->string2));
 	print_message(3,message);
-	output=yaffs_write(handle,args_struct->string2,strlen(args_struct->string2));
+*/	
+	output=yaffs_write(handle,&args_struct->string2,strlen(args_struct->string2));
 
-	print_message(3,"\n wrote to the file\n");
+/*	print_message(3,"\n wrote to the file\n");
 	output2=yaffs_fstat(handle,&yaffs_stat_struct);
 	if (output2 < 0){
 		sprintf(message,"failed to stat the file\n");
@@ -62,8 +64,8 @@ int yaffs_test_write(arg_temp *args_struct)
 		sprintf(message,"mode S_IREAD %d S_IWRITE %d\n",(yaffs_stat_struct.st_mode & S_IREAD),(yaffs_stat_struct.st_mode & S_IWRITE));
 		print_message(3,message);	
 	}
-	yaffs_close(handle);
-	print_message(3,"\n closing the file\n");
+*/	yaffs_close(handle);
+/*	print_message(3,"\n closing the file\n");
 	output2=yaffs_stat(path,&yaffs_stat_struct);
 	if (output2 < 0){
 		sprintf(message,"failed to stat the file\n");
@@ -77,7 +79,7 @@ int yaffs_test_write(arg_temp *args_struct)
 		sprintf(message,"mode S_IREAD %d S_IWRITE %d\n",(yaffs_stat_struct.st_mode & S_IREAD),(yaffs_stat_struct.st_mode & S_IWRITE));
 		print_message(3,message);	
 	}
-
+*/
 
 	return output;
 }

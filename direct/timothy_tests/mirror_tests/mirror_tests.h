@@ -53,6 +53,7 @@ void run_linux_test(int id,arg_temp *args_struct);
 void clean_dir(void);
 int select_test_id(int test_len);
 int check_mode(arg_temp *args_struct);
+int check_mode_file(char *path);
 //void generate_array_of_objects_in_yaffs(void); 
 //void generate_array_of_objects_in_linux(void);
 

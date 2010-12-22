@@ -303,8 +303,8 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 //	check_mode_file("yaffs2/test/YY");
 	//find out the number of files in the directory
 	yaffs_open_dir = yaffs_opendir(yaffs_struct.root_path);
-	if (yaffs_open_dir != NULL) {
-		for (x=0;NULL!=yaffs_readdir(yaffs_open_dir);x++){}
+	if (yaffs_open_dir) {
+		for (x=0;yaffs_readdir(yaffs_open_dir);x++){}
 		number_of_files_in_yaffs=x;
 		sprintf(message,"number of files in yaffs dir= %d\n",number_of_files_in_yaffs);
 		print_message(2,message);
@@ -320,7 +320,7 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 
 	//check_mode_file("yaffs2/test/YY");
 	//copy file names into array
-	if (yaffs_open_dir !=NULL){
+	if (yaffs_open_dir){
 		yaffs_current_file =yaffs_readdir(yaffs_open_dir);
 		for (x=0 ;yaffs_current_file;x++)
 		{
@@ -340,8 +340,8 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 
 	//find out the number of files in the directory
 	linux_open_dir = opendir(linux_struct.root_path);
-	if (linux_open_dir!=NULL){
-		for (x=0;NULL!=readdir(linux_open_dir);x++){}
+	if (linux_open_dir){
+		for (x=0;readdir(linux_open_dir);x++){}
 		number_of_files_in_linux=(x-2);
 		sprintf(message,"number of files in linux dir= %d\n",(number_of_files_in_linux));
 		print_message(2,message);
@@ -361,18 +361,18 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 
 	//check_mode_file("yaffs2/test/YY");
 	//copy file names into array
-	if (linux_open_dir!=NULL){
+	if (linux_open_dir){
 		linux_current_file =readdir(linux_open_dir);
-		for (x=0, y=0 ;NULL!=linux_current_file;x++)
+		for (x=0, y=0 ;linux_current_file;x++)
 		{
 
-			if (NULL!=linux_current_file){
+			if (linux_current_file){
 				strcpy(message,linux_current_file->d_name);
 				print_message(7,"opened file: ");
 				print_message(7,message);
 				print_message(7,"\n");
 			}
-			if (NULL!=linux_current_file && 
+			if (linux_current_file && 
 				0!=strcmp(message,".")&&
 				0!=strcmp(message,"..")){
 				strcpy(file_name,linux_current_file->d_name);
@@ -441,14 +441,14 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 
 	//print remaining files
 	for (x=0;x<number_of_files_in_linux;x++){
-		if (linux_file_list[x][0]!=NULL){
+		if (linux_file_list[x][0]){
 			sprintf(message,"unmatched file in linux: %s\n",linux_file_list[x]);
 			print_message(2,message);
 			exit_bool=1;
 		}
 	}
 	for (x=0;x<number_of_files_in_yaffs;x++){
-		if (yaffs_file_list[x][0]!=NULL){
+		if (yaffs_file_list[x][0]){
 			sprintf(message,"unmatched file in yaffs: %s\n",yaffs_file_list[x]);
 			print_message(2,message);
 			exit_bool=1;

@@ -210,7 +210,7 @@ int run_random_test(int num_of_random_tests)
 		//check_mode(&args_struct);
 
 	} 
-	//compare_linux_and_yaffs(&args_struct);
+	compare_linux_and_yaffs(&args_struct);
 }
 
 int select_test_id(int test_len)
@@ -284,6 +284,8 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	int number_of_files_in_yaffs=0;
 	int number_of_files_in_linux=0;
 	char message[200];
+	char **yaffs_file_list=NULL;
+	char **linux_file_list=NULL;
 
 	struct yaffs_stat yaffs_stat_struct;
 	struct stat linux_stat_struct;
@@ -311,17 +313,22 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 		print_message(3,"failed to open yaffs test dir\n");
 	}
 	//create array
-	char yaffs_file_list[x][200];
+	yaffs_file_list= (char **)malloc(x*sizeof(char*));
+	for (x=0;x<number_of_files_in_yaffs;x++) {
+		yaffs_file_list[x]=malloc(200);
+	}
 
 	//check_mode_file("yaffs2/test/YY");
 	//copy file names into array
 	if (yaffs_open_dir !=NULL){
 		yaffs_current_file =yaffs_readdir(yaffs_open_dir);
-		for (x=0 ;NULL!=yaffs_current_file;x++)
+		for (x=0 ;yaffs_current_file;x++)
 		{
-
-			if (NULL!=yaffs_current_file){
+			printf("x= %d \n",x);
+			printf("yaffs_current_file->d_name = %s\n",yaffs_current_file->d_name);
+			if (yaffs_current_file){
 				strcpy(yaffs_file_list[x],yaffs_current_file->d_name);
+
 			}
 			yaffs_current_file =yaffs_readdir(yaffs_open_dir);
 		}
@@ -335,7 +342,7 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	linux_open_dir = opendir(linux_struct.root_path);
 	if (linux_open_dir!=NULL){
 		for (x=0;NULL!=readdir(linux_open_dir);x++){}
-		number_of_files_in_linux=x-2;
+		number_of_files_in_linux=(x-2);
 		sprintf(message,"number of files in linux dir= %d\n",(number_of_files_in_linux));
 		print_message(2,message);
 		//the -2 is because linux shows 2 extra files which are automaticly created. 
@@ -346,7 +353,12 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	}
 
 	//create array
-	char linux_file_list[x-2][200];
+	linux_file_list= (char **)malloc(number_of_files_in_linux*sizeof(char*));
+	
+	for (x=0;x<number_of_files_in_linux;x++) {
+		linux_file_list[x]=malloc(200);
+	}
+
 	//check_mode_file("yaffs2/test/YY");
 	//copy file names into array
 	if (linux_open_dir!=NULL){
@@ -368,9 +380,9 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 				//print_message(3,message);
 				print_message(7,"added file to list\n");
 				strcpy(linux_file_list[y],file_name);
-				y++;
-				sprintf(message,"file added to list: %s\n",linux_file_list[x]);
+				sprintf(message,"file added to list: %s\n",linux_file_list[y]);
 				print_message(7,message);
+				y++;
 			}
 			linux_current_file =readdir(linux_open_dir);
 		}
@@ -446,6 +458,18 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 		print_message(2,"exiting program\n");
 		exit(0);
 	}
+
+	for (x=0;x<number_of_files_in_yaffs;x++) {
+		free(yaffs_file_list[x]);
+	}
+	free(yaffs_file_list);
+
+	for (x=0;x<number_of_files_in_linux;x++) {
+		free(linux_file_list[x]);
+	}
+	free(linux_file_list);
+
+
 	//printf("file_name %s\n", yaffs_current_file->d_name);
 //	generate_array_of_objects_in_yaffs(); 
 //	generate_array_of_objects_in_linux();
@@ -454,6 +478,7 @@ int compare_linux_and_yaffs(arg_temp *args_struct)
 	//read the text of each file and compare them.
 	
 	//show the diffrences by printing them. 
+	return 1;
 
 }
 

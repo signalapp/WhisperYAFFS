@@ -24,6 +24,7 @@
 #include "yaffsfs.h"
 #include "lib.h"
 #include <time.h>
+#include <getopt.h>
 #include <sys/stat.h>
 
 #include "linux_test_open.h"

@@ -48,11 +48,26 @@ test_temp linux_tests={
 	}
 };
 
+const struct option long_options[]={
+	{"help",	0,NULL,'h'},
+	{"yaffs_path",	1,NULL,'y'},
+	{"linux_path",	1,NULL,'l'},
+	{"print_level",	1,NULL,'p'},
+	{"quiet",	0,NULL,'q'},
+	{"number",	1,NULL,'n'},
+	{"seed",	1,NULL,'s'},
+	{"trace",	1,NULL,'t'},
+	{"clean",	0,NULL,'c'},
+	{"verbose",	0,NULL,'v'}
+};
+
+const char short_options[]="hy:l:p:qn:s:t:cv";
+
 
 int main(int argc, char *argv[])
 {
 	char message[100];
-	int x;
+
 //	yaffs_tests.num_of_tests=(sizeof(yaffs_tests)/sizeof(test_temp));
 //	linux_tests.num_of_tests=(sizeof(linux_tests)/sizeof(test_temp));
 
@@ -79,6 +94,7 @@ void init(int argc, char *argv[])
 	dir[0]='\0';
 	int x=-1;
 	char message[100];
+	int new_option;
 
 	x=(unsigned)time(NULL);
 	sprintf(message,"seeding srand with: %d\n",x);
@@ -98,8 +114,9 @@ void init(int argc, char *argv[])
 	strcpy(yaffs_struct.root_path,"yaffs2/test/");	
 
 
-	for (x=0;x<argc;x++){
-		if (strcmp(argv[x],"-h")==0){
+	do {
+		new_option=getopt_long(argc,argv,short_options,long_options,NULL);		
+		if (new_option=='h'){
 			printf("mirror_tests help\n");
 			printf("arguments:\n");
 			printf("\t-yaffs_path [PATH] //sets the path for yaffs.\n");
@@ -112,27 +129,33 @@ void init(int argc, char *argv[])
 			printf("\t-t [number] //sets yaffs_trace to the number\n");
 			printf("\t-clean //removes emfile and test dir\n");
 			exit(0);
-		} else if (strcmp(argv[x],"-yaffs_path")==0){
-			strcpy(yaffs_struct.root_path, argv[x+1]);
-		} else if (strcmp(argv[x],"-linux_path")==0){
-			strcpy(linux_struct.root_path, argv[x+1]);
-		} else if (strcmp(argv[x],"-p")==0){
-			set_print_level(atoi(argv[x+1]));
-		} else if (strcmp(argv[x],"-v")==0){
+		} else if (new_option=='y'){
+			strcpy(yaffs_struct.root_path, optarg);
+		} else if (new_option=='l'){
+			strcpy(linux_struct.root_path, optarg);
+		} else if (new_option=='p'){
+			set_print_level(atoi(optarg));
+		} else if (new_option=='v'){
 			set_print_level(5);
-		} else if (strcmp(argv[x],"-q")==0){
+		} else if (new_option=='q'){
 			set_print_level(-1);
-		} else if (strcmp(argv[x],"-n")==0){
-			num_of_random_tests=atoi(argv[x+1]);
-		} else if (strcmp(argv[x],"-s")==0){
+		} else if (new_option=='n'){
+			num_of_random_tests=atoi(optarg);
+		} else if (new_option=='s'){
 			srand(atoi(argv[x+1]));
-		} else if (strcmp(argv[x],"-t")==0){
-			yaffs_set_trace(atoi(argv[x+1]));
-		} else if (strcmp(argv[x],"-clean")==0){
+		} else if (new_option=='t'){
+			yaffs_set_trace(atoi(optarg));
+		} else if (new_option=='c'){
 			clean_dir();
 			exit(0);
+		} else if (new_option==-1){
+
+		} else if (new_option=='?') {
+			printf("bad argument\n");
+			exit(0);
 		}
-	}
+
+	} while(new_option!=-1);
 	clean_dir();
 	yaffs_start_up();
 	print_message(2,"\nmounting yaffs\n");
@@ -537,7 +560,7 @@ void clean_dir(void)
 	char message[200];
 	DIR *linux_open_dir;
 	struct dirent *linux_current_file;
-	int x=0;
+	int x=0,output=0;
 	
 	getcwd(string,200);
 	strcat(string,"/emfile-2k-0");
@@ -548,18 +571,29 @@ void clean_dir(void)
 
 	linux_open_dir = opendir(linux_struct.root_path);
 	if (linux_open_dir){
-		for (x=0 ;NULL!=linux_current_file   ;x++)
+
+		do
 		{
+			
 			linux_current_file =readdir(linux_open_dir);
 			if (NULL!=linux_current_file){
 				
 				strcpy(file,linux_struct.root_path);
 				strcat(file,linux_current_file->d_name);
-				sprintf(message,"unlinking file %d\n",linux_current_file->d_name);
+				sprintf(message,"unlinking file %s\n",file);
 				print_message(3,message);
-				unlink(file);
+				print_message(3,"chmoding file\n");
+				output=chmod(file,(S_IRUSR|S_IWUSR));
+				if (output<0) {
+					get_error_linux();
+				}
+				print_message(3,"unlinking file\n");
+				output=unlink(file);
+				if (output<0) {
+					get_error_linux();
+				}
 			}
-		}
+		} while(linux_current_file);
 		closedir(linux_open_dir);
 		rmdir(linux_struct.root_path);
 	}

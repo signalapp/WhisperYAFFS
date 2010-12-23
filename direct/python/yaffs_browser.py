@@ -16,6 +16,7 @@ import Tkinter as tk
 from yaffsfs import *
 #import examples
 import ctypes
+from operator import itemgetter
 
 yaffs_start_up()
 yaffs_mount("/yaffs2/")
@@ -105,9 +106,21 @@ def load_dir():
     name_list_box.delete(0, tk.END)
     current_directory_dict=yaffs_ls(mount_list_text_variable.get())
     print "new directory", current_directory_dict
+    
+   
+    
     ##copy directory into file box
     for x in range(0,len(current_directory_dict)):
-        name_list_box.insert(x,(current_directory_dict[x]["inodes"]+"  "+ current_directory_dict[x]["type"]+"  "+ current_directory_dict[x]["size"]+"  "+ current_directory_dict[x]["path"]+"  "+current_directory_dict[x]["extra_data"]))
+        permissions_string=""
+        if current_directory_dict[x]["permissions"] & yaffs_S_IREAD:
+            permissions_string ='r'
+        else :
+            permissions_string ='-'
+        if current_directory_dict[x]["permissions"] & yaffs_S_IWRITE:
+            permissions_string+='w'
+        else :
+            permissions_string+='-'
+        name_list_box.insert(x,(current_directory_dict[x]["inodes"]+"  "+permissions_string+"  "+ current_directory_dict[x]["type"]+"  "+ current_directory_dict[x]["size"]+"  "+ current_directory_dict[x]["path"]+"  "+current_directory_dict[x]["extra_data"]))
     name_list_box.grid(column=0, row=1)
     return current_directory_dict
     
@@ -193,20 +206,21 @@ def yaffs_ls(dname):
             fullname = dname + se.d_name
             st = yaffs_stat_struct()
             result = yaffs_lstat(fullname,byref(st))
-            perms = st.st_mode & 0777
+            #perms = st.st_mode & 0777
+            perms = st.st_mode 
             ftype = st.st_mode & yaffs_S_IFMT
             isFile = True if ftype == yaffs_S_IFREG else False
             isDir  = True if ftype == yaffs_S_IFDIR else False
             isSymlink= True if ftype == yaffs_S_IFLNK else False
 
             if isFile :
-                ls_dict.append ({"type" :"file",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname,"extra_data":""})
+                ls_dict.append ({"type" :"file",  "inodes" :  str(se.d_ino),   "permissions" : perms,  "size": str(st.st_size), "path":  fullname,"extra_data":""})
                 print "file st.st_mode:", st.st_mode
 
             elif isDir :
                 print "dir st.st_mode:", st.st_mode
 
-                ls_dict.append({"type":"dir", "inodes" :str(se.d_ino), "permissions":str( hex(perms)),"size":"0",   "path": fullname+"/", "extra_data":""})
+                ls_dict.append({"type":"dir", "inodes" :str(se.d_ino), "permissions":perms,"size":"0",   "path": fullname+"/", "extra_data":""})
             elif isSymlink:
                 print "symlink st.st_mode:", st.st_mode
                 file_contents=ctypes.create_string_buffer(30)
@@ -217,14 +231,14 @@ def yaffs_ls(dname):
 
                 print "string", string, "###"
 
-                ls_dict.append ({"type" :"link",  "inodes" :  str(se.d_ino),   "permissions" : str(hex(perms)),  "size": str(st.st_size), "path":  fullname, "extra_data":"> "+string})
+                ls_dict.append ({"type" :"link",  "inodes" :  str(se.d_ino),   "permissions" : perms,  "size": str(st.st_size), "path":  fullname, "extra_data":"> "+string})
 
             else :
                 print "unknown st.st_mode:", st.st_mode
-                ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":str( hex(perms)), "size":"0",   "path": fullname,"extra_data":""})
+                ls_dict.append({ "type":"Other", "inodes":str(se.d_ino),  "permissions":perms, "size":"0",   "path": fullname,"extra_data":""})
             sep = yaffs_readdir(dc)
         yaffs_closedir(dc)
-        return ls_dict
+        return sorted(ls_dict,key=itemgetter("path"))
     else:
         print "Could not open directory"
         return -1

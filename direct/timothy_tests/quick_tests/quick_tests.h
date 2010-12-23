@@ -16,6 +16,7 @@
 #ifndef __quick_tests_h__
 #define __quick_tests_h__
 #include <stdio.h>
+#include <getopt.h>
 
 #include "test_yaffs_mount.h"
 #include "test_yaffs_mount_ENODEV.h"

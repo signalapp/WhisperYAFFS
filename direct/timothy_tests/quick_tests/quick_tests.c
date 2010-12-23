@@ -25,6 +25,20 @@ static unsigned int num_of_tests_pass=0;
 static unsigned int num_of_tests_failed=0;
 static unsigned int total_number_of_tests=(sizeof(test_list)/sizeof(test_template));
 
+
+const struct option long_options[]={
+	{"help",	0,NULL,'h'},
+	{"quiet",	0,NULL,'q'},
+	{"number",	1,NULL,'n'},
+	{"trace",	1,NULL,'t'},
+	{"continue",	0,NULL,'c'},
+	{"verbose",	0,NULL,'v'}
+};
+
+const char short_options[]="hqn:t:cv";
+
+
+
 int main(int argc, char *argv[])
 {
 	int x=0;
@@ -137,8 +151,10 @@ void get_error(void)
 void init_quick_tests(int argc, char *argv[])
 {
 	int trace=0;
+int new_option;
 	int x=0;	
-	for (x = 0; x < argc; x++){
+	do{
+		new_option=getopt_long(argc,argv,short_options,long_options,NULL);		
 		if (0==strcmp(argv[x],"-h")){
 			printf("help\n");
 			printf("-h will print the commands available\n");
@@ -146,21 +162,21 @@ void init_quick_tests(int argc, char *argv[])
 			printf("-v will print all messages\n");
 			printf("-q quiet mode only the number of tests passed and failed will be printed\n");
 			printf("-t [number] set yaffs_trace to number\n");
-			printf("-r [number] sets the number of random loops to run after the the test has run\n");
+			printf("-n [number] sets the number of random loops to run after the the test has run\n");
 			exit(0);
-		} else if (0==strcmp(argv[x],"-c")) {
+		} else if (new_option=='c') {
 			set_exit_on_error(0);
-		} else if (0==strcmp(argv[x],"-q")) {
+		} else if (new_option=='q') {
 			set_print_level(-3);
-		} else if (0==strcmp(argv[x],"-t")) {
-			trace = atoi(argv[x+1]);
-		}  else if (0==strcmp(argv[x],"-v")) {
+		} else if (new_option=='t') {
+			trace = atoi(optarg);
+		}  else if (new_option=='v') {
 			set_print_level(5);
-		} else if (0==strcmp(argv[x],"-r")) {
-			number_of_random_tests=atoi(argv[x+1]);
+		} else if (new_option=='n') {
+			number_of_random_tests=atoi(optarg);
 		}
 
-	}
+	}while (new_option!=-1);
 	yaffs_start_up();
 	yaffs_set_trace(trace);
 

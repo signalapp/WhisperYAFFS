@@ -152,7 +152,6 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 			data = yaffs_GetTempBuffer(dev, __LINE__);
 		}
 
-
 	}
 
 	if (dev->isEncryptedFilesystem) {
@@ -200,7 +199,6 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 	if (dev->param.inbandTags) {
 		if (dev->isEncryptedFilesystem)
 			BUG();
-
 		if (tags) {
 			yaffs_PackedTags2TagsPart *pt2tp;
 			pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->nDataBytesPerChunk];

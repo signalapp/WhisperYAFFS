@@ -38,7 +38,7 @@ static void initializeTweakBytes(__u8 *tweakBytes, int tweak) {
   int j;
 
   for (j=0;j<AES_BLOCK_SIZE;j++) {
-    tweakBytes[j] = (__u8) (tweak & 0xFF); 
+    tweakBytes[j] = (__u8) (tweak & 0xFF);
     tweak         = tweak >> 8;
   }
 }
@@ -53,7 +53,7 @@ static void HMAC_sha1(const __u8 *key, int keyLength,
 
   desc.tfm   = hash_tfm;
   desc.flags = 0;
-  
+
   sg_set_buf(&sg[0], input, inputLength);
 
   crypto_hash_init(&desc);
@@ -63,9 +63,9 @@ static void HMAC_sha1(const __u8 *key, int keyLength,
   crypto_free_hash(hash_tfm);
 }
 
-static void AES_cbc(const __u8 *iv, int ivLength, 
+static void AES_cbc(const __u8 *iv, int ivLength,
 		    const __u8 *key, int keyLength,
-		    const __u8 *input, int inputLength, 
+		    const __u8 *input, int inputLength,
 		    __u8 *output, int encrypt)
 {
   struct scatterlist src[1];
@@ -83,9 +83,9 @@ static void AES_cbc(const __u8 *iv, int ivLength,
 
   desc.tfm   = cipher;
   desc.flags = 0;
-  
+
   crypto_blkcipher_set_iv(cipher, iv, ivLength);
-  
+
   if (encrypt)
     crypto_blkcipher_encrypt(&desc, dst, src, inputLength);
   else
@@ -111,23 +111,23 @@ static void AES_xts(struct crypto_blkcipher *cipher, int tweak, const __u8 *inpu
   desc.tfm   = cipher;
   desc.flags = 0;
   desc.info  = tweakBytes;
-  
+
   if (encrypt)
     crypto_blkcipher_encrypt_iv(&desc, &dst[0], &src[0], length);
   else
     crypto_blkcipher_decrypt_iv(&desc, &dst[0], &src[0], length);
 }
 
-void AES_xts_encrypt(struct crypto_blkcipher *cipher, 
+void AES_xts_encrypt(struct crypto_blkcipher *cipher,
 		     const __u8 *pagePlaintext, __u8 *pageCiphertext, int pageTweak, int pageSize,
-		     const __u8 *tagsPlaintext, __u8 *tagsCiphertext, int tagsTweak, int tagsSize) 
+		     const __u8 *tagsPlaintext, __u8 *tagsCiphertext, int tagsTweak, int tagsSize)
 {
   int missingBytes;
   __u8 blockAlignedTagsPlaintext[AES_BLOCK_SIZE];
   __u8 blockAlignedTagsCiphertext[AES_BLOCK_SIZE];
 
   AES_xts(cipher, pageTweak, pagePlaintext, pageCiphertext, pageSize, 1);
-  
+
   missingBytes = sizeof(blockAlignedTagsPlaintext) - tagsSize;
 
   memcpy(blockAlignedTagsPlaintext, tagsPlaintext, tagsSize);
@@ -139,16 +139,16 @@ void AES_xts_encrypt(struct crypto_blkcipher *cipher,
   memcpy(tagsCiphertext, blockAlignedTagsCiphertext+missingBytes, tagsSize);
 }
 
-void AES_xts_decrypt(struct crypto_blkcipher *cipher, 
+void AES_xts_decrypt(struct crypto_blkcipher *cipher,
 		     __u8 *pageCiphertext, __u8 *pagePlaintext, int pageTweak, int pageSize,
-		     __u8 *tagsCiphertext, __u8 *tagsPlaintext, int tagsTweak, int tagsSize) 
+		     __u8 *tagsCiphertext, __u8 *tagsPlaintext, int tagsTweak, int tagsSize)
 {
   int missingBytes;
   __u8 blockAlignedTagsCiphertext[AES_BLOCK_SIZE];
   __u8 blockAlignedTagsPlaintext[AES_BLOCK_SIZE];
 
   missingBytes = sizeof(blockAlignedTagsCiphertext) - tagsSize;
-  
+
   memcpy(blockAlignedTagsCiphertext, pageCiphertext+(pageSize-missingBytes), missingBytes);
   memcpy(blockAlignedTagsCiphertext+missingBytes, tagsCiphertext, tagsSize);
 
@@ -157,7 +157,7 @@ void AES_xts_decrypt(struct crypto_blkcipher *cipher,
   memcpy(tagsPlaintext, blockAlignedTagsPlaintext, tagsSize);
   memcpy(pageCiphertext+(pageSize-missingBytes), blockAlignedTagsPlaintext+tagsSize, missingBytes);
 
-  AES_xts(cipher, pageTweak, pageCiphertext, pagePlaintext, pageSize, 0);  
+  AES_xts(cipher, pageTweak, pageCiphertext, pagePlaintext, pageSize, 0);
 }
 
 int yaffs_GenerateKeys(__u8 *keyBuffer, int keySize) {
@@ -165,13 +165,13 @@ int yaffs_GenerateKeys(__u8 *keyBuffer, int keySize) {
   return 1;
 }
 
-int yaffs_DecryptKeysFromPage(char *password, __u8 *page, __u8 *keys) 
+int yaffs_DecryptKeysFromPage(char *password, __u8 *page, __u8 *keys)
 {
   int i;
   __u8 passwordKey[16];
   __u8 macKey[20];
   __u8 ourMac[20];
-  
+
   yaffs_KeyDescriptorBlock *keyBlock = (yaffs_KeyDescriptorBlock*)page;
 
   if (keyBlock->versionNumber != 1) {
@@ -180,7 +180,7 @@ int yaffs_DecryptKeysFromPage(char *password, __u8 *page, __u8 *keys)
     printk(KERN_INFO "Descriptor dump:\n");
     for (i=0;i<sizeof(yaffs_KeyDescriptorBlock);i++)
       printk("0x%02x, ", page[i]);
-    
+
     printk(KERN_INFO "\n");
 
     return -1;
@@ -204,13 +204,13 @@ int yaffs_DecryptKeysFromPage(char *password, __u8 *page, __u8 *keys)
 
   printk(KERN_INFO "\n");
 
-  yaffs_pbkdf2(password, strlen(password), 
+  yaffs_pbkdf2(password, strlen(password),
 	       keyBlock->keySalt, sizeof(keyBlock->keySalt),
-  	       keyBlock->iterationCount, passwordKey, sizeof(passwordKey));
+	       keyBlock->iterationCount, passwordKey, sizeof(passwordKey));
 
-  yaffs_pbkdf2(password, strlen(password), 
+  yaffs_pbkdf2(password, strlen(password),
 	       keyBlock->macSalt, sizeof(keyBlock->macSalt),
-  	       keyBlock->iterationCount, macKey, sizeof(macKey));
+	       keyBlock->iterationCount, macKey, sizeof(macKey));
 
   HMAC_sha1(macKey, sizeof(macKey),
 	    keyBlock, sizeof(yaffs_KeyDescriptorBlock) - sizeof(keyBlock->mac),
@@ -220,24 +220,24 @@ int yaffs_DecryptKeysFromPage(char *password, __u8 *page, __u8 *keys)
     printk(KERN_INFO "Calculated mac does not match!\nOur mac:\n");
     for (i=0;i<sizeof(ourMac);i++)
       printk("0x%02x, ", ourMac[i]);
-    
+
     printk(KERN_INFO "\n");
 
     printk(KERN_INFO "Their mac:\n");
     for (i=0;i<sizeof(keyBlock->mac);i++)
       printk("0x%02x, ", keyBlock->mac[i]);
-    
+
     printk(KERN_INFO "\n");
 
 
     return -1;
   }
-  
+
   AES_cbc(passwordKey, sizeof(passwordKey),
 	  keyBlock->iv, sizeof(keyBlock->iv),
 	  keyBlock->keys, sizeof(keyBlock->keys),
 	  keys, 0);
-  
+
   return 1;
 }
 
@@ -254,7 +254,7 @@ int yaffs_EncryptKeysToPage(char *password,
   if (sizeof(yaffs_KeyDescriptorBlock) > pageLength)
     return -1;
 
-  keyBlock                 = (yaffs_KeyDescriptorBlock*)page;  
+  keyBlock                 = (yaffs_KeyDescriptorBlock*)page;
   keyBlock->versionNumber  = 1;
   keyBlock->iterationCount = PASSWORD_ITERATIONS;
 
@@ -280,19 +280,19 @@ int yaffs_EncryptKeysToPage(char *password,
 
   printk(KERN_INFO "\n");
 
-  yaffs_pbkdf2(password, strlen(password), 
+  yaffs_pbkdf2(password, strlen(password),
 	       keyBlock->keySalt, sizeof(keyBlock->keySalt),
-  	       PASSWORD_ITERATIONS, passwordKey, sizeof(passwordKey));
+	       PASSWORD_ITERATIONS, passwordKey, sizeof(passwordKey));
 
-  yaffs_pbkdf2(password, strlen(password), 
+  yaffs_pbkdf2(password, strlen(password),
 	       keyBlock->macSalt, sizeof(keyBlock->macSalt),
-  	       PASSWORD_ITERATIONS, macKey, sizeof(macKey));
-    
+	       PASSWORD_ITERATIONS, macKey, sizeof(macKey));
+
   AES_cbc(passwordKey, sizeof(passwordKey),
-	  keyBlock->iv, sizeof(keyBlock->iv), 
-	  keys, keysLength, 
+	  keyBlock->iv, sizeof(keyBlock->iv),
+	  keys, keysLength,
 	  keyBlock->keys, 1);
-  
+
   HMAC_sha1(macKey, sizeof(macKey),
 	    keyBlock, sizeof(yaffs_KeyDescriptorBlock) - sizeof(keyBlock->mac),
 	    keyBlock->mac);

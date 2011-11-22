@@ -29,7 +29,7 @@ typedef struct {
   __u32 versionNumber;
   __u32 iterationCount;
 
-  __u8 keySalt[16];     
+  __u8 keySalt[16];
   __u8 macSalt[16];
 
   __u8 iv[AES_BLOCK_SIZE];
@@ -39,13 +39,13 @@ typedef struct {
 } yaffs_KeyDescriptorBlock;
 
 
-void AES_xts_encrypt(struct crypto_blkcipher *cipher, 
+void AES_xts_encrypt(struct crypto_blkcipher *cipher,
 		     const __u8 *pagePlaintext, __u8 *pageCiphertext, int pageTweak, int pageSize,
 		     const __u8 *tagsPlaintext, __u8 *tagsCiphertext, int tagsTweak, int tagsSize);
 
-void AES_xts_decrypt(struct crypto_blkcipher *cipher, 
+void AES_xts_decrypt(struct crypto_blkcipher *cipher,
 		     __u8 *pageCiphertext, __u8 *pagePlaintext, int pageTweak, int pageSize,
-		     __u8 *tagsCiphertext, __u8 *tagsPlaintext, int tagsTweak, int tagsSize); 
+		     __u8 *tagsCiphertext, __u8 *tagsPlaintext, int tagsTweak, int tagsSize);
 
 int yaffs_GenerateKeys(__u8 *keyBuffer, int keySize);
 

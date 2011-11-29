@@ -21,6 +21,8 @@
 #include "yaffs_guts.h"
 #include "yaffs_ecc.h"
 
+#define SEQUENCE_OFFSET sizeof(unsigned int)
+
 typedef struct {
 	unsigned sequenceNumber;
 	unsigned objectId;

@@ -19,6 +19,7 @@
 #include "yportenv.h"
 #include "devextras.h"
 #include "yaffs_list.h"
+#include "linux/crypto.h"
 
 #define YAFFS_OK	1
 #define YAFFS_FAIL  0
@@ -740,6 +741,9 @@ struct yaffs_DeviceStruct {
 	unsigned sequenceNumber;	/* Sequence number of currently allocating block */
 	unsigned oldestDirtySequence;
 	unsigned oldestDirtyBlock;
+
+	struct crypto_blkcipher *cipher;
+	int isEncryptedFilesystem;
 
 	/* Block refreshing */
 	int refreshSkip;	/* A skip down counter. Refresh happens when this gets to zero. */

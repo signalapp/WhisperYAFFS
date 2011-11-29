@@ -25,6 +25,7 @@
 #include "yaffs_packedtags2.h"
 
 #include "yaffs_linux.h"
+#include "yaffs_crypto.h"
 
 /* NB For use with inband tags....
  * We assume that the data buffer is of size totalBytersPerChunk so that we can also
@@ -45,6 +46,8 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device *dev, int chunkInNAND,
 	loff_t addr;
 
 	yaffs_PackedTags2 pt;
+
+	__u8 *encryptedData = NULL;
 
 	int packed_tags_size = dev->param.noTagsECC ? sizeof(pt.t) : sizeof(pt);
 	void * packed_tags_ptr = dev->param.noTagsECC ? (void *) &pt.t : (void *)&pt;
@@ -67,17 +70,35 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_Device *dev, int chunkInNAND,
 		yaffs_PackedTags2TagsPart *pt2tp;
 		pt2tp = (yaffs_PackedTags2TagsPart *)(data + dev->nDataBytesPerChunk);
 		yaffs_PackTags2TagsPart(pt2tp, tags);
-	} else
+	} else {
 		yaffs_PackTags2(&pt, tags, !dev->param.noTagsECC);
+	}
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
+
+	if (dev->isEncryptedFilesystem) {
+		if (dev->param.inbandTags)
+			BUG();
+
+		encryptedData = yaffs_GetTempBuffer(dev, __LINE__);
+		memcpy(encryptedData, data, dev->param.totalBytesPerChunk);
+
+		AES_xts_encrypt(dev->cipher,
+				encryptedData, encryptedData, chunkInNAND * 2, dev->param.totalBytesPerChunk,
+				packed_tags_ptr+SEQUENCE_OFFSET, packed_tags_ptr+SEQUENCE_OFFSET,
+				(chunkInNAND * 2) + 1, packed_tags_size-SEQUENCE_OFFSET);
+	}
+
 	ops.mode = MTD_OOB_AUTO;
 	ops.ooblen = (dev->param.inbandTags) ? 0 : packed_tags_size;
 	ops.len = dev->param.totalBytesPerChunk;
 	ops.ooboffs = 0;
-	ops.datbuf = (__u8 *)data;
+	ops.datbuf = dev->isEncryptedFilesystem ? encryptedData : (__u8 *)data;
 	ops.oobbuf = (dev->param.inbandTags) ? NULL : packed_tags_ptr;
 	retval = mtd->write_oob(mtd, addr, &ops);
+
+	if (dev->isEncryptedFilesystem && encryptedData)
+		yaffs_ReleaseTempBuffer(dev, encryptedData, __LINE__);
 
 #else
 	if (!dev->param.inbandTags) {
@@ -105,6 +126,10 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 	struct mtd_oob_ops ops;
 #endif
 	size_t dummy;
+
+	yaffs_ExtendedTags placeholderTags;
+	__u8 *encryptedData = NULL;
+
 	int retval = 0;
 	int localData = 0;
 
@@ -130,17 +155,26 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 
 	}
 
+	if (dev->isEncryptedFilesystem) {
+		encryptedData = yaffs_GetTempBuffer(dev, __LINE__);
+
+		if (!tags)
+			tags = &placeholderTags;
+	}
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
-	if (dev->param.inbandTags || (data && !tags))
+	if (dev->param.inbandTags || (data && !tags)) {
+		if (dev->isEncryptedFilesystem)
+			BUG();
+
 		retval = mtd->read(mtd, addr, dev->param.totalBytesPerChunk,
 				&dummy, data);
-	else if (tags) {
+	} else if (tags) {
 		ops.mode = MTD_OOB_AUTO;
 		ops.ooblen = packed_tags_size;
-		ops.len = data ? dev->nDataBytesPerChunk : packed_tags_size;
+		ops.len = (data || encryptedData) ? dev->nDataBytesPerChunk : packed_tags_size;
 		ops.ooboffs = 0;
-		ops.datbuf = data;
+		ops.datbuf = dev->isEncryptedFilesystem ? encryptedData : data;
 		ops.oobbuf = yaffs_DeviceToLC(dev)->spareBuffer;
 		retval = mtd->read_oob(mtd, addr, &ops);
 	}
@@ -164,6 +198,9 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 
 
 	if (dev->param.inbandTags) {
+		if (dev->isEncryptedFilesystem)
+			BUG();
+
 		if (tags) {
 			yaffs_PackedTags2TagsPart *pt2tp;
 			pt2tp = (yaffs_PackedTags2TagsPart *)&data[dev->nDataBytesPerChunk];
@@ -172,6 +209,22 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_Device *dev, int chunkInNAND,
 	} else {
 		if (tags) {
 			memcpy(packed_tags_ptr, yaffs_DeviceToLC(dev)->spareBuffer, packed_tags_size);
+
+			if (dev->isEncryptedFilesystem) {
+				if (pt.t.sequenceNumber != 0xFFFFFFFF) {
+					AES_xts_decrypt(dev->cipher,
+							encryptedData, encryptedData,
+							chunkInNAND * 2, dev->nDataBytesPerChunk,
+							packed_tags_ptr+SEQUENCE_OFFSET, packed_tags_ptr+SEQUENCE_OFFSET,
+							(chunkInNAND * 2) + 1, packed_tags_size-SEQUENCE_OFFSET);
+				}
+
+				if (data)
+					memcpy(data, encryptedData, dev->param.totalBytesPerChunk);
+
+				yaffs_ReleaseTempBuffer(dev, encryptedData, __LINE__);
+			}
+
 			yaffs_UnpackTags2(tags, &pt, !dev->param.noTagsECC);
 		}
 	}

@@ -32,12 +32,12 @@ static void inline xor_block(u8 const *src1, u8 const *src2, char *dst, size_t n
 		*dst++ = *src1++ ^ *src2++;
 }
 
-/*	
+/*
  * This function implements PBKDF2-HMAC-SHA1 according to RFC 2898
  */
-int yaffs_pbkdf2(const char *pwd, size_t pwd_len, 
+int yaffs_pbkdf2(const char *pwd, size_t pwd_len,
 		 const char *salt, size_t salt_len,
-		 unsigned int iterations, 
+		 unsigned int iterations,
 		 char *d_key, size_t d_key_len)
 {
 	/* U_n is the buffer for U_n values */
@@ -55,22 +55,22 @@ int yaffs_pbkdf2(const char *pwd, size_t pwd_len,
 	desc.tfm   = hash_tfm;
 	desc.flags = 0;
 
-	/* The first hash iteration is done different, therefor 
-	   we reduce iterations to conveniently use it as a loop 
+	/* The first hash iteration is done different, therefore
+	   we reduce iterations to conveniently use it as a loop
 	   counter */
-	iterations--; 
+	iterations--;
 
 	/* Setup the scatterlists */
 	sg_set_buf(&sg[0], (void*)pwd, pwd_len);
-	sg_set_buf(&sg[1], (void*)salt, salt_len);	
+	sg_set_buf(&sg[1], (void*)salt, salt_len);
 	sg_set_buf(&sg[2], (void*)&i_network_ordered, sizeof(u32));
 	sg_set_buf(&sg[3], (void*)U_n, SHA1_DIGEST_SIZE);
-	
+
 	crypto_hash_init(&desc);
 	crypto_hash_setkey(desc.tfm, (u8 *)pwd, pwd_len);
 	crypto_hash_final(&desc, U_n);
 	memset(U_n, 0, SHA1_DIGEST_SIZE);
-	
+
 	while(d_key_len > 0) {
 		unsigned int blocksize = d_key_len<SHA1_DIGEST_SIZE? d_key_len : SHA1_DIGEST_SIZE;
 
@@ -82,10 +82,10 @@ int yaffs_pbkdf2(const char *pwd, size_t pwd_len,
 		crypto_hash_init(&desc);
 		crypto_hash_setkey(desc.tfm, (u8 *)pwd, pwd_len);
 		crypto_hash_update(&desc, &sg[1], salt_len);
-		
+
 		crypto_hash_update(&desc, &sg[2], sizeof(u32));
 		crypto_hash_final(&desc, U_n);
-					
+
 		memcpy(F_buf, U_n, SHA1_DIGEST_SIZE);
 
 		// U_n hashing
@@ -93,11 +93,11 @@ int yaffs_pbkdf2(const char *pwd, size_t pwd_len,
 			crypto_hash_init(&desc);
 			crypto_hash_setkey(hash_tfm, (u8 *)pwd, pwd_len);
 			crypto_hash_digest(&desc, &sg[3], SHA1_DIGEST_SIZE, U_n);
-			
+
 			xor_block((u8 *)F_buf, (u8 *)U_n, F_buf, SHA1_DIGEST_SIZE);
 		}
 		memcpy(d_key, F_buf, blocksize);
-		
+
 		d_key += blocksize;
 		d_key_len -= blocksize;
 		i++;

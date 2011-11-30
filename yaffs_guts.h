@@ -709,7 +709,7 @@ struct yaffs_dev {
 	unsigned oldest_dirty_block;
 
 	struct crypto_blkcipher *cipher;
-	int isEncryptedFilesystem;
+	int is_encrypted_fs;
 
 	/* Block refreshing */
 	int refresh_skip;	/* A skip down counter. Refresh happens when this gets to zero. */

@@ -34,18 +34,18 @@
 
 #define PASSWORD_ITERATIONS 4000
 
-static void initializeTweakBytes(__u8 *tweakBytes, int tweak) {
+static void initializeTweakBytes(u8 *tweakBytes, int tweak) {
   int j;
 
   for (j=0;j<AES_BLOCK_SIZE;j++) {
-    tweakBytes[j] = (__u8) (tweak & 0xFF);
+    tweakBytes[j] = (u8) (tweak & 0xFF);
     tweak         = tweak >> 8;
   }
 }
 
-static void HMAC_sha1(const __u8 *key, int keyLength,
+static void HMAC_sha1(const u8 *key, int keyLength,
 		      void *input, int inputLength,
-		      __u8 *output)
+		      u8 *output)
 {
   struct scatterlist sg[1];
   struct hash_desc desc;
@@ -63,10 +63,10 @@ static void HMAC_sha1(const __u8 *key, int keyLength,
   crypto_free_hash(hash_tfm);
 }
 
-static void AES_cbc(const __u8 *iv, int ivLength,
-		    const __u8 *key, int keyLength,
-		    const __u8 *input, int inputLength,
-		    __u8 *output, int encrypt)
+static void AES_cbc(const u8 *iv, int ivLength,
+		    const u8 *key, int keyLength,
+		    const u8 *input, int inputLength,
+		    u8 *output, int encrypt)
 {
   struct scatterlist src[1];
   struct scatterlist dst[1];
@@ -94,12 +94,12 @@ static void AES_cbc(const __u8 *iv, int ivLength,
   crypto_free_blkcipher(cipher);
 }
 
-static void AES_xts(struct crypto_blkcipher *cipher, int tweak, const __u8 *input, __u8 *output, int length, int encrypt) {
+static void AES_xts(struct crypto_blkcipher *cipher, int tweak, const u8 *input, u8 *output, int length, int encrypt) {
   struct blkcipher_desc desc;
   struct scatterlist dst[1];
   struct scatterlist src[1];
 
-  __u8 tweakBytes[AES_BLOCK_SIZE];
+  u8 tweakBytes[AES_BLOCK_SIZE];
   initializeTweakBytes(tweakBytes, tweak);
 
   sg_init_table(dst, 1);
@@ -119,12 +119,12 @@ static void AES_xts(struct crypto_blkcipher *cipher, int tweak, const __u8 *inpu
 }
 
 void AES_xts_encrypt(struct crypto_blkcipher *cipher,
-		     const __u8 *pagePlaintext, __u8 *pageCiphertext, int pageTweak, int pageSize,
-		     const __u8 *tagsPlaintext, __u8 *tagsCiphertext, int tagsTweak, int tagsSize)
+		     const u8 *pagePlaintext, u8 *pageCiphertext, int pageTweak, int pageSize,
+		     const u8 *tagsPlaintext, u8 *tagsCiphertext, int tagsTweak, int tagsSize)
 {
   int missingBytes;
-  __u8 blockAlignedTagsPlaintext[AES_BLOCK_SIZE];
-  __u8 blockAlignedTagsCiphertext[AES_BLOCK_SIZE];
+  u8 blockAlignedTagsPlaintext[AES_BLOCK_SIZE];
+  u8 blockAlignedTagsCiphertext[AES_BLOCK_SIZE];
 
   AES_xts(cipher, pageTweak, pagePlaintext, pageCiphertext, pageSize, 1);
 
@@ -140,12 +140,12 @@ void AES_xts_encrypt(struct crypto_blkcipher *cipher,
 }
 
 void AES_xts_decrypt(struct crypto_blkcipher *cipher,
-		     __u8 *pageCiphertext, __u8 *pagePlaintext, int pageTweak, int pageSize,
-		     __u8 *tagsCiphertext, __u8 *tagsPlaintext, int tagsTweak, int tagsSize)
+		     u8 *pageCiphertext, u8 *pagePlaintext, int pageTweak, int pageSize,
+		     u8 *tagsCiphertext, u8 *tagsPlaintext, int tagsTweak, int tagsSize)
 {
   int missingBytes;
-  __u8 blockAlignedTagsCiphertext[AES_BLOCK_SIZE];
-  __u8 blockAlignedTagsPlaintext[AES_BLOCK_SIZE];
+  u8 blockAlignedTagsCiphertext[AES_BLOCK_SIZE];
+  u8 blockAlignedTagsPlaintext[AES_BLOCK_SIZE];
 
   missingBytes = sizeof(blockAlignedTagsCiphertext) - tagsSize;
 
@@ -160,17 +160,17 @@ void AES_xts_decrypt(struct crypto_blkcipher *cipher,
   AES_xts(cipher, pageTweak, pageCiphertext, pagePlaintext, pageSize, 0);
 }
 
-int yaffs_GenerateKeys(__u8 *keyBuffer, int keySize) {
+int yaffs_GenerateKeys(u8 *keyBuffer, int keySize) {
   get_random_bytes(keyBuffer, keySize);
   return 1;
 }
 
-int yaffs_DecryptKeysFromPage(char *password, __u8 *page, __u8 *keys)
+int yaffs_DecryptKeysFromPage(char *password, u8 *page, u8 *keys)
 {
   int i;
-  __u8 passwordKey[16];
-  __u8 macKey[20];
-  __u8 ourMac[20];
+  u8 passwordKey[16];
+  u8 macKey[20];
+  u8 ourMac[20];
 
   yaffs_KeyDescriptorBlock *keyBlock = (yaffs_KeyDescriptorBlock*)page;
 
@@ -242,12 +242,12 @@ int yaffs_DecryptKeysFromPage(char *password, __u8 *page, __u8 *keys)
 }
 
 int yaffs_EncryptKeysToPage(char *password,
-			    __u8 *page, int pageLength,
-			    __u8 *keys, int keysLength)
+			    u8 *page, int pageLength,
+			    u8 *keys, int keysLength)
 {
   int i;
-  __u8 passwordKey[16];
-  __u8 macKey[20];
+  u8 passwordKey[16];
+  u8 macKey[20];
 
   yaffs_KeyDescriptorBlock *keyBlock;
 

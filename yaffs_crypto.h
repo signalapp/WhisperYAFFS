@@ -22,38 +22,37 @@
 #define XTS_KEY_SIZE 32
 #define SHA1_DIGEST_SIZE 20
 
-#include "devextras.h"
 #include "linux/crypto.h"
 
 typedef struct {
-  __u32 versionNumber;
-  __u32 iterationCount;
+  u32 versionNumber;
+  u32 iterationCount;
 
-  __u8 keySalt[16];
-  __u8 macSalt[16];
+  u8 keySalt[16];
+  u8 macSalt[16];
 
-  __u8 iv[AES_BLOCK_SIZE];
-  __u8 keys[XTS_KEY_SIZE];
+  u8 iv[AES_BLOCK_SIZE];
+  u8 keys[XTS_KEY_SIZE];
 
-  __u8 mac[SHA1_DIGEST_SIZE];
+  u8 mac[SHA1_DIGEST_SIZE];
 } yaffs_KeyDescriptorBlock;
 
 
 void AES_xts_encrypt(struct crypto_blkcipher *cipher,
-		     const __u8 *pagePlaintext, __u8 *pageCiphertext, int pageTweak, int pageSize,
-		     const __u8 *tagsPlaintext, __u8 *tagsCiphertext, int tagsTweak, int tagsSize);
+		     const u8 *pagePlaintext, u8 *pageCiphertext, int pageTweak, int pageSize,
+		     const u8 *tagsPlaintext, u8 *tagsCiphertext, int tagsTweak, int tagsSize);
 
 void AES_xts_decrypt(struct crypto_blkcipher *cipher,
-		     __u8 *pageCiphertext, __u8 *pagePlaintext, int pageTweak, int pageSize,
-		     __u8 *tagsCiphertext, __u8 *tagsPlaintext, int tagsTweak, int tagsSize);
+		     u8 *pageCiphertext, u8 *pagePlaintext, int pageTweak, int pageSize,
+		     u8 *tagsCiphertext, u8 *tagsPlaintext, int tagsTweak, int tagsSize);
 
-int yaffs_GenerateKeys(__u8 *keyBuffer, int keySize);
+int yaffs_GenerateKeys(u8 *keyBuffer, int keySize);
 
 int yaffs_EncryptKeysToPage(char *password,
-			    __u8 *page, int pageLength,
-			    __u8 *keys, int keysLength);
+			    u8 *page, int pageLength,
+			    u8 *keys, int keysLength);
 
-int yaffs_DecryptKeysFromPage(char *password, __u8 *page, __u8 *keys);
+int yaffs_DecryptKeysFromPage(char *password, u8 *page, u8 *keys);
 
 
 

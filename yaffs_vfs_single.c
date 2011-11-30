@@ -1775,7 +1775,7 @@ struct yaffs_options {
 	char password[MAX_OPT_LEN+1];
 };
 
-static int parse_option_passphrase(yaffs_options *options, const char *option)
+static int parse_option_passphrase(struct yaffs_options *options, const char *option)
 {
   int offset = 0;
   memset(options->password, 0, sizeof(options->password));
@@ -2040,30 +2040,30 @@ static const struct super_operations yaffs_super_ops = {
 	.write_super = yaffs_write_super,
 };
 
-static int yaffs_EraseFilesystem(yaffs_Device *dev) {
+static int yaffs_EraseFilesystem(struct yaffs_dev *dev) {
   int i;
 
-  for (i=dev->param.startBlock;i<dev->param.endBlock;i++) {
-    yaffs_BlockState state;
-    __u32            sequenceNumber;
+  for (i=dev->param.start_block;i<dev->param.end_block;i++) {
+    enum yaffs_block_state state;
+    u32 sequenceNumber;
 
-    dev->param.queryNANDBlock(dev, i, &state, &sequenceNumber);
+    dev->param.query_block_fn(dev, i, &state, &sequenceNumber);
 
     /* if (state != YAFFS_BLOCK_STATE_DEAD) */
-      dev->param.eraseBlockInNAND(dev, i);
+      dev->param.erase_fn(dev, i);
   }
 
   return 1;
 }
 
-static int yaffs_FindFirstGoodBlock(yaffs_Device *dev) {
+static int yaffs_FindFirstGoodBlock(struct yaffs_dev *dev) {
   int i;
 
-  for (i=dev->param.startBlock;i<dev->param.endBlock;i++) {
-    yaffs_BlockState state;
-    __u32            sequenceNumber;
+  for (i=dev->param.start_block;i<dev->param.end_block;i++) {
+    enum yaffs_block_state state;
+    u32 sequenceNumber;
 
-    dev->param.queryNANDBlock(dev, i, &state, &sequenceNumber);
+    dev->param.query_block_fn(dev, i, &state, &sequenceNumber);
 
     if (state != YAFFS_BLOCK_STATE_DEAD && state == YAFFS_BLOCK_STATE_EMPTY)
       return i;
@@ -2072,49 +2072,49 @@ static int yaffs_FindFirstGoodBlock(yaffs_Device *dev) {
   return -1;
 }
 
-static int yaffs_WriteKeysToBlock(yaffs_Device *dev, char *password,
-				  __u8 *keys, int keyLength,
+static int yaffs_WriteKeysToBlock(struct yaffs_dev *dev, char *password,
+				  u8 *keys, int keyLength,
 				  int keyManagementBlock)
 {
-  __u8 *page;
-  yaffs_ExtendedTags tags;
+  u8 *page;
+  struct yaffs_ext_tags tags;
 
-  if (keyLength > dev->param.totalBytesPerChunk)
+  if (keyLength > dev->param.total_bytes_per_chunk)
     return -1;
 
-  page = YMALLOC(dev->param.totalBytesPerChunk);
+  page = kmalloc(dev->param.total_bytes_per_chunk, GFP_NOFS);
 
-  memset(page, 0, dev->param.totalBytesPerChunk);
+  memset(page, 0, dev->param.total_bytes_per_chunk);
   memset(&tags, 0, sizeof(tags));
 
   yaffs_EncryptKeysToPage(password,
-			  page, dev->param.totalBytesPerChunk,
+			  page, dev->param.total_bytes_per_chunk,
 			  keys, keyLength);
 
-  tags.chunkUsed                = 1;
-  tags.objectId                 = 31337;
-  tags.chunkId                  = 0;
-  tags.sequenceNumber           = 31337;
-  tags.extraHeaderInfoAvailable = 1;
-  tags.extraFileLength          = 31337;
+  tags.chunk_used = 1;
+  tags.obj_id = 31337;
+  tags.chunk_id = 0;
+  tags.seq_number = 31337;
+  tags.extra_available = 1;
+  tags.extra_length = 31337;
 
-  if (dev->param.writeChunkWithTagsToNAND(dev, keyManagementBlock *
-					  dev->param.nChunksPerBlock,
+  if (dev->param.write_chunk_tags_fn(dev, keyManagementBlock *
+					  dev->param.chunks_per_block,
 					  page, &tags) == YAFFS_FAIL)
     {
-      YFREE(page);
+      kfree(page);
       return -1;
     }
 
-  YFREE(page);
+  kfree(page);
   return 1;
 }
 
-static int yaffs_CreateEncryptedFilesystem(yaffs_Device *dev, char *password) {
-  __u8 keys[32];
+static int yaffs_CreateEncryptedFilesystem(struct yaffs_dev *dev, char *password) {
+  u8 keys[32];
   int keyManagementBlock;
 
-  dev->nDataBytesPerChunk = dev->param.totalBytesPerChunk;
+  dev->data_bytes_per_chunk = dev->param.total_bytes_per_chunk;
 
   if (yaffs_EraseFilesystem(dev) == -1) {
     printk(KERN_INFO "Erase FS failed!\n");
@@ -2138,29 +2138,29 @@ static int yaffs_CreateEncryptedFilesystem(yaffs_Device *dev, char *password) {
 
   dev->cipher = crypto_alloc_blkcipher("xts(aes)", 0, 0);
   crypto_blkcipher_setkey(dev->cipher, keys, sizeof(keys));
-  dev->param.startBlock = keyManagementBlock + 1;
+  dev->param.start_block = keyManagementBlock + 1;
 
   printk(KERN_INFO "Creating encrypted FS success!\n");
 
   return 1;
 }
 
-static int yaffs_FindKeyManagementBlock(yaffs_Device *dev) {
-  yaffs_ExtendedTags tags;
+static int yaffs_FindKeyManagementBlock(struct yaffs_dev *dev) {
+  struct yaffs_ext_tags tags;
   int i;
 
-  for (i=dev->param.startBlock;i<dev->param.endBlock;i++) {
-    yaffs_BlockState state;
-    __u32            sequenceNumber;
+  for (i=dev->param.start_block;i<dev->param.end_block;i++) {
+    enum yaffs_block_state state;
+    u32 sequenceNumber;
 
-    dev->param.queryNANDBlock(dev, i, &state, &sequenceNumber);
+    dev->param.query_block_fn(dev, i, &state, &sequenceNumber);
 
     if (state != YAFFS_BLOCK_STATE_DEAD) {
-      if (dev->param.readChunkWithTagsFromNAND(dev, i * dev->param.nChunksPerBlock,
+      if (dev->param.read_chunk_tags_fn(dev, i * dev->param.chunks_per_block,
 					       NULL, &tags) != YAFFS_OK)
 	return -1;
 
-      if (tags.objectId == 31337 && tags.sequenceNumber == 31337)
+      if (tags.obj_id == 31337 && tags.seq_number == 31337)
 	return i;
       else
 	return -1;
@@ -2171,35 +2171,35 @@ static int yaffs_FindKeyManagementBlock(yaffs_Device *dev) {
   return -1;
 }
 
-static int yaffs_LoadKeys(yaffs_Device *dev, char *password, int keyManagementBlock)
+static int yaffs_LoadKeys(struct yaffs_dev *dev, char *password, int keyManagementBlock)
 {
-  yaffs_ExtendedTags tags;
-  __u8 keys[32];
-  __u8 *page = YMALLOC(dev->param.totalBytesPerChunk);
+  struct yaffs_ext_tags tags;
+  u8 keys[32];
+  u8 *page = kmalloc(dev->param.total_bytes_per_chunk, GFP_NOFS);
 
-  memset(page, 0, dev->param.totalBytesPerChunk);
+  memset(page, 0, dev->param.total_bytes_per_chunk);
 
-  if (dev->param.readChunkWithTagsFromNAND(dev, keyManagementBlock * dev->param.nChunksPerBlock,
+  if (dev->param.read_chunk_tags_fn(dev, keyManagementBlock * dev->param.chunks_per_block,
 					   page, &tags) != YAFFS_OK)
     return -1;
 
   if (yaffs_DecryptKeysFromPage(password, page, keys) == -1)
     return -1;
 
-  printk(KERN_INFO "Tags ObjectID, SEQ#: %d, %d\n", tags.objectId, tags.sequenceNumber);
+  printk(KERN_INFO "Tags ObjectID, SEQ#: %d, %d\n", tags.obj_id, tags.seq_number);
 
   dev->cipher = crypto_alloc_blkcipher("xts(aes)", 0, 0);
   crypto_blkcipher_setkey(dev->cipher, keys, sizeof(keys));
 
-  YFREE(page);
+  kfree(page);
 
   return 1;
 }
 
-static int yaffs_UnlockEncryptedFilesystem(yaffs_Device *dev, char *password) {
+static int yaffs_UnlockEncryptedFilesystem(struct yaffs_dev *dev, char *password) {
   int keyManagementBlock;
 
-  dev->nDataBytesPerChunk = dev->param.totalBytesPerChunk;
+  dev->data_bytes_per_chunk = dev->param.total_bytes_per_chunk;
 
   if ((keyManagementBlock = yaffs_FindKeyManagementBlock(dev)) == -1)
     return -1;
@@ -2211,27 +2211,27 @@ static int yaffs_UnlockEncryptedFilesystem(yaffs_Device *dev, char *password) {
 
   printk(KERN_INFO "Loaded keys!\n");
 
-  dev->param.startBlock = keyManagementBlock + 1;
+  dev->param.start_block = keyManagementBlock + 1;
 
   printk(KERN_INFO "Encrypted FS successfully mounted!\n");
 
   return 1;
 }
 
-static int yaffs_EnsureNotEncryptedFilesystem(yaffs_Device *dev) {
+static int yaffs_EnsureNotEncryptedFilesystem(struct yaffs_dev *dev) {
   if (yaffs_FindKeyManagementBlock(dev) == -1)
     return 1;
 
   return -1;
 }
 
-static int yaffs_EnsureEncryptedFilesystemRequirements(yaffs_Device *dev) {
-  if (dev->param.inbandTags) {
+static int yaffs_EnsureEncryptedFilesystemRequirements(struct yaffs_dev *dev) {
+  if (dev->param.inband_tags) {
     printk("yaffs: Inband tags are not supported with encrypted filesystems.\n");
     return -1;
   }
 
-  if (!dev->param.noTagsECC) {
+  if (!dev->param.no_tags_ecc) {
     printk("yaffs: ECC must be managed by MTD for encrypted filesystem support.\n");
     return -1;
   }
@@ -2564,8 +2564,8 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	    options.unlock_encrypted_filesystem)
 	{
 		if (yaffs_EnsureEncryptedFilesystemRequirements(dev) == -1) {
-			T(YAFFS_TRACE_ALWAYS,
-				(TSTR("yaffs: Filesystem does not meet prerequisites for encryption support.\n")));
+			yaffs_trace(YAFFS_TRACE_ALWAYS,
+				"yaffs: Filesystem does not meet prerequisites for encryption support.");
 
 			printk(KERN_EMERG "yaffs: Filesystem does not meet prerequisites for encryption support.");
 			return NULL;
@@ -2574,8 +2574,8 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 
 	if (options.create_encrypted_filesystem) {
 		if (yaffs_CreateEncryptedFilesystem(dev, options.password) == -1) {
-			T(YAFFS_TRACE_ALWAYS,
-				(TSTR("yaffs: Failed to create encrypted filesystem.\n")));
+			yaffs_trace(YAFFS_TRACE_ALWAYS,
+				"yaffs: Failed to create encrypted filesystem.");
 
 			printk(KERN_EMERG "yaffs: Failed to create encrypted filesystem.\n");
 			return NULL;
@@ -2586,8 +2586,8 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 
 	if (options.unlock_encrypted_filesystem) {
 		if (yaffs_UnlockEncryptedFilesystem(dev, options.password) == -1) {
-			T(YAFFS_TRACE_ALWAYS,
-				(TSTR("yaffs: Failed to unlock encrypted filesystem.\n")));
+			yaffs_trace(YAFFS_TRACE_ALWAYS,
+				"yaffs: Failed to unlock encrypted filesystem.");
 
 			printk(KERN_EMERG "yaffs: Failed to unlock encrypted filesystem.\n");
 			return NULL;
@@ -2600,9 +2600,9 @@ static struct super_block *yaffs_internal_read_super(int yaffs_version,
 	    !options.unlock_encrypted_filesystem)
 	{
 		if (yaffs_EnsureNotEncryptedFilesystem(dev) == -1) {
-			T(YAFFS_TRACE_ALWAYS,
-				(TSTR("yaffs: This is an encrypted filesystem, " \
-				      "you must specify a passphrase.\n")));
+			yaffs_trace(YAFFS_TRACE_ALWAYS,
+				"yaffs: This is an encrypted filesystem, " \
+				"you must specify a passphrase.");
 
 			printk(KERN_EMERG "yaffs: This is an encrypted filesystem, you must specify a passphrase.\n");
 			return NULL;

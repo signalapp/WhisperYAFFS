@@ -43,7 +43,7 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 
 	struct yaffs_packed_tags2 pt;
 
-	__u8 *encryptedData = NULL;
+	u8 *encryptedData = NULL;
 
 	int packed_tags_size =
 	    dev->param.no_tags_ecc ? sizeof(pt.t) : sizeof(pt);
@@ -74,16 +74,16 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
         }
 
 	if (dev->isEncryptedFilesystem) {
-		if (dev->param.inbandTags)
+		if (dev->param.inband_tags)
 			BUG();
 
-		encryptedData = yaffs_GetTempBuffer(dev, __LINE__);
-		memcpy(encryptedData, data, dev->param.totalBytesPerChunk);
+		encryptedData = yaffs_get_temp_buffer(dev, __LINE__);
+		memcpy(encryptedData, data, dev->param.total_bytes_per_chunk);
 
 		AES_xts_encrypt(dev->cipher,
-				encryptedData, encryptedData, chunkInNAND * 2, dev->param.totalBytesPerChunk,
+				encryptedData, encryptedData, nand_chunk * 2, dev->param.total_bytes_per_chunk,
 				packed_tags_ptr+SEQUENCE_OFFSET, packed_tags_ptr+SEQUENCE_OFFSET,
-				(chunkInNAND * 2) + 1, packed_tags_size-SEQUENCE_OFFSET);
+				(nand_chunk * 2) + 1, packed_tags_size-SEQUENCE_OFFSET);
 	}
 
 	ops.mode = MTD_OOB_AUTO;
@@ -95,7 +95,7 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	retval = mtd->write_oob(mtd, addr, &ops);
 
 	if (dev->isEncryptedFilesystem && encryptedData)
-		yaffs_ReleaseTempBuffer(dev, encryptedData, __LINE__);
+		yaffs_release_temp_buffer(dev, encryptedData, __LINE__);
 
 	if (retval == 0)
 		return YAFFS_OK;
@@ -111,8 +111,8 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 
 	size_t dummy;
 
-	yaffs_ExtendedTags placeholderTags;
-	__u8 *encryptedData = NULL;
+	struct yaffs_ext_tags placeholderTags;
+	u8 *encryptedData = NULL;
 
 	int retval = 0;
 	int local_data = 0;
@@ -140,7 +140,7 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	}
 
 	if (dev->isEncryptedFilesystem) {
-		encryptedData = yaffs_GetTempBuffer(dev, __LINE__);
+		encryptedData = yaffs_get_temp_buffer(dev, __LINE__);
 
 		if (!tags)
 			tags = &placeholderTags;
@@ -179,18 +179,18 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 			       packed_tags_size);
 
 			if (dev->isEncryptedFilesystem) {
-				if (pt.t.sequenceNumber != 0xFFFFFFFF) {
+				if (pt.t.seq_number != 0xFFFFFFFF) {
 					AES_xts_decrypt(dev->cipher,
 							encryptedData, encryptedData,
-							chunkInNAND * 2, dev->nDataBytesPerChunk,
+							nand_chunk * 2, dev->data_bytes_per_chunk,
 							packed_tags_ptr+SEQUENCE_OFFSET, packed_tags_ptr+SEQUENCE_OFFSET,
-							(chunkInNAND * 2) + 1, packed_tags_size-SEQUENCE_OFFSET);
+							(nand_chunk * 2) + 1, packed_tags_size-SEQUENCE_OFFSET);
 				}
 
 				if (data)
-					memcpy(data, encryptedData, dev->param.totalBytesPerChunk);
+					memcpy(data, encryptedData, dev->param.total_bytes_per_chunk);
 
-				yaffs_ReleaseTempBuffer(dev, encryptedData, __LINE__);
+				yaffs_release_temp_buffer(dev, encryptedData, __LINE__);
 			}
 
 			yaffs_unpack_tags2(tags, &pt, !dev->param.no_tags_ecc);

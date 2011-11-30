@@ -2236,13 +2236,6 @@ static int yaffs_EnsureEncryptedFilesystemRequirements(yaffs_Device *dev) {
     return -1;
   }
 
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(2, 6, 17))
-
-  printk("yaffs: Encrypted FS support requires Kernel version >= 2.6.17\n");
-  return -1;
-
-#endif
-
   return 1;
 }
 

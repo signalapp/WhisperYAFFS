@@ -21,6 +21,8 @@
 #include "yaffs_guts.h"
 #include "yaffs_ecc.h"
 
+#define SEQUENCE_OFFSET sizeof(unsigned int)
+
 struct yaffs_packed_tags2_tags_only {
 	unsigned seq_number;
 	unsigned obj_id;

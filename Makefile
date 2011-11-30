@@ -29,6 +29,7 @@ ifneq ($(KERNELRELEASE),)
 	yaffs2-objs := yaffs_mtdif.o yaffs_mtdif2_single.o
 	yaffs2-objs += yaffs_mtdif1_single.o yaffs_packedtags1.o
 	yaffs2-objs += yaffs_ecc.o yaffs_vfs_single.o yaffs_guts.o
+	yaffs2-objs += yaffs_crypto.o yaffs_pbkdf2.o
 	yaffs2-objs += yaffs_packedtags2.o
 	yaffs2-objs += yaffs_tagscompat.o yaffs_tagsvalidity.o
 	yaffs2-objs += yaffs_checkptrw.o yaffs_nand.o
@@ -41,6 +42,7 @@ ifneq ($(KERNELRELEASE),)
 	yaffs2multi-objs := yaffs_mtdif.o yaffs_mtdif2_multi.o
 	yaffs2multi-objs += yaffs_mtdif1_multi.o yaffs_packedtags1.o
 	yaffs2multi-objs += yaffs_ecc.o yaffs_vfs_multi.o yaffs_guts.o
+	yaffs2multi-objs += yaffs_crypto.o yaffs_pbkdf2.o
 	yaffs2multi-objs += yaffs_packedtags2.o
 	yaffs2multi-objs += yaffs_tagscompat.o yaffs_tagsvalidity.o
 	yaffs2multi-objs += yaffs_checkptrw.o yaffs_nand.o
